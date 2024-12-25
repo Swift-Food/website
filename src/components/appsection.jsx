@@ -7,7 +7,7 @@ function AppSection() {
                 <p>Download our app</p>
                 <div className='store_images'>
                     <a href='https://play.google.com/store/apps/details?id=com.whatsapp&pcampaignid=web_share' target='_blank'>
-                        <img src='/images/appstore_img.png' alt='Image of app'></img>
+                        <img src='/swift_eats/images/appstore_img.png' alt='Image of app'></img>
                     </a>
                     <a href='https://play.google.com/store/apps/details?id=com.whatsapp&pcampaignid=web_share' target='_blank'>
                         <img src='/swift_eats/images/googleplay_img.png' alt='Image of app'></img>
