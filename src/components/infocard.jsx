@@ -11,7 +11,7 @@ function InfoCard() {
                         here</p>
                 </div>
                 <div className='image-section'>
-                    <img src='/images/stock_customer.jpg' alt='image of a delivery driver'></img>
+                    <img src='/swift_eats/images/stock_customer.jpg' alt='image of a delivery driver'></img>
                 </div>
             </div>
         </div>
