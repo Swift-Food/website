@@ -6,21 +6,24 @@ function ImageRow() {
         <div className="image-row">
             <div className="image-container">
                 <Link to={"/stalls"}>
-                    <img src="/swift_eats/images/stall_stock.jpg" alt="Image 1"/>
+                    <img src="/swift_eats/images/eating_food_2.jpg" alt="Image 1"/>
                 </Link>
-                <p>Stalls</p>
+                <h1>Join the Community</h1>
+                <p>sample</p>
             </div>
             <div className="image-container">
                 <Link to={"/stalls"}>
-                    <img src="/swift_eats/images/rider_stock.jpg" alt="Image 2"/>
+                    <img src="/swift_eats/images/bakery.jpg" alt="Image 2"/>
                 </Link>
-                <p>Riders</p>
+                <h1>Partner With Us</h1>
+                <p>sample</p>
             </div>
             <div className="image-container">
                 <Link to={"/stalls"}>
-                    <img src="/swift_eats/images/food_stock.jpg" alt="Image 3"/>
+                    <img src="/swift_eats/images/rider.jpg" alt="Image 3"/>
                 </Link>
-                <p>Customers</p>
+                <h1>Become a Rider</h1>
+                <p>sample</p>
             </div>
         </div>
     )

@@ -1,5 +1,6 @@
+
 .appsection {
-    background-color: #FFC3E3;
+    background-image: linear-gradient(#ff0088,#FFC3E3);
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -8,7 +9,6 @@
 }
 
 .text_section {
-    color: #000000;
     text-decoration: none;
     font-size: 1.5rem;
     font-weight: bold;
@@ -16,8 +16,20 @@
     margin-bottom: 20px; /* Add spacing between sections */
 }
 
+.text_section h1 {
+    color: #fff;
+    font-size: 4rem;
+}
+
+.text_section p {
+    color: #fff;
+    font-size: 1rem;
+    font-style: italic;
+}
+
 .store_images {
     display: flex;
+    flex-direction: column;
     gap: 10px;
     justify-content: center; /* Center buttons on smaller screens */
     flex-wrap: wrap; /* Allow wrapping if necessary */

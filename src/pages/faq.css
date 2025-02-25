@@ -1,0 +1,7 @@
+.faq {
+    background-image: linear-gradient(#ff0088,#FFC3E3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}

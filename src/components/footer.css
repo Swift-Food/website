@@ -1,21 +1,26 @@
 /* Footer Base Styles */
 .footer {
-    background-color: #F567B2;
+    background-color: #ff2498;
     color: #fff;
     padding: 2rem;
     text-align: center;
     display: flex;
     flex-direction: column; /* Default column layout for smaller screens */
-    align-items: center;
 }
 
 .footer-content {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    justify-content: space-evenly;
     gap: 2rem; /* Add spacing between sections for better layout */
 }
 
+.footer-section-social {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+}
 .footer-section {
     margin: 1rem 0;
 }
@@ -38,7 +43,7 @@
 }
 
 .footer-section a {
-    color: #000000;
+    color: #e8e8e8;
     text-decoration: none;
     font-size: 1rem; /* Adjust link font size for readability */
 }
@@ -47,6 +52,7 @@
     color: #fff;
     text-decoration: underline; /* Highlight links on hover */
 }
+
 
 /* Footer bottom section */
 .footer-bottom {

@@ -3,8 +3,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: #FFC3E3; /* Match color with appsection */
-    border-bottom: 2px solid #000;
+    background-color: #ffffff; /* Match color with appsection */
 }
 
 .navbar-logo {
@@ -31,7 +30,7 @@
 }
 
 .navbar-links a {
-    color: #000000;
+    color: #494949;
     text-decoration: none;
 }
 

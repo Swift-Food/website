@@ -19,6 +19,7 @@
     border: 1px solid #e0e0e0; /* Optional: light border for definition */
     display: flex;
     flex-wrap: wrap; /* Allow elements to wrap for smaller screens */
+    flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
     transition: transform 0.5s, box-shadow 0.5s;
@@ -53,8 +54,8 @@
 
 /* Image section */
 .image-section {
-    width: 300px; /* Adjust width for consistency */
-    height: 300px;
+    width: 640px; /* Adjust width for consistency */
+    height: 400px;
     margin: 10px;
     text-align: center;
 }
@@ -65,6 +66,14 @@
     object-fit: cover;
     border-radius: 12px; /* Match border radius with card */
 }
+
+.text-section {
+    max-width: 640px;
+    text-align: left; /* Center-align text for smaller screens */
+    margin-bottom: 20px;
+}
+
+
 
 /* Responsive Design */
 @media (max-width: 768px) {

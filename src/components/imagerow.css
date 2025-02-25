@@ -1,18 +1,11 @@
 /* Base Styles */
 .image-row {
+    background-image: linear-gradient(#ff57af, #ffa6d7);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
     margin: 50px auto; /* Center the row horizontally */
-    gap: 20px; /* Add spacing between image containers */
-}
-
-.image-row p {
-    color: #000000;
-    text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-align: center; /* Center-align text below images */
+    gap: 50px; /* Add spacing between image containers */
 }
 
 /* Image Container */
@@ -25,6 +18,18 @@
     transition: transform 0.3s, box-shadow 0.3s; /* Smooth hover effect */
 }
 
+.image-container h1 {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center; /* Center-align text below images */
+}
+.image-container p {
+    color: #ffffff;
+    font-size: 1rem;
+    text-align: left; /* Center-align text below images */
+}
+
 .image-container:hover {
     transform: translateY(-5px); /* Slight upward motion */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
@@ -35,12 +40,6 @@
     height: 100%;
     object-fit: cover; /* Ensures image fits within its container */
     border-radius: 10px; /* Rounded corners */
-}
-
-.image-container p {
-    margin-top: 10px;
-    font-size: 1rem; /* Adjust font size for readability */
-    color: #333; /* Softer text color */
 }
 
 /* Responsive Design */

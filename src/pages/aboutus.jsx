@@ -1,16 +1,16 @@
 import './aboutus.css'
+import AboutUsCard from "../components/aboutuscard.jsx";
 
 function AboutUs() {
     return (
         <div className='aboutus'>
             <div className='title'>
-                <h1>About Us</h1>
+                <h1>About us</h1>
+                <h2>Bringing Street Food to Your Doorstep - <i>Fast, Affordable and Local</i></h2>
+                <h3>At Swift Food, we believe that great food shouldn't come with a hefty price tag.</h3>
             </div>
 
-            <p>At [App Name], we’re passionate about bringing the vibrant flavors of your favorite food stalls straight to your doorstep.
-                Our mission is to connect food lovers with the best street food vendors in town, offering quick, reliable delivery and an easy-to-use platform.
-                Whether you’re craving sizzling tacos, mouthwatering dumplings, or freshly grilled kebabs, we ensure every order is prepared with love and delivered fresh.
-                Supporting local food vendors and creating unforgettable dining experiences is at the heart of what we do.</p>
+            <AboutUsCard />
         </div>
     )
 }

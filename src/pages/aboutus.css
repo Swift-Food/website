@@ -1,9 +1,26 @@
 .aboutus {
-    background-color: #FFC3E3;
+    background-image: linear-gradient(#ff0088,#FFC3E3);
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
+}
+
+.aboutus h1 {
+    color: #fff;
+    font-size: 3rem;
+}
+
+.aboutus h2 {
+    color: #e8e8e8;
+    font-size: 1.75rem;
+    font-weight: lighter;
+}
+
+.aboutus h3 {
+    color: #e8e8e8;
+    font-size: 1.25rem;
+    font-weight: lighter;
 }
 
 .text_section {
