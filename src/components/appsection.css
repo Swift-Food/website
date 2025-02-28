@@ -5,7 +5,7 @@
     justify-content: space-evenly;
     align-items: center;
     flex-wrap: wrap; /* Allow wrapping for smaller screens */
-    padding: 20px; /* Add padding for better spacing */
+    padding: 50px; /* Add padding for better spacing */
 }
 
 .text_section {
@@ -45,6 +45,14 @@
     height: auto;
 }
 
+.app_image {
+    width: 250px;
+    transition: transform 0.4s ease-in-out;
+}
+
+.app_image:hover {
+    transform: scale(1.05) translateY(-3px); /* Slight lift effect */
+}
 /* Responsive design for smaller screens */
 @media (max-width: 768px) {
     .appsection {

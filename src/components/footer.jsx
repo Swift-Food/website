@@ -39,27 +39,27 @@ function Footer() {
 
             <div className="footer-section-social">
                 <div className='tiktok'>
-                    <a href='https://play.google.com/store/apps/details?id=com.whatsapp&pcampaignid=web_share'
+                    <a href='https://www.tiktok.com/@swiftfood_uk'
                        target='_blank'>
-                        <img src='/swift_eats/images/appstore_img.png' alt='Image of apple'></img>
+                        <img src='/swift_eats/images/tiktok.png' alt='Image of tiktok' width={50} height={50}></img>
                     </a>
                 </div>
                 <div className='insta'>
-                    <a href='https://play.google.com/store/apps/details?id=com.whatsapp&pcampaignid=web_share'
+                    <a href='https://www.instagram.com/swiftfood_uk/'
                        target='_blank'>
-                        <img src='/swift_eats/images/appstore_img.png' alt='Image of apple'></img>
+                        <img src='/swift_eats/images/instagram.png' alt='Image of insta' width={50} height={50}></img>
                     </a>
                 </div>
                 <div className='youtube'>
-                    <a href='https://play.google.com/store/apps/details?id=com.whatsapp&pcampaignid=web_share'
+                    <a href='https://www.youtube.com/@Swiftfood_uk'
                        target='_blank'>
-                        <img src='/swift_eats/images/appstore_img.png' alt='Image of apple'></img>
+                        <img src='/swift_eats/images/youtube.png' alt='Image of youtube' width={50} height={50}></img>
                     </a>
                 </div>
                 <div className='rednote'>
-                    <a href='https://play.google.com/store/apps/details?id=com.whatsapp&pcampaignid=web_share'
+                    <a href='https://www.xiaohongshu.com/user/profile/5fcaee6e0000000001001f7c'
                        target='_blank'>
-                        <img src='/swift_eats/images/appstore_img.png' alt='Image of apple'></img>
+                        <img src='/swift_eats/images/Xiao-Hong Shu-128.png' alt='Image of rednote' width={50} height={50}></img>
                     </a>
                 </div>
 

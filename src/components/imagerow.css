@@ -4,8 +4,11 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
-    margin: 50px auto; /* Center the row horizontally */
+    margin: 100px auto; /* Center the row horizontally */
     gap: 50px; /* Add spacing between image containers */
+    padding-top: 50px;
+    padding-bottom: 150px; /* Ensure background covers the text */
+    align-items: flex-start;
 }
 
 /* Image Container */
