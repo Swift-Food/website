@@ -2,12 +2,15 @@
   publish = "dist"
   command = "npm run build"
 
+# This is the critical part - handle requests to /swift_eats/assets correctly
 [[redirects]]
   from = "/swift_eats/*"
-  to = "/swift_eats/:splat"
+  to = "/:splat"
   status = 200
+  force = true
 
+# This handles your React Router routes
 [[redirects]]
   from = "/*"
-  to = "/swift_eats/index.html"
+  to = "/index.html"
   status = 200
