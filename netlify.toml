@@ -1,0 +1,13 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/swift_eats/*"
+  to = "/swift_eats/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/swift_eats/index.html"
+  status = 200
