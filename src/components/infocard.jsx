@@ -12,7 +12,7 @@ function InfoCard() {
                     <p>We aim to connect food lovers with the best local market stalls and street food vendors, delivering
                      delicious meals quickly and affordably. Swift Food was created to make street food more accessible
                      while supporting the hardworking vendors that make London's food scene unique. Our goal is to become
-                     the go-to platform for students and food lovers who want variety, quality, and value—all in one place.</p>
+                     the go-to platform for students and food lovers who want variety, quality, and value—all in one plae.</p>
                 </div>
             </div>
         </div>
