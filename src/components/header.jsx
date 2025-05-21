@@ -12,7 +12,7 @@ function Header() {
     return (
         <nav className="navbar">
             <div className="navbar-logo"> 
-                <Link to={"/swift_eats"}>
+                <Link to={"/"}>
                     <img src="/swift_eats/images/swift_logo.png" alt="Company Logo" />
                 </Link>
             </div>
