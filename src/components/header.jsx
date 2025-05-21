@@ -11,9 +11,10 @@ function Header() {
 
     return (
         <nav className="navbar">
-            <div className="navbar-logo">
-                <img src="/swift_eats/images/swift_logo.png" alt="Company Logo" />
-                <Link to={"/swift_eats"}>Swift Food</Link>
+            <div className="navbar-logo"> 
+                <Link to={"/swift_eats"}>
+                    <img src="/swift_eats/images/swift_logo.png" alt="Company Logo" />
+                </Link>
             </div>
             <ul className={`navbar-links ${menuOpen ? 'open' : ''}`}>
                 <li><Link to={"/swift_eats"}>Catering</Link></li>

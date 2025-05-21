@@ -10,6 +10,18 @@
     display: flex;
     align-items: center;
     color: #000000;
+    max-height: 50px;
+    max-width: 160px;
+}
+
+/* Add this new rule for the logo image */
+.navbar-logo img {
+    max-height: 70px;
+    max-width: 180px;
+    width: auto;
+    height: auto;
+    margin-top: 10px;
+    object-fit: contain;
 }
 
 .navbar-logo a {
@@ -17,7 +29,7 @@
     font-size: 1.5rem;
     font-weight: bold;
     color: #000;
-    margin-left: 10px; /* Adds a little space between the logo and text */
+    margin-left: 10px;
 }
 
 .navbar-links {
