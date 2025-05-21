@@ -23,7 +23,7 @@ function App() {
         <header><Header /></header>
         <main>
             <Routes>
-                <Route path="/swift_eats" element={<Home />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/riders" element={<Riders />} />
