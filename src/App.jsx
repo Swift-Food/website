@@ -12,7 +12,7 @@ import Stalls from './pages/stalls.jsx'
 import Riders from './pages/riders.jsx'
 import FAQ from './pages/faq.jsx'
 import DriverSignup from './pages/driverSignup.jsx'
-
+import RestaurantPartner from './pages/restaurantPartner.jsx'
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -31,6 +31,7 @@ function App() {
                 <Route path="/stalls" element={<Stalls />} />
                 <Route path="/FAQ" element={<FAQ />} />
                 <Route path="/driver-signup" element={<DriverSignup />} />
+                <Route path="/restaurant-partner" element={<RestaurantPartner />} />
             </Routes>
         </main>
           <footer><Footer /></footer>

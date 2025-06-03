@@ -30,7 +30,7 @@ function Footer() {
                         <li><Link to={"/FAQ"}>FAQs</Link></li>
                         <li><Link to={"/about-us"}>Markets</Link></li>
                         <li><Link to={"/contact"}>Sign Up</Link></li>
-                        <li><Link to={"/swift_eats"}>Partner With Us</Link></li>
+                        <li><Link to={"/restaurant-partner"}>Partner With Us</Link></li>
                         <li><Link to={"/driver-signup"}>Become a Rider</Link></li>
                         <li><Link to={"/contact"}>Terms and Conditions</Link></li>
                     </ul>

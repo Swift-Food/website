@@ -1,30 +1,30 @@
-.driver-signup {
-    max-width: 800px;
+.restaurant-partner {
+    max-width: 900px;
     margin: 0 auto;
     padding: 40px 20px;
     font-family: Arial, sans-serif;
 }
 
-.driver-header {
+.partner-header {
     text-align: center;
     margin-bottom: 40px;
 }
 
-.driver-header h1 {
-    color: #dcdcdc;
+.partner-header h1 {
+    color: #d7d7d7;
     font-size: 2.5rem;
     margin-bottom: 10px;
 }
 
-.driver-header p {
+.partner-header p {
     color: #666;
     font-size: 1.1rem;
     margin-bottom: 10px;
 }
 
-.driver-form {
+.partner-form {
     background: white;
-    padding: 30px;
+    padding: 35px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -41,39 +41,59 @@
 
 .form-section h3 {
     color: #333;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 2px solid #ffa6d7;
 }
 
-.names,
+.form-section h4 {
+    color: #555;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    margin-top: 20px;
+}
+
+.business-row,
+.contact-row,
+.business-details-row,
 .address-row,
-.license-row,
-.vehicle-row,
-.hours-row {
+.hours-row,
+.volume-row {
     display: flex;
     gap: 15px;
     margin-bottom: 15px;
 }
 
-.names input {
+.business-row select,
+.business-row input,
+.contact-row input,
+.business-details-row input,
+.address-row input,
+.hours-row select,
+.volume-row select {
     flex: 1;
 }
 
-.address-row input,
-.license-row input,
-.license-row select,
-.vehicle-row input,
-.vehicle-row select,
-.hours-row select {
-    flex: 1;
+.address-section {
+    margin-bottom: 15px;
+}
+
+.operating-hours {
+    margin-top: 20px;
+}
+
+.operating-hours label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #555;
 }
 
 input[type="text"],
 input[type="email"],
 input[type="tel"],
-input[type="date"],
+input[type="url"],
 select,
 textarea {
     width: 100%;
@@ -88,7 +108,7 @@ textarea {
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus,
-input[type="date"]:focus,
+input[type="url"]:focus,
 select:focus,
 textarea:focus {
     outline: none;
@@ -100,20 +120,28 @@ select {
     cursor: pointer;
 }
 
-.availability-checkboxes {
+.delivery-experience {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 20px;
 }
 
-.checkbox-agreements {
+.services-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.agreements {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-top: 20px;
 }
 
+.radio-label,
 .checkbox-label {
     display: flex;
     align-items: center;
@@ -121,12 +149,15 @@ select {
     font-size: 16px;
     color: #555;
     cursor: pointer;
+    line-height: 1.4;
 }
 
+.radio-label input[type="radio"],
 .checkbox-label input[type="checkbox"] {
     width: auto;
     margin: 0;
     transform: scale(1.2);
+    flex-shrink: 0;
 }
 
 .message-box textarea {
@@ -155,43 +186,56 @@ select {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .driver-signup {
+    .restaurant-partner {
         padding: 20px 10px;
     }
 
-    .driver-header h1 {
+    .partner-header h1 {
         font-size: 2rem;
     }
 
-    .driver-form {
-        padding: 20px;
+    .partner-form {
+        padding: 25px;
     }
 
-    .names,
+    .business-row,
+    .contact-row,
+    .business-details-row,
     .address-row,
-    .license-row,
-    .vehicle-row,
-    .hours-row {
+    .hours-row,
+    .volume-row {
         flex-direction: column;
         gap: 0;
     }
 
     .form-section h3 {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
+    }
+
+    .services-checkboxes {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
-    .driver-header h1 {
+    .partner-header h1 {
         font-size: 1.8rem;
     }
 
-    .driver-header p {
+    .partner-header p {
         font-size: 1rem;
+    }
+
+    .partner-form {
+        padding: 20px;
     }
 
     .submit-btn {
         font-size: 16px;
         padding: 12px 30px;
+    }
+
+    .form-section h3 {
+        font-size: 1.2rem;
     }
 }
