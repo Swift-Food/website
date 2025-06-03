@@ -5,7 +5,7 @@ function Footer() {
     return (
         <footer className="footer">
             <div className="footer-content">
-                <div className="footer-section about">
+                {/* <div className="footer-section about">
                     <p>Download our App</p>
                     <div className='store_images'>
                         <div className='apple'>
@@ -21,7 +21,7 @@ function Footer() {
                             </a>
                         </div>
                     </div>
-                </div>
+                </div> */}
                 <div className="footer-section links">
                     <ul>
                         <li><Link to={"/swift_eats"}>About Us</Link></li>

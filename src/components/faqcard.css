@@ -143,6 +143,7 @@
     cursor: pointer;
     padding: 12px;
     transition: color 0.3s ease;
+    color: #333;
 }
 
 .faq-question:hover {
@@ -155,6 +156,7 @@
     transition: max-height 0.3s ease-out, opacity 0.2s ease-in-out, padding 0.2s ease-in-out;
     opacity: 0;
     padding: 0 12px;
+    color: #333;
 }
 
 .faq-item.open .faq-answer {
