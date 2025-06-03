@@ -11,6 +11,7 @@ import Contact from './pages/contact.jsx'
 import Stalls from './pages/stalls.jsx'
 import Riders from './pages/riders.jsx'
 import FAQ from './pages/faq.jsx'
+import DriverSignup from './pages/driverSignup.jsx'
 
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/riders" element={<Riders />} />
                 <Route path="/stalls" element={<Stalls />} />
                 <Route path="/FAQ" element={<FAQ />} />
+                <Route path="/driver-signup" element={<DriverSignup />} />
             </Routes>
         </main>
           <footer><Footer /></footer>

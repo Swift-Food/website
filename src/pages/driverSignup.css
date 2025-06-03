@@ -1,0 +1,197 @@
+.driver-signup {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: Arial, sans-serif;
+}
+
+.driver-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.driver-header h1 {
+    color: #333;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.driver-header p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.driver-form {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #eee;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section h3 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ffa6d7;
+}
+
+.names,
+.address-row,
+.license-row,
+.vehicle-row,
+.hours-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.names input {
+    flex: 1;
+}
+
+.address-row input,
+.license-row input,
+.license-row select,
+.vehicle-row input,
+.vehicle-row select,
+.hours-row select {
+    flex: 1;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #ffa6d7;
+    box-shadow: 0 0 5px rgba(255, 166, 215, 0.3);
+}
+
+select {
+    cursor: pointer;
+}
+
+.availability-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.checkbox-agreements {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: #555;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    transform: scale(1.2);
+}
+
+.message-box textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #ffa6d7, #ff7eb3);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, #ff7eb3, #ffa6d7);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 166, 215, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .driver-signup {
+        padding: 20px 10px;
+    }
+
+    .driver-header h1 {
+        font-size: 2rem;
+    }
+
+    .driver-form {
+        padding: 20px;
+    }
+
+    .names,
+    .address-row,
+    .license-row,
+    .vehicle-row,
+    .hours-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-section h3 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .driver-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .driver-header p {
+        font-size: 1rem;
+    }
+
+    .submit-btn {
+        font-size: 16px;
+        padding: 12px 30px;
+    }
+}
