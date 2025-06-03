@@ -24,7 +24,7 @@ function Footer() {
                 </div> */}
                 <div className="footer-section links">
                     <ul>
-                        <li><Link to={"/about us"}>About Us</Link></li>
+                        <li><Link to={"/about-us"}>About Us</Link></li>
                         <li><Link to={"/catering"}>Catering</Link></li>
                         <li><Link to={"/contact"}>Contact</Link></li>
                         <li><Link to={"/FAQ"}>FAQs</Link></li>
