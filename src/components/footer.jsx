@@ -25,11 +25,10 @@ function Footer() {
                 <div className="footer-section links">
                     <ul>
                         <li><Link to={"/swift_eats"}>About Us</Link></li>
-                        <li><Link to={"/about-us"}>Catering</Link></li>
+                        <li><Link to={"/catering"}>Catering</Link></li>
                         <li><Link to={"/contact"}>Contact</Link></li>
                         <li><Link to={"/FAQ"}>FAQs</Link></li>
-                        <li><Link to={"/about-us"}>Markets</Link></li>
-                        <li><Link to={"/contact"}>Sign Up</Link></li>
+                        <li><Link to={"/markets"}>Markets</Link></li>
                         <li><Link to={"/restaurant-partner"}>Partner With Us</Link></li>
                         <li><Link to={"/driver-signup"}>Become a Rider</Link></li>
                         <li><Link to={"/contact"}>Terms and Conditions</Link></li>

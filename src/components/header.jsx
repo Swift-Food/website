@@ -17,7 +17,7 @@ function Header() {
                 </Link>
             </div>
             <ul className={`navbar-links ${menuOpen ? 'open' : ''}`}>
-                <li><Link to={"/swift_eats"}>Catering</Link></li>
+                <li><Link to={"/catering"}>Catering</Link></li>
                 <li><Link to={"/about-us"}>About Us</Link></li>
                 <li><Link to={"/contact"}>Contact</Link></li>
             </ul>
