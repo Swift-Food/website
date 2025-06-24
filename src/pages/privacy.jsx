@@ -85,7 +85,7 @@ const PrivacyPolicy = () => {
             }}>
               2. Information we collect about you
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '20px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '20px' }}>
               We collect information to help us run our services and deliver your orders smoothly. This includes:
             </p>
             
@@ -93,7 +93,7 @@ const PrivacyPolicy = () => {
               <h3 style={{ color: '#ff0088', fontSize: '1.3rem', marginBottom: '10px' }}>
                 a) Information you give us directly
               </h3>
-              <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+              <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
                 <li>When you create an account or update it, you provide details like your name, email address and delivery address. You may also choose to give us your phone number, which helps us reach you if there's a problem with your delivery. If you order age-restricted items, we may ask for your date of birth to verify your age.</li>
                 <li>When you place an order, we collect details of what you've ordered, any delivery notes you add, vouchers or discounts you use, and payment details (which are handled securely by our payment providers).</li>
                 <li>When you contact us (for example, by using our contact form or sending us an email), we collect the information you share with us so we can respond to you and improve our service.</li>
@@ -105,7 +105,7 @@ const PrivacyPolicy = () => {
               <h3 style={{ color: '#ff0088', fontSize: '1.3rem', marginBottom: '10px' }}>
                 b) Information we receive from other sources
               </h3>
-              <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+              <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
                 <li>We may get information about you from our Swift Partners (restaurants and food stalls) to help us fulfil your orders.</li>
                 <li>We may also receive feedback about you from riders (for example, to help resolve delivery issues or complaints).</li>
                 <li>If you use social media to log in or interact with us, we may receive your public profile info according to your settings.</li>
@@ -116,7 +116,7 @@ const PrivacyPolicy = () => {
               <h3 style={{ color: '#ff0088', fontSize: '1.3rem', marginBottom: '10px' }}>
                 c) Information we collect automatically
               </h3>
-              <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+              <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
                 <li>When you use our website or app, we collect information about how you use it, like your order history, pages viewed and how you interact with our features.</li>
                 <li>We collect details about your device, like IP address, type, operating system, and sometimes your location (if you allow it) to help with deliveries.</li>
               </ul>
@@ -133,10 +133,10 @@ const PrivacyPolicy = () => {
             }}>
               3. How we use your information
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We use the information we collect for a few main reasons — always with a valid legal basis. This includes:
             </p>
-            <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+            <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
               <li>To create and manage your Swift Food account.</li>
               <li>To process your orders, arrange deliveries and handle payments and refunds.</li>
               <li>To contact you if we need to confirm details, update you about your order or solve any issues.</li>
@@ -159,16 +159,16 @@ const PrivacyPolicy = () => {
             }}>
               4. How we share your information
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We only share your personal information when it's needed to run our services, deliver your orders, or comply with the law. This includes sharing with:
             </p>
-            <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+            <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
               <li><strong>Swift Partners:</strong> restaurants, food stalls and other approved partners who prepare your food or help with catering.</li>
               <li><strong>Riders:</strong> independent riders who collect and deliver your orders. They receive the information they need to complete the delivery — such as your delivery address, any instructions you've added, and your phone number if you've provided one, so they can contact you if needed.</li>
               <li><strong>Service providers:</strong> companies who help us run Swift Food — for example, payment processors, IT providers, customer support tools and fraud prevention services.</li>
               <li><strong>Authorities or regulators:</strong> if the law requires us to share information or to protect our rights or the rights of others.</li>
             </ul>
-            <p style={{ fontSize: '1rem', color: 'white', marginTop: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginTop: '15px' }}>
               If Swift Food ever merges with, sells or transfers part of our business, we may share your information with the buyer or new owner, but only as needed to keep providing our services.
             </p>
           </section>
@@ -183,17 +183,17 @@ const PrivacyPolicy = () => {
             }}>
               5. Marketing and advertising
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We may use your information to let you know about Swift Food offers, new restaurants, food stalls, or services we think you'll like. We might send you these updates by email, SMS, app notifications or other channels — but only if the law allows it or you have agreed to receive them.
             </p>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               You can change your marketing preferences or unsubscribe at any time. For example:
             </p>
-            <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+            <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
               <li>By updating your settings in your account.</li>
               <li>By contacting us using our contact form.</li>
             </ul>
-            <p style={{ fontSize: '1rem', color: 'white', marginTop: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginTop: '15px' }}>
               Even if you opt out of marketing messages, we'll still send you important service updates — like order confirmations, changes to your account, or information about your deliveries.
             </p>
           </section>
@@ -208,10 +208,10 @@ const PrivacyPolicy = () => {
             }}>
               6. How long we keep your information
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We keep your personal information only as long as we need it for the purposes described in this policy, including to meet our legal and tax obligations, resolve disputes, and enforce our agreements.
             </p>
-            <p style={{ fontSize: '1rem', color: 'white' }}>
+            <p style={{ fontSize: '1rem', color: '#333' }}>
               When we no longer need your information, we securely delete or anonymise it.
             </p>
           </section>
@@ -226,10 +226,10 @@ const PrivacyPolicy = () => {
             }}>
               7. How we protect your information
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We use technical and organisational measures to keep your personal information safe and secure. For example, we use secure systems, limit who can access your information, and regularly check our security practices.
             </p>
-            <p style={{ fontSize: '1rem', color: 'white' }}>
+            <p style={{ fontSize: '1rem', color: '#333' }}>
               However, please remember that the internet is never completely secure. We encourage you to use a strong, unique password for your Swift Food account and keep it confidential.
             </p>
           </section>
@@ -244,10 +244,10 @@ const PrivacyPolicy = () => {
             }}>
               8. Your rights
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               You have certain rights over your personal information under data protection laws. These include the right to:
             </p>
-            <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+            <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
               <li><strong>Access:</strong> You can ask for a copy of the personal information we hold about you.</li>
               <li><strong>Correction:</strong> You can ask us to correct any inaccurate or incomplete information.</li>
               <li><strong>Deletion:</strong> You can ask us to delete your account or certain information if there's no good reason for us to keep it.</li>
@@ -256,10 +256,10 @@ const PrivacyPolicy = () => {
               <li><strong>Portability:</strong> You can ask us to give you your information in a structured, machine-readable format, or to transfer it to someone else.</li>
               <li><strong>Withdraw consent:</strong> If we rely on your consent to use your information, you can withdraw it at any time.</li>
             </ul>
-            <p style={{ fontSize: '1rem', color: 'white', marginTop: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginTop: '15px' }}>
               To exercise any of these rights, please contact us through our contact form. We may ask you to confirm your identity before we respond.
             </p>
-            <p style={{ fontSize: '1rem', color: 'white', marginTop: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginTop: '15px' }}>
               If you're not happy with how we handle your information, you can complain to the UK's Information Commissioner's Office (ICO). We'd appreciate the chance to resolve your concerns first, so please contact us if you have any questions.
             </p>
           </section>
@@ -274,10 +274,10 @@ const PrivacyPolicy = () => {
             }}>
               9. Changes to this policy
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We may update this Privacy Policy from time to time. If we make important changes, we will let you know — for example, by showing a notice on our website or sending you an update if needed.
             </p>
-            <p style={{ fontSize: '1rem', color: 'white' }}>
+            <p style={{ fontSize: '1rem', color: '#333' }}>
               We encourage you to check this page regularly to stay up to date.
             </p>
           </section>

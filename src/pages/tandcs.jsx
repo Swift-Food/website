@@ -55,7 +55,7 @@ const TermsAndConditions = () => {
             }}>
               1. Who we are
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               Swift Food Services Ltd ("we", "our", "us" or "Swift Food") provides an online platform for ordering street food and restaurant meals for delivery. You can place orders through our mobile app, and for large catering or corporate events, through our website. Registered address: 251 Grays Inn Rd, London WC1X 8QT, United Kingdom.
             </p>
           </section>
@@ -70,7 +70,7 @@ const TermsAndConditions = () => {
             }}>
               2. How ordering works
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               You can browse, select and order food and drinks using our app or, for large catering orders, through our website. By placing an order, you agree to pay the total price displayed, including any delivery fees and other charges. Once you place an order, we'll send you an order confirmation. Your order becomes binding once the restaurant or food stall ("Swift Partner") accepts it.
             </p>
           </section>
@@ -85,7 +85,7 @@ const TermsAndConditions = () => {
             }}>
               3. Prices and payment
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               All prices shown are final and include any applicable taxes or fees. We accept payment by debit or credit card (Visa, Mastercard, Amex) and online payment methods like Apple Pay. Payments are processed securely by our payment partners. We do not accept cash payments.
             </p>
           </section>
@@ -100,7 +100,7 @@ const TermsAndConditions = () => {
             }}>
               4. Delivery and fulfilment
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               Your order will be prepared by the Swift Partner and delivered by one of our independent drivers ("Riders"). We aim to deliver within the estimated time, but can't guarantee exact times due to traffic or other factors beyond our control. You must ensure someone is available at the delivery address to receive the order.
             </p>
           </section>
@@ -115,7 +115,7 @@ const TermsAndConditions = () => {
             }}>
               5. Cancellations and refunds
             </h2>
-            <div style={{ fontSize: '1rem', color: 'white' }}>
+            <div style={{ fontSize: '1rem', color: '#333' }}>
               <p style={{ marginBottom: '15px' }}>
                 <strong>Standard orders:</strong> You cannot cancel an order once the Swift Partner has started preparing the food. If you need to change or cancel an order, please contact us immediately — we'll try to help if preparation hasn't started yet.
               </p>
@@ -141,7 +141,7 @@ const TermsAndConditions = () => {
             }}>
               6. Your responsibilities
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               Provide accurate delivery details and be reachable during delivery. If a Rider can't reach you or deliver safely, you may still be charged. Don't misuse our app or website, or try to interfere with our systems.
             </p>
           </section>
@@ -156,7 +156,7 @@ const TermsAndConditions = () => {
             }}>
               7. Our responsibilities
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We run the ordering and delivery service and coordinate with Swift Partners and Riders. We aren't responsible for delays or problems caused by events outside our control.
             </p>
           </section>
@@ -171,7 +171,7 @@ const TermsAndConditions = () => {
             }}>
               8. Limits of liability
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We aren't liable for losses or damages not directly caused by us or that we couldn't reasonably predict. This doesn't affect your statutory rights.
             </p>
           </section>
@@ -186,10 +186,10 @@ const TermsAndConditions = () => {
             }}>
               9. Our rights
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We may, at our discretion:
             </p>
-            <ul style={{ paddingLeft: '20px', color: 'white', fontSize: '1rem' }}>
+            <ul style={{ paddingLeft: '20px', color: '#333', fontSize: '1rem' }}>
               <li>Refuse or cancel any order if we believe there's an error, fraud, or misuse.</li>
               <li>Suspend or terminate your account if you breach these terms or misuse our services.</li>
               <li>Remove or edit any content you submit (like reviews) if it breaks the law or our policies.</li>
@@ -207,7 +207,7 @@ const TermsAndConditions = () => {
             }}>
               10. Changes to these terms
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               We may update these Terms & Conditions from time to time. If we make significant changes, we'll let you know — for example, by updating the date here, by email, or via an in-app message.
             </p>
           </section>
@@ -222,7 +222,7 @@ const TermsAndConditions = () => {
             }}>
               11. Governing law
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               These terms are governed by the laws of England and Wales. Any disputes will be handled by the courts of England and Wales.
             </p>
           </section>
@@ -237,7 +237,7 @@ const TermsAndConditions = () => {
             }}>
               12. Contact us
             </h2>
-            <p style={{ fontSize: '1rem', color: 'white', marginBottom: '15px' }}>
+            <p style={{ fontSize: '1rem', color: '#333', marginBottom: '15px' }}>
               If you have any questions about these terms, please contact us through the contact form on our website.
             </p>
             <div style={{ 
