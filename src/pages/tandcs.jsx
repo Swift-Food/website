@@ -9,12 +9,7 @@ const TermsAndConditions = () => {
           <h1>Terms & Conditions</h1>
           <p>Swift Food Services - Street Food & Restaurant Delivery</p>
         </div>
-        <div className="app_image">
-          <img 
-            src="https://via.placeholder.com/250x300/ffffff/ff0088?text=Swift+Food" 
-            alt="Swift Food Services"
-          />
-        </div>
+        
       </div>
 
       {/* Main Terms Content */}
