@@ -1,188 +1,354 @@
-import './catering.css'
+import React, { useState } from 'react';
 
-function Catering() {
+function Contact() {
+    const [formData, setFormData] = useState({
+        first_name: '',
+        last_name: '',
+        email: '',
+        message: ''
+    });
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState('');
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setSubmitStatus('');
+
+        try {
+            // Netlify form submission
+            const response = await fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    "form-name": "contact",
+                    ...formData
+                }).toString()
+            });
+
+            if (response.ok) {
+                setSubmitStatus('success');
+                setFormData({
+                    first_name: '',
+                    last_name: '',
+                    email: '',
+                    message: ''
+                });
+            } else {
+                setSubmitStatus('error');
+            }
+        } catch (error) {
+            console.error('Form submission error:', error);
+            setSubmitStatus('error');
+        }
+
+        setIsSubmitting(false);
+    };
+
     return (
-        <div className='catering-page'>
-            {/* Hero Section */}
-            <div className='catering-hero'>
-                <div className='hero-content'>
-                    <h1>Catering Services</h1>
-                    <p className='hero-subtitle'>Feeding large groups made simple</p>
-                    <p className='hero-description'>
-                        From corporate meetings to special celebrations, Swift Food delivers 
-                        delicious meals from your favorite local restaurants to feed any crowd.
-                    </p>
+        <div style={{ fontFamily: 'Arial, sans-serif' }}>
+            {/* Header Section with gradient background */}
+            <div className="contact-header">
+                <div className="text_section">
+                    <h1>Contact Us</h1>
+                    <p>Need help with something?</p>
+                    <p>Check out our FAQs or fill out the contact form below with your questions.</p>
+                </div>
+                <div className="app_image">
+                    <img 
+                        src="https://via.placeholder.com/250x300/ffffff/ff0088?text=Contact+Us" 
+                        alt="Contact Swift Food"
+                    />
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className='catering-content'>
-                
-                {/* How It Works Section */}
-                <section className='how-it-works'>
-                    <h2>How Our Catering Works</h2>
-                    <div className='steps-container'>
-                        <div className='step'>
-                            <div className='step-number'>1</div>
-                            <h3>Plan Ahead</h3>
-                            <p>Contact us at least 24 hours in advance for orders of 10+ people. For larger events (50+ people), we recommend 48-72 hours notice.</p>
-                        </div>
-                        <div className='step'>
-                            <div className='step-number'>2</div>
-                            <h3>Choose Your Restaurant</h3>
-                            <p>Select from our network of partner restaurants. We'll work with them to prepare your large order with care and precision.</p>
-                        </div>
-                        <div className='step'>
-                            <div className='step-number'>3</div>
-                            <h3>Coordinate Delivery</h3>
-                            <p>We'll arrange delivery at your specified time and location, ensuring your food arrives fresh and ready to serve.</p>
-                        </div>
-                    </div>
-                </section>
+            {/* Contact Form Section */}
+            <div className="contact-form-container">
+                {/* Hidden form for Netlify */}
+                <form name="contact" netlify="true" netlify-honeypot="bot-field" hidden>
+                    <input type="text" name="first_name" />
+                    <input type="text" name="last_name" />
+                    <input type="email" name="email" />
+                    <textarea name="message"></textarea>
+                </form>
 
-                {/* App Launch Section */}
-                <section className='app-launch'>
-                    <div className='app-content'>
-                        <div className='app-text'>
-                            <h2>Swift Food App Coming Soon!</h2>
-                            <p>
-                                Our mobile app is launching soon, making catering orders even easier! 
-                                Through the app, you'll be able to:
-                            </p>
-                            <ul className='app-features'>
-                                <li>Browse catering menus from all partner restaurants</li>
-                                <li>Schedule orders weeks in advance</li>
-                                <li>Track your order in real-time</li>
-                                <li>Save favorite catering combinations</li>
-                                <li>Manage multiple delivery locations</li>
-                                <li>Get instant quotes for large orders</li>
-                            </ul>
-                            <div className='notify-section'>
-                                <p><strong>Be the first to know when we launch!</strong></p>
-                                <div className='insta'>
-                                    <a href='https://www.instagram.com/swiftfood_uk/'
-                                    target='_blank'>
-                                        <img src='/swift_eats/images/instagram.png' alt='Image of insta' width={50} height={50}></img>
-                
-                                    </a>
-                                    <p>Swift Food UK</p>
-                                </div>
-                            </div>
+                <div className='contact-form'>
+                    {submitStatus === 'success' && (
+                        <div className="success-message">
+                            <p>✅ Thank you for your message! We'll get back to you soon.</p>
                         </div>
-                        <div className='app-image'>
-                            <div className='phone-mockup'>
-                                <div className='phone-screen'>
-                                    <div className='app-preview'>
-                                        <h4>Swift Food</h4>
-                                        <p>Catering Made Simple</p>
-                                        <div className='preview-elements'>
-                                            <div className='preview-item'>🍕 Order for 50+ people</div>
-                                            <div className='preview-item'>📅 Schedule in advance</div>
-                                            <div className='preview-item'>🚚 Track delivery</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    )}
+                    
+                    {submitStatus === 'error' && (
+                        <div className="error-message">
+                            <p>❌ Sorry, there was an error sending your message. Please try again.</p>
                         </div>
-                    </div>
-                </section>
+                    )}
 
-                {/* Order Sizes Section */}
-                <section className='order-sizes'>
-                    <h2>Perfect for Any Event Size</h2>
-                    <div className='size-cards'>
-                        <div className='size-card'>
-                            <h3>Small Groups</h3>
-                            <div className='people-count'>10-25 People</div>
-                            <ul>
-                                <li>Team meetings</li>
-                                <li>Small office lunches</li>
-                                <li>Study groups</li>
-                                <li>Family gatherings</li>
-                            </ul>
-                            <div className='notice-time'>24 hours notice</div>
+                    <form onSubmit={handleSubmit}>
+                        <input type="hidden" name="form-name" value="contact" />
+                        
+                        <div className='names'>
+                            <input 
+                                type="text" 
+                                name='first_name' 
+                                placeholder='First Name' 
+                                value={formData.first_name}
+                                onChange={handleChange}
+                                required
+                                disabled={isSubmitting}
+                            />
+                            <input 
+                                type="text" 
+                                name='last_name' 
+                                placeholder='Last Name' 
+                                value={formData.last_name}
+                                onChange={handleChange}
+                                required
+                                disabled={isSubmitting}
+                            />
                         </div>
-                        <div className='size-card'>
-                            <h3>Medium Events</h3>
-                            <div className='people-count'>25-75 People</div>
-                            <ul>
-                                <li>Corporate events</li>
-                                <li>Birthday parties</li>
-                                <li>Workshop lunches</li>
-                                <li>Training sessions</li>
-                            </ul>
-                            <div className='notice-time'>48 hours notice</div>
-                        </div>
-                        <div className='size-card'>
-                            <h3>Large Events</h3>
-                            <div className='people-count'>75+ People</div>
-                            <ul>
-                                <li>Conferences</li>
-                                <li>Wedding receptions</li>
-                                <li>Company parties</li>
-                                <li>Festivals</li>
-                            </ul>
-                            <div className='notice-time'>72+ hours notice</div>
-                        </div>
-                    </div>
-                </section>
 
-                {/* Benefits Section */}
-                <section className='benefits'>
-                    <h2>Why Choose Swift Food Catering?</h2>
-                    <div className='benefits-grid'>
-                        <div className='benefit'>
-                            <div className='benefit-icon'>🍽️</div>
-                            <h3>Variety of Cuisines</h3>
-                            <p>Choose from dozens of local restaurants offering everything from Italian to Thai, ensuring there's something for everyone.</p>
-                        </div>
-                        <div className='benefit'>
-                            <div className='benefit-icon'>⏰</div>
-                            <h3>Reliable Timing</h3>
-                            <p>We coordinate with restaurants to ensure your food is prepared fresh and delivered exactly when you need it.</p>
-                        </div>
-                        <div className='benefit'>
-                            <div className='benefit-icon'>💰</div>
-                            <h3>Competitive Pricing</h3>
-                            <p>No hidden fees or excessive markups. You pay restaurant prices plus our standard delivery fee.</p>
-                        </div>
-                        <div className='benefit'>
-                            <div className='benefit-icon'>🚚</div>
-                            <h3>Professional Service</h3>
-                            <p>Our experienced drivers handle large orders with care, including setup assistance when needed.</p>
-                        </div>
-                        <div className='benefit'>
-                            <div className='benefit-icon'>📱</div>
-                            <h3>Easy Ordering</h3>
-                            <p>Simple online ordering process, with our upcoming app making it even more convenient.</p>
-                        </div>
-                        <div className='benefit'>
-                            <div className='benefit-icon'>✅</div>
-                            <h3>Quality Guaranteed</h3>
-                            <p>We work only with trusted restaurant partners who maintain high food quality and safety standards.</p>
-                        </div>
-                    </div>
-                </section>
+                        <input 
+                            type="email" 
+                            name='email' 
+                            placeholder='Email' 
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            disabled={isSubmitting}
+                        />
 
-                {/* CTA Section */}
-                {/* <section className='cta-section'>
-                    <div className='cta-content'>
-                        <h2>Ready to Order Catering?</h2>
-                        <p>Contact us today to discuss your catering needs. Our team will help you plan the perfect meal for your event.</p>
-                        <div className='cta-buttons'>
-                            <button className='cta-primary'>Get Catering Quote</button>
-                            <button className='cta-secondary'>View Restaurant Partners</button>
+                        <div className='message-box'>
+                            <textarea 
+                                name="message" 
+                                placeholder="Message" 
+                                rows="7" 
+                                value={formData.message}
+                                onChange={handleChange}
+                                required
+                                disabled={isSubmitting}
+                            ></textarea>
                         </div>
-                        <div className='contact-info'>
-                            <p>For immediate assistance, call us at <strong>(555) 123-FOOD</strong></p>
-                            <p>Or email us at <strong>catering@swiftfood.com</strong></p>
-                        </div>
-                    </div>
-                </section> */}
 
+                        <button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? 'Sending...' : 'Submit'}
+                        </button>
+                    </form>
+                </div>
             </div>
+
+            <style jsx>{`
+                .contact-header {
+                    background-image: linear-gradient(#ff0088, #FFC3E3);
+                    display: flex;
+                    justify-content: space-evenly;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    padding: 50px;
+                    min-height: 400px;
+                }
+
+                .text_section {
+                    text-decoration: none;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    text-align: center;
+                    margin-bottom: 20px;
+                    max-width: 500px;
+                }
+
+                .text_section h1 {
+                    color: #fff;
+                    font-size: 4rem;
+                    margin: 0 0 20px 0;
+                }
+
+                .text_section p {
+                    color: #fff;
+                    font-size: 1.2rem;
+                    font-style: italic;
+                    margin: 10px 0;
+                    line-height: 1.5;
+                }
+
+                .app_image {
+                    width: 250px;
+                    transition: transform 0.4s ease-in-out;
+                }
+
+                .app_image:hover {
+                    transform: scale(1.05) translateY(-3px);
+                }
+
+                .app_image img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 10px;
+                }
+
+                .contact-form-container {
+                    max-width: 800px;
+                    margin: 50px auto;
+                    padding: 40px 20px;
+                }
+
+                .contact-form {
+                    background: #ffffff;
+                    padding: 40px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 30px rgba(255, 0, 136, 0.1);
+                    border: 2px solid #FFC3E3;
+                }
+
+                .names {
+                    display: flex;
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }
+
+                .names input {
+                    flex: 1;
+                }
+
+                .contact-form input,
+                .contact-form textarea {
+                    width: 100%;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    border: 2px solid #FFC3E3;
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    font-family: inherit;
+                    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+                    box-sizing: border-box;
+                }
+
+                .contact-form input:focus,
+                .contact-form textarea:focus {
+                    outline: none;
+                    border-color: #ff0088;
+                    box-shadow: 0 0 0 3px rgba(255, 0, 136, 0.1);
+                }
+
+                .contact-form input::placeholder,
+                .contact-form textarea::placeholder {
+                    color: #999;
+                    font-style: italic;
+                }
+
+                .message-box {
+                    margin-bottom: 20px;
+                }
+
+                .contact-form textarea {
+                    resize: vertical;
+                    min-height: 120px;
+                }
+
+                .contact-form button {
+                    background: linear-gradient(#ff0088, #FFC3E3);
+                    color: white;
+                    border: none;
+                    padding: 15px 40px;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    width: 100%;
+                }
+
+                .contact-form button:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(255, 0, 136, 0.3);
+                }
+
+                .contact-form button:disabled {
+                    background: #ccc;
+                    cursor: not-allowed;
+                    transform: none;
+                }
+
+                .success-message {
+                    background: #d4edda;
+                    color: #155724;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    border: 1px solid #c3e6cb;
+                }
+
+                .error-message {
+                    background: #f8d7da;
+                    color: #721c24;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    border: 1px solid #f5c6cb;
+                }
+
+                .success-message p,
+                .error-message p {
+                    margin: 0;
+                    font-weight: bold;
+                }
+
+                @media (max-width: 768px) {
+                    .contact-header {
+                        flex-direction: column;
+                        padding: 30px 20px;
+                    }
+
+                    .text_section h1 {
+                        font-size: 2.5rem;
+                    }
+
+                    .text_section p {
+                        font-size: 1rem;
+                    }
+
+                    .app_image {
+                        margin-top: 20px;
+                        width: 200px;
+                    }
+
+                    .names {
+                        flex-direction: column;
+                        gap: 0;
+                    }
+
+                    .contact-form {
+                        padding: 20px;
+                        margin: 0 10px;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .contact-header {
+                        padding: 20px 15px;
+                    }
+
+                    .text_section h1 {
+                        font-size: 2rem;
+                    }
+
+                    .contact-form-container {
+                        margin: 30px auto;
+                        padding: 20px 10px;
+                    }
+                }
+            `}</style>
         </div>
-    )
+    );
 }
 
-export default Catering
+export default Contact;
