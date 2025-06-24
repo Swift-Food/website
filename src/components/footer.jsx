@@ -31,7 +31,8 @@ function Footer() {
                         <li><Link to={"/markets"}>Markets</Link></li>
                         <li><Link to={"/restaurant-partner"}>Partner With Us</Link></li>
                         <li><Link to={"/driver-signup"}>Become a Rider</Link></li>
-                        <li><Link to={"/contact"}>Terms and Conditions</Link></li>
+                        <li><Link to={"/tandcs"}>Terms and Conditions</Link></li>
+                        <li><Link to={"/privacypolicy"}>Privacy Policy</Link></li>
                     </ul>
                 </div>
             </div>

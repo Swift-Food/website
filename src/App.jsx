@@ -17,6 +17,8 @@ import Catering from './pages/catering.jsx'
 import Markets from './pages/markets.jsx'
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import TermsAndConditions from './pages/tandcs.jsx';
+import PrivacyPolicy from './pages/privacy.jsx';
 
 
 function App() {
@@ -36,6 +38,8 @@ function App() {
                 <Route path="/restaurant-partner" element={<RestaurantPartner />} />
                 <Route path="/catering" element={<Catering />} />
                 <Route path="/markets" element={<Markets />} />
+                <Route path ="/tandcs" element={<TermsAndConditions />} />
+                <Route path='/privacypolicy' element={<PrivacyPolicy  />} />
             </Routes>
         </main>
           <footer><Footer /></footer>
