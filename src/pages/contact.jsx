@@ -6,7 +6,7 @@ function Contact() {
             <h1>Contact Us</h1>
             <p>Need help with something?</p>
             <p>Reach out out our FAQs or fill out the contact form below with your questions.</p>
-            <form className='contact-form' name="contact" method="POST" netlify>
+            <form className='contact-form' name="contact" method="POST" data-netlify="true">
                 <input type="hidden" name="form-name" value="contact" />
                 
                 <div className='names'>
