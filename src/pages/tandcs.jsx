@@ -25,7 +25,7 @@ const TermsAndConditions = () => {
           textAlign: 'center', 
           marginBottom: '40px',
           padding: '20px',
-          backgroundColor: '#f8f9fa',
+          backgroundColor: 'white',
           borderRadius: '8px'
         }}>
           <p style={{ 
