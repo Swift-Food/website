@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="h-full">
       <section className="flex w-full h-full gap-4 max-lg:flex-col">
-        <section className="flex-4 relative h-full rounded-xl overflow-hidden">
+        <section className="flex-4 relative aspect-video rounded-xl overflow-hidden">
           <Image
             fill
             src="/store.jpg"
