@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import InfoContainer from './containers/InfoContainer';
+import { mailService } from '../service/mail';
 
 // Types for form data
 interface PersonalInfo {
@@ -38,12 +39,15 @@ interface FormData {
 }
 
 interface MultiStepFormProps {
-  onSubmit: (data: FormData) => void;
   className?: string;
 }
 
-const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ onSubmit, className = '' }) => {
+const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ className = '' }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
       fullName: '',
@@ -90,9 +94,113 @@ const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ onSubmit, className
     }
   };
 
-  const handleSubmit = () => {
-    onSubmit(formData);
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const result = await mailService.sendFormResponse(formData);
+      console.log('Email sent successfully:', result);
+      
+      // Show success page
+      setIsSuccess(true);
+      
+    } catch (error) {
+      console.error('Error sending form:', error);
+      setError('Failed to submit application. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const resetForm = () => {
+    setIsSuccess(false);
+    setCurrentStep(1);
+    setError(null);
+    setFormData({
+      personalInfo: {
+        fullName: '',
+        email: '',
+        phoneNumber: '',
+        dateOfBirth: ''
+      },
+      vehicleInfo: {
+        vehicleType: '',
+        vehicleBrand: '',
+        registrationNumber: ''
+      },
+      identityVerification: {
+        idType: '',
+        idNumber: '',
+        backgroundCheckConsent: false
+      },
+      paymentDetails: {
+        accountHolderName: '',
+        accountNumber: '',
+        bankCode: ''
+      }
+    });
+  };
+
+  const renderSuccessPage = () => (
+    <div className="text-center space-y-6 py-8">
+      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+        <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      
+      <div>
+        <h2 className="text-3xl font-bold text-green-600 mb-2">Application Submitted! 🚗</h2>
+        <p className="text-gray-600 text-lg">
+          Thank you for applying to become a SwiftFood driver
+        </p>
+      </div>
+      
+      <div className="bg-gray-50 rounded-lg p-6 text-left max-w-md mx-auto">
+        <h3 className="font-semibold text-gray-800 mb-3">What happens next?</h3>
+        <ul className="space-y-2 text-sm text-gray-600">
+          <li className="flex items-start">
+            <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
+            Our team will review your application within 3-5 business days
+          </li>
+          <li className="flex items-start">
+            <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
+            We'll verify your documents and run background checks
+          </li>
+          <li className="flex items-start">
+            <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
+            You'll receive an email at <strong>{formData.personalInfo.email}</strong> with updates
+          </li>
+          <li className="flex items-start">
+            <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
+            Once approved, we'll send you onboarding details and driver kit
+          </li>
+        </ul>
+      </div>
+      
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500">
+          Questions? Contact us at <span className="text-primary font-medium">no-reply@swiftfood.uk</span>
+        </p>
+        
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={resetForm}
+            className="btn btn-outline btn-sm rounded-full px-6"
+          >
+            Submit Another Application
+          </button>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="btn btn-primary btn-sm rounded-full px-6 text-white"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center mb-8">
@@ -133,7 +241,7 @@ const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ onSubmit, className
             required
             value={formData.personalInfo.fullName}
             onChange={(e) => updateFormData('personalInfo', { fullName: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primarym text-gray-700"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
             placeholder="Enter your full name"
           />
         </div>
@@ -260,7 +368,7 @@ const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ onSubmit, className
             required
             value={formData.identityVerification.idType}
             onChange={(e) => updateFormData('identityVerification', { idType: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
           >
             <option value="">Select ID type</option>
             {idTypes.map((type) => (
@@ -354,17 +462,15 @@ const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ onSubmit, className
             placeholder="Enter IFSC or SWIFT code"
           />
         </div>
-
-        
       </div>
     </div>
   );
 
   return (
     <div className={`h-full ${className}`}>
-      <section className="flex w-full h-full gap-4 max-lg:flex-col ">
+      <section className="flex w-full h-full gap-4 max-lg:flex-col">
         <section className="flex-4 relative aspect-video rounded-xl overflow-hidden">
-        <Image
+          <Image
             fill
             src="/store.jpg"
             className="object-cover w-full h-auto"
@@ -373,46 +479,59 @@ const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ onSubmit, className
         </section>
         
         <aside className="flex-1 flex flex-col gap-4">
-          <InfoContainer heading="Driver Registration" className="relative flex-1">
+          <InfoContainer heading={isSuccess ? "Application Complete" : "Driver Registration"} className="relative flex-1">
             <div className="p-6 h-full overflow-y-auto bg-transparent">
-              {renderStepIndicator()}
-              
-              <div className="min-h-[400px]">
-                {currentStep === 1 && renderStep1()}
-                {currentStep === 2 && renderStep2()}
-                {currentStep === 3 && renderStep3()}
-                {currentStep === 4 && renderStep4()}
-              </div>
-              
-              <div className="flex justify-between mt-8 pt-4 border-t">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className={`btn btn-sm rounded-full px-6 ${
-                    currentStep === 1
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Previous
-                </button>
-                
-                {currentStep < 4 ? (
-                  <button
-                    onClick={nextStep}
-                    className="btn btn-primary btn-sm rounded-full px-6 text-white"
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSubmit}
-                    className="btn btn-primary btn-sm rounded-full px-6 text-white"
-                  >
-                    Submit Application
-                  </button>
-                )}
-              </div>
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                  {error}
+                </div>
+              )}
+
+              {isSuccess ? (
+                renderSuccessPage()
+              ) : (
+                <>
+                  {renderStepIndicator()}
+                  
+                  <div className="min-h-[400px]">
+                    {currentStep === 1 && renderStep1()}
+                    {currentStep === 2 && renderStep2()}
+                    {currentStep === 3 && renderStep3()}
+                    {currentStep === 4 && renderStep4()}
+                  </div>
+                  
+                  <div className="flex justify-between mt-8 pt-4 border-t">
+                    <button
+                      onClick={prevStep}
+                      disabled={currentStep === 1}
+                      className={`btn btn-sm rounded-full px-6 ${
+                        currentStep === 1
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    
+                    {currentStep < 4 ? (
+                      <button
+                        onClick={nextStep}
+                        className="btn btn-primary btn-sm rounded-full px-6 text-white"
+                      >
+                        Next
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="btn btn-primary btn-sm rounded-full px-6 text-white disabled:bg-gray-400"
+                      >
+                        {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </InfoContainer>
         </aside>
