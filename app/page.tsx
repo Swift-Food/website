@@ -1,5 +1,6 @@
 import Image from "next/image";
 import InfoContainer from "./components/containers/InfoContainer";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -97,8 +98,8 @@ export default function Home() {
         <div className="card bg-base-100 w-96 max-sm:w-full shadow-sm">
           <figure>
             <img
-              src="/sample/dish.png"
-              alt="Shoes"
+              src="/food-shop.avif"
+              alt="Stall"
               className="w-[80%] h-auto"
             />
           </figure>
@@ -108,28 +109,31 @@ export default function Home() {
               Join Deliveroo and reach more customers than ever. We handle
               delivery, so you can focus on the food.
             </p>
-            <div className="card-actions justify-start">
-              <button className="btn btn-primary">Get Started</button>
-            </div>
+            <Link href={'/restaurant'}>
+              <div className="card-actions justify-start">
+                <button className="btn btn-primary">Get Started</button>
+              </div>
+            </Link>
           </div>
         </div>
         <div className="card bg-base-100 w-96 max-sm:w-full shadow-sm">
           <figure>
             <img
-              src="/sample/dish.png"
+              src="rider.jpg"
               alt="Shoes"
               className="w-[80%] h-auto"
             />
           </figure>
           <div className="card-body">
-            <h2 className="card-title">Partner with us</h2>
+            <h2 className="card-title">Ride with us</h2>
             <p>
-              Join Deliveroo and reach more customers than ever. We handle
-              delivery, so you can focus on the food.
+              Join Deliveroo and receive more orders than ever before. We ensure upmost quality service for our riders.
             </p>
-            <div className="card-actions justify-start">
-              <button className="btn btn-primary">Get Started</button>
-            </div>
+            <Link href={'/rider'}>
+              <div className="card-actions justify-start">
+                <button className="btn btn-primary">Get Started</button>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
