@@ -24,7 +24,9 @@ export default function Footer() {
 
         <section className="flex flex-col gap-4">
           <Link href={"/about"}>About Us</Link>
-          <Link href={"/about"}>Contact Us</Link>
+          <Link href={"/contact"}>Contact Us</Link>
+          <Link href={"/restaurant"}>Add your restaurant!</Link>
+          <Link href={"/rider"}>Join us as a rider!</Link>
         </section>
 
         <section className="flex flex-col gap-4">
