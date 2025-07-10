@@ -19,7 +19,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${primaryFont.className} ${primaryFont.variable}`}>
         <Navbar />
-        <main className="px-16 h-full max-lg:px-4">{children}</main>
+        <main className="px-16 max-lg:px-4">{children}</main>
+        <div className="divider"></div>
         <Footer />
       </body>
     </html>

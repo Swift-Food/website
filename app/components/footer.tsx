@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <div className="px-16 max-lg:px-4">
-      <div className="py-8 flex items-start gap-16 max-lg:flex-col">
+      <div className="py-8 flex items-start gap-16 max-lg:gap-4 max-lg:flex-col">
         <section className="flex flex-col gap-2">
           <div className="flex items-center gap-4">
             <Image
