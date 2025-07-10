@@ -18,13 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${primaryFont.className} ${primaryFont.variable}`}>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="px-16 max-lg:px-4 flex-1">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <Navbar />
+        <main className="px-16 max-lg:px-4">{children}</main>
+        <div className="divider"></div>
+        <Footer />
       </body>
     </html>
   );
