@@ -12,7 +12,7 @@ export default function Home() {
             src="/store.jpg"
             alt="store"
             fill
-            className="object-cover" // or object-contain, object-fill
+            className="object-cover" 
           />
         </div>
         </section>
@@ -98,7 +98,7 @@ export default function Home() {
           imageAlt={"Stall"}
           title={"Partner with us"}
           description={
-            "Join Swift Foods and reach more customers than ever. We handle delivery, so you can focus on the food"
+            "Join Swift Food to reach more customers than ever — we handle the delivery, so you can focus on the food." 
           }
           buttonTitle={"Get Started"}
           link="/restaurant"
@@ -108,7 +108,7 @@ export default function Home() {
           imageAlt={"Rider"}
           title={"Ride with us"}
           description={
-            "Join Swift Food and receive more orders than ever before. We ensure upmost quality service for our riders."
+            "Join Swift Food and receive more orders than ever before. We ensure the utmost support and care for our riders."
           }
           buttonTitle={"Get Started"}
           link="/rider"

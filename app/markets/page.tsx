@@ -11,7 +11,7 @@ export default function page() {
           imageAlt={"Shoes"}
           title={"Tottenham Court Road"}
           description={
-            "Join Swift Foods and reach more customers than ever. We handle delivery, so you can focus on the food"
+            "Discover the hidden gem under Tottenham Court Road — a vibrant food market serving up bold flavors from London’s best street chefs."
           }
           openingTime="10:00 AM to 08:00 PM"
         />
@@ -20,7 +20,7 @@ export default function page() {
           imageAlt={"Shoes"}
           title={"Goodge Street"}
           description={
-            "Join Swift Foods and reach more customers than ever. We handle delivery, so you can focus on the food"
+            "From sizzling Asian stir-fries to fresh Mediterranean wraps, this market is your go-to spot for fast, affordable, and delicious eats in the heart of the city."
           }
           openingTime="10:00 AM to 08:00 PM"
         />

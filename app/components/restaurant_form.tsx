@@ -247,7 +247,7 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
             onClick={resetForm}
             className="btn btn-outline btn-sm rounded-full px-6"
           >
-            Submit Another Registration
+            Submit Again
           </button>
           <button
             onClick={() => (window.location.href = "/")}
@@ -290,84 +290,43 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
       <h2 className="text-2xl font-bold text-primary mb-6">
         Basic Business Info
       </h2>
-
+   
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
-            Restaurant Name *
-          </label>
-          <input
-            type="text"
-            required
-            value={formData.basicInfo.restaurantName}
-            onChange={(e) =>
-              updateFormData("basicInfo", { restaurantName: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
-            placeholder="Enter restaurant name"
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
-            Username*
-          </label>
-          <input
-            type="text"
-            required
-            value={formData.basicInfo.ownerName}
-            onChange={(e) =>
-              updateFormData("basicInfo", { ownerName: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
-            placeholder="Enter owner/manager name"
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
-            Business Email *
-          </label>
-          <input
-            type="email"
-            required
-            value={formData.basicInfo.businessEmail}
-            onChange={(e) =>
-              updateFormData("basicInfo", { businessEmail: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
-            placeholder="Enter business email"
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
-            Business Phone Number *
-          </label>
-          <input
-            type="tel"
-            required
-            value={formData.basicInfo.businessPhone}
-            onChange={(e) =>
-              updateFormData("basicInfo", { businessPhone: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
-            placeholder="Enter phone number"
-          />
-        </div>
+        {[
+          { label: "Restaurant Name *", type: "text", key: "restaurantName", placeholder: "Enter restaurant name" },
+          { label: "Username *", type: "text", key: "ownerName", placeholder: "Enter owner/manager name" },
+          { label: "Business Email *", type: "email", key: "businessEmail", placeholder: "Enter business email" },
+          { label: "Business Phone *", type: "tel", key: "businessPhone", placeholder: "Enter phone number" }
+        ].map((field, index) => (
+          <div key={index} className="grid grid-rows-[40px_auto] gap-1">
+            <label className="text-sm font-medium text-gray-700 flex items-end">
+              {field.label}
+            </label>
+            <input
+              type={field.type}
+              required
+              value={formData.basicInfo[field.key as keyof BasicBusinessInfo]}
+              onChange={(e) =>
+                updateFormData("basicInfo", { [field.key]: e.target.value })
+              }
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
+              placeholder={field.placeholder}
+            />
+          </div>
+        ))}
       </div>
     </div>
-  );
+   );
 
   const renderStep2 = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-primary mb-6">
         Location & Address
       </h2>
-
+   
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2 flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
+        <div className="md:col-span-2 grid grid-rows-[40px_auto] gap-1">
+          <label className="text-sm font-medium text-gray-700 flex items-end">
             Street Address *
           </label>
           <input
@@ -381,9 +340,9 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
             placeholder="Enter street address"
           />
         </div>
-
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
+   
+        <div className="grid grid-rows-[40px_auto] gap-1">
+          <label className="text-sm font-medium text-gray-700 flex items-end">
             City *
           </label>
           <input
@@ -397,9 +356,9 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
             placeholder="Enter city"
           />
         </div>
-
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
+   
+        <div className="grid grid-rows-[40px_auto] gap-1">
+          <label className="text-sm font-medium text-gray-700 flex items-end">
             Postal Code *
           </label>
           <input
@@ -413,8 +372,9 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
             placeholder="Enter postal code"
           />
         </div>
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
+   
+        <div className="grid grid-rows-[40px_auto] gap-1">
+          <label className="text-sm font-medium text-gray-700 flex items-end">
             Market *
           </label>
           <select
@@ -432,14 +392,14 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
         </div>
       </div>
     </div>
-  );
-
-  const renderStep3 = () => (
+   );
+   
+   const renderStep3 = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-primary mb-6">
         Restaurant Profile
       </h2>
-
+   
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Cuisine Types *
@@ -468,7 +428,7 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
           ))}
         </div>
       </div>
-
+   
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Service Types *
@@ -497,7 +457,7 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
           ))}
         </div>
       </div>
-
+   
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Restaurant Description *
@@ -514,16 +474,16 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
         />
       </div>
     </div>
-  );
+   );
 
   return (
     <div className={`h-full ${className}`}>
       <section className="flex w-full h-full gap-4 max-lg:flex-col">
-        <section className="flex-4 relative aspect-video rounded-xl overflow-hidden">
+        <section className="flex-[2] relative aspect-video rounded-xl overflow-hidden">
           <Image
             fill
             src="/store.jpg"
-            className="object-cover w-full h-auto"
+            className="object-cover"
             alt="swift food store"
           />
         </section>
