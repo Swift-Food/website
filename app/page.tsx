@@ -7,7 +7,10 @@ export default function Home() {
     <div>
       <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between">
         <section className="flex-4 relative h-full rounded-xl overflow-hidden">
-          <img src={"/store.jpg"} className="w-full h-auto" />
+          <Image 
+          src={"/store.jpg"} className="w-full h-auto" 
+          alt="store"
+          />
         </section>
         <aside className="flex-1 flex flex-col gap-4 items-center">
           <Link

@@ -11,7 +11,7 @@ type MarketCard = {
 
 export default function MarketCard(props: MarketCard) {
   return (
-    <div className="card bg-base-100 w-96 max-sm:w-full shadow-sm border-2 border-primary">
+    <div className="card bg-base-100 w-96 max-sm:w-full shadow-sm border-2 border-primary bg-primary">
       <figure className="h-[277px] overflow-hidden relative">
         <Image
           src={props.image}
@@ -22,7 +22,7 @@ export default function MarketCard(props: MarketCard) {
           }}
         />
       </figure>
-      <div className="card-body bg-primary text-white">
+      <div className="card-body text-white">
         <h2 className="card-title">{props.title}</h2>
         <p>{props.description}</p>
         <div className="card-actions justify-start">
