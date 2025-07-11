@@ -1,14 +1,12 @@
-'use client';
+"use client";
 
 import MultiStepRestaurantForm from "../components/restaurant_form";
 import { mailService } from "../service/mail";
 
 export default function RegisterPage() {
-  
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MultiStepRestaurantForm/>
+    <div className="min-h-screen">
+      <MultiStepRestaurantForm />
     </div>
   );
 }
