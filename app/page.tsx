@@ -91,7 +91,7 @@ export default function Home() {
       </section>
       <section className="flex justify-center items-center mt-4 gap-8 max-sm:flex-col flex-wrap">
         <PatnerCard
-          image={"/food-shop.avif"}
+          image={"/food-shop.png"}
           imageAlt={"Stall"}
           title={"Partner with us"}
           description={
@@ -101,7 +101,7 @@ export default function Home() {
           link="/restaurant"
         />
         <PatnerCard
-          image={"/rider.jpg"}
+          image={"/rider.png"}
           imageAlt={"Rider"}
           title={"Ride with us"}
           description={
