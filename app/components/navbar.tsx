@@ -6,15 +6,17 @@ import Link from "next/link";
 function NavbarAction() {
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8">
-      <button className="btn btn-md btn-ghost text-primary rounded-full">
-        About Us
-      </button>
-      <button className="btn btn-md btn-outline btn-primary rounded-full">
+      <Link href={'/about'}>
+        <button className="btn btn-md btn-ghost text-primary rounded-full">
+          About Us
+        </button>
+      </Link>
+      {/* <button className="btn btn-md btn-outline btn-primary rounded-full">
         Sign up
       </button>
       <button className="btn btn-md btn-outline btn-primary rounded-full">
         Log in
-      </button>
+      </button> */}
     </div>
   );
 }

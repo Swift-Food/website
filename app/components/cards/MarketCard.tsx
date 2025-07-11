@@ -20,13 +20,13 @@ export default function MarketCard(props: MarketCard) {
           height={277}
         />
       </figure>
-      <div className="card-body">
+      <div className="card-body bg-primary text-white">
         <h2 className="card-title">{props.title}</h2>
         <p>{props.description}</p>
         <div className="card-actions justify-start">
           <div className="p-4 pl-0">
             <p className="text-base font-medium">Opening Hours</p>
-            <label className="text-gray-400 text-md">{props.openingTime}</label>
+            <label className="text-gray text-md">{props.openingTime}</label>
           </div>
         </div>
       </div>

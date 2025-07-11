@@ -7,15 +7,17 @@ export default function Footer() {
     <div className="px-16 max-lg:px-4">
       <div className="py-8 flex items-start gap-16 max-lg:gap-4 max-lg:flex-col">
         <section className="flex flex-col gap-2">
-          <div className="flex items-center gap-4">
-            <Image
-              src="/logo.png"
-              width={40}
-              height={40}
-              alt="swift foods logo"
-            />
-            <label className="font-bold text-primary">SWIFT FOOD</label>
-          </div>
+          <Link href={'/'}>
+            <div className="flex items-center gap-4">
+              <Image
+                src="/logo.png"
+                width={40}
+                height={40}
+                alt="swift foods logo"
+              />
+              <label className="font-bold text-primary">SWIFT FOOD</label>
+            </div>
+          </Link>
           {/* <p className="text-xs font-extrabold">
             Slogan slogan slogan slogan your{" "}
             <label className="text-primary">Swift Food</label>

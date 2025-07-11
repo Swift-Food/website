@@ -19,7 +19,7 @@ export default function Home() {
                 <div className="relative w-40 h-40 rounded-full bg-primary right-11 border-2 border-black flex justify-center items-center max-sm:relative max-lg:static">
                   <div className="w-36 h-36 flex flex-col gap-4 items-center">
                     <h6 className="text-white text-sm font-semibold">
-                      Market AAA
+                      Goodge
                     </h6>
                     <Image
                       src="/sample/dish.png"
@@ -33,7 +33,7 @@ export default function Home() {
                 <div className="absolute top-20 right-[-10] w-32 h-32 rounded-full bg-general1 flex justify-center items-center max-sm:absolute max-lg:static">
                   <div className="w-32 h-32 flex flex-col gap-4 items-center">
                     <h6 className="text-sm text-primary font-semibold">
-                      Market AAA
+                      TCR
                     </h6>
                     <Image
                       src="/sample/dish.png"
@@ -48,7 +48,7 @@ export default function Home() {
                   <div className="w-40 h-40 rounded-full bg-primary-light border-2 border-black flex justify-center items-center">
                     <div className="w-36 h-36 flex flex-col gap-4 items-center">
                       <h6 className="text-primary text-sm font-semibold">
-                        Market AAA
+                        Coming soon
                       </h6>
                       <Image
                         src="/sample/dish.png"
@@ -68,12 +68,12 @@ export default function Home() {
               </div>
             </InfoContainer>
           </Link>
-          <InfoContainer heading="Catering" className="flex-1" />
+          {/* <InfoContainer heading="Catering" className="flex-1" /> */}
         </aside>
       </section>
       <section className="mt-4">
-        <div className="w-full shadow-lg rounded-xl p-16">
-          <div className="flex flex-col gap-4">
+        {/* <div className="w-full shadow-lg rounded-xl p-16  bg-primary">
+          <div className="flex flex-col gap-4 text-white">
             <label className="text-4xl font-bold max-sm:text-center">
               Track orders to your door
             </label>
@@ -87,7 +87,7 @@ export default function Home() {
               <button>Download on App Store</button>
             </div>
           </div>
-        </div>
+        </div> */}
       </section>
       <section className="flex justify-center items-center mt-4 gap-8 max-sm:flex-col flex-wrap">
         <PatnerCard
