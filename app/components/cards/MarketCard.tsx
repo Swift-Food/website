@@ -12,12 +12,14 @@ type MarketCard = {
 export default function MarketCard(props: MarketCard) {
   return (
     <div className="card bg-base-100 w-96 max-sm:w-full shadow-sm border-2 border-primary">
-      <figure>
+      <figure className="h-[277px] overflow-hidden relative">
         <Image
           src={props.image}
           alt={props.imageAlt}
-          width={307}
-          height={277}
+          fill
+          style={{
+            objectFit: "cover",
+          }}
         />
       </figure>
       <div className="card-body bg-primary text-white">
