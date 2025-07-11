@@ -10,17 +10,15 @@ export default function Home() {
           <img src={"/store.jpg"} className="w-full h-auto" />
         </section>
         <aside className="flex-1 flex flex-col gap-4 items-center">
-          <Link href={"/markets"} className="w-full max-sm:w-[80%]">
-            <InfoContainer
-              heading="Markets"
-              className="relative w-full max-sm:w-[80%]"
-            >
+          <Link
+            href={"/markets"}
+            className="w-full max-sm:w-[80%] flex flex-col items-center"
+          >
+            <InfoContainer heading="Markets" className="relative w-full">
               <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0">
                 <div className="relative w-40 h-40 rounded-full bg-primary right-11 border-2 border-black flex justify-center items-center max-sm:relative max-lg:static">
                   <div className="w-36 h-36 flex flex-col gap-4 items-center">
-                    <h6 className="text-white text-sm font-semibold">
-                      Goodge
-                    </h6>
+                    <h6 className="text-white text-sm font-semibold">Goodge</h6>
                     <Image
                       src="/sample/dish.png"
                       alt="sample dish"
@@ -32,9 +30,7 @@ export default function Home() {
 
                 <div className="absolute top-20 right-[-10] w-32 h-32 rounded-full bg-general1 flex justify-center items-center max-sm:absolute max-lg:static">
                   <div className="w-32 h-32 flex flex-col gap-4 items-center">
-                    <h6 className="text-sm text-primary font-semibold">
-                      TCR
-                    </h6>
+                    <h6 className="text-sm text-primary font-semibold">TCR</h6>
                     <Image
                       src="/sample/dish.png"
                       alt="sample dish"
