@@ -7,14 +7,14 @@ export default function Home() {
     <div>
       <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between">
         <section className="flex-4 relative h-full rounded-xl overflow-hidden">
-        <div className="relative w-full h-screen"> 
-          <Image 
-            src="/store.jpg"
-            alt="store"
-            fill
-            className="object-cover" // or object-contain, object-fill
-          />
-        </div>
+          <div className="relative w-full aspect-[192/139]">
+            <Image
+              src="/store.jpg"
+              alt="store"
+              fill
+              className="object-cover" // or object-contain, object-fill
+            />
+          </div>
         </section>
         <aside className="flex-1 flex flex-col gap-4 items-center">
           <Link
