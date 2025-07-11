@@ -16,15 +16,16 @@ export default function Footer() {
             />
             <label className="font-bold text-primary">SWIFT FOOD</label>
           </div>
-          <p className="text-xs font-extrabold">
+          {/* <p className="text-xs font-extrabold">
             Slogan slogan slogan slogan your{" "}
             <label className="text-primary">Swift Food</label>
-          </p>
+          </p> */}
         </section>
 
         <section className="flex flex-col gap-4">
           <Link href={"/about"}>About Us</Link>
-          <Link href={"/about"}>Contact Us</Link>
+          <Link href={"/contact"}>Contact Us</Link>
+          
         </section>
 
         <section className="flex flex-col gap-4">

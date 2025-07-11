@@ -2,7 +2,6 @@ import Image from "next/image";
 import InfoContainer from "./components/containers/InfoContainer";
 import Link from "next/link";
 import PatnerCard from "./components/cards/PatnerCard";
-
 export default function Home() {
   return (
     <div>
@@ -92,22 +91,24 @@ export default function Home() {
       </section>
       <section className="flex justify-center items-center mt-4 gap-8 max-sm:flex-col flex-wrap">
         <PatnerCard
-          image={"/sample/dish.png"}
-          imageAlt={"Shoes"}
+          image={"/food-shop.avif"}
+          imageAlt={"Stall"}
           title={"Partner with us"}
           description={
             "Join Swift Foods and reach more customers than ever. We handle delivery, so you can focus on the food"
           }
           buttonTitle={"Get Started"}
+          link="/restaurant"
         />
         <PatnerCard
-          image={"/sample/dish.png"}
-          imageAlt={"Shoes"}
-          title={"Partner with us"}
+          image={"/rider.jpg"}
+          imageAlt={"Rider"}
+          title={"Ride with us"}
           description={
-            "Join Swift Foods and reach more customers than ever. We handle delivery, so you can focus on the food"
+            "Join Swift Food and receive more orders than ever before. We ensure upmost quality service for our riders."
           }
           buttonTitle={"Get Started"}
+          link="/rider"
         />
       </section>
     </div>
