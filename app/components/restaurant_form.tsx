@@ -253,7 +253,7 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
             onClick={() => (window.location.href = "/")}
             className="btn btn-primary btn-sm rounded-full px-6 text-white"
           >
-            Back to Home
+            Home
           </button>
         </div>
       </div>
