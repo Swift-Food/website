@@ -1,25 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* @plugin "daisyui/theme" {
-  name: "light";
-  default: true;
-  prefersdark: true;
-  --color-primary: #fa43ad;
-}
-
-@plugin "daisyui/theme" {
-  name: "dark";
-  default: false;
-  prefersdark: true;
-  --color-primary: #fa43ad;
-  --color-primary-content: #ffffff;
-  --color-base-100: #282828;
-  --color-base-200: #1f1f1f;
-  --color-base-300: #3a3a3a;
-  --color-base-content: #f6f5f3;
-} */
-
 /* Custom Swift Food Theme */
 @plugin "daisyui/theme" {
   name: "swift";
@@ -29,7 +10,6 @@
   /* Primary colors from your palette */
   --color-primary: #fa43ad; /* Hot Pink */
   --color-primary-content: #ffffff;
-
   /* Secondary colors */
   --color-secondary: #ffb3e6; /* Light Pink */
   --color-secondary-content: #282828;
@@ -53,15 +33,6 @@
   --color-success: #4ade80; /* Green */
   --color-warning: #ffcd5e; /* Yellow */
   --color-error: #f87171; /* Red */
-}
-
-@theme inline {
-  --color-primary: #fa43ad;
-  --color-primary-light: #ffb3e6;
-  --color-secondary: #ffcd5e; /* Adding yellow as secondary */
-  --color-neutral-dark: #282828; /* Adding dark gray */
-  --color-general1: #94daf0; /* light blue */
-  --font-primary: var(--font-poppins);
 }
 
 body {
