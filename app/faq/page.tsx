@@ -126,7 +126,7 @@ export default function FAQ() {
         {/* FAQ Content */}
         <div className="space-y-8">
           {faqData.map((category, categoryIndex) => (
-            <div key={categoryIndex} className="bg-white rounded-xl shadow-sm border p-6">
+            <div key={categoryIndex} className="rounded-xl shadow-sm border border-primary p-6">
               {/* Category Title */}
               <h2 className="text-2xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
                 {category.title}
@@ -139,11 +139,11 @@ export default function FAQ() {
                   const isOpen = openItems[key];
 
                   return (
-                    <div key={questionIndex} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div key={questionIndex} className="border border-primary rounded-lg overflow-hidden">
                       {/* Question Button */}
                       <button
                         onClick={() => toggleItem(categoryIndex, questionIndex)}
-                        className="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 transition-colors flex justify-between items-center"
+                        className="w-full text-left p-4 hover:bg-primary transition-colors flex justify-between items-center"
                       >
                         <span className="font-medium text-gray-800 pr-4">
                           {item.question}
@@ -155,7 +155,7 @@ export default function FAQ() {
 
                       {/* Answer Content */}
                       {isOpen && (
-                        <div className="p-4 bg-white border-t border-gray-200">
+                        <div className="p-4 border-t border-primary">
                           <div className="text-gray-600 leading-relaxed">
                             {typeof item.answer === 'string' ? (
                               <p>{item.answer}</p>

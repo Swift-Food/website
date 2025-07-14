@@ -3,6 +3,8 @@
 import Image from "next/image";
 import InfoContainer from "../components/containers/InfoContainer";
 import { useState } from "react";
+import StepperButtonGroup from "../components/buttons/StepperButtonGroup";
+import { ImageTextContainer } from "../components/containers/CompactImageContainer";
 
 export default function CateringPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -15,6 +17,23 @@ export default function CateringPage() {
     { value: "51-100", label: "51-100 people" },
     { value: "101-200", label: "101-200 people" },
     { value: "200+", label: "200+ people" },
+  ];
+  const stepperConfig = [
+    {
+      id: 1,
+      step: "1",
+      title: "Plan Ahead",
+    },
+    {
+      id: 2,
+      step: "2",
+      title: "Choose Restaurant",
+    },
+    {
+      id: 3,
+      step: "3",
+      title: "Coordinate Delivery",
+    },
   ];
 
   const handleSubmit = (e: any) => {
@@ -99,7 +118,7 @@ export default function CateringPage() {
       </section>
 
       {/* How Our Catering Works Section */}
-      <section className="w-full py-12 max-w-7xl mx-auto">
+      <section className="w-full py-12 max-w-7xl mx-auto flex-center">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-800 mb-8 max-sm:text-3xl">
@@ -107,94 +126,15 @@ export default function CateringPage() {
           </h2>
         </div>
 
-        {/* Fixed-Size Overlapping Containers */}
-        <div className="flex justify-center items-center relative max-w-6xl mx-auto mb-16 max-lg:flex-col max-lg:gap-8">
-          
-          {/* Container 1 - Plan Ahead */}
-          <div className="relative z-30 border-4 border-primary rounded-3xl w-80 h-20 bg-transparent flex items-center px-6 max-lg:w-full max-lg:max-w-md">
-            {/* Circle with number - leftmost */}
-            <div className="flex-shrink-0 w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">1</span>
-            </div>
-            
-            {/* Step text - middle */}
-            <div className="flex-1 text-center">
-              <h3 className="text-lg font-bold text-gray-800">
-                Plan Ahead
-              </h3>
-            </div>
-          </div>
-
-          {/* Container 2 - Choose Restaurant */}
-          <div className="relative z-20 border-4 border-primary rounded-3xl w-80 h-20 bg-transparent flex items-center px-6 -ml-20 max-lg:ml-0 max-lg:w-full max-lg:max-w-md">
-            {/* Circle with number - leftmost */}
-            <div className="flex-shrink-0 w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">2</span>
-            </div>
-            
-            {/* Step text - middle */}
-            <div className="flex-1 text-center">
-              <h3 className="text-lg font-bold text-gray-800">
-                Choose Restaurant
-              </h3>
-            </div>
-          </div>
-
-          {/* Container 3 - Coordinate Delivery */}
-          <div className="relative z-10 border-4 border-primary rounded-3xl w-80 h-20 bg-transparent flex items-center px-6 -ml-20 max-lg:ml-0 max-lg:w-full max-lg:max-w-md">
-            {/* Circle with number - leftmost */}
-            <div className="flex-shrink-0 w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">3</span>
-            </div>
-            
-            {/* Step text - middle */}
-            <div className="flex-1 text-center">
-              <h3 className="text-lg font-bold text-gray-800">
-                Coordinate Delivery
-              </h3>
-            </div>
-          </div>
-
+        <div className="flex justify-center items-center w-full mb-12">
+          <StepperButtonGroup steps={stepperConfig} activeItemIds={[]}></StepperButtonGroup>
         </div>
+        
 
         {/* Process Details Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          
-          {/* Step 1 Details */}
-          <div className="text-center p-6">
-            <h4 className="text-xl font-semibold text-gray-800 mb-4">Timing Requirements</h4>
-            <div className="space-y-2">
-              <p className="text-gray-700"><strong>24 hours</strong> - 10+ People</p>
-              <p className="text-gray-700"><strong>48-72 hours</strong> - 50+ People</p>
-            </div>
-            <p className="text-gray-600 mt-4 text-sm">
-              Contact us in advance to ensure perfect preparation for your event.
-            </p>
-          </div>
-
-          {/* Step 2 Details */}
-          <div className="text-center p-6">
-            <h4 className="text-xl font-semibold text-gray-800 mb-4">Partner Network</h4>
-            <p className="text-gray-700 mb-2">
-              Select from our <span className="text-primary font-semibold">partner restaurants</span>
-            </p>
-            <p className="text-gray-600 text-sm">
-              We coordinate with local vendors to prepare your large order with care and precision.
-            </p>
-          </div>
-
-          {/* Step 3 Details */}
-          <div className="text-center p-6">
-            <h4 className="text-xl font-semibold text-gray-800 mb-4">Fresh Delivery</h4>
-            <p className="text-gray-700 mb-2">
-              Timely delivery to your location
-            </p>
-            <p className="text-gray-600 text-sm">
-              We ensure your food arrives fresh and ready to serve at your specified time.
-            </p>
-          </div>
-
-        </div>
+        <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+        <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+        <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
       </section>
     </div>
   );

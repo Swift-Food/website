@@ -40,7 +40,7 @@ const stepperConfig = [
   {
     id: 5,
     step: "5",
-    title: "Contact Us",
+    title: "Special Requests",
   },
 ];
 
@@ -118,7 +118,7 @@ export default function CateringForm() {
           {currentStep === 1 && (
             <>
               <h2 className="text-xl font-bold">
-                What do you want for delivery
+                When do you want the delivery
               </h2>
               <h6 className="text-sm font-semibold">Delivery Date</h6>
               <label className="text-xs text-gray-400">
@@ -222,7 +222,7 @@ export default function CateringForm() {
                       "Family Party",
                       `Children’s
                 Party`,
-                      "Fesitival",
+                      "Festival",
                       "Charity Event",
                     ].map((item) => (
                       <button
