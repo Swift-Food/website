@@ -52,10 +52,10 @@ export default function CateringPage() {
       {/* Main Catering Section */}
       <section className="flex w-full gap-6 max-lg:flex-col justify-between mb-12">
         {/* Left side - Store Image */}
-        <section className="flex-2 relative h-full rounded-xl overflow-hidden">
+        <section className="flex-5 relative h-full rounded-xl overflow-hidden">
           <div className="relative w-full aspect-[4/3] max-lg:aspect-[16/9]">
             <Image
-              src="/store.jpg"
+              src="/catering.jpg"
               alt="Swift Food Catering"
               fill
               className="object-cover"
@@ -64,7 +64,7 @@ export default function CateringPage() {
         </section>
 
         {/* Right side - Catering Form */}
-        <aside className="flex-1 flex flex-col gap-4 items-center max-lg:mt-6">
+        <aside className="flex-2 flex flex-col gap-4 items-center max-lg:mt-6">
           <InfoContainer heading="Book Catering" className="relative w-full h-full">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6">
               {/* Delivery Date Picker */}
@@ -132,9 +132,11 @@ export default function CateringPage() {
         
 
         {/* Process Details Cards */}
-        <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
-        <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
-        <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+        <section className="columns-3">
+          <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+          <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+          <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+        </section>
       </section>
     </div>
   );
