@@ -132,10 +132,10 @@ export default function CateringPage() {
         
 
         {/* Process Details Cards */}
-        <section className="columns-3">
+        <section className="flex flex-wrap gap-0 justify-center">
           <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
-          <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
-          <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+          <ImageTextContainer imageSrc="/restaurant-delivery.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
+          <ImageTextContainer imageSrc="/rider.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
         </section>
       </section>
     </div>

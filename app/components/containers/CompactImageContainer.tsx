@@ -18,7 +18,7 @@ export const ImageTextContainer: FC<ImageTextContainerProps> = ({
   imageAlt = "Image", 
   text, 
   imageWidth = 200, 
-  imageHeight = 200,
+  imageHeight = 150, // Standard height for all images
   className = "",
   textClassName = "",
   imageClassName = "",
@@ -31,31 +31,35 @@ export const ImageTextContainer: FC<ImageTextContainerProps> = ({
         border 
         border-pink-300 
         bg-transparent 
-        p-6 
+        p-4 
         flex 
         flex-col 
         items-center 
-        gap-4 
+      
+        h-80
+        w-full
+        max-w-xs
         ${onClick ? 'cursor-pointer hover:border-pink-400 transition-colors' : ''}
         ${className}
       `}
       onClick={onClick}
     >
-      {/* Image */}
-      <div className={`relative overflow-hidden rounded-lg ${imageClassName}`}>
+      {/* Image Container - Fixed height, full width */}
+      <div className={`relative w-full h-40 overflow-hidden rounded-lg ${imageClassName}`}>
         <Image
           src={imageSrc}
           alt={imageAlt}
-          width={imageWidth}
-          height={imageHeight}
+          fill
           className="object-cover rounded-lg"
         />
       </div>
       
-      {/* Text */}
-      <p className={`text-center text-gray-700 ${textClassName}`}>
-        {text}
-      </p>
+      {/* Text Container - Fixed height with overflow handling */}
+      <div className="flex-1 flex items-center justify-center w-full">
+        <p className={`text-center text-gray-700 text-sm line-clamp-4 ${textClassName}`}>
+          {text}
+        </p>
+      </div>
     </div>
   );
 };
