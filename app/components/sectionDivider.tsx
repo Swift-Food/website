@@ -11,7 +11,7 @@ export default function SectionDivider({
   text,
   className = "",
   logoSize = 64,
-  textSize = "lg",
+  textSize = "md",
 }: SectionDividerProps) {
   const textSizeClasses = {
     sm: "text-lg max-sm:text-base",
@@ -22,7 +22,7 @@ export default function SectionDivider({
 
   return (
     <section className={`w-full flex justify-center my-8 ${className}`}>
-      <div className="bg-primary px-4 rounded-full flex items-center gap-4 shadow-lg">
+      <div className="bg-primary pl-4 rounded-full flex items-center gap-4 shadow-lg">
         <h2 className={`text-white font-bold whitespace-nowrap ${textSizeClasses[textSize]}`}>
           {text}
         </h2>
