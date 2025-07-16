@@ -354,8 +354,16 @@ export default function CateringForm() {
               ></textarea>
             </>
           )}
-
-          <div className="flex gap-4">
+          {
+            currentStep === 7 && (
+              <>
+                <h4 className="text-sm font-bold">Thank you for choosing catering with Swiftfood. We will be in contact with you shortly</h4>
+              </>
+            )
+          }
+          {
+            currentStep != 7 && (
+              <div className="flex gap-4">
             {activeSteps.length !== 1 && (
               <button
                 className="btn btn-sm btn-primary btn-outline w-28 rounded-full"
@@ -380,6 +388,9 @@ export default function CateringForm() {
               </button>
             )}
           </div>
+            )
+          }
+          
         </div>
       </div>
     </div>
