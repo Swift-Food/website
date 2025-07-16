@@ -7,11 +7,11 @@ import SectionDivider from "./components/sectionDivider";
 
 export default function Home() {
   return (
-    <div className="px-4 max-w-7xl mx-auto">
-      {/* Hero Section - Responsive like store.jpg */}
-      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between mb-8">
-        <section className="flex-5 relative h-full rounded-xl overflow-hidden">
-          <div className="relative w-full aspect-[192/139]">
+    <div className="px-4 max-w-7xl mx-md">
+      <section className="flex w-full gap-4 max-lg:flex-col justify-between mb-8 min-h-[400px] md:min-h-[500px] lg:min-h-[600px]">
+        {/* Image Section - Maintain 5:2 ratio */}
+        <section className="flex-[5] relative rounded-xl overflow-hidden min-h-[300px] lg:min-h-full">
+          <div className="relative w-full h-full">
             <Image
               src="/store.jpg"
               alt="store"
@@ -20,86 +20,94 @@ export default function Home() {
             />
           </div>
         </section>
-        <section className="flex-2 flex-col justify-between h-full">
-          <aside className="flex-3 flex-col gap-4 items-center">
+        
+        {/* Info Container Section - Maintain 5:2 ratio */}
+        <section className="flex-[2] flex flex-col justify-between min-h-[400px] lg:min-h-full gap-4">
+          <aside className="flex-[1] flex flex-col gap-4 items-center h-full">
             <Link
               href={"/markets"}
-              className="w-full max-sm:w-[80%] flex flex-col items-center"
+              className="w-full max-sm:w-[90%] flex flex-col items-center "
             >
-              <InfoContainer heading="Markets" className="relative w-full">
-                <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0">
+              <InfoContainer heading="Markets" className="relative w-full h-full flex-1">
+                <div className="max-sm:block max-md:flex max-md:justify-center max-md:gap-4 max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0 max-sm:space-y-4 h-full flex flex-col justify-center">
 
-                  <div className="relative w-40 h-40 rounded-full bg-primary right-11 border-2 border-black flex justify-center items-center max-sm:relative max-lg:static">
-                    <div className="w-36 h-36 flex flex-col gap-4 items-center">
-                      <h6 className="text-white text-sm font-semibold">TCR</h6>
-                      <Image
-                        src="/sample/dish.png"
-                        alt="sample dish"
-                        width={115}
-                        height={115}
-                      />
+                  <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full bg-primary mx-auto sm:mx-0 md:right-11 border-2 border-black flex justify-center items-center max-sm:relative max-lg:static overflow-hidden">
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 flex flex-col gap-2 sm:gap-4 items-center">
+                      <h6 className="text-white text-xs sm:text-sm font-semibold">TCR</h6>
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
+                        <Image
+                          src="/sample/dish.png"
+                          alt="sample dish"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
                     </div>
                   </div>
-         
-                  <div className="relative w-40 h-40 rounded-full bg-primary left-30 border-2 border-black flex justify-center items-center max-sm:relative max-lg:static">
-                    <div className="w-36 h-36 flex flex-col gap-4 items-center">
-                      <h6 className="text-white text-sm font-semibold">Goodge</h6>
-                      <Image
-                        src="/sample/dish.png"
-                        alt="sample dish"
-                        width={115}
-                        height={115}
-                      />
+        
+                  <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full bg-primary mx-auto sm:mx-0 md:left-30 border-2 border-black flex justify-center items-center max-sm:relative max-lg:static overflow-hidden">
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 flex flex-col gap-2 sm:gap-4 items-center">
+                      <h6 className="text-white text-xs sm:text-sm font-semibold">Goodge</h6>
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
+                        <Image
+                          src="/sample/dish.png"
+                          alt="sample dish"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
                     </div>
                   </div>
               
 
                   <div className="w-full flex justify-center items-center max-sm:w-full max-lg:w-fit">
-                    <div className="w-40 h-40 rounded-full bg-primary-light border-2 border-black flex justify-center items-center">
-                      <div className="w-36 h-36 flex flex-col gap-4 items-center">
-                        <h6 className="text-primary text-sm font-semibold">
+                    <div className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full bg-primary-light border-2 border-black flex justify-center items-center overflow-hidden">
+                      <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 flex flex-col gap-2 sm:gap-4 items-center">
+                        <h6 className="text-primary text-xs sm:text-sm font-semibold">
                           Coming soon
                         </h6>
-                        <Image
-                          src="/sample/dish.png"
-                          alt="sample dish"
-                          width={115}
-                          height={115}
-                        />
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
+                          <Image
+                            src="/sample/dish.png"
+                            alt="sample dish"
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-full flex justify-center absolute bottom-4 left-0">
-                  <button className="btn btn-primary rounded-full btn-sm text-white">
+                <div className="w-full flex justify-center absolute bottom-2 sm:bottom-4 left-0">
+                  <button className="btn btn-primary rounded-full btn-xs sm:btn-sm text-white text-xs sm:text-sm">
                     Explore More
                   </button>
                 </div>
               </InfoContainer>
             </Link>
           </aside>
-          <aside className="flex-2 flex-col gap-4 items-center">
-            <Link href={'/catering'} className="w-full max-sm:w-[80%] flex flex-col items-center">
-              <InfoContainer heading="Catering" className="relative w-full">
-                <section className="relative w-full aspect-[192/139]">
+          
+          <aside className="flex-[1] flex flex-col gap-4 items-center">
+            <Link href={'/catering'} className="w-full max-sm:w-[90%] flex flex-col items-center h-full">
+              <InfoContainer heading="Catering" className="relative w-full h-full">
+                <section className="relative w-full min-h-[120px] sm:min-h-[150px] md:min-h-[200px] ">
                   <Image 
                     src={'/catering.jpg'}
                     alt = 'catering'
                     fill
-
+                 
                   />
                 </section>
-                <div className="w-full flex justify-center absolute bottom-4 left-0">
-                  <button className="btn btn-primary rounded-full btn-sm text-white">
+                <div className="w-full flex justify-center absolute bottom-2 sm:bottom-4 left-0">
+                  <button className="btn btn-primary rounded-full btn-xs sm:btn-sm text-white text-xs sm:text-sm">
                     Order Now
                   </button>
                 </div>
               </InfoContainer>
-              </Link>
+            </Link>
           </aside>
         </section>
-        
       </section>
     
       {/* Brand Banner - Responsive */}
@@ -149,7 +157,7 @@ export default function Home() {
         
         <div className="space-y-12 max-sm:space-y-8">
           <ImageTextSection 
-            image="/goodge.jpg" 
+            image="/cuisines.jpg" 
             imageAlt="Multiple cuisines" 
             title="Multiple Cuisines, One Order" 
             description="Craving Thai, Mexican, Lebanese all at once? No problem, mix and match dishes from different vendors in a single order."
@@ -157,7 +165,7 @@ export default function Home() {
           />
           
           <ImageTextSection 
-            image="/goodge.jpg" 
+            image="/local.jpg" 
             imageAlt="Local businesses" 
             title="Supporting Local Businesses" 
             description="We champion independant food stalls and small vendors, bringing their incredible flavours to your doorstep." 
@@ -166,7 +174,7 @@ export default function Home() {
           />
           
           <ImageTextSection 
-            image="/goodge.jpg" 
+            image="/affordable.jpg" 
             imageAlt="Affordable pricing" 
             title="More affordable" 
             description="Lower delivery fees means you can enjoy your favourite meals without breaking the bank."
@@ -177,7 +185,7 @@ export default function Home() {
         <SectionDivider text="The Problem We're Solving" />
         
         <ImageTextSection 
-          image="/goodge.jpg" 
+          image="/problem-solve.jpg" 
           imageAlt="Problem solving" 
           title="" 
           description="While big delivery platforms focus on expensive restaurants, we saw a gap in the market—London's vibrant street food scene was missing from delivery apps. At the same time, platforms like Deliveroo, UberEats, and JustEat were becoming too expensive for students and everyday people. That's where Swift Food comes in."
@@ -187,37 +195,13 @@ export default function Home() {
         <SectionDivider text="Where We Operate" />
         
         <ImageTextSection 
-          image="/goodge.jpg" 
+          image="/where-operate.jpg" 
           imageAlt="Operating areas" 
           title="" 
           description="We're currently serving the Camden area, but we have big plans! Swift Food is scaling across London, bringing its fast, affordable, and diverse food delivery service to more people soon."
           className="max-sm:gap-4"
         />
       </div>
-
-      {/* Partner Cards - Responsive */}
-      <section className="flex justify-center items-center mt-12 gap-8 max-lg:gap-6 max-sm:flex-col max-sm:gap-4 flex-wrap mb-8">
-        <PatnerCard
-          image={"/food-shop.png"}
-          imageAlt={"Stall"}
-          title={"Partner with us"}
-          description={
-            "Join Swift Food to reach more customers than ever — we handle the delivery, so you can focus on the food."
-          }
-          buttonTitle={"Get Started"}
-          link="/restaurant"
-        />
-        <PatnerCard
-          image={"/rider.png"}
-          imageAlt={"Rider"}
-          title={"Ride with us"}
-          description={
-            "Join Swift Food and receive more orders than ever before. We ensure the utmost support and care for our riders."
-          }
-          buttonTitle={"Get Started"}
-          link="/rider"
-        />
-      </section>
     </div>
   );
 }

@@ -5,12 +5,23 @@ import Link from "next/link";
 
 function NavbarAction() {
   return (
-    <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8">
+    <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
+      <Link href={'/catering'}>
+        <button className="btn btn-md btn-ghost rounded-full">
+          Catering
+        </button>
+      </Link>
       <Link href={'/about'}>
-        <button className="btn btn-md btn-ghost text-primary rounded-full">
+        <button className="btn btn-md btn-ghost rounded-full">
           About Us
         </button>
       </Link>
+      <Link href={'/contact'}>
+        <button className="btn btn-md btn-ghost rounded-full">
+          Contact Us
+        </button>
+      </Link>
+      
       {/* <button className="btn btn-md btn-outline btn-primary rounded-full">
         Sign up
       </button>

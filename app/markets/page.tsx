@@ -6,7 +6,7 @@ export default function page() {
     <div>
       <div className="flex flex-wrap justify-center gap-4">
         <MarketCard
-          image={"/tcr.jpg"}
+          image={"/where-operate.jpg"}
           imageAlt={"Shoes"}
           title={"Tottenham Court Road"}
           description={
@@ -14,11 +14,11 @@ export default function page() {
           }
           openingTime="10:00 AM to 08:00 PM"
           stallCount="14"
-          cuisineTypes={['Chinese', 'Indian', "Thai", "Japanese"]}
+          cuisineTypes={[]}
           bubbleLayout="scattered"
         />
         <MarketCard
-          image={"/goodge.jpg"}
+          image={"/goodge-crowd.jpg"}
           imageAlt={"Shoes"}
           title={"Goodge Street"}
           description={
@@ -26,7 +26,7 @@ export default function page() {
           }
           openingTime="10:00 AM to 08:00 PM"
           stallCount="11"
-          cuisineTypes={['Portugese', 'Argentinian', "Mexican"]}
+          cuisineTypes={[]}
           bubbleLayout="grid"
           
         />
