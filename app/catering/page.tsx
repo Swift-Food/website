@@ -62,35 +62,41 @@ export default function CateringPage() {
         </section>
 
         {/* Right side - Catering Form */}
-        <aside className="flex-2 flex flex-col gap-4 items-center max-lg:mt-6">
-          <InfoContainer heading="Book Catering" className="relative w-full h-full">
+        <aside className="flex-2 flex flex-col gap-4 items-center justify-center max-lg:mt-6">
+          <h1 className="text-primary text-7xl font-bold">
+            Catering
+          </h1>
+          <InfoContainer heading="" className="relative w-full">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6">
               {/* Delivery Date Picker */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="deliveryDate" className="text-lg font-semibold text-gray-800">
+              <div className="flex flex-col items-center">
+                <label htmlFor="deliveryDate" className="text-lg font-bold ">
                   Delivery Date
                 </label>
+                <h1 className="text-[#6A6A6A] text-sm">
+                  upto 7 days in advance
+                </h1>
                 <input
                   type="date"
                   id="deliveryDate"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
+                  className="w-full px-4 py-3 my-4 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
                   required
                 />
               </div>
 
               {/* Capacity Dropdown */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="capacity" className="text-lg font-semibold text-gray-800">
+              <div className="flex flex-col gap-2 items-center">
+                <label htmlFor="capacity" className="text-lg font-bold text-gray-800">
                   Event Capacity
                 </label>
                 <select
                   id="capacity"
                   value={capacity}
                   onChange={(e) => setCapacity(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base bg-white"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
                   required
                 >
                   {capacityOptions.map((option) => (

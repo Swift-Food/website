@@ -8,21 +8,21 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section - Responsive like store.jpg */}
-      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between mb-8">
-        <section className="flex-6 relative h-full rounded-xl overflow-hidden">
+      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between items-center mb-8">
+        <section className="flex-3 h-full rounded-xl overflow-hidden">
           <div className="relative w-full aspect-[192/139]">
             <Image src="/store.jpg" alt="store" fill className="object-cover" />
           </div>
         </section>
-        <section className="flex-2 flex-col justify-between h-full">
+        <section className="flex-1 flex-col justify-between h-full">
           <aside className="flex-1 flex flex-col gap-4 items-center">
             <Link
               href={"/markets"}
               className="w-full max-sm:w-[80%] flex flex-col items-center"
             >
               <InfoContainer heading="Markets" className="relative w-full">
-                <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0">
-                  <div className="relative w-40 h-40 rounded-full bg-primary right-4 flex items-end justify-center">
+                {/* <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0"> */}
+                  {/* <div className="relative w-40 h-40 rounded-full bg-primary right-4 flex items-end justify-center">
                     <div className="w-36 h-36 flex flex-col gap-2 items-center justify-end">
                       <h6 className="text-white text-sm font-semibold text-center leading-tight">
                         Tottenham <br/>
@@ -67,14 +67,15 @@ export default function Home() {
                         />
                       </div>
                     </div>
+                  </div> */}
+                  <section className="relative w-full aspect-[828/647] my-2">
+                    <Image src={"/where-operate.jpg"} alt="catering" fill />
+                  </section>
+                  <div className="w-full flex justify-center bottom-4 ">
+                    <button className="btn btn-primary rounded-full btn-sm text-white">
+                      Order Now
+                    </button>
                   </div>
-                </div>
-
-                <div className="w-full flex justify-center absolute bottom-4 left-0">
-                  <button className="btn btn-primary rounded-full btn-sm text-white">
-                    Explore More
-                  </button>
-                </div>
               </InfoContainer>
             </Link>
             <Link
@@ -82,10 +83,10 @@ export default function Home() {
               className="w-full max-sm:w-[80%] flex flex-col items-center"
             >
               <InfoContainer heading="Catering" className="relative w-full">
-                <section className="relative w-full aspect-[828/647]">
+                <section className="relative w-full aspect-[828/647] my-2">
                   <Image src={"/catering.jpg"} alt="catering" fill />
                 </section>
-                <div className="w-full flex justify-center absolute bottom-4 left-0">
+                <div className="w-full flex justify-center bottom-4 ">
                   <button className="btn btn-primary rounded-full btn-sm text-white">
                     Order Now
                   </button>

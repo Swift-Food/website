@@ -235,8 +235,8 @@ export default function CateringForm() {
                       "Birthday Party",
                       "Anniversary",
                       "Family Party",
-                      `Children’s
-                Party`,
+                      `Children’s Party`,
+                      'Society Events',
                       "Festival",
                       "Charity Event",
                     ].map((item) => (
@@ -265,16 +265,14 @@ export default function CateringForm() {
                     {[
                       "None",
                       "Vegan",
-                      "Halal",
-                      `Family Party`,
-                      "Children’s Party",
+                      "Halal",   
                       "Kosher",
                       "Nut Allergy",
                     ].map((item) => (
                       <button
                         key={item}
                         className={cn(
-                          "btn btn-sm btn-primary rounded-full",
+                          "btn btn-sm btn-primary rounded-full ",
                           dietaryRequirement === item ? "" : "btn-outline"
                         )}
                         onClick={() => handleDietClick(item)}
@@ -346,7 +344,7 @@ export default function CateringForm() {
           )}
           {currentStep === 6 && (
             <>
-              <h4 className="text-sm font-bold">Contact Us</h4>
+              <h4 className="text-sm font-bold">Special Requests</h4>
               <textarea
                 rows={10}
                 className="ring-1 rounded-md w-full ring-primary"
@@ -374,7 +372,7 @@ export default function CateringForm() {
             )}
             {currentStep === stepperConfig.length ? (
               <button
-                className="btn btn-sm btn-primary w-28 rounded-full"
+                className="btn btn-sm btn-primary w-28 rounded-full mt-4"
                 onClick={handleNextClick}
               >
                 Submit

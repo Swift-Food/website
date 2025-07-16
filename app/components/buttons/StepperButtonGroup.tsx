@@ -31,7 +31,7 @@ export default function StepperButtonGroup({
             container: cn(
               "pr-10",
               index !== steps.length - 1 && `rounded-r-none`,
-              !activeItemIds.includes(step.id) && "bg-base-200 text-black",
+              !activeItemIds.includes(step.id) && "bg-base-100 text-black",
               !activeItemIds.includes(step.id) &&
                 index !== steps.length - 1 &&
                 "border-r-0"

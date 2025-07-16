@@ -15,7 +15,7 @@ export default function InfoContainer({
   return (
     <div
       className={cn(
-        "w-full h-fit p-4 border-primary border-1 rounded-2xl",
+        "w-full h-fit p-4 bg-base-200 rounded-2xl item-center",
         className
       )}
     >
