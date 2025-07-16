@@ -17,8 +17,6 @@ export const ImageTextContainer: FC<ImageTextContainerProps> = ({
   imageSrc, 
   imageAlt = "Image", 
   text, 
-  imageWidth = 200, 
-  imageHeight = 150, // Standard height for all images
   className = "",
   textClassName = "",
   imageClassName = "",

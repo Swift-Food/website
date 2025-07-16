@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import StepperButtonGroup from "../components/buttons/StepperButtonGroup";
-import { DayPicker, Modifiers } from "react-day-picker";
+import { DayPicker} from "react-day-picker";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { cn } from "../utils/helpers";
@@ -90,7 +90,7 @@ export default function CateringForm() {
   const capacity = watch("capacity");
   const date = watch("deliveryDate");
 
-  async function handleNextClick(event: React.MouseEvent<HTMLButtonElement>) {
+  async function handleNextClick() {
     let fields: (keyof TCateringForm)[] = [];
     if (currentStep === 1) fields = ["deliveryDate"];
     else if (currentStep === 2) fields = ["capacity"];
@@ -110,7 +110,7 @@ export default function CateringForm() {
     setCurrentStep((prevStep) => prevStep + 1);
   }
 
-  function handleBackPress(event: React.MouseEvent<HTMLButtonElement>): void {
+  function handleBackPress(): void {
     setActiveSteps((prevSteps) => {
       const result = prevSteps.slice(0, prevSteps.length - 1);
       return result;
@@ -134,7 +134,7 @@ export default function CateringForm() {
         <div className="flex flex-col justify-center items-center gap-2 p-6">
           {Object.keys(errors).length > 0 && (
             <div role="alert" className="alert alert-error">
-              <span>{errors[Object.keys(errors)[0]].message}</span>
+              <span>{errors[Object.keys(errors)[0] as keyof typeof errors]?.message as string}</span>
             </div>
           )}
           {currentStep === 1 && (
@@ -241,6 +241,7 @@ export default function CateringForm() {
                       "Charity Event",
                     ].map((item) => (
                       <button
+                         key={item}
                         className={cn(
                           "btn btn-sm btn-primary rounded-full",
                           eventType === item ? "" : "btn-outline"
@@ -271,6 +272,7 @@ export default function CateringForm() {
                       "Nut Allergy",
                     ].map((item) => (
                       <button
+                        key={item}
                         className={cn(
                           "btn btn-sm btn-primary rounded-full",
                           dietaryRequirement === item ? "" : "btn-outline"

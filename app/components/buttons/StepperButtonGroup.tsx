@@ -1,5 +1,5 @@
 import React from "react";
-import StepperButtons, { StepperButtonsProps } from "./StepperButtons";
+import StepperButtons from "./StepperButtons";
 import { cn } from "@/app/utils/helpers";
 
 export type TStepperButtonGroupItem = {

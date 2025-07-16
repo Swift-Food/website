@@ -1,7 +1,6 @@
 import Image from "next/image";
 import InfoContainer from "./components/containers/InfoContainer";
 import Link from "next/link";
-import PatnerCard from "./components/cards/PatnerCard";
 import ImageTextSection from "./components/containers/ImageTextSection";
 import SectionDivider from "./components/sectionDivider";
 
@@ -141,7 +140,7 @@ export default function Home() {
 
         <div className="space-y-12 max-sm:space-y-8">
           <ImageTextSection
-            image="/goodge.jpg"
+            image="/cuisines.jpg"
             imageAlt="Multiple cuisines"
             title="Multiple Cuisines, One Order"
             description="Craving Thai, Mexican, Lebanese all at once? No problem, mix and match dishes from different vendors in a single order."
@@ -149,7 +148,7 @@ export default function Home() {
           />
 
           <ImageTextSection
-            image="/goodge.jpg"
+            image="/local.jpg"
             imageAlt="Local businesses"
             title="Supporting Local Businesses"
             description="We champion independant food stalls and small vendors, bringing their incredible flavours to your doorstep."
@@ -158,7 +157,7 @@ export default function Home() {
           />
 
           <ImageTextSection
-            image="/goodge.jpg"
+            image="/affordable.jpg"
             imageAlt="Affordable pricing"
             title="More affordable"
             description="Lower delivery fees means you can enjoy your favourite meals without breaking the bank."
@@ -169,7 +168,7 @@ export default function Home() {
         <SectionDivider text="The Problem We're Solving" />
 
         <ImageTextSection
-          image="/goodge.jpg"
+          image="/problem-solve.jpg"
           imageAlt="Problem solving"
           title=""
           description="While big delivery platforms focus on expensive restaurants, we saw a gap in the market—London's vibrant street food scene was missing from delivery apps. At the same time, platforms like Deliveroo, UberEats, and JustEat were becoming too expensive for students and everyday people. That's where Swift Food comes in."
@@ -179,7 +178,7 @@ export default function Home() {
         <SectionDivider text="Where We Operate" />
 
         <ImageTextSection
-          image="/goodge.jpg"
+          image="/where-operate.jpg"
           imageAlt="Operating areas"
           title=""
           description="We're currently serving the Camden area, but we have big plans! Swift Food is scaling across London, bringing its fast, affordable, and diverse food delivery service to more people soon."
@@ -187,29 +186,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Partner Cards - Responsive */}
-      <section className="flex justify-center items-center mt-12 gap-8 max-lg:gap-6 max-sm:flex-col max-sm:gap-4 flex-wrap mb-8">
-        <PatnerCard
-          image={"/food-shop.png"}
-          imageAlt={"Stall"}
-          title={"Partner with us"}
-          description={
-            "Join Swift Food to reach more customers than ever — we handle the delivery, so you can focus on the food."
-          }
-          buttonTitle={"Get Started"}
-          link="/restaurant"
-        />
-        <PatnerCard
-          image={"/rider.png"}
-          imageAlt={"Rider"}
-          title={"Ride with us"}
-          description={
-            "Join Swift Food and receive more orders than ever before. We ensure the utmost support and care for our riders."
-          }
-          buttonTitle={"Get Started"}
-          link="/rider"
-        />
-      </section>
+      
     </div>
   );
 }

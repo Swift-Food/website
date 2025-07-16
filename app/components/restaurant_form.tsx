@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, {useState } from "react";
 import Image from "next/image";
 import InfoContainer from "./containers/InfoContainer";
 import { mailService } from "../service/mail";
@@ -10,7 +10,6 @@ import {
   FieldErrors,
   useForm,
   UseFormRegister,
-  useFormState,
 } from "react-hook-form";
 import { TRestaurantForm } from "../types/restaurant";
 
@@ -196,6 +195,7 @@ function RestaurantProfile({ control, register }: RestaurantProfileProps) {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-gray-700">
           {cuisineOptions.map((cuisine) => (
             <Controller
+              key={cuisine}
               control={control}
               name="cuisineTypes"
               rules={{
@@ -210,7 +210,7 @@ function RestaurantProfile({ control, register }: RestaurantProfileProps) {
                   <input
                     type="checkbox"
                     checked={field.value.includes(cuisine)}
-                    onChange={(e) => {
+                    onChange={() => {
                       if (field.value.includes(cuisine)) {
                         const updatedCuisine = field.value.filter(
                           (item) => item !== cuisine
@@ -238,6 +238,7 @@ function RestaurantProfile({ control, register }: RestaurantProfileProps) {
         <div className="flex flex-wrap gap-4">
           {serviceOptions.map((service) => (
             <Controller
+              key={service}
               control={control}
               name="serviceTypes"
               rules={{
@@ -252,7 +253,7 @@ function RestaurantProfile({ control, register }: RestaurantProfileProps) {
                   <input
                     type="checkbox"
                     checked={field.value.includes(service)}
-                    onChange={(e) => {
+                    onChange={() => {
                       if (field.value.includes(service)) {
                         const updatedCuisine = field.value.filter(
                           (item) => item !== service
@@ -291,19 +292,19 @@ function RestaurantProfile({ control, register }: RestaurantProfileProps) {
 }
 
 // Types for form data
-interface BasicBusinessInfo {
-  restaurantName: string;
-  ownerName: string;
-  businessEmail: string;
-  businessPhone: string;
-}
+// interface BasicBusinessInfo {
+//   restaurantName: string;
+//   ownerName: string;
+//   businessEmail: string;
+//   businessPhone: string;
+// }
 
-interface LocationInfo {
-  streetAddress: string;
-  city: string;
-  postalCode: string;
-  market: string;
-}
+// interface LocationInfo {
+//   streetAddress: string;
+//   city: string;
+//   postalCode: string;
+//   market: string;
+// }
 
 interface RestaurantProfile {
   cuisineTypes: string[];
@@ -315,11 +316,11 @@ interface RestaurantProfile {
   daysOpen: string[];
 }
 
-interface FormData {
-  basicInfo: BasicBusinessInfo;
-  location: LocationInfo;
-  profile: RestaurantProfile;
-}
+// interface FormData {
+//   basicInfo: BasicBusinessInfo;
+//   location: LocationInfo;
+//   profile: RestaurantProfile;
+// }
 
 interface MultiStepFormProps {
   onSubmit?: (data: TRestaurantForm) => void;
@@ -362,7 +363,7 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
   const businessEmail = watch("businessEmail");
 
   async function handleNextStep(
-    event: MouseEvent<HTMLButtonElement, MouseEvent>
+
   ) {
     let fieldsToBeValidated: (keyof TRestaurantForm)[] = [];
     if (currentStep === 1)

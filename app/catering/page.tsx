@@ -5,11 +5,12 @@ import InfoContainer from "../components/containers/InfoContainer";
 import { useState } from "react";
 import StepperButtonGroup from "../components/buttons/StepperButtonGroup";
 import { ImageTextContainer } from "../components/containers/CompactImageContainer";
+import Link from "next/link";
 
 export default function CateringPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [capacity, setCapacity] = useState("");
-
+  
   const capacityOptions = [
     { value: "", label: "Select capacity" },
     { value: "10-20", label: "10-20 people" },
@@ -42,9 +43,6 @@ export default function CateringPage() {
       alert("Please fill in all fields");
       return;
     }
-    // Handle form submission
-    console.log("Catering request:", { deliveryDate, capacity });
-    alert(`Catering request submitted for ${capacity} on ${deliveryDate}`);
   };
 
   return (
@@ -105,12 +103,14 @@ export default function CateringPage() {
 
               {/* Submit Button */}
               <div className="flex justify-center mt-4">
+                <Link href={'catering-form'}>
                 <button
                   type="submit"
                   className="btn btn-primary rounded-full px-8 py-3 text-white font-semibold text-lg hover:bg-primary/90 transition-colors w-full max-w-xs"
                 >
                   Get Started
                 </button>
+                </Link>
               </div>
             </form>
           </InfoContainer>
