@@ -22,7 +22,7 @@ export default function Home() {
             >
               <InfoContainer heading="Markets" className="relative w-full">
                 <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0">
-                  <div className="relative w-40 h-40 rounded-full bg-primary right-4 border-2 border-black flex items-end justify-center">
+                  <div className="relative w-40 h-40 rounded-full bg-primary right-4 flex items-end justify-center">
                     <div className="w-36 h-36 flex flex-col gap-2 items-center justify-end">
                       <h6 className="text-white text-sm font-semibold text-center leading-tight">
                         Tottenham <br/>
@@ -39,7 +39,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="absolute top-20 right-[-2] w-34 h-34 rounded-full bg-[#ffcd5e] flex justify-center items-end border-black border-2 max-sm:absolute max-lg:static">
+                  <div className="absolute top-20 right-[-2] w-34 h-34 rounded-full bg-[#ffcd5e] flex justify-center items-end max-sm:absolute max-lg:static">
                     <div className="w-32 h-32 flex flex-col gap-2 items-center justify-end">
                       <h6 className="text-sm text-primary font-semibold text-center">
                       More Markets
@@ -54,7 +54,7 @@ export default function Home() {
                   </div>
 
                   <div className="w-full flex justify-center items-center max-sm:w-full max-lg:w-fit">
-                    <div className="w-40 h-40 rounded-full bg-secondary border-2 border-black flex justify-center items-end">
+                    <div className="w-40 h-40 rounded-full bg-secondary flex justify-center items-end">
                       <div className="w-36 h-36 flex flex-col gap-2 items-center">
                         <h6 className="text-primary text-sm font-semibold text-center">
                           Goodge <br/> Street Market
