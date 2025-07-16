@@ -9,10 +9,13 @@ import { cn } from "../utils/helpers";
 
 type TCateringForm = {
   deliveryDate: Date;
-  capacity: number;
+  capacity: string;
   eventType: string;
   dietaryRequirement: string;
   market: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
   contactUs: string;
 };
 
@@ -40,8 +43,22 @@ const stepperConfig = [
   {
     id: 5,
     step: "5",
+    title: "Contact Info",
+  },
+  {
+    id: 6,
+    step: "6",
     title: "Special Requests",
   },
+];
+
+const capacityOptions = [
+  { value: "", label: "Select capacity" },
+  { value: "10-20", label: "10-20 people" },
+  { value: "21-50", label: "21-50 people" },
+  { value: "51-100", label: "51-100 people" },
+  { value: "101-200", label: "101-200 people" },
+  { value: "200+", label: "200+ people" },
 ];
 
 export default function CateringForm() {
@@ -58,10 +75,13 @@ export default function CateringForm() {
   } = useForm<TCateringForm>({
     defaultValues: {
       deliveryDate: undefined,
-      capacity: 0,
+      capacity: "",
       eventType: "",
       dietaryRequirement: "",
       market: "",
+      contactEmail: "",
+      contactName: "",
+      contactPhone: "",
       contactUs: "",
     },
   });
@@ -76,7 +96,9 @@ export default function CateringForm() {
     else if (currentStep === 2) fields = ["capacity"];
     else if (currentStep === 3) fields = ["eventType", "dietaryRequirement"];
     else if (currentStep === 4) fields = ["market"];
-    else if (currentStep === 5) fields = ["contactUs"];
+    else if (currentStep === 5)
+      fields = ["contactName", "contactEmail", "contactPhone"];
+    else if (currentStep === 6) fields = ["contactUs"];
     const isValid = await trigger(fields);
     if (!isValid) {
       return;
@@ -104,7 +126,7 @@ export default function CateringForm() {
     if (dietaryRequirement === item) setValue("dietaryRequirement", "");
     else setValue("dietaryRequirement", item);
   }
-
+  console.log(errors);
   return (
     <div className="flex flex-col justify-between items-center">
       <StepperButtonGroup steps={stepperConfig} activeItemIds={activeSteps} />
@@ -175,29 +197,22 @@ export default function CateringForm() {
                 name="capacity"
                 control={control}
                 rules={{
-                  validate: (value) =>
-                    value > 0 || "Capacity must be greater than 0",
+                  required: "Please Select Capacity",
                 }}
                 render={({ field }) => (
-                  <div className="flex gap-4 items-center py-4">
-                    <button
-                      className="btn btn-square rounded-full btn-primary btn-sm"
-                      onClick={() =>
-                        field.onChange(
-                          field.value > 0 ? field.value - 1 : field.value
-                        )
-                      }
-                    >
-                      -
-                    </button>
-                    <label className="">{field.value}</label>
-                    <button
-                      className="btn btn-square rounded-full btn-primary btn-sm"
-                      onClick={() => field.onChange(field.value + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
+                  <select
+                    id="capacity"
+                    value={capacity}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base bg-white"
+                    required
+                  >
+                    {capacityOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 )}
               />
             </>
@@ -291,6 +306,44 @@ export default function CateringForm() {
           )}
           {currentStep === 5 && (
             <>
+              <h4 className="text-sm font-bold">Contact Information</h4>
+              <div className="w-full">
+                <label>Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter Name"
+                  className="input"
+                  {...register("contactName", {
+                    required: "Name is required",
+                  })}
+                />
+              </div>
+              <div className="w-full">
+                <label>Email</label>
+                <input
+                  type="email"
+                  placeholder="Enter Email"
+                  className="input"
+                  {...register("contactEmail", {
+                    required: "Email is required",
+                  })}
+                />
+              </div>
+              <div className="w-full">
+                <label>Phone Number</label>
+                <input
+                  type="number"
+                  placeholder="Enter Phone"
+                  className="input"
+                  {...register("contactPhone", {
+                    required: "Phone is required",
+                  })}
+                />
+              </div>
+            </>
+          )}
+          {currentStep === 6 && (
+            <>
               <h4 className="text-sm font-bold">Contact Us</h4>
               <textarea
                 rows={10}
@@ -309,12 +362,21 @@ export default function CateringForm() {
                 Back
               </button>
             )}
-            <button
-              className="btn btn-sm btn-primary w-28 rounded-full"
-              onClick={handleNextClick}
-            >
-              Next
-            </button>
+            {currentStep === stepperConfig.length ? (
+              <button
+                className="btn btn-sm btn-primary w-28 rounded-full"
+                onClick={handleNextClick}
+              >
+                Submit
+              </button>
+            ) : (
+              <button
+                className="btn btn-sm btn-primary w-28 rounded-full"
+                onClick={handleNextClick}
+              >
+                Next
+              </button>
+            )}
           </div>
         </div>
       </div>

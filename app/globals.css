@@ -3,7 +3,7 @@
 
 /* Custom Swift Food Theme */
 @plugin "daisyui/theme" {
-  name: "swift";
+  name: "Swift";
   default: true;
   prefersdark: true;
 
@@ -35,6 +35,11 @@
   --color-error: #f87171; /* Red */
 }
 
+html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 body {
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
