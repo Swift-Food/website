@@ -5,9 +5,10 @@ import InfoContainer from "../components/containers/InfoContainer";
 import { useState } from "react";
 import StepperButtonGroup from "../components/buttons/StepperButtonGroup";
 import { ImageTextContainer } from "../components/containers/CompactImageContainer";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CateringPage() {
+  const router = useRouter();
   const [deliveryDate, setDeliveryDate] = useState("");
   const [capacity, setCapacity] = useState("");
   
@@ -43,6 +44,7 @@ export default function CateringPage() {
       alert("Please fill in all fields");
       return;
     }
+    router.push(`/catering-form?date=${encodeURIComponent(deliveryDate)}&capacity=${capacity}`)
   };
 
   return (
@@ -109,14 +111,14 @@ export default function CateringPage() {
 
               {/* Submit Button */}
               <div className="flex justify-center mt-4">
-                <Link href={'catering-form'}>
+            
                 <button
                   type="submit"
                   className="btn btn-primary rounded-full px-8 py-3 text-white font-semibold text-lg hover:bg-primary/90 transition-colors w-full max-w-xs"
                 >
                   Get Started
                 </button>
-                </Link>
+           
               </div>
             </form>
           </InfoContainer>

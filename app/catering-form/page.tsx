@@ -6,6 +6,7 @@ import { DayPicker} from "react-day-picker";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { cn } from "../utils/helpers";
+import { useSearchParams } from "next/navigation";
 
 type TCateringForm = {
   deliveryDate: Date;
@@ -45,11 +46,11 @@ const stepperConfig = [
     step: "5",
     title: "Contact Info",
   },
-  {
-    id: 6,
-    step: "6",
-    title: "Special Requests",
-  },
+  // {
+  //   id: 6,
+  //   step: "6",
+  //   title: "Special Requests",
+  // },
 ];
 
 const capacityOptions = [
@@ -62,9 +63,9 @@ const capacityOptions = [
 ];
 
 export default function CateringForm() {
-  const [activeSteps, setActiveSteps] = useState<number[]>([1]);
-  const [currentStep, setCurrentStep] = useState<number>(1);
-
+  const [activeSteps, setActiveSteps] = useState<number[]>([1,2,3]);
+  const [currentStep, setCurrentStep] = useState<number>(3);
+  const searchParams = useSearchParams();
   const {
     register,
     setValue,
@@ -74,8 +75,8 @@ export default function CateringForm() {
     formState: { errors },
   } = useForm<TCateringForm>({
     defaultValues: {
-      deliveryDate: undefined,
-      capacity: "",
+      deliveryDate : searchParams.get('date') !== null ? new Date(searchParams.get('date')!) : undefined,
+      capacity: searchParams.get("capacity") || "",
       eventType: "",
       dietaryRequirement: "",
       market: "",
@@ -307,61 +308,61 @@ export default function CateringForm() {
           {currentStep === 5 && (
             <>
               <h4 className="text-sm font-bold">Contact Information</h4>
-              <div className="w-full">
-                <label>Name</label>
-                <input
-                  type="text"
-                  placeholder="Enter Name"
-                  className="input"
-                  {...register("contactName", {
-                    required: "Name is required",
-                  })}
-                />
+              <div className="w-full flex flex-row gap-4">
+                <div className="flex flex-col">
+                  <label>Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Name"
+                    className="input border-primary rounded-xl"
+                    {...register("contactName", {
+                      required: "Name is required",
+                    })}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label>Phone Number</label>
+                  <input
+                    type="phone"
+                    placeholder="Enter Phone"
+                    className="input border-primary rounded-xl"
+                    {...register("contactPhone", {
+                      required: "Phone is required",
+                    })}
+                  />
+                  </div>
               </div>
               <div className="w-full">
                 <label>Email</label>
                 <input
                   type="email"
                   placeholder="Enter Email"
-                  className="input"
+                  className="input border-primary rounded-xl w-full"
                   {...register("contactEmail", {
                     required: "Email is required",
                   })}
                 />
               </div>
               <div className="w-full">
-                <label>Phone Number</label>
-                <input
-                  type="number"
-                  placeholder="Enter Phone"
-                  className="input"
-                  {...register("contactPhone", {
-                    required: "Phone is required",
-                  })}
-                />
+                <label>Special Requests</label>
+                <textarea
+                  rows={5}
+                  className="ring-1 ring-primary rounded-xl w-full border-primary p-2"
+                  {...register("contactUs")}
+                ></textarea>
               </div>
             </>
           )}
-          {currentStep === 6 && (
-            <>
-              <h4 className="text-sm font-bold">Special Requests</h4>
-              <textarea
-                rows={10}
-                className="ring-1 rounded-md w-full ring-primary"
-                {...register("contactUs")}
-              ></textarea>
-            </>
-          )}
           {
-            currentStep === 7 && (
+            currentStep === 6 && (
               <>
                 <h4 className="text-sm font-bold">Thank you for choosing catering with Swiftfood. We will be in contact with you shortly</h4>
               </>
             )
           }
           {
-            currentStep != 7 && (
-              <div className="flex gap-4">
+            currentStep != 6 && (
+              <div className="flex gap-4 mt-4">
             {activeSteps.length !== 1 && (
               <button
                 className="btn btn-sm btn-primary btn-outline w-28 rounded-full"
@@ -372,7 +373,7 @@ export default function CateringForm() {
             )}
             {currentStep === stepperConfig.length ? (
               <button
-                className="btn btn-sm btn-primary w-28 rounded-full mt-4"
+                className="btn btn-sm btn-primary w-28 rounded-full "
                 onClick={handleNextClick}
               >
                 Submit
