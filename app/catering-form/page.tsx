@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import StepperButtonGroup from "../components/buttons/StepperButtonGroup";
 import { DayPicker} from "react-day-picker";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { cn } from "../utils/helpers";
-import { useSearchParams } from "next/navigation";
+
 
 type TCateringForm = {
   deliveryDate: Date;
@@ -62,10 +62,10 @@ const capacityOptions = [
   { value: "200+", label: "200+ people" },
 ];
 
-export default function CateringForm() {
+export default function CateringForm({ searchParams }: { searchParams: Promise<{ [key: string]: string }> }) {
+  const resolvedSearchParams = use(searchParams);
   const [activeSteps, setActiveSteps] = useState<number[]>([1,2,3]);
   const [currentStep, setCurrentStep] = useState<number>(3);
-  const searchParams = useSearchParams();
   const {
     register,
     setValue,
@@ -75,8 +75,8 @@ export default function CateringForm() {
     formState: { errors },
   } = useForm<TCateringForm>({
     defaultValues: {
-      deliveryDate : searchParams.get('date') !== null ? new Date(searchParams.get('date')!) : undefined,
-      capacity: searchParams.get("capacity") || "",
+      deliveryDate : resolvedSearchParams.date !== null ? new Date(resolvedSearchParams.date!) : undefined,
+      capacity: resolvedSearchParams.capacity || "",
       eventType: "",
       dietaryRequirement: "",
       market: "",
