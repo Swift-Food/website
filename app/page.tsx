@@ -139,7 +139,7 @@ export default function Home() {
       </section>
 
       {/* Section Dividers and Content - Responsive */}
-      <div className="space-y-8 max-sm:space-y-6">
+      <div id="aboutus" className="space-y-8 max-sm:space-y-6">
         <SectionDivider text="What Makes Us Different?" />
 
         <div className="space-y-12 max-sm:space-y-8">

@@ -11,7 +11,7 @@ function NavbarAction() {
           Catering
         </button>
       </Link>
-      <Link href={'/about'}>
+      <Link href={'/#aboutus'}>
         <button className="btn btn-md btn-ghost rounded-full">
           About Us
         </button>
