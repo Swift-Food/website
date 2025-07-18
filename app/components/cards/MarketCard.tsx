@@ -16,7 +16,7 @@ interface MarketCard {
 
 export default function MarketCard(props: MarketCard) {
   const {
-    width = "w-96",
+    width = "w-full",
     height = "h-[600px]",
     bubbleSize = "w-28 h-28", // Made default bigger
     bubbleLayout = "grid"

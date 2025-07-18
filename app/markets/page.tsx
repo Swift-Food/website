@@ -4,7 +4,7 @@ import MarketCard from "../components/cards/MarketCard";
 export default function page() {
   return (
     <div>
-      <div className="flex flex-wrap justify-center gap-4">
+      <div className="flex flex-wrap md:flex-nowrap justify-center gap-6">
         <MarketCard
           image={"/where-operate.jpg"}
           imageAlt={"Shoes"}
@@ -30,6 +30,11 @@ export default function page() {
           bubbleLayout="grid"
           
         />
+        <div className="w-full bg-base-200 rounded-2xl max-w-md items-center flex justify-center"> 
+          <h1 className="text-3xl font-bold text-center text-primary p-6">
+            More Markets
+          </h1>
+        </div>
       </div>
     </div>
   );
