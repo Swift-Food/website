@@ -18,7 +18,7 @@ export default function StepperButtonGroup({
   activeItemIds,
 }: StepperButtonGroupProps) {
   return (
-    <div className="flex">
+    <div className="flex flex-nowrap sm:flex-nowrap">
       {steps.map((step, index) => (
         <StepperButtons
           key={step.id}

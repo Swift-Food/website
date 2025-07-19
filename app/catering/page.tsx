@@ -12,6 +12,11 @@ export default function CateringPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [capacity, setCapacity] = useState("");
   
+  const today = new Date();
+  const maxDate = new Date();
+  maxDate.setDate(today.getDate() + 7);
+  const maxDateString = maxDate.toISOString().split('T')[0];
+
   const capacityOptions = [
     { value: "", label: "Select capacity" },
     { value: "10-20", label: "10-20 people" },
@@ -84,6 +89,8 @@ export default function CateringPage() {
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
+                  // Add the max attribute here
+                  max={maxDateString}
                   className="w-full px-4 py-3 my-4 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
                   required
                 />
