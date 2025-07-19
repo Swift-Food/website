@@ -143,7 +143,7 @@ export default function FAQ() {
                       {/* Question Button */}
                       <button
                         onClick={() => toggleItem(categoryIndex, questionIndex)}
-                        className="w-full text-left p-4 hover:bg-primary transition-colors flex justify-between items-center"
+                        className="w-full text-left p-4 hover:bg-secondary transition-colors flex justify-between items-center"
                       >
                         <span className="font-medium text-gray-800 pr-4">
                           {item.question}
