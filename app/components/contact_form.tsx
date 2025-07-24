@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { mailService } from '../service/mail';
+import Link from 'next/link';
 
 // Types for form data
 interface ContactFormData {
@@ -124,10 +125,15 @@ const ContactForm = () => {
           <div className="bg-base-200 p-6 rounded-lg space-y-4 text-primary">
             <h3 className="text-2xl font-bold">We'd love to hear from you</h3>
             <p className="text-sm leading-relaxed">
-              If you have any questions pelase contact our team. <br/><br/>
+              If you have any questions please contact our team. <br/><br/>
               Don't like forms?
             </p>
-            <h3 className="text-xl font-bold">swiftfooduk@gmail.com</h3>
+            <Link 
+                href="mailto:swiftfooduk@gmail.com"
+                className="text-xl font-bold hover:underline  cursor-pointer"
+              >
+                swiftfooduk@gmail.com
+            </Link>
            
           </div>
         </div>
