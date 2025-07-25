@@ -240,6 +240,7 @@ export default function CateringForm({ searchParams }: { searchParams: Promise<{
                       'Society Events',
                       "Festival",
                       "Charity Event",
+                      "Other"
                     ].map((item) => (
                       <button
                          key={item}
@@ -256,7 +257,10 @@ export default function CateringForm({ searchParams }: { searchParams: Promise<{
                 )}
               />
               <h4 className="text-sm font-bold">
-                Do your guests with any of the following dietary requirement?
+                Do your guests with any of the following dietary requirement? 
+              </h4>
+              <h4 className="text-xs">
+                If not in options please add in the special instructions text in contact info section 
               </h4>
               <Controller
                 control={control}

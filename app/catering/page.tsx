@@ -49,6 +49,14 @@ export default function CateringPage() {
       alert("Please fill in all fields");
       return;
     }
+    const today = new Date();
+    const selectedDate = new Date(deliveryDate);
+    const daysDifference = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysDifference > 7) {
+      alert("Delivery date must be at most 7 days from today");
+      return;
+    }
     router.push(`/catering-form?date=${encodeURIComponent(deliveryDate)}&capacity=${capacity}`)
   };
 
