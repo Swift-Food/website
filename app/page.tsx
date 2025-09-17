@@ -175,7 +175,7 @@ export default function Home() {
           image="/problem-solve.jpg"
           imageAlt="Problem solving"
           title=""
-          description="While big delivery platforms focus on expensive restaurants, we saw a gap in the market—London's vibrant street food scene was missing from delivery apps. At the same time, platforms like Deliveroo, UberEats, and JustEat were becoming too expensive for students and everyday people. That's where Swift Food comes in."
+          description="While big delivery platforms focus on expensive restaurants, we saw a gap in the market—London's vibrant street food scene was missing from delivery apps. At the same time, platforms were becoming too expensive for students and everyday people. That's where Swift Food comes in."
           className="max-sm:gap-4"
         />
 
