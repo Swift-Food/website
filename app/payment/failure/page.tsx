@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 
 function FailureContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-red-50">
