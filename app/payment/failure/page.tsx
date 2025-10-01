@@ -1,11 +1,11 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+
 import { XCircle } from 'lucide-react';
 import { Suspense } from 'react';
 
 function FailureContent() {
-  const searchParams = useSearchParams();
+
 
 
   return (

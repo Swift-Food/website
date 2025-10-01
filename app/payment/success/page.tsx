@@ -1,11 +1,9 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { CheckCircle } from 'lucide-react';
 import { Suspense } from 'react';
 
 function SuccessContent() {
-  const searchParams = useSearchParams();
 
 
   return (

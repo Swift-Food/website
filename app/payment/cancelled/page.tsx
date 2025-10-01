@@ -1,11 +1,11 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+
 import { AlertCircle } from 'lucide-react';
 import { Suspense } from 'react';
 
 function CancelledContent() {
-  const searchParams = useSearchParams();
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-yellow-50">
