@@ -2,26 +2,23 @@ import Image from "next/image";
 import React from "react";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
+import SearchBar from "./searchBar";
 
 function NavbarAction() {
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
-      <Link href={'/catering'}>
-        <button className="btn btn-md btn-ghost rounded-full">
-          Catering
-        </button>
+      <Link href={"/catering"}>
+        <button className="btn btn-md btn-ghost rounded-full">Catering</button>
       </Link>
-      <Link href={'/about'}>
-        <button className="btn btn-md btn-ghost rounded-full">
-          About Us
-        </button>
+      <Link href={"/about"}>
+        <button className="btn btn-md btn-ghost rounded-full">About Us</button>
       </Link>
-      <Link href={'/contact'}>
+      <Link href={"/contact"}>
         <button className="btn btn-md btn-ghost rounded-full">
           Contact Us
         </button>
       </Link>
-      
+
       {/* <button className="btn btn-md btn-outline btn-primary rounded-full">
         Sign up
       </button>
@@ -33,10 +30,18 @@ function NavbarAction() {
 }
 export default function Navbar() {
   return (
-    <nav className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start">
-      <Link href={'/'}>
-        <div className="flex items-center gap-4 pointer">
-          <Image src="/logo.png" width={40} height={40} alt="swift foods logo" />
+    <nav className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start bg-secondary gap-5">
+      <div className="hidden sm:block w-full max-w-xs">
+        <SearchBar />
+      </div>
+      <Link href={"/"}>
+        <div className="flex items-center gap-4 pointer h-full">
+          <Image
+            src="/logo.png"
+            width={40}
+            height={40}
+            alt="swift foods logo"
+          />
           <label className="font-bold text-primary pointer">SWIFT FOOD</label>
         </div>
       </Link>
@@ -57,6 +62,9 @@ export default function Navbar() {
             className="drawer-overlay"
           ></label>
           <div className="h-full bg-white w-[80%]">
+            <div className="px-3 mt-4">
+              <SearchBar />
+            </div>
             <NavbarAction />
           </div>
         </div>

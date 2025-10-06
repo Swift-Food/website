@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@deemlol/next-icons": "^0.1.9",
+    "@tailwindcss/oxide": "^4.1.14",
     "dayjs": "^1.11.13",
+    "lightningcss": "^1.30.2",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-day-picker": "^9.8.0",
