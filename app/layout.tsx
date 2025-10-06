@@ -2,7 +2,14 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
+import { IBM_Plex_Mono } from "next/font/google";
 
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-ibm-plex-mono",
+  display: "swap",
+});
 const primaryFont = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -17,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${primaryFont.className} ${primaryFont.variable}`}>
+      <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
         <Navbar />
         <div className="wrapper">
           <div className="marquee-text">
