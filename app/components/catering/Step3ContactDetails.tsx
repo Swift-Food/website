@@ -102,7 +102,7 @@ export default function Step3ContactInfo() {
       }, {} as Record<string, { restaurantId: string; restaurantName: string; items: any[] }>);
   
       const orderItems = Object.values(groupedByRestaurant).map((group: any) => {
-        const restaurantTotal = group.items.reduce((sum, item) => sum + item.totalPrice, 0);
+        const restaurantTotal = group.items.reduce((sum : any, item : any) => sum + item.totalPrice, 0);
         
         return {
           restaurantId: group.restaurantId,
