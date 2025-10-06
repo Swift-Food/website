@@ -1,166 +1,68 @@
-'use client'
+'use client';
 
-import Image from "next/image";
-import InfoContainer from "../components/containers/InfoContainer";
-import { useState } from "react";
-import StepperButtonGroup from "../components/buttons/StepperButtonGroup";
-import { ImageTextContainer } from "../components/containers/CompactImageContainer";
-import { useRouter } from "next/navigation";
+import { CateringProvider, useCatering } from '@/context/CateringContext';
+import Step1EventDetails from '../components/catering/Step1EventDetails';
+import Step2MenuItems from '@/app/components/catering/Step2MenuItems';
+import Step3ContactInfo from '@/app/components/catering/Step3ContactDetails';
 
-export default function CateringPage() {
-  const router = useRouter();
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [capacity, setCapacity] = useState("");
-  
-  const today = new Date();
-  const maxDate = new Date();
-  maxDate.setDate(today.getDate() + 7);
-  const maxDateString = maxDate.toISOString().split('T')[0];
-
-  const capacityOptions = [
-    { value: "", label: "Select capacity" },
-    { value: "10-20", label: "10-20 people" },
-    { value: "21-50", label: "21-50 people" },
-    { value: "51-100", label: "51-100 people" },
-    { value: "101-200", label: "101-200 people" },
-    { value: "200+", label: "200+ people" },
-  ];
-  const stepperConfig = [
-    {
-      id: 1,
-      step: "1",
-      title: "Plan Ahead",
-    },
-    {
-      id: 2,
-      step: "2",
-      title: "Choose Restaurant",
-    },
-    {
-      id: 3,
-      step: "3",
-      title: "Coordinate Delivery",
-    },
-  ];
-
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-    if (!deliveryDate || !capacity) {
-      alert("Please fill in all fields");
-      return;
-    }
-    const today = new Date();
-    const selectedDate = new Date(deliveryDate);
-    const daysDifference = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (daysDifference > 7) {
-      alert("Delivery date must be at most 7 days from today");
-      return;
-    }
-    router.push(`/catering-form?date=${encodeURIComponent(deliveryDate)}&capacity=${capacity}`)
-  };
+function CateringSteps() {
+  const { currentStep } = useCatering();
 
   return (
-    <div className="px-4 max-w-7xl mx-auto py-8">
-      {/* Main Catering Section */}
-      <section className="flex w-full gap-6 max-lg:flex-col justify-between mb-12">
-        {/* Left side - Store Image */}
-        <section className="flex-5 relative h-full rounded-xl overflow-hidden">
-          <div className="relative w-full aspect-[4/3] max-lg:aspect-[16/9]">
-            <Image
-              src="/catering.jpg"
-              alt="Swift Food Catering"
-              fill
-              className="object-cover"
-            />
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Progress Indicator */}
+        <div className="mb-12">
+          <div className="flex items-center justify-center">
+            {[1, 2, 3].map((step) => (
+              <div key={step} className="flex items-center">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                    currentStep >= step
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                  }`}
+                >
+                  {step}
+                </div>
+                {step < 3 && (
+                  <div
+                    className={`w-24 h-1 mx-2 ${
+                      currentStep > step ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                  />
+                )}
+              </div>
+            ))}
           </div>
-        </section>
-
-        {/* Right side - Catering Form */}
-        <aside className="flex-2 flex flex-col gap-4 items-center justify-center max-lg:mt-6">
-          <h1 className="text-primary text-7xl font-bold">
-            Catering
-          </h1>
-          <InfoContainer heading="" className="relative w-full">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6">
-              {/* Delivery Date Picker */}
-              <div className="flex flex-col items-center">
-                <label htmlFor="deliveryDate" className="text-lg font-bold ">
-                  Delivery Date
-                </label>
-                <h1 className="text-[#6A6A6A] text-sm">
-                  upto 7 days in advance
-                </h1>
-                <input
-                  type="date"
-                  id="deliveryDate"
-                  value={deliveryDate}
-                  onChange={(e) => setDeliveryDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  // Add the max attribute here
-                  max={maxDateString}
-                  className="w-full px-4 py-3 my-4 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
-                  required
-                />
-              </div>
-
-              {/* Capacity Dropdown */}
-              <div className="flex flex-col gap-2 items-center">
-                <label htmlFor="capacity" className="text-lg font-bold text-gray-800">
-                  Event Capacity
-                </label>
-                <select
-                  id="capacity"
-                  value={capacity}
-                  onChange={(e) => setCapacity(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
-                  required
-                >
-                  {capacityOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex justify-center mt-4">
-            
-                <button
-                  type="submit"
-                  className="btn btn-primary rounded-full px-8 py-3 text-white font-semibold text-lg hover:bg-primary/90 transition-colors w-full max-w-xs"
-                >
-                  Get Started
-                </button>
-           
-              </div>
-            </form>
-          </InfoContainer>
-        </aside>
-      </section>
-
-      {/* How Our Catering Works Section */}
-      <section className="w-full py-12 max-w-7xl mx-auto flex-center">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-800 mb-8 max-sm:text-3xl">
-            How Our Catering Works
-          </h2>
+          <div className="flex justify-center mt-4 gap-24">
+            <span className={`text-sm ${currentStep >= 1 ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}>
+              Event Details
+            </span>
+            <span className={`text-sm ${currentStep >= 2 ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}>
+              Menu Items
+            </span>
+            <span className={`text-sm ${currentStep >= 3 ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}>
+              Contact Info
+            </span>
+          </div>
         </div>
 
-        <div className="flex justify-center items-center w-full mb-12">
-          <StepperButtonGroup steps={stepperConfig} activeItemIds={[]}></StepperButtonGroup>
+        {/* Step Content */}
+        <div className="bg-white rounded-lg shadow-sm p-8 max-w-none">
+          {currentStep === 1 && <Step1EventDetails />}
+          {currentStep === 2 && <Step2MenuItems />}
+          {currentStep === 3 && <Step3ContactInfo />}
         </div>
-        
-
-        {/* Process Details Cards */}
-        <section className="flex flex-wrap gap-0 justify-center">
-          <ImageTextContainer imageSrc="/goodge.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
-          <ImageTextContainer imageSrc="/restaurant-delivery.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
-          <ImageTextContainer imageSrc="/rider.jpg" text="Contact us atleast 24 hours in advance for order of 10+ people. For larger events (50+) we recommend 48-72 hour notice" ></ImageTextContainer>
-        </section>
-      </section>
+      </div>
     </div>
+  );
+}
+
+export default function CateringPage() {
+  return (
+    <CateringProvider>
+      <CateringSteps />
+    </CateringProvider>
   );
 }
