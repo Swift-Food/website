@@ -2,6 +2,7 @@ import Image from "next/image";
 import React from "react";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
+import SearchBar from "./searchBar";
 
 function NavbarAction() {
   return (
@@ -29,9 +30,12 @@ function NavbarAction() {
 }
 export default function Navbar() {
   return (
-    <nav className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start bg-secondary">
+    <nav className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start bg-secondary gap-5">
+      <div className="hidden sm:block w-full max-w-xs">
+        <SearchBar />
+      </div>
       <Link href={"/"}>
-        <div className="flex items-center gap-4 pointer">
+        <div className="flex items-center gap-4 pointer h-full">
           <Image
             src="/logo.png"
             width={40}
@@ -58,6 +62,9 @@ export default function Navbar() {
             className="drawer-overlay"
           ></label>
           <div className="h-full bg-white w-[80%]">
+            <div className="px-3 mt-4">
+              <SearchBar />
+            </div>
             <NavbarAction />
           </div>
         </div>
