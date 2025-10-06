@@ -59,7 +59,7 @@ body {
   width: max-content;
   /* background-color: --color-secondary; */
   background-color: var(--color-primary);
-  animation: marquee-move-text var(--speed, 10s) linear infinite
+  animation: marquee-move-text var(--speed, 20s) linear infinite
     var(--direction, forwards);
 }
 
@@ -82,15 +82,6 @@ body {
 .wrapper {
   /* max-width: 800px; */
   margin: 0 auto;
-  color: #fff;
-}
-
-.fadeout-horizontal {
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 5rem,
-    black calc(100% - 5rem),
-    transparent
-  );
+  color: var(--color-primary);
+  background-color: var(--color-primary);
 }

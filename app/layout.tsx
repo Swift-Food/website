@@ -37,10 +37,22 @@ export default function RootLayout({
               <p aria-hidden="true">
                 JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!
               </p>
+              <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
+              <p aria-hidden="true">
+                JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!
+              </p>
+              <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
+              <p aria-hidden="true">
+                JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!
+              </p>
             </div>
           </div>
         </div>
-        <main className="px-16 max-lg:px-4">{children}</main>
+        <main
+        // className="px-16 max-lg:px-4"
+        >
+          {children}
+        </main>
         <div className="divider"></div>
         <Footer />
         <style>{`

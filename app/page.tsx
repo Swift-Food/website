@@ -1,12 +1,55 @@
+import styles from "./page.module.css";
 import Image from "next/image";
 import InfoContainer from "./components/containers/InfoContainer";
 import Link from "next/link";
 import ImageTextSection from "./components/containers/ImageTextSection";
 import SectionDivider from "./components/sectionDivider";
+import HomeHeroSection from "./components/containers/HomeHeroSection";
 
 export default function Home() {
   return (
     <div>
+      <HomeHeroSection />
+      {/* <div className="w-full bg-secondary py-12 px-12 flex flex-col lg:flex-row items-center justify-center gap-12">
+        <div className="flex-1 flex flex-col items-start justify-center max-w-lg">
+          <h1 className="text-4xl font-bold text-primary mb-4">
+            REAL,
+            <br />
+            LOCAL & FAST
+          </h1>
+          <p className="text-base text-secondary-content mb-6">
+            WE ALSO <span className="italic">CATER</span> EVENTS OF ANY SIZE
+            <br />
+            -BROWSE THE MENU AND ORDER ONLINE
+            <br />
+            FOR EASY DELIVERY!
+          </p>
+          <button className="btn bg-primary text-white rounded-full px-8 py-3 font-semibold text-lg shadow-md hover:bg-pink-500 transition">
+            ORDER NOW
+          </button>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className={styles.blurredMarketImage}></div>
+          <div className="relative">
+            <Image
+              src="/blurred-market.png"
+              alt="Street food market"
+              width={400}
+              height={250}
+              className="rounded-3xl  object-cover"
+            />
+            <div className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4">
+              <Image
+                src="/logo.png"
+                alt="Swift Food logo"
+                width={96}
+                height={96}
+                className="rounded-full bg-white shadow-lg"
+              />
+            </div>
+          </div>
+        </div>
+      </div> */}
       {/* Hero Section - Responsive like store.jpg */}
       <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between mb-8">
         <section className="flex-6 h-full rounded-xl overflow-hidden">
@@ -14,6 +57,7 @@ export default function Home() {
             <Image src="/store.jpg" alt="store" fill className="object-cover" />
           </div>
         </section>
+
         <section className="flex-2 flex flex-col justify-between h-full">
           <aside className="flex-1 flex flex-col gap-4 items-center">
             <Link
