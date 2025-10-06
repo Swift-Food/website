@@ -6,22 +6,18 @@ import Link from "next/link";
 function NavbarAction() {
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
-      <Link href={'/catering'}>
-        <button className="btn btn-md btn-ghost rounded-full">
-          Catering
-        </button>
+      <Link href={"/catering"}>
+        <button className="btn btn-md btn-ghost rounded-full">Catering</button>
       </Link>
-      <Link href={'/about'}>
-        <button className="btn btn-md btn-ghost rounded-full">
-          About Us
-        </button>
+      <Link href={"/about"}>
+        <button className="btn btn-md btn-ghost rounded-full">About Us</button>
       </Link>
-      <Link href={'/contact'}>
+      <Link href={"/contact"}>
         <button className="btn btn-md btn-ghost rounded-full">
           Contact Us
         </button>
       </Link>
-      
+
       {/* <button className="btn btn-md btn-outline btn-primary rounded-full">
         Sign up
       </button>
@@ -33,10 +29,15 @@ function NavbarAction() {
 }
 export default function Navbar() {
   return (
-    <nav className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start">
-      <Link href={'/'}>
+    <nav className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start bg-secondary">
+      <Link href={"/"}>
         <div className="flex items-center gap-4 pointer">
-          <Image src="/logo.png" width={40} height={40} alt="swift foods logo" />
+          <Image
+            src="/logo.png"
+            width={40}
+            height={40}
+            alt="swift foods logo"
+          />
           <label className="font-bold text-primary pointer">SWIFT FOOD</label>
         </div>
       </Link>
