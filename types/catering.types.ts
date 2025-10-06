@@ -120,3 +120,17 @@ export interface CreateCateringOrderDto {
   orderItems: OrderItemDto[];
   estimatedTotal?: number;
 }
+
+export interface CateringPricingData {
+  orderItems: OrderItemDto[];
+  deliveryAddressId: string;
+}
+
+export interface CateringPricingResult {
+  isValid: boolean;
+  subtotal: number;
+  serviceCharge: number;
+  deliveryFee: number;
+  total: number;
+  error?: string;
+}

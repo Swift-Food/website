@@ -5,7 +5,7 @@
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useCatering } from '@/context/CateringContext';
 import { cateringService } from '@/services/cateringServices';
-import { ContactInfo } from '@/types/catering.types';
+import { CateringPricingResult, ContactInfo } from '@/types/catering.types';
 
 
 export default function Step3ContactInfo() {
@@ -32,6 +32,8 @@ export default function Step3ContactInfo() {
   );
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
+  const [calculatingPricing, setCalculatingPricing] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -40,9 +42,14 @@ export default function Step3ContactInfo() {
     setSubmitting(true);
   
     try {
-      // Coordinates already set from autocomplete
       if (!formData.latitude || !formData.longitude) {
         alert('Please select an address from the dropdown');
+        setSubmitting(false);
+        return;
+      }
+  
+      if (!pricing) {
+        alert('Please wait for pricing calculation to complete');
         setSubmitting(false);
         return;
       }
@@ -62,6 +69,72 @@ export default function Step3ContactInfo() {
       setSubmitting(false);
     }
   };
+
+  const calculatePricing = async () => {
+    setCalculatingPricing(true);
+    try {
+      // Build order items from selected items
+      const groupedByRestaurant = selectedItems.reduce((acc, { item, quantity }) => {
+        const restaurantId = item.restaurant?.restaurantId || item.restaurantId || 'unknown';
+        const restaurantName = item.restaurant?.name || 'Unknown Restaurant';
+        
+        if (!acc[restaurantId]) {
+          acc[restaurantId] = {
+            restaurantId,
+            restaurantName,
+            items: [],
+          };
+        }
+        
+        const price = parseFloat(item.price?.toString() || '0');
+        const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
+        const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+        
+        acc[restaurantId].items.push({
+          menuItemId: item.id,
+          name: item.name,
+          quantity,
+          unitPrice,
+          totalPrice: unitPrice * quantity,
+        });
+        
+        return acc;
+      }, {} as Record<string, { restaurantId: string; restaurantName: string; items: any[] }>);
+  
+      const orderItems = Object.values(groupedByRestaurant).map((group: any) => {
+        const restaurantTotal = group.items.reduce((sum, item) => sum + item.totalPrice, 0);
+        
+        return {
+          restaurantId: group.restaurantId,
+          restaurantName: group.restaurantName,
+          menuItems: group.items,
+          status: 'pending',
+          restaurantCost: restaurantTotal,
+          totalPrice: restaurantTotal,
+        };
+      });
+  
+      const pricingResult = await cateringService.calculateCateringPricing(orderItems);
+      
+      if (!pricingResult.isValid) {
+        alert(pricingResult.error || 'Unable to calculate pricing');
+        setPricing(null);
+        return;
+      }
+  
+      setPricing(pricingResult);
+    } catch (error) {
+      console.error('Error calculating pricing:', error);
+      alert('Failed to calculate pricing. Please try again.');
+      setPricing(null);
+    } finally {
+      setCalculatingPricing(false);
+    }
+  };
+  useEffect(() => {
+    // Calculate pricing when component loads
+    calculatePricing();
+  }, []);
 
   useEffect(() => {
     // Check if script already exists
@@ -139,14 +212,15 @@ export default function Step3ContactInfo() {
       }
     });
   
-    setFormData({
-      ...formData,
+    // Update ONLY the address fields, keep everything else
+    setFormData(prev => ({
+      ...prev, // Keep all existing fields (name, email, phone)
       addressLine1,
       city,
       zipcode,
       latitude,
       longitude,
-    });
+    }));
   };
 
   if (success) {
@@ -265,57 +339,57 @@ export default function Step3ContactInfo() {
         </div>
 
         <div>
-  <label className="block text-sm font-medium mb-2">Address Line 1</label>
-  <input
-    type="text"
-    required
-    disabled={!formData.addressLine1} // Disabled until autocomplete fills it
-    value={formData.addressLine1}
-    onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
-    placeholder="Select from search above first"
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-  />
-</div>
+          <label className="block text-sm font-medium mb-2">Address Line 1</label>
+          <input
+            type="text"
+            required
+            disabled={!formData.addressLine1} // Disabled until autocomplete fills it
+            value={formData.addressLine1}
+            onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
+            placeholder="Select from search above first"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+        </div>
 
-<div>
-  <label className="block text-sm font-medium mb-2">Address Line 2 (Optional)</label>
-  <input
-    type="text"
-    disabled={!formData.addressLine1} // Disabled until address selected
-    value={formData.addressLine2 || ''}
-    onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
-    placeholder="Apartment, suite, unit, etc."
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-  />
-</div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Address Line 2 (Optional)</label>
+          <input
+            type="text"
+            disabled={!formData.addressLine1} // Disabled until address selected
+            value={formData.addressLine2 || ''}
+            onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
+            placeholder="Apartment, suite, unit, etc."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+        </div>
 
-<div className="grid grid-cols-2 gap-4">
-  <div>
-    <label className="block text-sm font-medium mb-2">City</label>
-    <input
-      type="text"
-      required
-      disabled={!formData.city} // Disabled until autocomplete fills it
-      value={formData.city}
-      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-      placeholder="Select from search above first"
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-    />
-  </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">City</label>
+            <input
+              type="text"
+              required
+              disabled={!formData.city} // Disabled until autocomplete fills it
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              placeholder="Select from search above first"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+          </div>
 
-  <div>
-    <label className="block text-sm font-medium mb-2">Zipcode</label>
-    <input
-      type="text"
-      required
-      disabled={!formData.zipcode} // Disabled until autocomplete fills it
-      value={formData.zipcode}
-      onChange={(e) => setFormData({ ...formData, zipcode: e.target.value })}
-      placeholder="Select from search above first"
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-    />
-  </div>
-</div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Zipcode</label>
+            <input
+              type="text"
+              required
+              disabled={!formData.zipcode} // Disabled until autocomplete fills it
+              value={formData.zipcode}
+              onChange={(e) => setFormData({ ...formData, zipcode: e.target.value })}
+              placeholder="Select from search above first"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+          </div>
+        </div>
 
         <div className="bg-gray-50 rounded-lg p-6">
           <h3 className="font-semibold mb-4">Order Summary</h3>
@@ -327,20 +401,46 @@ export default function Step3ContactInfo() {
               
               return (
                 <div key={item.id} className="flex justify-between">
-                  <span>
-                    {item.name} x{quantity}
-                  </span>
-                  <span className="font-medium">
-                    ${(itemPrice * quantity).toFixed(2)}
-                  </span>
+                  <span>{item.name} x{quantity}</span>
+                  <span className="font-medium">${(itemPrice * quantity).toFixed(2)}</span>
                 </div>
               );
             })}
           </div>
-          <div className="flex justify-between pt-4 border-t">
-            <span className="font-semibold">Total:</span>
-            <span className="font-bold text-xl">${getTotalPrice().toFixed(2)}</span>
-          </div>
+
+          {calculatingPricing && (
+            <div className="text-center py-4 text-gray-500">
+              Calculating pricing...
+            </div>
+          )}
+
+          {pricing && (
+            <div className="space-y-2 text-sm border-t pt-4">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal:</span>
+                <span>${pricing.subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Service Charge:</span>
+                <span>${pricing.serviceCharge.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Delivery Fee:</span>
+                <span>${pricing.deliveryFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t font-bold text-base">
+                <span>Total:</span>
+                <span>${pricing.total.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
+          {!pricing && !calculatingPricing && (
+            <div className="flex justify-between pt-4 border-t">
+              <span className="font-semibold">Estimated Total:</span>
+              <span className="font-bold text-xl">${getTotalPrice().toFixed(2)}</span>
+            </div>
+          )}
         </div>
 
         <button

@@ -1,6 +1,6 @@
 // services/catering.service.ts
 
-import { SearchResponse, SearchFilters, CateringOrder, CreateCateringOrderDto, OrderItemDto, EventDetails, SelectedMenuItem, ContactInfo } from "@/types/catering.types"
+import { SearchResponse, SearchFilters, CateringOrder, CreateCateringOrderDto, OrderItemDto, EventDetails, SelectedMenuItem, ContactInfo, CateringPricingResult } from "@/types/catering.types"
 import { create } from "domain";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -216,6 +216,30 @@ class CateringService {
     }
     
     throw new Error('No results from geocoding');
+  }
+
+  async calculateCateringPricing(
+    orderItems: OrderItemDto[]
+  ): Promise<CateringPricingResult> {
+    const pricingData = {
+      orderItems,
+    };
+  
+    console.log('Calculating catering pricing:', JSON.stringify(pricingData, null, 2));
+  
+    const response = await fetch(`${API_BASE_URL}/pricing/catering-verify-cart`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pricingData),
+    });
+  
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Pricing calculation failed:', error);
+      throw new Error('Failed to calculate pricing');
+    }
+  
+    return response.json();
   }
 }
 
