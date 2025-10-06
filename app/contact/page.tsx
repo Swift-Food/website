@@ -4,7 +4,7 @@ import ContactForm from "../components/contact_form";
 
 export default function ContactUsPage() {
   return (
-    <div className="min-h-screen">
+    <div className="mt-10">
       <ContactForm />
     </div>
   );

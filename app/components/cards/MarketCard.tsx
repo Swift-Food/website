@@ -16,7 +16,7 @@ interface MarketCard {
 
 export default function MarketCard(props: MarketCard) {
   const {
-    width = "w-96",
+    width = "w-full",
     height = "h-[600px]",
     bubbleSize = "w-28 h-28", // Made default bigger
     bubbleLayout = "grid"
@@ -66,16 +66,16 @@ export default function MarketCard(props: MarketCard) {
       </div>
 
       {/* Main Info Card Overlay - Top */}
-      <div className="absolute top-6 left-6 right-6 rounded-2xl p-6 border-4 border-primary z-20" style={{ backgroundColor: '#F6F5F3B3' }}>
+      <div className="absolute top-6 left-6 right-6 rounded-2xl p-6 border-4 border-primary z-20 bg-base-200" >
         <h2 className="text-2xl font-bold text-primary text-center mb-2 max-sm:text-xl">
           {props.title}
         </h2>
-        <p className="text-center text-gray-700 font-medium mb-1 max-sm:text-sm">
+        <p className="text-center text-primary font-medium mb-1 max-sm:text-sm">
           {props.description}
         </p>
         {props.stallCount && (
           <p className="text-center text-primary font-semibold max-sm:text-sm">
-            {props.stallCount}
+            {props.stallCount} Stalls
           </p>
         )}
       </div>

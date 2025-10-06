@@ -14,6 +14,8 @@
   --color-secondary: #ffb3e6; /* Light Pink */
   --color-secondary-content: #282828;
 
+  --color-text-grey: #6A6A6A
+
   /* Accent colors */
   --color-accent: #ffcd5e; /* Yellow/Gold */
   --color-accent-content: #282828;
@@ -43,5 +45,5 @@ html {
 body {
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
-  background-color: #efeae0;
+  background-color: #f6f5f3;
 }

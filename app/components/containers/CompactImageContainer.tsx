@@ -28,7 +28,6 @@ export const ImageTextContainer: FC<ImageTextContainerProps> = ({
         rounded-lg 
         border 
         border-pink-300 
-        bg-transparent 
         p-4 
         flex 
         flex-col 

@@ -2,19 +2,22 @@
 
 import React, { useState } from 'react';
 import { mailService } from '../service/mail';
+import Link from 'next/link';
 
 // Types for form data
 interface ContactFormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  description: string;
+  message: string;
 }
 
 const ContactForm = () => {
   const [formData, setFormData] = useState<ContactFormData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    description: ''
+    message: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,13 +37,20 @@ const ContactForm = () => {
     setError(null);
 
     try {
-      await mailService.sendFormResponse(formData);
+      // Combine firstName and lastName for the backend
+      const submissionData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        description: formData.message
+      };
+      
+      await mailService.sendFormResponse(submissionData);
       console.log('Email sent successfully:');
       
       setIsSuccess(true);
       
       // Reset form after success
-      setFormData({ name: '', email: '', description: '' });
+      setFormData({ firstName: '', lastName: '', email: '', message: '' });
       
       // Hide success message after 5 seconds
       setTimeout(() => setIsSuccess(false), 5000);
@@ -54,14 +64,14 @@ const ContactForm = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', email: '', description: '' });
+    setFormData({ firstName: '', lastName: '', email: '', message: '' });
     setIsSuccess(false);
     setError(null);
   };
 
   if (isSuccess) {
     return (
-      <div className="max-w-md mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center space-y-6 py-8 px-6 bg-green-50 border border-green-200 rounded-lg">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
             <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +86,7 @@ const ContactForm = () => {
             </p>
           </div>
           
-          <div className="rounded-lg p-4 text-left">
+          <div className="rounded-lg p-4 text-left max-w-md mx-auto">
             <h3 className="font-semibold text-gray-800 mb-2">What's next?</h3>
             <ul className="space-y-1 text-sm text-gray-600">
               <li className="flex items-start">
@@ -106,85 +116,117 @@ const ContactForm = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <h2 className="text-2xl font-bold text-primary mb-6">📧 Contact Us</h2>
-        
-        {error && (
-          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {error}
-          </div>
-        )}
-        
-        <div className="grid grid-cols-1 gap-4">
-          {/* Name Field */}
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
-              placeholder="Enter your full name"
-            />
-          </div>
-
-          {/* Email Field */}
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
-              placeholder="Enter your email address"
-            />
-          </div>
-
-          {/* Description Field */}
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-700 mb-2 min-h-[20px]">
-              Message *
-            </label>
-            <textarea
-              required
-              rows={6}
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700 resize-vertical"
-              placeholder="Please describe your inquiry or message..."
-            />
+    <div className="max-w-6xl mx-auto h-full">
+      <div className="flex flex-col lg:flex-row gap-12 h-full">
+        {/* Left Column - Contact Info */}
+        <div className="flex flex-1 flex-col justify-between min-h-full">
+          <h2 className="text-6xl font-bold text-primary mb-6">Contact Us</h2>
+          
+          <div className="bg-base-200 p-6 rounded-lg space-y-4 text-primary">
+            <h3 className="text-2xl font-bold">We'd love to hear from you</h3>
+            <p className="text-sm leading-relaxed">
+              If you have any questions please contact our team. <br/><br/>
+              Don't like forms?
+            </p>
+            <Link 
+                href="mailto:swiftfooduk@gmail.com"
+                className="text-xl font-bold hover:underline  cursor-pointer"
+              >
+                swiftfooduk@gmail.com
+            </Link>
+           
           </div>
         </div>
 
-        {/* Contact Info */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            💡 We typically respond within 24 hours during business days.
-          </p>
-        </div>
+        {/* Right Column - Form */}
+        <div className="flex w-full flex-2">
+          <form onSubmit={handleSubmit} className="space-y-6 w-full">
+            {error && (
+              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {error}
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 gap-4">
+              {/* First Name and Last Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
+                    placeholder="Enter your first name"
+                  />
+                </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-center mt-8">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`btn btn-primary btn-sm rounded-full px-8 text-white ${
-              isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isSubmitting ? 'Sending...' : 'Send Message'}
-          </button>
-        </div>
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
+                    placeholder="Enter your last name"
+                  />
+                </div>
+              </div>
 
-        
-      </form>
+              {/* Email Field */}
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700"
+                  placeholder="Enter your email address"
+                />
+              </div>
+
+              {/* Message Field */}
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message *
+                </label>
+                <textarea
+                  required
+                  rows={6}
+                  value={formData.message}
+                  onChange={(e) => handleInputChange('message', e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-700 resize-vertical"
+                  placeholder="Please describe your inquiry or message..."
+                />
+              </div>
+            </div>
+
+           
+            
+          </form>
+        </div>
+      </div>
+      {/* Submit Button */}
+      <div className="flex justify-center mt-8">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`btn btn-primary text-lg btn-sm rounded-full px-8 py-6 text-white ${
+                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'}
+              </button>
+            </div>
     </div>
   );
 };

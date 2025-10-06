@@ -15,11 +15,11 @@ export default function InfoContainer({
   return (
     <div
       className={cn(
-        "w-full h-fit p-4 border-primary border-2 rounded-2xl",
+        "w-full h-fit p-4 bg-base-200 rounded-2xl item-center",
         className
       )}
     >
-      <h4 className="text-center text-primary font-bold">{heading}</h4>
+      <h4 className="text-center text-primary text-xl font-bold">{heading}</h4>
       {children}
     </div>
   );

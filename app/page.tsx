@@ -9,80 +9,84 @@ export default function Home() {
     <div>
       {/* Hero Section - Responsive like store.jpg */}
       <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between mb-8">
-        <section className="flex-6 relative h-full rounded-xl overflow-hidden">
-          <div className="relative w-full aspect-[192/139]">
+        <section className="flex-6 h-full rounded-xl overflow-hidden">
+          <div className="relative w-full aspect-[192/139] max-sm:aspect-[16/9]">
             <Image src="/store.jpg" alt="store" fill className="object-cover" />
           </div>
         </section>
-        <section className="flex-2 flex-col justify-between h-full">
+        <section className="flex-2 flex flex-col justify-between h-full">
           <aside className="flex-1 flex flex-col gap-4 items-center">
             <Link
               href={"/markets"}
               className="w-full max-sm:w-[80%] flex flex-col items-center"
             >
-              <InfoContainer heading="Markets" className="relative w-full">
-                <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0">
-                  <div className="relative w-40 h-40 rounded-full bg-primary right-11 border-2 border-black flex justify-center items-center max-sm:relative max-lg:static">
-                    <div className="w-36 h-36 flex flex-col gap-4 items-center">
-                      <h6 className="text-white text-sm font-semibold">
-                        Goodge
+              <InfoContainer heading="Markets" className="relative max-w-md">
+                {/* <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0"> */}
+                  {/* <div className="relative w-40 h-40 rounded-full bg-primary right-4 flex items-end justify-center">
+                    <div className="w-36 h-36 flex flex-col gap-2 items-center justify-end">
+                      <h6 className="text-white text-sm font-semibold text-center leading-tight">
+                        Tottenham <br/>
+                        Court Road <br/>
+                        Market
+                        
                       </h6>
                       <Image
                         src="/sample/dish.png"
                         alt="sample dish"
-                        width={115}
-                        height={115}
+                        width={85}
+                        height={85}
                       />
                     </div>
                   </div>
 
-                  <div className="absolute top-20 right-[-10] w-32 h-32 rounded-full bg-[#94DAF0] flex justify-center items-center max-sm:absolute max-lg:static">
-                    <div className="w-32 h-32 flex flex-col gap-4 items-center">
-                      <h6 className="text-sm text-primary font-semibold">
-                        TCR
+                  <div className="absolute top-20 right-[-2] w-34 h-34 rounded-full bg-[#ffcd5e] flex justify-center items-end max-sm:absolute max-lg:static">
+                    <div className="w-32 h-32 flex flex-col gap-2 items-center justify-end">
+                      <h6 className="text-sm text-primary font-semibold text-center">
+                      More Markets
                       </h6>
                       <Image
                         src="/sample/dish.png"
                         alt="sample dish"
-                        width={100}
-                        height={100}
+                        width={80}
+                        height={80}
                       />
                     </div>
                   </div>
 
                   <div className="w-full flex justify-center items-center max-sm:w-full max-lg:w-fit">
-                    <div className="w-40 h-40 rounded-full bg-secondary border-2 border-black flex justify-center items-center">
-                      <div className="w-36 h-36 flex flex-col gap-4 items-center">
-                        <h6 className="text-primary text-sm font-semibold">
-                          Coming soon
+                    <div className="w-40 h-40 rounded-full bg-secondary flex justify-center items-end">
+                      <div className="w-36 h-36 flex flex-col gap-2 items-center">
+                        <h6 className="text-primary text-sm font-semibold text-center">
+                          Goodge <br/> Street Market
                         </h6>
                         <Image
                           src="/sample/dish.png"
                           alt="sample dish"
-                          width={115}
-                          height={115}
+                          width={95}
+                          height={95}
                         />
                       </div>
                     </div>
+                  </div> */}
+                  <section className="relative w-full aspect-[828/647] my-2">
+                    <Image src={"/where-operate.jpg"} alt="catering" fill />
+                  </section>
+                  <div className="w-full flex justify-center bottom-4 ">
+                    <button className="btn btn-primary rounded-full btn-sm text-white">
+                      Order Now
+                    </button>
                   </div>
-                </div>
-
-                <div className="w-full flex justify-center absolute bottom-4 left-0">
-                  <button className="btn btn-primary rounded-full btn-sm text-white">
-                    Explore More
-                  </button>
-                </div>
               </InfoContainer>
             </Link>
             <Link
               href={"/catering"}
               className="w-full max-sm:w-[80%] flex flex-col items-center"
             >
-              <InfoContainer heading="Catering" className="relative w-full">
-                <section className="relative w-full aspect-[828/647]">
+              <InfoContainer heading="Catering" className="relative w-full max-w-md">
+                <section className="relative w-full aspect-[828/647] my-2">
                   <Image src={"/catering.jpg"} alt="catering" fill />
                 </section>
-                <div className="w-full flex justify-center absolute bottom-4 left-0">
+                <div className="w-full flex justify-center bottom-4 ">
                   <button className="btn btn-primary rounded-full btn-sm text-white">
                     Order Now
                   </button>
@@ -135,7 +139,7 @@ export default function Home() {
       </section>
 
       {/* Section Dividers and Content - Responsive */}
-      <div className="space-y-8 max-sm:space-y-6">
+      <div id="aboutus" className="space-y-8 max-sm:space-y-6">
         <SectionDivider text="What Makes Us Different?" />
 
         <div className="space-y-12 max-sm:space-y-8">
@@ -171,7 +175,7 @@ export default function Home() {
           image="/problem-solve.jpg"
           imageAlt="Problem solving"
           title=""
-          description="While big delivery platforms focus on expensive restaurants, we saw a gap in the market—London's vibrant street food scene was missing from delivery apps. At the same time, platforms like Deliveroo, UberEats, and JustEat were becoming too expensive for students and everyday people. That's where Swift Food comes in."
+          description="While big delivery platforms focus on expensive restaurants, we saw a gap in the market—London's vibrant street food scene was missing from delivery apps. At the same time, platforms were becoming too expensive for students and everyday people. That's where Swift Food comes in."
           className="max-sm:gap-4"
         />
 

@@ -1,0 +1,11 @@
+[[headers]]
+  for = "/.well-known/apple-developer-merchantid-domain-association"
+  [headers.values]
+    Content-Type = "text/plain"
+    Cache-Control = "public, max-age=86400"
+
+# Ensure .well-known files are not processed as functions
+[[redirects]]
+  from = "/.well-known/*"
+  to = "/.well-known/:splat"
+  status = 200

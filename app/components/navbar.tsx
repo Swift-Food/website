@@ -10,8 +10,10 @@ function NavbarAction() {
       <Link href={"/catering"}>
         <button className="btn btn-md btn-ghost rounded-full">Catering</button>
       </Link>
-      <Link href={"/about"}>
-        <button className="btn btn-md btn-ghost rounded-full">About Us</button>
+      <Link href={'/#aboutus'}>
+        <button className="btn btn-md btn-ghost rounded-full">
+          About Us
+        </button>
       </Link>
       <Link href={"/contact"}>
         <button className="btn btn-md btn-ghost rounded-full">

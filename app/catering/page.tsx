@@ -5,12 +5,18 @@ import InfoContainer from "../components/containers/InfoContainer";
 import { useState } from "react";
 import StepperButtonGroup from "../components/buttons/StepperButtonGroup";
 import { ImageTextContainer } from "../components/containers/CompactImageContainer";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CateringPage() {
+  const router = useRouter();
   const [deliveryDate, setDeliveryDate] = useState("");
   const [capacity, setCapacity] = useState("");
   
+  const today = new Date();
+  const maxDate = new Date();
+  maxDate.setDate(today.getDate() + 7);
+  const maxDateString = maxDate.toISOString().split('T')[0];
+
   const capacityOptions = [
     { value: "", label: "Select capacity" },
     { value: "10-20", label: "10-20 people" },
@@ -43,6 +49,15 @@ export default function CateringPage() {
       alert("Please fill in all fields");
       return;
     }
+    const today = new Date();
+    const selectedDate = new Date(deliveryDate);
+    const daysDifference = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysDifference > 7) {
+      alert("Delivery date must be at most 7 days from today");
+      return;
+    }
+    router.push(`/catering-form?date=${encodeURIComponent(deliveryDate)}&capacity=${capacity}`)
   };
 
   return (
@@ -62,35 +77,43 @@ export default function CateringPage() {
         </section>
 
         {/* Right side - Catering Form */}
-        <aside className="flex-2 flex flex-col gap-4 items-center max-lg:mt-6">
-          <InfoContainer heading="Book Catering" className="relative w-full h-full">
+        <aside className="flex-2 flex flex-col gap-4 items-center justify-center max-lg:mt-6">
+          <h1 className="text-primary text-7xl font-bold">
+            Catering
+          </h1>
+          <InfoContainer heading="" className="relative w-full">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6">
               {/* Delivery Date Picker */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="deliveryDate" className="text-lg font-semibold text-gray-800">
+              <div className="flex flex-col items-center">
+                <label htmlFor="deliveryDate" className="text-lg font-bold ">
                   Delivery Date
                 </label>
+                <h1 className="text-[#6A6A6A] text-sm">
+                  upto 7 days in advance
+                </h1>
                 <input
                   type="date"
                   id="deliveryDate"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
+                  // Add the max attribute here
+                  max={maxDateString}
+                  className="w-full px-4 py-3 my-4 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
                   required
                 />
               </div>
 
               {/* Capacity Dropdown */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="capacity" className="text-lg font-semibold text-gray-800">
+              <div className="flex flex-col gap-2 items-center">
+                <label htmlFor="capacity" className="text-lg font-bold text-gray-800">
                   Event Capacity
                 </label>
                 <select
                   id="capacity"
                   value={capacity}
                   onChange={(e) => setCapacity(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base bg-white"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
                   required
                 >
                   {capacityOptions.map((option) => (
@@ -103,14 +126,14 @@ export default function CateringPage() {
 
               {/* Submit Button */}
               <div className="flex justify-center mt-4">
-                <Link href={'catering-form'}>
+            
                 <button
                   type="submit"
                   className="btn btn-primary rounded-full px-8 py-3 text-white font-semibold text-lg hover:bg-primary/90 transition-colors w-full max-w-xs"
                 >
                   Get Started
                 </button>
-                </Link>
+           
               </div>
             </form>
           </InfoContainer>
