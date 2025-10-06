@@ -51,7 +51,7 @@ export default function Home() {
         </div>
       </div> */}
       {/* Hero Section - Responsive like store.jpg */}
-      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between mb-8">
+      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between my-8">
         <section className="flex-6 h-full rounded-xl overflow-hidden">
           <div className="relative w-full aspect-[192/139] max-sm:aspect-[16/9]">
             <Image src="/store.jpg" alt="store" fill className="object-cover" />

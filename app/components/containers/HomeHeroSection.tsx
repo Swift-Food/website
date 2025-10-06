@@ -4,7 +4,7 @@ export default function HomeHeroSection() {
   const handleButtonClick = () => {};
   const imageSection = (
     <div
-      className={`flex-1 relative h-full rounded-xl overflow-hidden max-lg:flex-none max-lg:w-full max-lg:max-w-md max-lg:mx-auto`}
+      className={`flex-1 relative rounded-xl max-lg:w-full overflow-hidden max-lg:flex-none max-lg:max-w-md max-lg:mx-auto`}
     >
       <div className="relative w-full aspect-[4/3] max-sm:aspect-[16/9] max-lg:max-h-64 max-sm:max-h-48">
         <Image
@@ -31,7 +31,7 @@ export default function HomeHeroSection() {
       <div className="max-lg:flex max-lg:justify-center">
         <button
           // onClick={handleButtonClick}
-          className="btn btn-primary rounded-full btn-sm text-white w-fit max-sm:px-4 max-sm:py-2"
+          className="btn btn-primary rounded-full btn-sm text-white w-fit px-8 py-6 text-2xl font-bold"
         >
           ORDER NOW!
         </button>
@@ -40,7 +40,7 @@ export default function HomeHeroSection() {
   );
   return (
     <section
-      className={`flex w-full gap-6 max-lg:flex-col max-lg:gap-4 max-sm:gap-3 justify-between items-center max-sm:gap-4 bg-secondary`}
+      className={`flex w-full gap-6 max-lg:flex-col max-lg:gap-4 max-sm:gap-3 justify-between items-center max-sm:gap-4 bg-secondary py-4`}
     >
       <>
         {textSection}
