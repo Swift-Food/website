@@ -10,10 +10,8 @@ function NavbarAction() {
       <Link href={"/catering"}>
         <button className="btn btn-md btn-ghost rounded-full">Catering</button>
       </Link>
-      <Link href={'/#aboutus'}>
-        <button className="btn btn-md btn-ghost rounded-full">
-          About Us
-        </button>
+      <Link href={"/#aboutus"}>
+        <button className="btn btn-md btn-ghost rounded-full">About Us</button>
       </Link>
       <Link href={"/contact"}>
         <button className="btn btn-md btn-ghost rounded-full">
@@ -38,13 +36,15 @@ export default function Navbar() {
       </div>
       <Link href={"/"}>
         <div className="flex items-center gap-4 pointer h-full">
-          <Image
+          {/* <Image
             src="/logo.png"
             width={40}
             height={40}
             alt="swift foods logo"
-          />
-          <label className="font-bold text-primary pointer">SWIFT FOOD</label>
+          /> */}
+          <label className="font-bold text-primary pointer text-2xl">
+            SWIFT FOOD
+          </label>
         </div>
       </Link>
       <div className="visible max-sm:hidden">

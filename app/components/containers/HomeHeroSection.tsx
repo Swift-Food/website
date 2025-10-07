@@ -13,6 +13,13 @@ export default function HomeHeroSection() {
           fill
           className="object-cover"
         />
+        <Image
+          src="/logo.png"
+          alt="Swift Food logo"
+          width={80}
+          height={80}
+          className="absolute bottom-0 right-0 rounded-full"
+        />
       </div>
     </div>
   );
