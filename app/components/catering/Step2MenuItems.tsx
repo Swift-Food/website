@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { cateringService } from '@/services/cateringServices';
 import { useCatering } from '@/context/CateringContext';
+import Image from 'next/image';
 
 // Constants
 const FEEDS_PER_UNIT = 10;
@@ -14,7 +15,7 @@ interface Restaurant {
   averageRating: string;
 }
 
-interface MenuItem {
+export interface MenuItem {
   id: string;
   name: string;
   description?: string;
@@ -227,6 +228,7 @@ export default function Step2MenuItems() {
                     >
                       <img
                         src={restaurant.images[0] || '/placeholder.jpg'}
+                
                         alt={restaurant.restaurant_name}
                         className="w-full h-24 md:h-32 object-cover"
                       />
@@ -278,6 +280,7 @@ export default function Step2MenuItems() {
                         <img
                           src={item.image}
                           alt={item.name}
+                     
                           className="w-full h-40 md:h-48 object-cover"
                         />
                       )}
@@ -353,6 +356,7 @@ export default function Step2MenuItems() {
                             <img
                               src={item.image}
                               alt={item.name}
+                  
                               className="w-16 h-16 object-cover rounded-lg"
                             />
                           )}
@@ -470,6 +474,7 @@ export default function Step2MenuItems() {
                             <img
                               src={item.image}
                               alt={item.name}
+                         
                               className="w-16 h-16 object-cover rounded-lg"
                             />
                           )}

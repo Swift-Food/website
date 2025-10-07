@@ -1,5 +1,7 @@
 // types/catering.types.ts
 
+import { MenuItem } from "@/app/components/catering/Step2MenuItems";
+
 export interface SearchResult {
   type: 'restaurant' | 'menu_item';
   id: string;
@@ -68,7 +70,7 @@ export interface EventDetails {
 }
 
 export interface SelectedMenuItem {
-  item: SearchResult;
+  item: SearchResult | MenuItem;
   quantity: number;
 }
 

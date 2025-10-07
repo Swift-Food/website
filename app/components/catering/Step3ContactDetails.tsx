@@ -6,6 +6,7 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useCatering } from '@/context/CateringContext';
 import { cateringService } from '@/services/cateringServices';
 import { CateringPricingResult, ContactInfo } from '@/types/catering.types';
+import Image from 'next/image';
 
 export default function Step3ContactInfo() {
   const { 
@@ -16,8 +17,6 @@ export default function Step3ContactInfo() {
     selectedItems,
     getTotalPrice,
     resetOrder,
-    removeMenuItem,
-    updateItemQuantity
   } = useCatering();
   
   const [formData, setFormData] = useState<ContactInfo>(
@@ -144,6 +143,7 @@ export default function Step3ContactInfo() {
 
   useEffect(() => {
     calculatePricing();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promoCodes]);
 
   const handleApplyPromoCode = async () => {
@@ -248,6 +248,7 @@ export default function Step3ContactInfo() {
     };
     
     document.head.appendChild(script);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   const initAutocomplete = () => {
@@ -360,7 +361,7 @@ export default function Step3ContactInfo() {
                 return (
                   <div key={item.id} className="flex items-center gap-3 p-3 bg-base-100 rounded-xl">
                     {item.image && (
-                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                      <Image src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base-content truncate">{item.name}</p>
@@ -509,7 +510,7 @@ export default function Step3ContactInfo() {
                       name="contact"
                       value="email"
                       checked={preferredContact === 'email'}
-                      onChange={(e) => setPreferredContact('email')}
+                      onChange={() => setPreferredContact('email')}
                       className="radio radio-primary"
                     />
                     <span className="text-base-content">Email</span>
@@ -520,7 +521,7 @@ export default function Step3ContactInfo() {
                       name="contact"
                       value="phone"
                       checked={preferredContact === 'phone'}
-                      onChange={(e) => setPreferredContact('phone')}
+                      onChange={() => setPreferredContact('phone')}
                       className="radio radio-primary"
                     />
                     <span className="text-base-content">Phone</span>
@@ -710,12 +711,12 @@ export default function Step3ContactInfo() {
                   const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                   const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                   const subtotal = itemPrice * (quantity / 2);
-                  const portionSize = (quantity / 10) * 10;
+     
 
                   return (
                     <div key={item.id} className="flex items-center gap-3">
                       {item.image && (
-                        <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
+                        <Image src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-base-content truncate">{item.name}</p>

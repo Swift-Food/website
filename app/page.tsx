@@ -1,4 +1,4 @@
-import styles from "./page.module.css";
+
 import Image from "next/image";
 import InfoContainer from "./components/containers/InfoContainer";
 import Link from "next/link";

@@ -53,36 +53,6 @@ const handleSubmit = (e: FormEvent) => {
   setEventDetails(formData);
   setCurrentStep(2);
 };
-  
-  // Custom input component for Date & Time to match the UI style
-  const DateTimeInput = ({ type, label, value, onChange, placeholder }: {
-    type: 'date' | 'time';
-    label: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-  }) => (
-    <div className="relative">
-      <input
-        type={type}
-        required
-        value={value}
-        onChange={onChange}
-        min={type === 'date' ? new Date().toISOString().split('T')[0] : undefined}
-        // Tailwind/DaisyUI classes for the input
-        className={`peer w-full h-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-0 focus:border-dark-pink appearance-none transition duration-150 ${type === 'date' && !value ? 'text-transparent' : 'text-gray-900'} `}
-        // Using an empty string for placeholder to ensure the date picker's native text is hidden on empty
-        placeholder={placeholder || ''} 
-      />
-      {/* Visual label/placeholder when input is empty or focused (for date/time) */}
-      <label className={`absolute left-4 top-3 text-gray-500 pointer-events-none transition-all duration-150 ${value ? 'text-xs -translate-y-5 bg-base-100 px-1' : 'text-base'}`}>
-        {label}
-      </label>
- 
-      {/* Force padding for date input to prevent the native text from overlapping the icon */}
-      {type === 'date' && <div className="absolute inset-y-0 right-0 w-12"></div>}
-    </div>
-  );
 
 
   const handleGuestCountSelect = (optionValue: number) => {

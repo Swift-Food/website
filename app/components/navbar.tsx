@@ -1,4 +1,4 @@
-import Image from "next/image";
+
 import React from "react";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
