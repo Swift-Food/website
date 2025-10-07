@@ -6,7 +6,6 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useCatering } from '@/context/CateringContext';
 import { cateringService } from '@/services/cateringServices';
 import { CateringPricingResult, ContactInfo } from '@/types/catering.types';
-import Image from 'next/image';
 
 export default function Step3ContactInfo() {
   const { 
@@ -361,7 +360,7 @@ export default function Step3ContactInfo() {
                 return (
                   <div key={item.id} className="flex items-center gap-3 p-3 bg-base-100 rounded-xl">
                     {item.image && (
-                      <Image src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base-content truncate">{item.name}</p>
@@ -716,7 +715,7 @@ export default function Step3ContactInfo() {
                   return (
                     <div key={item.id} className="flex items-center gap-3">
                       {item.image && (
-                        <Image src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
+                        <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-base-content truncate">{item.name}</p>
