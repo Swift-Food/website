@@ -10,11 +10,12 @@
   /* Primary colors from your palette */
   --color-primary: #fa43ad; /* Hot Pink */
   --color-primary-content: #ffffff;
+  
   /* Secondary colors */
   --color-secondary: #ffb3e6; /* Light Pink */
   --color-secondary-content: #282828;
 
-  --color-text-grey: #6A6A6A
+  --color-text-grey: #6A6A6A;
 
   /* Accent colors */
   --color-accent: #ffcd5e; /* Yellow/Gold */
@@ -26,7 +27,7 @@
 
   /* Base colors */
   --color-base-100: #f6f5f3; /* Light background */
-  --color-base-200: #efeae0; /* Slightly darker background */
+  --color-base-200: #efeae0; /* Slightly darker background - beige */
   --color-base-300: #e5ddd0; /* Border/divider color */
   --color-base-content: #282828; /* Dark text */
 
@@ -37,17 +38,53 @@
   --color-error: #f87171; /* Red */
 }
 
+/* Additional custom color classes for direct use */
+:root {
+  --dark-pink: #FA43AD;
+  --hot-pink: #FFB3E6;
+  --beige: #EFEAE0;
+}
+
+/* Custom utility classes */
+.bg-dark-pink {
+  background-color: var(--dark-pink);
+}
+
+.bg-hot-pink {
+  background-color: var(--hot-pink);
+}
+
+.bg-beige {
+  background-color: var(--beige);
+}
+
+.text-dark-pink {
+  color: var(--dark-pink);
+}
+
+.text-hot-pink {
+  color: var(--hot-pink);
+}
+
+.border-dark-pink {
+  border-color: var(--dark-pink);
+}
+
+.border-hot-pink {
+  border-color: var(--hot-pink);
+}
+
 html {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
   background-color: #f6f5f3;
 }
-
 .marquee-text {
   overflow: clip;
 }
