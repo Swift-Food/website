@@ -1,108 +1,278 @@
-  // components/catering/Step2MenuItems.tsx
+import { useState, useEffect } from 'react';
+import { cateringService } from '@/services/cateringServices';
+import { useCatering } from '@/context/CateringContext';
 
-  'use client';
+// Constants
+const FEEDS_PER_UNIT = 10;
+const BASE_UNIT_QUANTITY = 10;
+const PRICE_DISPLAY_PORTIONS = 5;
 
-  import { useState, useEffect } from 'react';
-  import { useCatering } from '@/context/CateringContext';
-  import { cateringService } from '@/services/cateringServices';
-  import { SearchResult, SearchFilters } from '@/types/catering.types';
+interface Restaurant {
+  id: string;
+  restaurant_name: string;
+  images: string[];
+  averageRating: string;
+}
 
-  export default function Step2MenuItems() {
-    const { selectedItems, addMenuItem, removeMenuItem, updateItemQuantity, setCurrentStep } = useCatering();
+interface MenuItem {
+  id: string;
+  name: string;
+  description?: string;
+  price: string;
+  discountPrice?: string;
+  isDiscount: boolean;
+  image?: string;
+  averageRating?: string;
+  restaurantId: string;
+  restaurant?: {
+    id: string;
+    name: string;
+    restaurantId: string;
+  };
+}
 
-    const FEEDS_PER_UNIT = 10;
-    const BASE_UNIT_QUANTITY = 10; 
-    const PRICE_DISPLAY_PORTIONS = 7;
+export default function Step2MenuItems() {
+  const { 
+    selectedItems, 
+    addMenuItem, 
+    removeMenuItem, 
+    updateItemQuantity,
+    setCurrentStep 
+  } = useCatering();
+  
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [restaurantsLoading, setRestaurantsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Fetch all restaurants on mount
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
+
+  // Fetch menu items when restaurant is selected
+  useEffect(() => {
+    if (!isSearching) {
+      fetchAllMenuItems();
+    }
+  }, [isSearching]);
+
+  const fetchAllMenuItems = async () => {
+    setLoading(true);
+    try {
+      const response = await cateringService.getMenuItems();
+      console.log("All menu items response:", response);
+      
+      const menuItemsOnly = (response || []).map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: item.price?.toString() || '0',
+        discountPrice: item.discountPrice?.toString(),
+        isDiscount: item.isDiscount || false,
+        image: item.image,
+        averageRating: item.averageRating?.toString(),
+        restaurantId: item.restaurantId || '',
+        restaurant: {
+          id: item.restaurantId,
+          name: item.restaurant?.restaurant_name || 'Unknown',
+          restaurantId: item.restaurantId,
+        },
+      }));
+      
+      setMenuItems(menuItemsOnly);
+    } catch (error) {
+      console.error('Error fetching all menu items:', error);
+      setMenuItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRestaurants = async () => {
+    setRestaurantsLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurant`);
+      const data = await response.json();
+      setRestaurants(data);
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+    } finally {
+      setRestaurantsLoading(false);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const [searchQuery, setSearchQuery] = useState('');
-    const [menuItems, setMenuItems] = useState<SearchResult[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [filters, setFilters] = useState<SearchFilters>({
-      page: 1,
-      limit: 12,
-    });
-    const [totalPages, setTotalPages] = useState(1);
+    if (!searchQuery.trim()) {
+      setIsSearching(false);
+      fetchAllMenuItems();
+      return;
+    }
 
-    useEffect(() => {
-      searchMenuItems();
-    }, [filters.page]);
+    setIsSearching(true);
+    setLoading(true);
+    
+    try {
+      const response = await cateringService.searchMenuItems(searchQuery, {
+        page: 1,
+        limit: 50,
+      });
+      
+      setSearchResults(response.menuItems || []);
+    } catch (error) {
+      console.error('Error searching menu items:', error);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const searchMenuItems = async () => {
-      setLoading(true);
-      try {
-        const response = await cateringService.searchMenuItems(searchQuery, filters);
-        console.log("response", JSON.stringify(response))
-        setMenuItems(response.menuItems);
-        setTotalPages(Math.ceil(response.pagination.total / (filters.limit || 12)));
-      } catch (error) {
-        console.error('Error searching menu items:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const clearSearch = () => {
+    setSearchQuery('');
+    setIsSearching(false);
+    setSearchResults([]);
+    fetchAllMenuItems();
+  };
 
-    const handleSearch = (e: React.FormEvent) => {
-      e.preventDefault();
-      setFilters({ ...filters, page: 1 });
-      searchMenuItems();
-    };
+  const getItemQuantity = (itemId: string) => {
+    return selectedItems.find((i) => i.item.id === itemId)?.quantity || 0;
+  };
 
-    const getItemQuantity = (itemId: string) => {
-      return selectedItems.find((i) => i.item.id === itemId)?.quantity || 0;
-    };
+  const handleAddItem = (item: MenuItem) => {
+    addMenuItem({ item, quantity: BASE_UNIT_QUANTITY });
+  };
 
-    const handleAddItem = (item: SearchResult) => {
-      addMenuItem({ item, quantity: BASE_UNIT_QUANTITY });
-    };
+  // Determine which items to display
+  let displayItems = isSearching ? searchResults : menuItems;
 
-    return (
-      <div className="flex gap-6">
-        {/* Left side - Menu Items */}
-        <div className="flex-1">
-          <div className="flex justify-between items-center mb-8">
+  // Filter by selected restaurant if one is selected
+  if (selectedRestaurantId && !isSearching) {
+    displayItems = displayItems.filter(item => item.restaurantId === selectedRestaurantId);
+  }
+
+  return (
+    <div className="min-h-screen">
+      {/* Header */}
+      <div className="">
+        <div className="max-w-7xl mx-auto ">
+          <div className="flex justify-between items-center mb-4">
             <div>
-              <h2 className="text-3xl font-bold mb-2">Select Menu Items</h2>
-              <p className="text-gray-600">Choose items for your catering order</p>
+              <h2 className="text-3xl font-bold mb-2 text-base-content">Select Menu Items</h2>
+              <p className="text-base-content/60">Choose items for your catering order</p>
             </div>
-            <button
-              onClick={() => setCurrentStep(1)}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
+            <button className="text-primary hover:opacity-80 font-medium" onClick={() => setCurrentStep(1)} >
               ← Back
             </button>
           </div>
-    
-          <form onSubmit={handleSearch} className="mb-8">
+
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="mb-6">
             <div className="flex gap-4">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search menu items..."
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search all menu items..."
+                  className="w-full pl-12 pr-4 py-3 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40">
+                  🔍
+                </div>
+              </div>
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="bg-primary hover:opacity-90 text-white px-8 py-3 rounded-lg font-medium transition-all"
               >
                 Search
               </button>
+              {isSearching && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="bg-base-300 text-base-content px-6 py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </form>
-    
-          {loading ? (
-            <div className="text-center py-12">Loading...</div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {menuItems.map((item) => {
+
+          {/* Restaurant Horizontal Scroll - Only show when not searching */}
+          {!isSearching && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3 text-base-content">Select Restaurant</h3>
+              {restaurantsLoading ? (
+                <div className="text-center py-4 text-base-content/60">Loading restaurants...</div>
+              ) : (
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                  {restaurants.map((restaurant) => (
+                    <button
+                      key={restaurant.id}
+                      onClick={() => setSelectedRestaurantId(
+                        selectedRestaurantId === restaurant.id ? null : restaurant.id
+                      )}
+                      className={`flex-shrink-0 w-40 rounded-xl overflow-hidden border-2 transition-all ${
+                        selectedRestaurantId === restaurant.id
+                          ? 'border-primary shadow-lg'
+                          : 'border-base-300 hover:border-primary/50'
+                      }`}
+                    >
+                      <img
+                        src={restaurant.images[0] || '/placeholder.jpg'}
+                        alt={restaurant.restaurant_name}
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="p-3 bg-base-100">
+                        <h4 className="font-semibold text-sm text-base-content truncate">{restaurant.restaurant_name}</h4>
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-yellow-500 text-sm">★</span>
+                          <span className="text-sm text-base-content/70">{restaurant.averageRating}</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Search Results Header */}
+          {isSearching && (
+            <div className="mt-4 text-sm text-base-content/60">
+              Showing search results for "{searchQuery}" ({displayItems.length} items found)
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex gap-6">
+          {/* Menu Items Grid */}
+          <div className="flex-1">
+            {loading ? (
+              <div className="text-center py-12 text-base-content/60">Loading menu items...</div>
+            ) : displayItems.length === 0 ? (
+              <div className="text-center py-12 text-base-content/50">
+                {isSearching ? 'No menu items found matching your search.' : 'No menu items available.'}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayItems.map((item) => {
                   const quantity = getItemQuantity(item.id);
                   const price = parseFloat(item.price?.toString() || '0');
                   const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                   const displayPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-    
+
                   return (
-                    <div key={item.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div key={item.id} className="bg-base-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-base-300">
                       {item.image && (
                         <img
                           src={item.image}
@@ -111,40 +281,35 @@
                         />
                       )}
                       <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
+                        <h3 className="font-bold text-lg text-base-content mb-2">{item.name}</h3>
                         {item.description && (
-                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.description}</p>
+                          <p className="text-base-content/70 text-sm mb-3 line-clamp-2">{item.description}</p>
                         )}
                         
-                        {item.restaurant && (
-                          <p className="text-sm text-gray-500 mb-2">From: {item.restaurant.name}</p>
+                        {/* Show restaurant name in search results */}
+                        {isSearching && item.restaurant && (
+                          <p className="text-sm text-base-content/50 mb-2">From: {item.restaurant.name}</p>
                         )}
-    
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <span className="text-lg font-bold">${(Number(displayPrice) * PRICE_DISPLAY_PORTIONS).toFixed(2)}</span>
-                            <span className="text-xs text-gray-500 ml-1">Feeds up to {FEEDS_PER_UNIT} people</span>
-                          </div>
-                          {item.rating && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-yellow-500">★</span>
-                              <span className="text-sm">{item.rating}</span>
-                            </div>
-                          )}
+
+                        <div className="flex flex-column items-center gap-1 mb-3">
+                          <span className="text-2xl font-bold text-primary">£{(Number(displayPrice) * PRICE_DISPLAY_PORTIONS).toFixed(2)}</span>
                         </div>
-    
+                        <div className="flex flex-column items-center gap-1 mb-3">
+                          <span className="text-xs text-base-content/60">Feeds up to {FEEDS_PER_UNIT} people</span>
+                        </div>
+
                         {quantity > 0 ? (
-                          <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                          <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-3">
                             <button
                               onClick={() => updateItemQuantity(item.id, Math.max(0, quantity - BASE_UNIT_QUANTITY))}
-                              className="w-8 h-8 bg-white border rounded hover:bg-gray-100"
+                              className="w-8 h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center"
                             >
-                              -
+                              −
                             </button>
-                            <span className="font-medium">Feeds {(quantity / BASE_UNIT_QUANTITY) * FEEDS_PER_UNIT} people</span>
+                            <span className="font-medium text-sm text-base-content">Feeds {(quantity / BASE_UNIT_QUANTITY) * FEEDS_PER_UNIT} people</span>
                             <button
                               onClick={() => updateItemQuantity(item.id, quantity + BASE_UNIT_QUANTITY)}
-                              className="w-8 h-8 bg-white border rounded hover:bg-gray-100"
+                              className="w-8 h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center"
                             >
                               +
                             </button>
@@ -152,7 +317,7 @@
                         ) : (
                           <button
                             onClick={() => handleAddItem(item)}
-                            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                            className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all"
                           >
                             Add to Order
                           </button>
@@ -162,123 +327,95 @@
                   );
                 })}
               </div>
-    
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2 mb-8">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setFilters({ ...filters, page })}
-                      className={`px-4 py-2 rounded ${
-                        filters.page === page
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 hover:bg-gray-300'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-    
-        {/* Right side - Cart */}
-        <div className="w-96 sticky top-4 h-fit">
-          <div className="bg-white border rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-bold mb-4">Your Order</h3>
-            
-            {selectedItems.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No items selected yet</p>
-            ) : (
-              <>
-                <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
-                  {selectedItems.map(({ item, quantity }) => {
-                    const price = parseFloat(item.price?.toString() || '0');
-                    const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-                    const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                    const subtotal = itemPrice * (quantity/2);
-    
-                    return (
-                      <div key={item.id} className="border-b pb-4">
-                        <div className="flex gap-3">
+            )}
+          </div>
+
+          {/* Cart Sidebar */}
+          <div className="w-96 sticky top-4 h-fit">
+            <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
+              <h3 className="text-xl font-bold text-base-content mb-6">Your Catering List</h3>
+              
+              {selectedItems.length === 0 ? (
+                <p className="text-base-content/50 text-center py-8">No items selected yet</p>
+              ) : (
+                <>
+                  <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                    {selectedItems.map(({ item, quantity }) => {
+                      const price = parseFloat(item.price?.toString() || '0');
+                      const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
+                      const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+                      const subtotal = itemPrice * (quantity / 2);
+
+                      return (
+                        <div key={item.id} className="flex gap-3 pb-4 border-b border-base-300">
                           {item.image && (
                             <img
                               src={item.image}
                               alt={item.name}
-                              className="w-16 h-16 object-cover rounded"
+                              className="w-16 h-16 object-cover rounded-lg"
                             />
                           )}
                           <div className="flex-1">
-                            <h4 className="font-semibold text-sm mb-1">{item.name}</h4>
-                            {item.restaurant && (
-                              <p className="text-xs text-gray-500 mb-2">{item.restaurant.name}</p>
-                            )}
+                            <h4 className="font-semibold text-sm text-base-content mb-1">{item.name}</h4>
+                            <p className="text-xl font-bold text-primary mb-2">£{subtotal.toFixed(2)}</p>
+                            
                             <div className="flex items-center justify-between">
-                                <div className="text-xs text-gray-600">
-                                  <div>Feeds up to {(quantity / BASE_UNIT_QUANTITY) * FEEDS_PER_UNIT} people</div>
-                                </div>
-                              <button
-                                onClick={() => removeMenuItem(item.id)}
-                                className="text-red-500 hover:text-red-700 text-xs"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                            <div className="mt-2 flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => updateItemQuantity(item.id, Math.max(0, quantity - BASE_UNIT_QUANTITY))}
-                                  className="w-6 h-6 bg-gray-100 border rounded hover:bg-gray-200 text-sm"
+                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
-                                  -
+                                  −
                                 </button>
-                                <span className="text-sm font-medium">×{quantity / BASE_UNIT_QUANTITY}</span>
+                                <span className="text-sm font-medium text-base-content">{quantity / BASE_UNIT_QUANTITY}</span>
                                 <button
                                   onClick={() => updateItemQuantity(item.id, quantity + BASE_UNIT_QUANTITY)}
-                                  className="w-6 h-6 bg-gray-100 border rounded hover:bg-gray-200 text-sm"
+                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   +
                                 </button>
                               </div>
-                              <div className="font-bold text-sm">
-                                ${subtotal.toFixed(2)}
-                              </div>
+                              <button
+                                onClick={() => removeMenuItem(item.id)}
+                                className="text-error hover:opacity-80 text-xs"
+                              >
+                                Remove
+                              </button>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-    
-                <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Items ({selectedItems.length})</span>
-                  <span>Feeds up to {selectedItems.reduce((sum, item) => sum + (item.quantity / BASE_UNIT_QUANTITY) * FEEDS_PER_UNIT, 0)} people</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total:</span>
-                  <span>${selectedItems.reduce((sum, { item, quantity }) => {
-                    const price = parseFloat(item.price?.toString() || '0');
-                    const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-                    const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                    return sum + itemPrice * (quantity / 2);
-                  }, 0).toFixed(2)}</span>
-                </div>
-                </div>
-    
-                <button
-                  onClick={() => setCurrentStep(3)}
-                  className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Continue to Contact Info
-                </button>
-              </>
-            )}
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
+                    <div className="flex justify-between text-sm text-base-content/70">
+                      <span>Items ({selectedItems.length})</span>
+                      <span>Feeds up to {selectedItems.reduce((sum, item) => sum + (item.quantity / BASE_UNIT_QUANTITY) * FEEDS_PER_UNIT, 0)} people</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold text-base-content">
+                      <span>Total:</span>
+                      <span>£{selectedItems.reduce((sum, { item, quantity }) => {
+                        const price = parseFloat(item.price?.toString() || '0');
+                        const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
+                        const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+                        return sum + itemPrice * (quantity / 2);
+                      }, 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg"
+                    onClick={() => setCurrentStep(3)}
+                  >
+                    Continue to Contact Info
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}

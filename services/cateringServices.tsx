@@ -26,6 +26,16 @@ class CateringService {
     return response.json();
   }
 
+  async getMenuItems(){
+    const response = await fetch(`${API_BASE_URL}/menu-item`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to search menu items');
+    }
+    
+    return response.json();
+  }
+
   async submitCateringOrder(
     eventDetails: EventDetails,
     selectedItems: SelectedMenuItem[],
