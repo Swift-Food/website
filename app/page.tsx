@@ -1,19 +1,63 @@
+import styles from "./page.module.css";
 import Image from "next/image";
 import InfoContainer from "./components/containers/InfoContainer";
 import Link from "next/link";
 import ImageTextSection from "./components/containers/ImageTextSection";
 import SectionDivider from "./components/sectionDivider";
+import HomeHeroSection from "./components/containers/HomeHeroSection";
 
 export default function Home() {
   return (
     <div>
+      <HomeHeroSection />
+      {/* <div className="w-full bg-secondary py-12 px-12 flex flex-col lg:flex-row items-center justify-center gap-12">
+        <div className="flex-1 flex flex-col items-start justify-center max-w-lg">
+          <h1 className="text-4xl font-bold text-primary mb-4">
+            REAL,
+            <br />
+            LOCAL & FAST
+          </h1>
+          <p className="text-base text-secondary-content mb-6">
+            WE ALSO <span className="italic">CATER</span> EVENTS OF ANY SIZE
+            <br />
+            -BROWSE THE MENU AND ORDER ONLINE
+            <br />
+            FOR EASY DELIVERY!
+          </p>
+          <button className="btn bg-primary text-white rounded-full px-8 py-3 font-semibold text-lg shadow-md hover:bg-pink-500 transition">
+            ORDER NOW
+          </button>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className={styles.blurredMarketImage}></div>
+          <div className="relative">
+            <Image
+              src="/blurred-market.png"
+              alt="Street food market"
+              width={400}
+              height={250}
+              className="rounded-3xl  object-cover"
+            />
+            <div className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4">
+              <Image
+                src="/logo.png"
+                alt="Swift Food logo"
+                width={96}
+                height={96}
+                className="rounded-full bg-white shadow-lg"
+              />
+            </div>
+          </div>
+        </div>
+      </div> */}
       {/* Hero Section - Responsive like store.jpg */}
-      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between mb-8">
+      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between my-8">
         <section className="flex-6 h-full rounded-xl overflow-hidden">
           <div className="relative w-full aspect-[192/139] max-sm:aspect-[16/9]">
             <Image src="/store.jpg" alt="store" fill className="object-cover" />
           </div>
         </section>
+
         <section className="flex-2 flex flex-col justify-between h-full">
           <aside className="flex-1 flex flex-col gap-4 items-center">
             <Link
@@ -22,7 +66,7 @@ export default function Home() {
             >
               <InfoContainer heading="Markets" className="relative max-w-md">
                 {/* <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0"> */}
-                  {/* <div className="relative w-40 h-40 rounded-full bg-primary right-4 flex items-end justify-center">
+                {/* <div className="relative w-40 h-40 rounded-full bg-primary right-4 flex items-end justify-center">
                     <div className="w-36 h-36 flex flex-col gap-2 items-center justify-end">
                       <h6 className="text-white text-sm font-semibold text-center leading-tight">
                         Tottenham <br/>
@@ -68,21 +112,24 @@ export default function Home() {
                       </div>
                     </div>
                   </div> */}
-                  <section className="relative w-full aspect-[828/647] my-2">
-                    <Image src={"/where-operate.jpg"} alt="catering" fill />
-                  </section>
-                  <div className="w-full flex justify-center bottom-4 ">
-                    <button className="btn btn-primary rounded-full btn-sm text-white">
-                      Order Now
-                    </button>
-                  </div>
+                <section className="relative w-full aspect-[828/647] my-2">
+                  <Image src={"/where-operate.jpg"} alt="catering" fill />
+                </section>
+                <div className="w-full flex justify-center bottom-4 ">
+                  <button className="btn btn-primary rounded-full btn-sm text-white">
+                    Order Now
+                  </button>
+                </div>
               </InfoContainer>
             </Link>
             <Link
               href={"/catering"}
               className="w-full max-sm:w-[80%] flex flex-col items-center"
             >
-              <InfoContainer heading="Catering" className="relative w-full max-w-md">
+              <InfoContainer
+                heading="Catering"
+                className="relative w-full max-w-md"
+              >
                 <section className="relative w-full aspect-[828/647] my-2">
                   <Image src={"/catering.jpg"} alt="catering" fill />
                 </section>
@@ -189,8 +236,6 @@ export default function Home() {
           className="max-sm:gap-4"
         />
       </div>
-
-      
     </div>
   );
 }
