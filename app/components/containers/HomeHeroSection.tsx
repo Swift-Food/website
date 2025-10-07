@@ -1,7 +1,12 @@
+"use client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function HomeHeroSection() {
-  const handleButtonClick = () => {};
+  const router = useRouter();
+  const handleButtonClick = () => {
+    router.push("/catering");
+  };
   const imageSection = (
     <div
       className={`flex-1 relative rounded-xl max-lg:w-full overflow-hidden max-lg:flex-none max-lg:max-w-md max-lg:mx-auto`}
@@ -37,7 +42,7 @@ export default function HomeHeroSection() {
       </p>
       <div className="max-lg:flex max-lg:justify-center">
         <button
-          // onClick={handleButtonClick}
+          onClick={handleButtonClick}
           className="btn btn-primary rounded-full btn-sm text-white w-fit px-8 py-6 text-2xl font-bold"
         >
           ORDER NOW!
