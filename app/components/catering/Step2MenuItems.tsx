@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { cateringService } from '@/services/cateringServices';
 import { useCatering } from '@/context/CateringContext';
-import Image from 'next/image';
 
 // Constants
 const FEEDS_PER_UNIT = 10;
