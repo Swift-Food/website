@@ -160,7 +160,7 @@ export default function Step2MenuItems() {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Header */}
-      <div className="bg-base-100 sticky top-0 z-10 border-b border-base-300 pb-4">
+      <div className="bg-base-100 border-b border-base-300 pb-4">
         <div className="max-w-7xl mx-auto px-4 pt-4">
           <div className="flex justify-between items-center mb-4">
             <div>
