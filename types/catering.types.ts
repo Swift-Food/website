@@ -119,11 +119,13 @@ export interface CreateCateringOrderDto {
   specialRequirements?: string;
   orderItems: OrderItemDto[];
   estimatedTotal?: number;
+  promoCodes?: string[];
 }
 
 export interface CateringPricingData {
   orderItems: OrderItemDto[];
   deliveryAddressId: string;
+  promoCodes?: string[];
 }
 
 export interface CateringPricingResult {
@@ -131,6 +133,13 @@ export interface CateringPricingResult {
   subtotal: number;
   serviceCharge: number;
   deliveryFee: number;
+  promoDiscount?: number;
   total: number;
   error?: string;
+}
+
+export interface PromoCodeValidation {
+  valid: boolean;
+  reason?: string;
+  discount?: number;
 }

@@ -1,6 +1,6 @@
 // services/catering.service.ts
 
-import { SearchResponse, SearchFilters, CateringOrder, CreateCateringOrderDto, OrderItemDto, EventDetails, SelectedMenuItem, ContactInfo, CateringPricingResult } from "@/types/catering.types"
+import { SearchResponse, SearchFilters, CateringOrder, CreateCateringOrderDto, OrderItemDto, EventDetails, SelectedMenuItem, ContactInfo, CateringPricingResult, PromoCodeValidation } from "@/types/catering.types"
 import { create } from "domain";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -29,7 +29,8 @@ class CateringService {
   async submitCateringOrder(
     eventDetails: EventDetails,
     selectedItems: SelectedMenuItem[],
-    contactInfo: ContactInfo
+    contactInfo: ContactInfo,
+    promoCodes: string[]
   ): Promise<{ success: boolean; orderId: string }> {
 
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
@@ -95,6 +96,7 @@ class CateringService {
       specialRequirements: eventDetails.specialRequests,
       orderItems,
       estimatedTotal,
+      promoCodes,
     };
     console.log("catering req", JSON.stringify(createDto))
   
@@ -219,10 +221,12 @@ class CateringService {
   }
 
   async calculateCateringPricing(
-    orderItems: OrderItemDto[]
+    orderItems: OrderItemDto[],
+    promoCodes?: string[]
   ): Promise<CateringPricingResult> {
     const pricingData = {
       orderItems,
+      promoCodes,
     };
   
     console.log('Calculating catering pricing:', JSON.stringify(pricingData, null, 2));
@@ -237,6 +241,28 @@ class CateringService {
       const error = await response.json();
       console.error('Pricing calculation failed:', error);
       throw new Error('Failed to calculate pricing');
+    }
+  
+    return response.json();
+  }
+
+  async validatePromoCode(
+    promoCode: string,
+    orderItems: OrderItemDto[]
+  ): Promise<PromoCodeValidation> {
+    const subtotal = orderItems.reduce((sum, order) => sum + order.totalPrice, 0);
+    const firstRestaurantId = orderItems[0]?.restaurantId;
+  
+    const response = await fetch(
+      `${API_BASE_URL}/promotions/validate-catering?code=${promoCode}&orderTotal=${subtotal}&restaurantId=${firstRestaurantId || ''}`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  
+    if (!response.ok) {
+      return { valid: false, reason: 'Failed to validate promo code' };
     }
   
     return response.json();

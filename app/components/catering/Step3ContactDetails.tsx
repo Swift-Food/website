@@ -32,6 +32,11 @@ export default function Step3ContactInfo() {
   );
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [promoCodes, setPromoCodes] = useState<string[]>([]);
+    const [promoInput, setPromoInput] = useState('');
+    const [validatingPromo, setValidatingPromo] = useState(false);
+    const [promoError, setPromoError] = useState('');
+    const [promoSuccess, setPromoSuccess] = useState('');
   const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
   const [calculatingPricing, setCalculatingPricing] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -59,7 +64,8 @@ export default function Step3ContactInfo() {
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
-        formData
+        formData,
+        promoCodes
       );
       setSuccess(true);
     } catch (error) {
@@ -114,7 +120,15 @@ export default function Step3ContactInfo() {
         };
       });
   
-      const pricingResult = await cateringService.calculateCateringPricing(orderItems);
+      console.log('Calculating with promoCodes:', promoCodes); // Debug log
+      
+      // IMPORTANT: Pass promoCodes here
+      const pricingResult = await cateringService.calculateCateringPricing(
+        orderItems, 
+        promoCodes  // Make sure to pass the promoCodes state
+      );
+      
+      console.log('Pricing result:', pricingResult); // Debug log
       
       if (!pricingResult.isValid) {
         alert(pricingResult.error || 'Unable to calculate pricing');
@@ -131,10 +145,92 @@ export default function Step3ContactInfo() {
       setCalculatingPricing(false);
     }
   };
+
   useEffect(() => {
-    // Calculate pricing when component loads
+    // Calculate pricing when component loads or promoCodes change
     calculatePricing();
-  }, []);
+  }, [promoCodes]);
+
+  const handleApplyPromoCode = async () => {
+    if (!promoInput.trim()) return;
+    
+    setValidatingPromo(true);
+    setPromoError('');
+    setPromoSuccess('');
+    
+    try {
+      // Build order items from selected items
+      const groupedByRestaurant = selectedItems.reduce((acc, { item, quantity }) => {
+        const restaurantId = item.restaurant?.restaurantId || item.restaurantId || 'unknown';
+        const restaurantName = item.restaurant?.name || 'Unknown Restaurant';
+        
+        if (!acc[restaurantId]) {
+          acc[restaurantId] = {
+            restaurantId,
+            restaurantName,
+            items: [],
+          };
+        }
+        
+        const price = parseFloat(item.price?.toString() || '0');
+        const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
+        const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+        
+        acc[restaurantId].items.push({
+          menuItemId: item.id,
+          name: item.name,
+          quantity,
+          unitPrice,
+          totalPrice: unitPrice * quantity,
+        });
+        
+        return acc;
+      }, {} as Record<string, { restaurantId: string; restaurantName: string; items: any[] }>);
+  
+      const orderItems = Object.values(groupedByRestaurant).map((group: any) => {
+        const restaurantTotal = group.items.reduce((sum: any, item: any) => sum + item.totalPrice, 0);
+        
+        return {
+          restaurantId: group.restaurantId,
+          restaurantName: group.restaurantName,
+          menuItems: group.items,
+          status: 'pending',
+          restaurantCost: restaurantTotal,
+          totalPrice: restaurantTotal,
+        };
+      });
+  
+      const validation = await cateringService.validatePromoCode(
+        promoInput.toUpperCase(),
+        orderItems
+      );
+      
+      if (validation.valid) {
+        if (!promoCodes.includes(promoInput.toUpperCase())) {
+          setPromoCodes([...promoCodes, promoInput.toUpperCase()]);
+          setPromoSuccess(`Promo code "${promoInput.toUpperCase()}" applied! You saved £${validation.discount?.toFixed(2)}`);
+          setPromoInput('');
+
+        } else {
+          setPromoError('This promo code has already been applied');
+        }
+      } else {
+        setPromoError(validation.reason || 'Invalid promo code');
+      }
+    } catch (error) {
+      console.error('Promo validation error:', error);
+      setPromoError('Failed to validate promo code');
+    } finally {
+      setValidatingPromo(false);
+    }
+  };
+  
+  const handleRemovePromoCode = (codeToRemove: string) => {
+    setPromoCodes(promoCodes.filter(code => code !== codeToRemove));
+    setPromoSuccess('');
+    // Recalculate pricing without the removed promo
+    setTimeout(() => calculatePricing(), 100);
+  };
 
   useEffect(() => {
     // Check if script already exists
@@ -224,6 +320,7 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
+    
     return (
       <div className="max-w-2xl mx-auto text-center py-12">
         <div className="mb-6">
@@ -238,6 +335,15 @@ export default function Step3ContactInfo() {
 
         <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
           <h3 className="font-semibold mb-4">Order Summary</h3>
+          
+          {promoCodes.length > 0 && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 font-medium">
+                ✓ Promo codes applied: {promoCodes.join(', ')}
+              </p>
+            </div>
+          )}
+          
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Event Type:</span>
@@ -256,11 +362,36 @@ export default function Step3ContactInfo() {
             <div className="flex justify-between">
               <span className="text-gray-600">Items:</span>
               <span className="font-medium">{selectedItems.length}</span>
-              
             </div>
-            <div className="flex justify-between pt-2 border-t">
-              <span className="text-gray-600 font-semibold">Total:</span>
-              <span className="font-bold text-lg">${getTotalPrice().toFixed(2)}</span>
+            
+            {pricing && (
+              <>
+                <div className="flex justify-between pt-2 border-t mt-2">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="font-medium">£{pricing.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Service Charge:</span>
+                  <span className="font-medium">£{pricing.serviceCharge.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Delivery Fee:</span>
+                  <span className="font-medium">£{pricing.deliveryFee.toFixed(2)}</span>
+                </div>
+                {pricing.promoDiscount && pricing.promoDiscount > 0 && (
+                  <div className="flex justify-between text-green-600 font-medium">
+                    <span>Promo Discount:</span>
+                    <span>-£{pricing.promoDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+              </>
+            )}
+            
+            <div className="flex justify-between pt-2 border-t font-bold text-lg">
+              <span className="text-gray-600">Total:</span>
+              <span className="font-bold text-lg">
+                £{pricing ? pricing.total.toFixed(2) : getTotalPrice().toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
@@ -325,6 +456,65 @@ export default function Step3ContactInfo() {
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-xs text-gray-500 mt-1">Enter with country code (e.g., +44) or starting with 0</p>
+        </div>
+
+        {/* Promo Code Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="font-semibold mb-3 text-blue-900">Have a Promo Code?</h3>
+          
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={promoInput}
+              onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleApplyPromoCode();
+                }
+              }}
+              placeholder="Enter promo code"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={handleApplyPromoCode}
+              disabled={validatingPromo || !promoInput.trim()}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {validatingPromo ? 'Checking...' : 'Apply'}
+            </button>
+          </div>
+
+          {promoError && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">✗ {promoError}</p>
+            </div>
+          )}
+
+          {promoSuccess && (
+            <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-700">✓ {promoSuccess}</p>
+            </div>
+          )}
+
+          {promoCodes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-blue-900">Applied Promo Codes:</p>
+              {promoCodes.map((code) => (
+                <div key={code} className="flex items-center justify-between bg-white p-3 rounded-lg border border-blue-200">
+                  <span className="font-mono text-sm font-medium text-blue-700">{code}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePromoCode(code)}
+                    className="text-red-600 hover:text-red-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -393,6 +583,13 @@ export default function Step3ContactInfo() {
 
         <div className="bg-gray-50 rounded-lg p-6">
           <h3 className="font-semibold mb-4">Order Summary</h3>
+          {promoCodes.length > 0 && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 font-medium">
+                ✓ Promo codes applied: {promoCodes.join(', ')}
+              </p>
+            </div>
+          )}
           <div className="space-y-2 text-sm mb-4">
             {selectedItems.map(({ item, quantity }) => {
               const price = parseFloat(item.price?.toString() || '0');
@@ -418,19 +615,25 @@ export default function Step3ContactInfo() {
             <div className="space-y-2 text-sm border-t pt-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal:</span>
-                <span>${pricing.subtotal.toFixed(2)}</span>
+                <span>£{pricing.subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Service Charge:</span>
-                <span>${pricing.serviceCharge.toFixed(2)}</span>
+                <span>£{pricing.serviceCharge.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Delivery Fee:</span>
-                <span>${pricing.deliveryFee.toFixed(2)}</span>
+                <span>£{pricing.deliveryFee.toFixed(2)}</span>
               </div>
+              {pricing.promoDiscount && pricing.promoDiscount > 0 && (
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span>Promo Discount:</span>
+                  <span>-£{pricing.promoDiscount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between pt-2 border-t font-bold text-base">
                 <span>Total:</span>
-                <span>${pricing.total.toFixed(2)}</span>
+                <span>£{pricing.total.toFixed(2)}</span>
               </div>
             </div>
           )}

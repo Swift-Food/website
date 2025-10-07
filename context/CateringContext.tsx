@@ -10,14 +10,18 @@ interface CateringContextType {
   eventDetails: EventDetails | null;
   selectedItems: SelectedMenuItem[];
   contactInfo: ContactInfo | null;
+  promoCodes: string[] | null,
   setCurrentStep: (step: number) => void;
   setEventDetails: (details: EventDetails) => void;
   addMenuItem: (item: SelectedMenuItem) => void;
+  setPromoCodes: (code : string[]) => void;
   removeMenuItem: (itemId: string) => void;
   updateItemQuantity: (itemId: string, quantity: number) => void;
   setContactInfo: (info: ContactInfo) => void;
   getTotalPrice: () => number;
   resetOrder: () => void;
+  
+
 }
 
 const CateringContext = createContext<CateringContextType | undefined>(undefined);
@@ -27,6 +31,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [selectedItems, setSelectedItems] = useState<SelectedMenuItem[]>([]);
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
+  const [promoCodes, setPromoCodes] = useState<string[]>([]);
 
   const addMenuItem = (newItem: SelectedMenuItem) => {
     // Ensure quantity is a multiple of 10
@@ -83,6 +88,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         eventDetails,
         selectedItems,
         contactInfo,
+        promoCodes,
         setCurrentStep,
         setEventDetails,
         addMenuItem,
@@ -91,6 +97,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         setContactInfo,
         getTotalPrice,
         resetOrder,
+        setPromoCodes,
       }}
     >
       {children}
