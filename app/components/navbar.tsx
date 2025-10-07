@@ -34,15 +34,15 @@ export default function Navbar() {
       <div className="hidden sm:block w-full max-w-xs">
         <SearchBar />
       </div>
-      <Link href={"/"}>
-        <div className="flex items-center gap-4 pointer h-full">
+      <Link href={"/"} className="cursor-pointer">
+        <div className="flex items-center gap-4 cursor-pointer h-full">
           {/* <Image
             src="/logo.png"
             width={40}
             height={40}
             alt="swift foods logo"
           /> */}
-          <label className="font-bold text-primary pointer text-2xl">
+          <label className="font-bold text-primary text-2xl cursor-pointer">
             SWIFT FOOD
           </label>
         </div>
