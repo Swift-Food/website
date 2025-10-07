@@ -34,8 +34,8 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const [promoCodes, setPromoCodes] = useState<string[]>([]);
 
   const addMenuItem = (newItem: SelectedMenuItem) => {
-    // Ensure quantity is a multiple of 10
-    const validQuantity = Math.max(10, Math.round(newItem.quantity / 10) * 10);
+    // Store the exact quantity (multiples of 7)
+    const validQuantity = Math.max(7, newItem.quantity);
     
     setSelectedItems((prev) => {
       const existingIndex = prev.findIndex((i) => i.item.id === newItem.item.id);
@@ -47,6 +47,8 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       return [...prev, { ...newItem, quantity: validQuantity }];
     });
   };
+  
+ 
 
   const removeMenuItem = (itemId: string) => {
     setSelectedItems((prev) => prev.filter((i) => i.item.id !== itemId));
@@ -57,11 +59,10 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       removeMenuItem(itemId);
       return;
     }
-
-    const validQuantity = Math.max(10, Math.round(quantity / 10) * 10);
     
+    // Store the exact quantity (no rounding to 10)
     setSelectedItems((prev) =>
-      prev.map((i) => (i.item.id === itemId ? { ...i, quantity: validQuantity } : i))
+      prev.map((i) => (i.item.id === itemId ? { ...i, quantity: quantity } : i))
     );
   };
 

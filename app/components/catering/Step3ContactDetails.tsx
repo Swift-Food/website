@@ -8,6 +8,8 @@ import { cateringService } from '@/services/cateringServices';
 import { CateringPricingResult, ContactInfo } from '@/types/catering.types';
 
 export default function Step3ContactInfo() {
+  const BACKEND_QUANTITY_UNIT = 7;
+  const DISPLAY_FEEDS_PER_UNIT = 10;
   const { 
     contactInfo, 
     setContactInfo, 
@@ -354,7 +356,7 @@ export default function Step3ContactInfo() {
                 const price = parseFloat(item.price?.toString() || '0');
                 const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                 const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                const subtotal = itemPrice * (quantity / 2);
+                const subtotal = itemPrice * quantity;
                 const portionSize = (quantity / 10) * 10;
 
                 return (
@@ -709,9 +711,9 @@ export default function Step3ContactInfo() {
                   const price = parseFloat(item.price?.toString() || '0');
                   const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                   const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                  const subtotal = itemPrice * (quantity / 2);
+                  const subtotal = itemPrice * quantity;
      
-
+                  const displayFeeds = (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
                   return (
                     <div key={item.id} className="flex items-center gap-3">
                       {item.image && (
@@ -734,7 +736,8 @@ export default function Step3ContactInfo() {
                           >
                             −
                           </button> */}
-                          <span className="text-xs text-base-content/70">feeds upto {quantity} people</span>
+                          
+                          <span className="text-xs text-base-content/70">feeds upto {displayFeeds} people</span>
                           {/* <button
                             type="button"
                             className="w-6 h-6 bg-base-100 border border-base-300 rounded flex items-center justify-center hover:bg-base-200 text-sm"
