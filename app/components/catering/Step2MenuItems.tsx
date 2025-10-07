@@ -489,7 +489,7 @@ export default function Step2MenuItems() {
                       const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                       const subtotal = itemPrice * quantity;
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-                      const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+               
 
                       return (
                         <div key={item.id} className="flex gap-3 pb-4 border-b border-base-300">
