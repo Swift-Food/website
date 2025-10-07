@@ -5,7 +5,7 @@ import { useCatering } from '@/context/CateringContext';
 // Constants
 const FEEDS_PER_UNIT = 10;
 const BASE_UNIT_QUANTITY = 10;
-const PRICE_DISPLAY_PORTIONS = 5;
+const PRICE_DISPLAY_PORTIONS = 7;
 
 interface Restaurant {
   id: string;
