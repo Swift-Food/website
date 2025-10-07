@@ -309,6 +309,7 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
+   
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
         <div className="max-w-2xl mx-auto text-center">
@@ -358,6 +359,7 @@ export default function Step3ContactInfo() {
                 const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                 const subtotal = itemPrice * quantity;
                 const portionSize = (quantity / 10) * 10;
+                const displayFeeds = (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
 
                 return (
                   <div key={item.id} className="flex items-center gap-3 p-3 bg-base-100 rounded-xl">
@@ -366,7 +368,7 @@ export default function Step3ContactInfo() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base-content truncate">{item.name}</p>
-                      <p className="text-sm text-base-content/60">Feeds {portionSize} people</p>
+                      <p className="text-sm text-base-content/60">Feeds {displayFeeds} people</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-primary">£{subtotal.toFixed(2)}</p>
