@@ -344,7 +344,7 @@ export default function Step3ContactInfo() {
 
             <h4 className="font-bold mb-4 text-base-content">Your Catering List</h4>
             
-            {promoCodes.length > 0 && (
+            {promoCodes.length > 0  && (
               <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-xl">
                 <p className="text-sm text-success font-medium">
                   ✓ Promo codes applied: {promoCodes.join(', ')}
@@ -358,7 +358,7 @@ export default function Step3ContactInfo() {
                 const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                 const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                 const subtotal = itemPrice * quantity;
-                const portionSize = (quantity / 10) * 10;
+            
                 const displayFeeds = (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
 
                 return (
