@@ -126,6 +126,22 @@ export default function Step3ContactInfo() {
         promoCodes
       );
       
+      // ADD THESE LOGS
+      console.log('=== PRICING RESULT ===');
+      console.log('Full pricing result:', pricingResult);
+      console.log('Promo discount value:', pricingResult.promoDiscount);
+      console.log('Promo discount type:', typeof pricingResult.promoDiscount);
+      console.log('Promo codes:', promoCodes);
+      console.log('=====================');
+      
+      if (!pricingResult.isValid) {
+        alert(pricingResult.error || 'Unable to calculate pricing');
+        setPricing(null);
+        return;
+      }
+      
+      setPricing(pricingResult);
+      
       if (!pricingResult.isValid) {
         alert(pricingResult.error || 'Unable to calculate pricing');
         setPricing(null);
@@ -133,6 +149,7 @@ export default function Step3ContactInfo() {
       }
   
       setPricing(pricingResult);
+
     } catch (error) {
       console.error('Error calculating pricing:', error);
       alert('Failed to calculate pricing. Please try again.');
@@ -392,10 +409,13 @@ export default function Step3ContactInfo() {
                   <span>Estimated Delivery Cost</span>
                   <span>£{pricing.deliveryFee.toFixed(2)}</span>
                 </div>
-                {pricing.promoDiscount && pricing.promoDiscount > 0 && (
+
+
+                
+                {(pricing.promoDiscount ?? 0) > 0 && (
                   <div className="flex justify-between text-success font-medium">
                     <span>Promo Discount</span>
-                    <span>-£{pricing.promoDiscount.toFixed(2)}</span>
+                    <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-xl font-bold text-base-content pt-2 border-t border-base-300">
@@ -780,19 +800,19 @@ export default function Step3ContactInfo() {
                     <span>Estimated Delivery Cost</span>
                     <span>£{pricing.deliveryFee.toFixed(2)}</span>
                   </div>
-                  {pricing.promoDiscount && pricing.promoDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-success font-medium">
-                      <span>Promo Discount</span>
-                      <span>-£{pricing.promoDiscount.toFixed(2)}</span>
-                    </div>
-                  )}
+                  {(pricing.promoDiscount ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-success font-medium">
+                    <span>Promo Discount</span>
+                    <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
+                  </div>
+)}
                   <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
                     <span>Total</span>
                     <div className="text-right">
                       <p className="">£{pricing.total.toFixed(2)}</p>
-                      {pricing.promoDiscount && pricing.promoDiscount > 1 && (
+                      {(pricing.promoDiscount ?? 0) > 0 && (
                         <p className="text-xs line-through text-base-content/50">
-                          £{(pricing.total + pricing.promoDiscount).toFixed(2)}
+                          £{(pricing.total + pricing.promoDiscount!).toFixed(2)}
                         </p>
                       )}
                     </div>
