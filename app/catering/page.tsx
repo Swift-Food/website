@@ -18,8 +18,6 @@ function CateringSteps() {
           <div className="h-2 bg-gray-200 rounded-full">
             <div 
               className="h-full bg-dark-pink rounded-full transition-all duration-500" 
-              // Calculate the width: (currentStep / totalSteps) * 100
-              // I'm using 'currentStep' from the context, which would be 1 here for Step1EventDetails.
               style={{ width: `${(currentStep / 3) * 100}%` }} 
             />
           </div>

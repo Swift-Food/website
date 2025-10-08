@@ -338,7 +338,7 @@ export default function Step3ContactInfo() {
               </div>
               <div>
                 <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
-                <p className="font-semibold text-base-content">{eventDetails?.guestCount}</p>
+                <p className="font-semibold text-base-content">{(eventDetails?.guestCount || 10) - 10} - {(eventDetails?.guestCount || 10) + 10} </p>
               </div>
             </div>
 
@@ -586,7 +586,7 @@ export default function Step3ContactInfo() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">Zipcode*</label>
+                  <label className="block text-sm font-semibold mb-2 text-base-content">Postcode*</label>
                   <input
                     type="text"
                     required
@@ -631,7 +631,7 @@ export default function Step3ContactInfo() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-base-content/70">Guest Count</span>
-                  <span className="font-semibold text-base-content">{eventDetails?.guestCount}</span>
+                  <p className="font-semibold text-base-content">{(eventDetails?.guestCount || 10) - 10} - {(eventDetails?.guestCount || 10) + 10} </p>
                 </div>
               </div>
 

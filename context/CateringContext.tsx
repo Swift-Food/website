@@ -1,8 +1,6 @@
-// context/CateringContext.tsx
-
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { EventDetails, SelectedMenuItem, ContactInfo } from '@/types/catering.types';
 
 interface CateringContextType {
@@ -10,48 +8,105 @@ interface CateringContextType {
   eventDetails: EventDetails | null;
   selectedItems: SelectedMenuItem[];
   contactInfo: ContactInfo | null;
-  promoCodes: string[] | null,
+  promoCodes: string[] | null;
   setCurrentStep: (step: number) => void;
   setEventDetails: (details: EventDetails) => void;
   addMenuItem: (item: SelectedMenuItem) => void;
-  setPromoCodes: (code : string[]) => void;
+  setPromoCodes: (code: string[]) => void;
   removeMenuItem: (itemId: string) => void;
   updateItemQuantity: (itemId: string, quantity: number) => void;
   setContactInfo: (info: ContactInfo) => void;
   getTotalPrice: () => number;
   resetOrder: () => void;
-  
-
 }
 
 const CateringContext = createContext<CateringContextType | undefined>(undefined);
 
+// LocalStorage keys
+const STORAGE_KEYS = {
+  CURRENT_STEP: 'catering_current_step',
+  EVENT_DETAILS: 'catering_event_details',
+  SELECTED_ITEMS: 'catering_selected_items',
+  CONTACT_INFO: 'catering_contact_info',
+  PROMO_CODES: 'catering_promo_codes',
+};
+
 export function CateringProvider({ children }: { children: ReactNode }) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
-  const [selectedItems, setSelectedItems] = useState<SelectedMenuItem[]>([]);
-  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
-  const [promoCodes, setPromoCodes] = useState<string[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [currentStep, setCurrentStepState] = useState(1);
+  const [eventDetails, setEventDetailsState] = useState<EventDetails | null>(null);
+  const [selectedItems, setSelectedItemsState] = useState<SelectedMenuItem[]>([]);
+  const [contactInfo, setContactInfoState] = useState<ContactInfo | null>(null);
+  const [promoCodes, setPromoCodesState] = useState<string[]>([]);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedStep = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
+      const savedEventDetails = localStorage.getItem(STORAGE_KEYS.EVENT_DETAILS);
+      const savedItems = localStorage.getItem(STORAGE_KEYS.SELECTED_ITEMS);
+      const savedContactInfo = localStorage.getItem(STORAGE_KEYS.CONTACT_INFO);
+      const savedPromoCodes = localStorage.getItem(STORAGE_KEYS.PROMO_CODES);
+
+      if (savedStep) setCurrentStepState(JSON.parse(savedStep));
+      if (savedEventDetails) setEventDetailsState(JSON.parse(savedEventDetails));
+      if (savedItems) setSelectedItemsState(JSON.parse(savedItems));
+      if (savedContactInfo) setContactInfoState(JSON.parse(savedContactInfo));
+      if (savedPromoCodes) setPromoCodesState(JSON.parse(savedPromoCodes));
+    } catch (error) {
+      console.error('Error loading catering data from localStorage:', error);
+    } finally {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  // Wrapper functions that also save to localStorage
+  const setCurrentStep = (step: number) => {
+    setCurrentStepState(step);
+    localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, JSON.stringify(step));
+  };
+
+  const setEventDetails = (details: EventDetails) => {
+    setEventDetailsState(details);
+    localStorage.setItem(STORAGE_KEYS.EVENT_DETAILS, JSON.stringify(details));
+  };
+
+  const setContactInfo = (info: ContactInfo) => {
+    setContactInfoState(info);
+    localStorage.setItem(STORAGE_KEYS.CONTACT_INFO, JSON.stringify(info));
+  };
+
+  const setPromoCodes = (codes: string[]) => {
+    setPromoCodesState(codes);
+    localStorage.setItem(STORAGE_KEYS.PROMO_CODES, JSON.stringify(codes));
+  };
 
   const addMenuItem = (newItem: SelectedMenuItem) => {
-    // Store the exact quantity (multiples of 7)
     const validQuantity = Math.max(7, newItem.quantity);
     
-    setSelectedItems((prev) => {
+    setSelectedItemsState((prev) => {
       const existingIndex = prev.findIndex((i) => i.item.id === newItem.item.id);
+      let updated;
+      
       if (existingIndex >= 0) {
-        const updated = [...prev];
+        updated = [...prev];
         updated[existingIndex].quantity += validQuantity;
-        return updated;
+      } else {
+        updated = [...prev, { ...newItem, quantity: validQuantity }];
       }
-      return [...prev, { ...newItem, quantity: validQuantity }];
+      
+      // Save to localStorage
+      localStorage.setItem(STORAGE_KEYS.SELECTED_ITEMS, JSON.stringify(updated));
+      return updated;
     });
   };
-  
- 
 
   const removeMenuItem = (itemId: string) => {
-    setSelectedItems((prev) => prev.filter((i) => i.item.id !== itemId));
+    setSelectedItemsState((prev) => {
+      const updated = prev.filter((i) => i.item.id !== itemId);
+      localStorage.setItem(STORAGE_KEYS.SELECTED_ITEMS, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const updateItemQuantity = (itemId: string, quantity: number) => {
@@ -60,10 +115,11 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    // Store the exact quantity (no rounding to 10)
-    setSelectedItems((prev) =>
-      prev.map((i) => (i.item.id === itemId ? { ...i, quantity: quantity } : i))
-    );
+    setSelectedItemsState((prev) => {
+      const updated = prev.map((i) => (i.item.id === itemId ? { ...i, quantity } : i));
+      localStorage.setItem(STORAGE_KEYS.SELECTED_ITEMS, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const getTotalPrice = () => {
@@ -76,11 +132,24 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   };
 
   const resetOrder = () => {
-    setCurrentStep(1);
-    setEventDetails(null);
-    setSelectedItems([]);
-    setContactInfo(null);
+    setCurrentStepState(1);
+    setEventDetailsState(null);
+    setSelectedItemsState([]);
+    setContactInfoState(null);
+    setPromoCodesState([]);
+    
+    // Clear localStorage
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_STEP);
+    localStorage.removeItem(STORAGE_KEYS.EVENT_DETAILS);
+    localStorage.removeItem(STORAGE_KEYS.SELECTED_ITEMS);
+    localStorage.removeItem(STORAGE_KEYS.CONTACT_INFO);
+    localStorage.removeItem(STORAGE_KEYS.PROMO_CODES);
   };
+
+  // Prevent hydration mismatch by not rendering until client-side data is loaded
+  if (!isHydrated) {
+    return null; // or return a loading spinner
+  }
 
   return (
     <CateringContext.Provider
