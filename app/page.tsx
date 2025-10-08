@@ -106,7 +106,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
           <div className="flex-1 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
             <h3
-              className="text-primary font-bold text-xl text-center mb-4"
+              className="text-primary font-extrabold text-2xl text-center mb-4"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               MUTIPLE ORDERS,
@@ -114,7 +114,7 @@ export default function Home() {
               ONE DELIVERY
             </h3>
             <p
-              className="text-primary text-center font-mono"
+              className="text-primary text-center font-mono font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               EVERYTHING YOU
@@ -126,7 +126,7 @@ export default function Home() {
           </div>
           <div className="flex-1 bg-accent rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
             <h3
-              className="text-primary font-bold text-xl text-center mb-4"
+              className="text-primary font-extrabold text-2xl text-center mb-4"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               FASTER
@@ -134,7 +134,7 @@ export default function Home() {
               DELIVERY
             </h3>
             <p
-              className="text-primary text-center font-mono"
+              className="text-primary text-center font-mono font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               EVERYTHING YOU
@@ -146,7 +146,7 @@ export default function Home() {
           </div>
           <div className="flex-1 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
             <h3
-              className="text-primary font-bold text-xl text-center mb-4"
+              className="text-primary font-extrabold text-2xl text-center mb-4"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               SUPPORT LOCAL
@@ -154,7 +154,7 @@ export default function Home() {
               FOOD MARKETS
             </h3>
             <p
-              className="text-primary text-center font-mono"
+              className="text-primary text-center font-mono font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               EVERYTHING YOU
