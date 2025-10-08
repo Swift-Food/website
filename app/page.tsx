@@ -24,7 +24,7 @@ export default function Home() {
             <br />
             FOR EASY DELIVERY!
           </p>
-          <button className="btn bg-primary text-white rounded-full px-8 py-3 font-semibold text-lg shadow-md hover:bg-pink-500 transition">
+          <button className="btn bg-primary text-white rounded-full px-8 py-3 font-semibold text-lg  hover:bg-pink-500 transition">
             ORDER NOW
           </button>
         </div>

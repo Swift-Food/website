@@ -9,34 +9,43 @@ export default function HomeHeroSection() {
   };
   const imageSection = (
     <div
-      className={`flex-1 relative rounded-xl max-lg:w-full overflow-hidden max-lg:flex-none max-lg:max-w-md max-lg:mx-auto`}
-    >
-      <div className="relative w-full aspect-[4/3] max-sm:aspect-[16/9] max-lg:max-h-64 max-sm:max-h-48">
-        <Image
-          src="/blurred-market.png"
-          alt="Market"
-          fill
-          className="object-cover"
-        />
-        <Image
-          src="/logo.png"
-          alt="Swift Food logo"
-          width={80}
-          height={80}
-          className="absolute bottom-0 right-0 rounded-full"
-        />
+    className="
+      relative rounded-xl overflow-hidden
+      lg:basis-[65%] lg:flex-none
+      max-lg:w-full max-lg:flex-none max-lg:max-w-md max-lg:mx-auto
+    "
+  >
+     <div className="relative w-full aspect-[4/3]">
+  <Image
+    src="/blurred-market.png"
+    alt="Market"
+    fill
+    className="object-cover"
+  />
+       <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden">
+   <Image
+    src="/logo.png"
+   alt="Swift Food logo"
+    fill
+    className="object-cover"
+    priority
+  />
+</div>
       </div>
     </div>
   );
 
   const textSection = (
-    <div
-      className={`flex-1 flex flex-col justify-center gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:text-center`}
-    >
-      <h2 className="text-3xl font-bold text-primary max-lg:text-2xl max-sm:text-xl">
+   <div
+  className="
+    flex flex-col justify-center gap-8 md:gap-12 p-6 max-lg:p-4 max-sm:p-3 max-lg:text-center
+    lg:basis-[35%] lg:flex-none
+  "
+  >
+      <h2 className="text-6xl font-bold text-primary max-lg:text-4xl max-sm:text-2xl">
         REAL, LOCAL & FAST
       </h2>
-      <p className="text-gray-700 leading-relaxed text-m max-lg:text-base max-sm:text-sm">
+      <p className="text-primary leading-relaxed text-m max-lg:text-base max-sm:text-sm">
         WE ALSO CATER EVENTS OF ANY SIZE - BROWSE THE MENU AND ORDER ONLINE FOR
         EASY DELIVERY!
       </p>
@@ -52,8 +61,9 @@ export default function HomeHeroSection() {
   );
   return (
     <section
-      className={`flex w-full gap-6 max-lg:flex-col max-lg:gap-4 max-sm:gap-3 justify-between items-center max-sm:gap-4 bg-secondary py-4`}
-    >
+  className="flex w-full gap-6 max-lg:flex-col max-lg:gap-4 max-sm:gap-3 justify-between items-center bg-secondary py-4 px-4 sm:px-6 lg:px-8 lg:!pr-16"
+>
+
       <>
         {textSection}
         {imageSection}
