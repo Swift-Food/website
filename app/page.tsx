@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 import InfoContainer from "./components/containers/InfoContainer";
 import Link from "next/link";
@@ -51,7 +50,7 @@ export default function Home() {
         </div>
       </div> */}
       {/* Hero Section - Responsive like store.jpg */}
-      <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between my-8">
+      {/* <section className="flex w-full h-full gap-4 max-lg:flex-col justify-between my-8">
         <section className="flex-6 h-full rounded-xl overflow-hidden">
           <div className="relative w-full aspect-[192/139] max-sm:aspect-[16/9]">
             <Image src="/store.jpg" alt="store" fill className="object-cover" />
@@ -65,53 +64,6 @@ export default function Home() {
               className="w-full max-sm:w-[80%] flex flex-col items-center"
             >
               <InfoContainer heading="Markets" className="relative max-w-md">
-                {/* <div className="max-sm:block max-lg:flex max-lg:justify-evenly max-lg:mt-6 max-sm:mt-0"> */}
-                {/* <div className="relative w-40 h-40 rounded-full bg-primary right-4 flex items-end justify-center">
-                    <div className="w-36 h-36 flex flex-col gap-2 items-center justify-end">
-                      <h6 className="text-white text-sm font-semibold text-center leading-tight">
-                        Tottenham <br/>
-                        Court Road <br/>
-                        Market
-                        
-                      </h6>
-                      <Image
-                        src="/sample/dish.png"
-                        alt="sample dish"
-                        width={85}
-                        height={85}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="absolute top-20 right-[-2] w-34 h-34 rounded-full bg-[#ffcd5e] flex justify-center items-end max-sm:absolute max-lg:static">
-                    <div className="w-32 h-32 flex flex-col gap-2 items-center justify-end">
-                      <h6 className="text-sm text-primary font-semibold text-center">
-                      More Markets
-                      </h6>
-                      <Image
-                        src="/sample/dish.png"
-                        alt="sample dish"
-                        width={80}
-                        height={80}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="w-full flex justify-center items-center max-sm:w-full max-lg:w-fit">
-                    <div className="w-40 h-40 rounded-full bg-secondary flex justify-center items-end">
-                      <div className="w-36 h-36 flex flex-col gap-2 items-center">
-                        <h6 className="text-primary text-sm font-semibold text-center">
-                          Goodge <br/> Street Market
-                        </h6>
-                        <Image
-                          src="/sample/dish.png"
-                          alt="sample dish"
-                          width={95}
-                          height={95}
-                        />
-                      </div>
-                    </div>
-                  </div> */}
                 <section className="relative w-full aspect-[828/647] my-2">
                   <Image src={"/where-operate.jpg"} alt="catering" fill />
                 </section>
@@ -142,8 +94,78 @@ export default function Home() {
             </Link>
           </aside>
         </section>
-      </section>
+      </section> */}
 
+      <section className="w-full bg-primary py-10 px-4">
+        <h2
+          className="text-center text-white text-4xl font-bold tracking-wide mb-10"
+          style={{ fontFamily: "IBM Plex Mono, monospace" }}
+        >
+          WHAT MAKES US DIFFERENT?
+        </h2>
+        <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
+          <div className="flex-1 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <h3
+              className="text-primary font-bold text-xl text-center mb-4"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              MUTIPLE ORDERS,
+              <br />
+              ONE DELIVERY
+            </h3>
+            <p
+              className="text-primary text-center font-mono"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              EVERYTHING YOU
+              <br />
+              CRAVE, DELIVERED TOGETHER
+              <br />
+              IN ONE GO.
+            </p>
+          </div>
+          <div className="flex-1 bg-accent rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <h3
+              className="text-primary font-bold text-xl text-center mb-4"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              FASTER
+              <br />
+              DELIVERY
+            </h3>
+            <p
+              className="text-primary text-center font-mono"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              EVERYTHING YOU
+              <br />
+              CRAVE, DELIVERED TOGETHER
+              <br />
+              IN ONE GO.
+            </p>
+          </div>
+          <div className="flex-1 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <h3
+              className="text-primary font-bold text-xl text-center mb-4"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              SUPPORT LOCAL
+              <br />
+              FOOD MARKETS
+            </h3>
+            <p
+              className="text-primary text-center font-mono"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              EVERYTHING YOU
+              <br />
+              CRAVE, DELIVERED TOGETHER
+              <br />
+              IN ONE GO.
+            </p>
+          </div>
+        </div>
+      </section>
       {/* Brand Banner - Responsive */}
       <section className="w-full bg-primary py-6 px-4 my-8 rounded-xl max-sm:py-4 max-sm:px-3">
         <div className="flex items-center gap-6 max-w-6xl mx-auto max-lg:flex-col max-lg:text-center max-lg:gap-4 max-sm:gap-3">
