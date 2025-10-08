@@ -1,17 +1,21 @@
-
 import React from "react";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
 import SearchBar from "./searchBar";
+import styles from "./navbar.module.css";
 
 function NavbarAction() {
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
       <Link href={"/catering"}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">CATERING</button>
+        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">
+          CATERING
+        </button>
       </Link>
       <Link href={"/#aboutus"}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">ABOUT</button>
+        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">
+          ABOUT
+        </button>
       </Link>
       <Link href={"/contact"}>
         <button className="btn btn-md btn-ghost rounded-full text-primary hover:bg-primary border-0 hover:text-white  ">
@@ -42,7 +46,9 @@ export default function Navbar() {
             height={40}
             alt="swift foods logo"
           /> */}
-          <label className="font-bold text-primary text-5xl cursor-pointer">
+          <label
+            className={`font-bold text-primary text-5xl cursor-pointer ${styles.montFont}`}
+          >
             SWIFT FOOD
           </label>
         </div>
