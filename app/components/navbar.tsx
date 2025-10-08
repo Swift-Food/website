@@ -8,14 +8,14 @@ function NavbarAction() {
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
       <Link href={"/catering"}>
-        <button className="btn btn-md btn-ghost rounded-full">Catering</button>
+        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">CATERING</button>
       </Link>
       <Link href={"/#aboutus"}>
-        <button className="btn btn-md btn-ghost rounded-full">About Us</button>
+        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">ABOUT</button>
       </Link>
       <Link href={"/contact"}>
-        <button className="btn btn-md btn-ghost rounded-full">
-          Contact Us
+        <button className="btn btn-md btn-ghost rounded-full text-primary hover:bg-primary border-0 hover:text-white  ">
+          CONTACT US
         </button>
       </Link>
 
@@ -42,7 +42,7 @@ export default function Navbar() {
             height={40}
             alt="swift foods logo"
           /> */}
-          <label className="font-bold text-primary text-2xl cursor-pointer">
+          <label className="font-bold text-primary text-5xl cursor-pointer">
             SWIFT FOOD
           </label>
         </div>
