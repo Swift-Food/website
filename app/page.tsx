@@ -96,6 +96,76 @@ export default function Home() {
         </section>
       </section> */}
 
+      <section className="w-full bg-primary py-10 px-4">
+        <h2
+          className="text-center text-white text-4xl font-bold tracking-wide mb-10"
+          style={{ fontFamily: "IBM Plex Mono, monospace" }}
+        >
+          WHAT MAKES US DIFFERENT?
+        </h2>
+        <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
+          <div className="flex-1 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <h3
+              className="text-primary font-bold text-xl text-center mb-4"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              MUTIPLE ORDERS,
+              <br />
+              ONE DELIVERY
+            </h3>
+            <p
+              className="text-primary text-center font-mono"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              EVERYTHING YOU
+              <br />
+              CRAVE, DELIVERED TOGETHER
+              <br />
+              IN ONE GO.
+            </p>
+          </div>
+          <div className="flex-1 bg-accent rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <h3
+              className="text-primary font-bold text-xl text-center mb-4"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              FASTER
+              <br />
+              DELIVERY
+            </h3>
+            <p
+              className="text-primary text-center font-mono"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              EVERYTHING YOU
+              <br />
+              CRAVE, DELIVERED TOGETHER
+              <br />
+              IN ONE GO.
+            </p>
+          </div>
+          <div className="flex-1 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <h3
+              className="text-primary font-bold text-xl text-center mb-4"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              SUPPORT LOCAL
+              <br />
+              FOOD MARKETS
+            </h3>
+            <p
+              className="text-primary text-center font-mono"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              EVERYTHING YOU
+              <br />
+              CRAVE, DELIVERED TOGETHER
+              <br />
+              IN ONE GO.
+            </p>
+          </div>
+        </div>
+      </section>
       {/* Brand Banner - Responsive */}
       <section className="w-full bg-primary py-6 px-4 my-8 rounded-xl max-sm:py-4 max-sm:px-3">
         <div className="flex items-center gap-6 max-w-6xl mx-auto max-lg:flex-col max-lg:text-center max-lg:gap-4 max-sm:gap-3">
