@@ -6,9 +6,10 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useCatering } from '@/context/CateringContext';
 import { cateringService } from '@/services/cateringServices';
 import { CateringPricingResult, ContactInfo } from '@/types/catering.types';
-import Image from 'next/image';
 
 export default function Step3ContactInfo() {
+  const BACKEND_QUANTITY_UNIT = 7;
+  const DISPLAY_FEEDS_PER_UNIT = 10;
   const { 
     contactInfo, 
     setContactInfo, 
@@ -125,6 +126,22 @@ export default function Step3ContactInfo() {
         promoCodes
       );
       
+      // ADD THESE LOGS
+      console.log('=== PRICING RESULT ===');
+      console.log('Full pricing result:', pricingResult);
+      console.log('Promo discount value:', pricingResult.promoDiscount);
+      console.log('Promo discount type:', typeof pricingResult.promoDiscount);
+      console.log('Promo codes:', promoCodes);
+      console.log('=====================');
+      
+      if (!pricingResult.isValid) {
+        alert(pricingResult.error || 'Unable to calculate pricing');
+        setPricing(null);
+        return;
+      }
+      
+      setPricing(pricingResult);
+      
       if (!pricingResult.isValid) {
         alert(pricingResult.error || 'Unable to calculate pricing');
         setPricing(null);
@@ -132,6 +149,7 @@ export default function Step3ContactInfo() {
       }
   
       setPricing(pricingResult);
+
     } catch (error) {
       console.error('Error calculating pricing:', error);
       alert('Failed to calculate pricing. Please try again.');
@@ -308,6 +326,7 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
+   
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
         <div className="max-w-2xl mx-auto text-center">
@@ -336,13 +355,13 @@ export default function Step3ContactInfo() {
               </div>
               <div>
                 <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
-                <p className="font-semibold text-base-content">{eventDetails?.guestCount}</p>
+                <p className="font-semibold text-base-content">{(eventDetails?.guestCount || 10) - 10} - {(eventDetails?.guestCount || 10) + 10} </p>
               </div>
             </div>
 
             <h4 className="font-bold mb-4 text-base-content">Your Catering List</h4>
             
-            {promoCodes.length > 0 && (
+            {promoCodes.length > 0  && (
               <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-xl">
                 <p className="text-sm text-success font-medium">
                   ✓ Promo codes applied: {promoCodes.join(', ')}
@@ -355,17 +374,18 @@ export default function Step3ContactInfo() {
                 const price = parseFloat(item.price?.toString() || '0');
                 const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                 const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                const subtotal = itemPrice * (quantity / 2);
-                const portionSize = (quantity / 10) * 10;
+                const subtotal = itemPrice * quantity;
+            
+                const displayFeeds = (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
 
                 return (
                   <div key={item.id} className="flex items-center gap-3 p-3 bg-base-100 rounded-xl">
                     {item.image && (
-                      <Image src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base-content truncate">{item.name}</p>
-                      <p className="text-sm text-base-content/60">Feeds {portionSize} people</p>
+                      <p className="text-sm text-base-content/60">Feeds {displayFeeds} people</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-primary">£{subtotal.toFixed(2)}</p>
@@ -389,10 +409,13 @@ export default function Step3ContactInfo() {
                   <span>Estimated Delivery Cost</span>
                   <span>£{pricing.deliveryFee.toFixed(2)}</span>
                 </div>
-                {pricing.promoDiscount && pricing.promoDiscount > 0 && (
+
+
+                
+                {(pricing.promoDiscount ?? 0) > 0 && (
                   <div className="flex justify-between text-success font-medium">
                     <span>Promo Discount</span>
-                    <span>-£{pricing.promoDiscount.toFixed(2)}</span>
+                    <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-xl font-bold text-base-content pt-2 border-t border-base-300">
@@ -583,7 +606,7 @@ export default function Step3ContactInfo() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">Zipcode*</label>
+                  <label className="block text-sm font-semibold mb-2 text-base-content">Postcode*</label>
                   <input
                     type="text"
                     required
@@ -628,7 +651,7 @@ export default function Step3ContactInfo() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-base-content/70">Guest Count</span>
-                  <span className="font-semibold text-base-content">{eventDetails?.guestCount}</span>
+                  <p className="font-semibold text-base-content">{(eventDetails?.guestCount || 10) - 10} - {(eventDetails?.guestCount || 10) + 10} </p>
                 </div>
               </div>
 
@@ -710,13 +733,13 @@ export default function Step3ContactInfo() {
                   const price = parseFloat(item.price?.toString() || '0');
                   const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                   const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                  const subtotal = itemPrice * (quantity / 2);
+                  const subtotal = itemPrice * quantity;
      
-
+                  const displayFeeds = (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
                   return (
                     <div key={item.id} className="flex items-center gap-3">
                       {item.image && (
-                        <Image src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
+                        <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-base-content truncate">{item.name}</p>
@@ -735,7 +758,8 @@ export default function Step3ContactInfo() {
                           >
                             −
                           </button> */}
-                          <span className="text-xs text-base-content/70">feeds upto {quantity} people</span>
+                          
+                          <span className="text-xs text-base-content/70">feeds upto {displayFeeds} people</span>
                           {/* <button
                             type="button"
                             className="w-6 h-6 bg-base-100 border border-base-300 rounded flex items-center justify-center hover:bg-base-200 text-sm"
@@ -776,19 +800,19 @@ export default function Step3ContactInfo() {
                     <span>Estimated Delivery Cost</span>
                     <span>£{pricing.deliveryFee.toFixed(2)}</span>
                   </div>
-                  {pricing.promoDiscount && pricing.promoDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-success font-medium">
-                      <span>Promo Discount</span>
-                      <span>-£{pricing.promoDiscount.toFixed(2)}</span>
-                    </div>
-                  )}
+                  {(pricing.promoDiscount ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-success font-medium">
+                    <span>Promo Discount</span>
+                    <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
+                  </div>
+)}
                   <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
                     <span>Total</span>
                     <div className="text-right">
                       <p className="">£{pricing.total.toFixed(2)}</p>
-                      {pricing.promoDiscount && pricing.promoDiscount > 1 && (
+                      {(pricing.promoDiscount ?? 0) > 0 && (
                         <p className="text-xs line-through text-base-content/50">
-                          £{(pricing.total + pricing.promoDiscount).toFixed(2)}
+                          £{(pricing.total + pricing.promoDiscount!).toFixed(2)}
                         </p>
                       )}
                     </div>

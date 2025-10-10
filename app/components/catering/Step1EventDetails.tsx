@@ -24,8 +24,31 @@ const EVENT_TYPE_OPTIONS = [
   { name: 'Other', value: 'other', imgSrc: '/event-detail-img/other.png' },
 ];
 
+const TIME_SLOT_OPTIONS = [
+  { label: 'Morning (8:00 AM - 10:00 AM)', value: '09:00' },
+  { label: 'Late Morning (10:00 AM - 12:00 PM)', value: '11:00' },
+  { label: 'Lunch (12:00 PM - 2:00 PM)', value: '13:00' },
+  { label: 'Afternoon (2:00 PM - 4:00 PM)', value: '15:00' },
+  { label: 'Early Evening (4:00 PM - 6:00 PM)', value: '17:00' },
+  { label: 'Evening (6:00 PM - 8:00 PM)', value: '19:00' },
+  { label: 'Late Evening (8:00 PM - 10:00 PM)', value: '21:00' },
+];
+
 export default function Step1EventDetails() {
   const { eventDetails, setEventDetails, setCurrentStep } = useCatering();
+
+  // Calculate min and max dates
+  const getMinDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 3);
+    return date.toISOString().split('T')[0];
+  };
+
+  const getMaxDate = () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + 2);
+    return date.toISOString().split('T')[0];
+  };
   
   // REPLACE with:
   const [formData, setFormData] = useState<EventDetails>(
@@ -84,19 +107,26 @@ const handleSubmit = (e: FormEvent) => {
               required
               value={formData.eventDate}
               onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-              min={new Date().toISOString().split('T')[0]}
+              min={getMinDate()}
+              max={getMaxDate()}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Event Time</label>
-            <input
-              type="time"
+            <select
               required
               value={formData.eventTime}
               onChange={(e) => setFormData({ ...formData, eventTime: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            >
+              <option value="">Select a time slot</option>
+              {TIME_SLOT_OPTIONS.map((slot) => (
+                <option key={slot.value} value={slot.value}>
+                  {slot.label}
+                </option>
+              ))}
+            </select>
           </div>
           </div>
         </div>
@@ -169,12 +199,6 @@ const handleSubmit = (e: FormEvent) => {
           </div>
         </div>
         
-        {/* Special Requests (kept from original code, adjust styling if needed) */}
-        {/* I've removed the special requests section to more closely match the image, 
-            which only shows event details, portion size, and type of event. 
-            If you need it, you can uncomment a version of it here. */}
-        
-        {/* Submit Button */}
         <div className="text-center pt-4">
           <button
             type="submit"

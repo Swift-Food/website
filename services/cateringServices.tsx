@@ -27,8 +27,10 @@ class CateringService {
   }
 
   async getMenuItems(){
+    const fullUrl = `${API_BASE_URL}/menu-item`;
+    console.log('🌐 Fetching menu items from:', fullUrl);
     const response = await fetch(`${API_BASE_URL}/menu-item`);
-    
+    console.log('📡 Response status:', response.status);
     if (!response.ok) {
       throw new Error('Failed to search menu items');
     }
