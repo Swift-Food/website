@@ -1,7 +1,7 @@
 import React from "react";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
-import SearchBar from "./searchBar";
+
 import styles from "./navbar.module.css";
 
 function NavbarAction() {
@@ -36,7 +36,7 @@ export default function Navbar() {
   return (
     <nav className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start bg-secondary gap-5">
       <div className="hidden sm:block w-full max-w-xs">
-        <SearchBar />
+        {/* <SearchBar /> */}
       </div>
       <Link href={"/"} className="cursor-pointer">
         <div className="flex items-center gap-4 cursor-pointer h-full">
@@ -71,7 +71,7 @@ export default function Navbar() {
           ></label>
           <div className="h-full bg-white w-[80%]">
             <div className="px-3 mt-4">
-              <SearchBar />
+              {/* <SearchBar /> */}
             </div>
             <NavbarAction />
           </div>
