@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { cateringService } from '@/services/cateringServices';
 import { useCatering } from '@/context/CateringContext';
 
-// Constants
-const BACKEND_QUANTITY_UNIT = 7; // Internal quantity multiplier for backend
-const DISPLAY_FEEDS_PER_UNIT = 10; // What we show to customers
+
 
 interface Restaurant {
   id: string;
@@ -23,6 +21,8 @@ export interface MenuItem {
   isDiscount: boolean;
   image?: string;
   averageRating?: string;
+  cateringQuantityUnit?: number;
+  feedsPerUnit?: number; 
   restaurantId: string;
   restaurant?: {
     id: string;
@@ -82,6 +82,8 @@ export default function Step2MenuItems() {
         image: item.image,
         averageRating: item.averageRating?.toString(),
         restaurantId: item.restaurantId || '',
+        cateringQuantityUnit: item.cateringQuantityUnit || 7, // Add with default
+        feedsPerUnit: item.feedsPerUnit || 10, // Add with default
         restaurant: {
           id: item.restaurantId,
           name: item.restaurant?.restaurant_name || 'Unknown',
@@ -150,8 +152,10 @@ export default function Step2MenuItems() {
   };
 
   const handleAddItem = (item: MenuItem) => {
-    console.log('Adding item with backend quantity:', BACKEND_QUANTITY_UNIT);
-    addMenuItem({ item: item, quantity: BACKEND_QUANTITY_UNIT });
+    
+    const backendQuantity = item.cateringQuantityUnit || 7;
+    console.log('Adding item with backend quantity:', backendQuantity);
+    addMenuItem({ item: item, quantity: backendQuantity });
   };
 
   // Determine which items to display
@@ -276,6 +280,9 @@ export default function Step2MenuItems() {
                   const price = parseFloat(item.price?.toString() || '0');
                   const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                   const displayPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+                  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                  
                   const numUnits = quantity / BACKEND_QUANTITY_UNIT;
                   const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
                   const isExpanded = expandedItemId === item.id;
@@ -330,7 +337,7 @@ export default function Step2MenuItems() {
                                 <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-3">
                                   <button
                                     onClick={() => updateItemQuantity(item.id, Math.max(0, quantity - BACKEND_QUANTITY_UNIT))}
-                                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm md:text-base"
+                                    className="..."
                                   >
                                     −
                                   </button>
@@ -339,7 +346,7 @@ export default function Step2MenuItems() {
                                   </span>
                                   <button
                                     onClick={() => updateItemQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)}
-                                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm md:text-base"
+                                    className="..."
                                   >
                                     +
                                   </button>
@@ -470,14 +477,11 @@ export default function Step2MenuItems() {
                       const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                       const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                       const subtotal = itemPrice * quantity;
-                      const numUnits = quantity / BACKEND_QUANTITY_UNIT; // How many units
+                      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                      
+                      const numUnits = quantity / BACKEND_QUANTITY_UNIT;
                       const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
-                      console.log(`Cart item ${item.name}:`, {
-                        quantity,
-                        calculation: quantity / BACKEND_QUANTITY_UNIT,
-                        numUnits: quantity / BACKEND_QUANTITY_UNIT,
-                        displayQuantity: (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT
-                      });
 
                       return (
                         <div key={item.id} className="flex gap-3 pb-4 border-b border-base-300">
@@ -500,7 +504,7 @@ export default function Step2MenuItems() {
                                 >
                                   −
                                 </button>
-                                <span className="text-sm font-medium text-base-content">{displayQuantity}</span>
+                                <span className="text-sm font-medium text-base-content">Feeds {displayQuantity} people</span>
                                 <button
                                   onClick={() => updateItemQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)}
                                   className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
@@ -524,7 +528,11 @@ export default function Step2MenuItems() {
                   <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
                     <div className="flex justify-between text-sm text-base-content/70">
                       <span>Items ({selectedItems.length})</span>
-                      <span>Feeds up to {selectedItems.reduce((sum, item) => sum + (item.quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT, 0)} people</span>
+                      <span>Feeds up to {selectedItems.reduce((sum, { item, quantity }) => {
+                        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                        return sum + (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                      }, 0)} people</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-base-content">
                       <span>Total:</span>
@@ -576,6 +584,7 @@ export default function Step2MenuItems() {
       </div>
 
       {/* Mobile Cart Modal */}
+      {/* Mobile Cart Modal */}
       {showCartMobile && (
         <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] overflow-y-auto">
@@ -595,8 +604,14 @@ export default function Step2MenuItems() {
                       const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                       const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                       const subtotal = itemPrice * quantity;
+                      
+                      // USE ITEM'S OWN VALUES:
+                      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                      
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-               
+         
+                      const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
 
                       return (
                         <div key={item.id} className="flex gap-3 pb-4 border-b border-base-300">
@@ -619,7 +634,9 @@ export default function Step2MenuItems() {
                                 >
                                   −
                                 </button>
-                                <span className="text-sm font-medium text-base-content">{numUnits}</span>
+                                <span className="text-sm font-medium text-base-content">
+                                  Feeds {displayQuantity} people
+                                </span>
                                 <button
                                   onClick={() => updateItemQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)}
                                   className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
@@ -643,9 +660,11 @@ export default function Step2MenuItems() {
                   <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
                     <div className="flex justify-between text-sm text-base-content/70">
                       <span>Items ({selectedItems.length})</span>
-                      <span>Feeds up to {selectedItems.reduce((sum, item) => 
-                                    sum + (item.quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT, 0
-                                  )} people</span>
+                      <span>Feeds up to {selectedItems.reduce((sum, { item, quantity }) => {
+                        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                        return sum + (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                      }, 0)} people</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-base-content">
                       <span>Total:</span>

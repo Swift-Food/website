@@ -375,7 +375,10 @@ export default function Step3ContactInfo() {
                 const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                 const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                 const subtotal = itemPrice * quantity;
-            
+
+                // USE ITEM'S OWN VALUES:
+                const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                 const displayFeeds = (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
 
                 return (
@@ -734,8 +737,12 @@ export default function Step3ContactInfo() {
                   const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
                   const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
                   const subtotal = itemPrice * quantity;
-     
+
+                  // USE ITEM'S OWN VALUES:
+                  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                   const displayFeeds = (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                  
                   return (
                     <div key={item.id} className="flex items-center gap-3">
                       {item.image && (
@@ -744,31 +751,7 @@ export default function Step3ContactInfo() {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-base-content truncate">{item.name}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          {/* <button
-                            type="button"
-                            className="w-6 h-6 bg-base-100 border border-base-300 rounded flex items-center justify-center hover:bg-base-200 text-sm"
-                            onClick={() => {
-                              const newQty = Math.max(0, quantity - 10);
-                              if (newQty === 0) {
-                                removeMenuItem(item.id);
-                              } else {
-                                updateItemQuantity(item.id, newQty);
-                              }
-                            }}
-                          >
-                            −
-                          </button> */}
-                          
-                          <span className="text-xs text-base-content/70">feeds upto {displayFeeds} people</span>
-                          {/* <button
-                            type="button"
-                            className="w-6 h-6 bg-base-100 border border-base-300 rounded flex items-center justify-center hover:bg-base-200 text-sm"
-                            onClick={() => {
-                              updateItemQuantity(item.id, quantity + 10);
-                            }}
-                          >
-                            +
-                          </button> */}
+                          <span className="text-xs text-base-content/70">feeds up to {displayFeeds} people</span>
                         </div>
                       </div>
                       <div className="text-right">
