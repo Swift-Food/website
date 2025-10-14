@@ -1,0 +1,11 @@
+/* filepath: /Users/thadoos/Coding/AllRestaurantApps/website/app/components/navbar.module.css */
+@font-face {
+  font-family: 'Mont';
+  src: url('/fonts/Mont-HeavyDEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.montFont {
+  font-family: 'Mont', Arial, sans-serif;
+}
