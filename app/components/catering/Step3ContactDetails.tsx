@@ -8,8 +8,8 @@ import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 
 export default function Step3ContactInfo() {
-  const BACKEND_QUANTITY_UNIT = 7;
-  const DISPLAY_FEEDS_PER_UNIT = 10;
+  // const BACKEND_QUANTITY_UNIT = 7;
+  // const DISPLAY_FEEDS_PER_UNIT = 10;
   const {
     contactInfo,
     setContactInfo,

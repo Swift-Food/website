@@ -1,6 +1,3 @@
-import Image from "next/image";
-import InfoContainer from "./components/containers/InfoContainer";
-import Link from "next/link";
 import ImageTextSection from "./components/containers/ImageTextSection";
 import SectionDivider from "./components/sectionDivider";
 import HomeHeroSection from "./components/containers/HomeHeroSection";
