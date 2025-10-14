@@ -166,12 +166,17 @@ export default function Step2MenuItems() {
     // Get menuGroupSettings from first item's restaurant
     const menuGroupSettings =
       displayItems[0]?.restaurant?.menuGroupSettings || {};
-    // Sort group names by displayOrder
-    const sortedGroups = Object.keys(menuGroupSettings).sort((a, b) => {
-      const orderA = menuGroupSettings[a]?.displayOrder ?? 999;
-      const orderB = menuGroupSettings[b]?.displayOrder ?? 999;
-      return orderA - orderB;
-    });
+    // Sort group names by displayOrder and filter out drinks
+    const sortedGroups = Object.keys(menuGroupSettings)
+      .filter((groupName) => {
+        const lowerGroupName = groupName.toLowerCase();
+        return lowerGroupName !== "drink" && lowerGroupName !== "drinks";
+      })
+      .sort((a, b) => {
+        const orderA = menuGroupSettings[a]?.displayOrder ?? 999;
+        const orderB = menuGroupSettings[b]?.displayOrder ?? 999;
+        return orderA - orderB;
+      });
 
     // Group items by menuGroup
     const groupItems: Record<string, MenuItem[]> = {};
@@ -183,6 +188,11 @@ export default function Step2MenuItems() {
 
     displayItems.forEach((item) => {
       const group = item.groupTitle || "Other";
+      const lowerGroup = group.toLowerCase();
+      // Skip drinks
+      if (lowerGroup === "drink" || lowerGroup === "drinks") {
+        return;
+      }
       if (!groupItems[group]) groupItems[group] = [];
       groupItems[group].push(item);
     });
