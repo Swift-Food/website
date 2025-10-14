@@ -11,7 +11,8 @@ export interface SearchResult {
   price?: string | number;
   isDiscount?: boolean;
   discountPrice?: string | number;
-  
+  cateringQuantityUnit?: number;
+  feedsPerUnit?: number; 
   rating?: number;
   reviews?: number;
   isOpen?: boolean;
