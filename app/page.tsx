@@ -1,5 +1,5 @@
-import ImageTextSection from "./components/containers/ImageTextSection";
-import SectionDivider from "./components/sectionDivider";
+// import ImageTextSection from "./components/containers/ImageTextSection";
+// import SectionDivider from "./components/sectionDivider";
 import HomeHeroSection from "./components/containers/HomeHeroSection";
 
 export default function Home() {
