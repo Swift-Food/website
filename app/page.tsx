@@ -165,7 +165,7 @@ export default function Home() {
       </section>
 
       {/* Section Dividers and Content - Responsive */}
-      <div id="aboutus" className="space-y-8 max-sm:space-y-6">
+      {/* <div id="aboutus" className="space-y-8 max-sm:space-y-6">
         <SectionDivider text="What Makes Us Different?" />
 
         <div className="space-y-12 max-sm:space-y-8">
@@ -214,7 +214,7 @@ export default function Home() {
           description="We're currently serving the Camden area, but we have big plans! Swift Food is scaling across London, bringing its fast, affordable, and diverse food delivery service to more people soon."
           className="max-sm:gap-4"
         />
-      </div>
+      </div> */}
     </div>
   );
 }
