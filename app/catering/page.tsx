@@ -6,7 +6,13 @@ import Step2MenuItems from "@/app/components/catering/Step2MenuItems";
 import Step3ContactInfo from "@/app/components/catering/Step3ContactDetails";
 
 function CateringSteps() {
-  const { currentStep } = useCatering();
+  const { currentStep, setCurrentStep } = useCatering();
+
+  const steps = [
+    { label: "Event Details", step: 1 },
+    { label: "Menu Selection", step: 2 },
+    { label: "Contact & Confirmation", step: 3 },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -22,9 +28,25 @@ function CateringSteps() {
               style={{ width: `${(currentStep / 3) * 100}%` }}
             />
           </div>
-          <div className="mt-2 text-sm text-gray-600 font-medium">
-            <span className="text-dark-pink">Event Details</span> {"->"} Menu
-            Selection {"->"} Contact & Confirmation
+          <div className="mt-2 text-sm text-gray-600 font-medium flex items-center gap-2">
+            {steps.map((s, idx) => (
+              <div key={s.step} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className={`underline-offset-2 font-medium transition-colors ${
+                    currentStep === s.step
+                      ? "text-dark-pink cursor-default"
+                      : "text-gray-600 hover:text-dark-pink hover:underline cursor-pointer"
+                  }`}
+                  onClick={() => setCurrentStep(s.step)}
+                >
+                  {s.label}
+                </button>
+                {idx < steps.length - 1 && (
+                  <span className="text-gray-400">→</span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
