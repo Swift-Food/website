@@ -113,7 +113,7 @@ export default function Step2MenuItems() {
   // Determine which items to display
 
   useEffect(() => {
-    setDisplayItems(isSearching ? searchResults : menuItems);
+    setDisplayItems(isSearching ? searchResults || [] : menuItems);
   }, [isSearching, searchResults, menuItems]);
 
   const fetchRestaurants = async () => {
