@@ -166,46 +166,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* Brand Banner - Responsive */}
-      <section className="w-full bg-primary py-6 px-4 my-8 rounded-xl max-sm:py-4 max-sm:px-3">
-        <div className="flex items-center gap-6 max-w-6xl mx-auto max-lg:flex-col max-lg:text-center max-lg:gap-4 max-sm:gap-3">
-          {/* Left side - Logo and Brand (25%) */}
-          <div className="flex-[25%] flex flex-col items-start max-lg:items-center gap-3 max-sm:gap-2">
-            {/* Logo and Swift Food */}
-            <div className="flex items-center gap-3 max-sm:gap-2">
-              <div className="flex flex-col gap-0 leading-none">
-                <h2 className="text-white font-bold text-3xl leading-tight max-sm:text-lg">
-                  SWIFT
-                </h2>
-                <h2 className="text-white font-bold text-3xl leading-tight -mt-1 max-sm:text-lg">
-                  FOOD
-                </h2>
-              </div>
-              <div className="relative flex-shrink-0">
-                <Image
-                  src="/white-logo.png"
-                  alt="Swift Food Logo"
-                  width={128}
-                  height={128}
-                  className="object-contain max-sm:w-16 max-sm:h-16 max-md:w-20 max-md:h-20"
-                />
-              </div>
-            </div>
-
-            {/* Tagline */}
-            <p className="text-white/90 text-sm font-medium max-lg:text-center max-sm:text-xs">
-              Fast delivery, fresh food
-            </p>
-          </div>
-
-          {/* Right side - Main Text (75%) */}
-          <div className="flex-[75%] flex items-center">
-            <h1 className="text-white font-bold text-4xl leading-tight max-lg:text-3xl max-md:text-2xl max-sm:text-xl max-lg:text-center">
-              From the streets where the cars don't reach
-            </h1>
-          </div>
-        </div>
-      </section>
 
       {/* Section Dividers and Content - Responsive */}
       <div id="aboutus" className="space-y-8 max-sm:space-y-6">
