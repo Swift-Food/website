@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
-import { cateringService } from '@/services/cateringServices';
-import { useCatering } from '@/context/CateringContext';
-
-
+import { useState, useEffect } from "react";
+import { cateringService } from "@/services/cateringServices";
+import { useCatering } from "@/context/CateringContext";
 
 interface Restaurant {
   id: string;
@@ -22,34 +20,44 @@ export interface MenuItem {
   image?: string;
   averageRating?: string;
   cateringQuantityUnit?: number;
-  feedsPerUnit?: number; 
+  feedsPerUnit?: number;
   restaurantId: string;
+  groupTitle?: string;
   restaurant?: {
     id: string;
     name: string;
     restaurantId: string;
+    menuGroupSettings?: Record<string, { displayOrder: number }>;
   };
 }
 
 export default function Step2MenuItems() {
-  const { 
-    selectedItems, 
-    addMenuItem, 
-    removeMenuItem, 
+  const [sortedGroups, setSortedGroups] = useState<string[]>([]);
+  const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>(
+    {}
+  );
+
+  const {
+    selectedItems,
+    addMenuItem,
+    removeMenuItem,
     updateItemQuantity,
-    setCurrentStep 
+    setCurrentStep,
   } = useCatering();
-  
+
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<
+    string | null
+  >(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showCartMobile, setShowCartMobile] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [displayItems, setDisplayItems] = useState<MenuItem[]>([]);
 
   // Fetch all restaurants on mount
   useEffect(() => {
@@ -63,7 +71,7 @@ export default function Step2MenuItems() {
     }
   }, [isSearching]);
   useEffect(() => {
-    console.log('Selected Items:', selectedItems);
+    console.log("Selected Items:", selectedItems);
   }, [selectedItems]);
 
   const fetchAllMenuItems = async () => {
@@ -71,43 +79,53 @@ export default function Step2MenuItems() {
     try {
       const response = await cateringService.getMenuItems();
       console.log("All menu items response:", response);
-      
+
       const menuItemsOnly = (response || []).map((item: any) => ({
         id: item.id,
         name: item.name,
         description: item.description,
-        price: item.price?.toString() || '0',
+        price: item.price?.toString() || "0",
         discountPrice: item.discountPrice?.toString(),
         isDiscount: item.isDiscount || false,
         image: item.image,
         averageRating: item.averageRating?.toString(),
-        restaurantId: item.restaurantId || '',
+        restaurantId: item.restaurantId || "",
         cateringQuantityUnit: item.cateringQuantityUnit || 7, // Add with default
         feedsPerUnit: item.feedsPerUnit || 10, // Add with default
+        groupTitle: item.groupTitle,
         restaurant: {
           id: item.restaurantId,
-          name: item.restaurant?.restaurant_name || 'Unknown',
+          name: item.restaurant?.restaurant_name || "Unknown",
           restaurantId: item.restaurantId,
+          menuGroupSettings: item.restaurant?.menuGroupSettings,
         },
       }));
-      
+
       setMenuItems(menuItemsOnly);
     } catch (error) {
-      console.error('Error fetching all menu items:', error);
+      console.error("Error fetching all menu items:", error);
       setMenuItems([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Determine which items to display
+
+  useEffect(() => {
+    setDisplayItems(isSearching ? searchResults : menuItems);
+  }, [isSearching, searchResults, menuItems]);
+
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurant`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/restaurant`
+      );
       const data = await response.json();
       setRestaurants(data);
     } catch (error) {
-      console.error('Error fetching restaurants:', error);
+      console.error("Error fetching restaurants:", error);
     } finally {
       setRestaurantsLoading(false);
     }
@@ -115,7 +133,7 @@ export default function Step2MenuItems() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!searchQuery.trim()) {
       setIsSearching(false);
       fetchAllMenuItems();
@@ -124,24 +142,58 @@ export default function Step2MenuItems() {
 
     setIsSearching(true);
     setLoading(true);
-    
+
     try {
       const response = await cateringService.searchMenuItems(searchQuery, {
         page: 1,
         limit: 50,
       });
-      
+
       setSearchResults(response.menuItems || []);
     } catch (error) {
-      console.error('Error searching menu items:', error);
+      console.error("Error searching menu items:", error);
       setSearchResults([]);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    // Get menuGroupSettings from first item's restaurant
+    const menuGroupSettings =
+      displayItems[0]?.restaurant?.menuGroupSettings || {};
+    // Sort group names by displayOrder
+    const sortedGroups = Object.keys(menuGroupSettings).sort((a, b) => {
+      const orderA = menuGroupSettings[a]?.displayOrder ?? 999;
+      const orderB = menuGroupSettings[b]?.displayOrder ?? 999;
+      return orderA - orderB;
+    });
+
+    // Group items by menuGroup
+    const groupItems: Record<string, MenuItem[]> = {};
+
+    // Initialise groupItems with groups
+    sortedGroups.forEach((groupName) => {
+      groupItems[groupName] = [];
+    });
+
+    displayItems.forEach((item) => {
+      const group = item.groupTitle || "Other";
+      if (!groupItems[group]) groupItems[group] = [];
+      groupItems[group].push(item);
+    });
+
+    console.log("Sorted groups:");
+    console.log(sortedGroups);
+    console.log("Group Items:");
+    console.log(groupItems);
+
+    setGroupedItems(groupItems);
+    setSortedGroups(sortedGroups);
+  }, [displayItems]);
+
   const clearSearch = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setIsSearching(false);
     setSearchResults([]);
     fetchAllMenuItems();
@@ -152,19 +204,43 @@ export default function Step2MenuItems() {
   };
 
   const handleAddItem = (item: MenuItem) => {
-    
     const backendQuantity = item.cateringQuantityUnit || 7;
-    console.log('Adding item with backend quantity:', backendQuantity);
+    console.log("Adding item with backend quantity:", backendQuantity);
     addMenuItem({ item: item, quantity: backendQuantity });
   };
 
-  // Determine which items to display
-  let displayItems = isSearching ? searchResults : menuItems;
-
   // Filter by selected restaurant if one is selected
-  if (selectedRestaurantId && !isSearching) {
-    displayItems = displayItems.filter(item => item.restaurantId === selectedRestaurantId);
-  }
+  useEffect(() => {
+    if (selectedRestaurantId && !isSearching) {
+      setDisplayItems(
+        menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
+      );
+    } else {
+      setDisplayItems(isSearching ? searchResults : menuItems);
+    }
+  }, [selectedRestaurantId, isSearching, menuItems, searchResults]);
+
+  // // Get menu groups from restaurant.menuGroupSettings
+  // const menuGroupSettings =
+  //   displayItems[0]?.restaurant?.menuGroupSettings || {};
+  // const sortedGroups = Object.keys(menuGroupSettings).sort(
+  //   (a, b) =>
+  //     (menuGroupSettings[a]?.displayOrder ?? 999) -
+  //     (menuGroupSettings[b]?.displayOrder ?? 999)
+  // );
+
+  // // Group items by menuGroup from displayItems
+  // const groupedItems: Record<string, MenuItem[]> = {};
+  // displayItems.forEach((item) => {
+  //   const group = item.menuGroup || "Other";
+  //   if (!groupedItems[group]) groupedItems[group] = [];
+  //   groupedItems[group].push(item);
+  // });
+
+  // console.log("Sorted groups:");
+  // console.log(sortedGroups);
+  // console.log("Group Items:");
+  // console.log(groupedItems);
 
   return (
     <div className="min-h-screen bg-base-100">
@@ -173,10 +249,17 @@ export default function Step2MenuItems() {
         <div className="max-w-7xl mx-auto px-4 pt-4">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-base-content">Select Menu Items</h2>
-              <p className="text-sm md:text-base text-base-content/60">Choose items for your catering order</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-base-content">
+                Select Menu Items
+              </h2>
+              <p className="text-sm md:text-base text-base-content/60">
+                Choose items for your catering order
+              </p>
             </div>
-            <button className="text-primary hover:opacity-80 font-medium text-sm md:text-base" onClick={() => setCurrentStep(1)} >
+            <button
+              className="text-primary hover:opacity-80 font-medium text-sm md:text-base"
+              onClick={() => setCurrentStep(1)}
+            >
               ← Back
             </button>
           </div>
@@ -217,33 +300,47 @@ export default function Step2MenuItems() {
           {/* Restaurant Horizontal Scroll - Only show when not searching */}
           {!isSearching && (
             <div className="mt-6">
-              <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">Select Restaurant</h3>
+              <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
+                Select Restaurant
+              </h3>
               {restaurantsLoading ? (
-                <div className="text-center py-4 text-base-content/60 text-sm md:text-base">Loading restaurants...</div>
+                <div className="text-center py-4 text-base-content/60 text-sm md:text-base">
+                  Loading restaurants...
+                </div>
               ) : (
                 <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
                   {restaurants.map((restaurant) => (
                     <button
                       key={restaurant.id}
-                      onClick={() => setSelectedRestaurantId(
-                        selectedRestaurantId === restaurant.id ? null : restaurant.id
-                      )}
+                      onClick={() =>
+                        setSelectedRestaurantId(
+                          selectedRestaurantId === restaurant.id
+                            ? null
+                            : restaurant.id
+                        )
+                      }
                       className={`flex-shrink-0 w-32 md:w-40 rounded-xl overflow-hidden border-2 transition-all ${
                         selectedRestaurantId === restaurant.id
-                          ? 'border-primary shadow-lg'
-                          : 'border-base-300 hover:border-primary/50'
+                          ? "border-primary shadow-lg"
+                          : "border-base-300 hover:border-primary/50"
                       }`}
                     >
                       <img
-                        src={restaurant.images[0] || '/placeholder.jpg'}
+                        src={restaurant.images[0] || "/placeholder.jpg"}
                         alt={restaurant.restaurant_name}
                         className="w-full h-24 md:h-32 object-cover"
                       />
                       <div className="p-2 md:p-3 bg-base-100">
-                        <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">{restaurant.restaurant_name}</h4>
+                        <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">
+                          {restaurant.restaurant_name}
+                        </h4>
                         <div className="flex items-center gap-1 mt-1">
-                          <span className="text-yellow-500 text-xs md:text-sm">★</span>
-                          <span className="text-xs md:text-sm text-base-content/70">{restaurant.averageRating}</span>
+                          <span className="text-yellow-500 text-xs md:text-sm">
+                            ★
+                          </span>
+                          <span className="text-xs md:text-sm text-base-content/70">
+                            {restaurant.averageRating}
+                          </span>
                         </div>
                       </div>
                     </button>
@@ -256,7 +353,8 @@ export default function Step2MenuItems() {
           {/* Search Results Header */}
           {isSearching && (
             <div className="mt-4 text-xs md:text-sm text-base-content/60">
-              Showing search results for "{searchQuery}" ({displayItems.length} items found)
+              Showing search results for "{searchQuery}" ({displayItems.length}{" "}
+              items found)
             </div>
           )}
         </div>
@@ -268,223 +366,313 @@ export default function Step2MenuItems() {
           {/* Menu Items Grid */}
           <div className="flex-1">
             {loading ? (
-              <div className="text-center py-12 text-base-content/60">Loading menu items...</div>
+              <div className="text-center py-12 text-base-content/60">
+                Loading menu items...
+              </div>
             ) : displayItems.length === 0 ? (
               <div className="text-center py-12 text-base-content/50 text-sm md:text-base">
-                {isSearching ? 'No menu items found matching your search.' : 'No menu items available.'}
+                {isSearching
+                  ? "No menu items found matching your search."
+                  : "No menu items available."}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {displayItems.map((item) => {
-                  const quantity = getItemQuantity(item.id);
-                  const price = parseFloat(item.price?.toString() || '0');
-                  const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-                  const displayPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                  
-                  const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-                  const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
-                  const isExpanded = expandedItemId === item.id;
+              <>
+                {/* Group and sort items */}
+                {sortedGroups.map((groupName) => (
+                  <div key={groupName} className="mb-8">
+                    <h3 className="text-2xl font-bold text-primary mb-4">
+                      {groupName}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                      {groupedItems[groupName].map((item) => {
+                        const quantity = getItemQuantity(item.id);
+                        const price = parseFloat(item.price?.toString() || "0");
+                        const discountPrice = parseFloat(
+                          item.discountPrice?.toString() || "0"
+                        );
+                        const displayPrice =
+                          item.isDiscount && discountPrice > 0
+                            ? discountPrice
+                            : price;
+                        const BACKEND_QUANTITY_UNIT =
+                          item.cateringQuantityUnit || 7;
+                        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
-                  return (
-                    <div 
-                      key={item.id} 
-                      className="bg-base-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-base-300 h-full flex flex-col cursor-pointer"
-                      onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                    >
-                      {/* Show Image OR Details */}
-                      {!isExpanded ? (
-                        <>
-                          {/* Normal Card View with Image */}
-                          {item.image && (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-40 md:h-48 object-cover"
-                            />
-                          )}
-                          <div className="p-3 md:p-4 flex-1 flex flex-col">
-                            <h3 className="font-bold text-base md:text-lg text-base-content mb-2">
-                              {item.name}
-                            </h3>
-                            {item.description && (
-                              <p className="text-base-content/70 text-xs md:text-sm mb-3 line-clamp-2">
-                                {item.description}
-                              </p>
-                            )}
-                            
-                            {/* Show restaurant name in search results */}
-                            {isSearching && item.restaurant && (
-                              <p className="text-xs md:text-sm text-base-content/50 mb-2">
-                                From: {item.restaurant.name}
-                              </p>
-                            )}
+                        const numUnits = quantity / BACKEND_QUANTITY_UNIT;
+                        const displayQuantity =
+                          numUnits * DISPLAY_FEEDS_PER_UNIT;
+                        const isExpanded = expandedItemId === item.id;
 
-                            <div className="flex flex-column items-center gap-1 mb-3">
-                              <span className="text-xl md:text-2xl font-bold text-primary">
-                                £{(Number(displayPrice) * BACKEND_QUANTITY_UNIT).toFixed(2)}
-                              </span>
-                            </div>
-                            <div className="flex flex-column items-center gap-1 mb-3">
-                              <span className="text-xs text-base-content/60">
-                                Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
-                              </span>
-                            </div>
+                        return (
+                          <div
+                            key={item.id}
+                            className="bg-base-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-base-300 h-full flex flex-col cursor-pointer"
+                            onClick={() =>
+                              setExpandedItemId(isExpanded ? null : item.id)
+                            }
+                          >
+                            {/* Show Image OR Details */}
+                            {!isExpanded ? (
+                              <>
+                                {/* Normal Card View with Image */}
+                                {item.image && (
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-full h-40 md:h-48 object-cover"
+                                  />
+                                )}
+                                <div className="p-3 md:p-4 flex-1 flex flex-col">
+                                  <h3 className="font-bold text-base md:text-lg text-base-content mb-2">
+                                    {item.name}
+                                  </h3>
+                                  {item.description && (
+                                    <p className="text-base-content/70 text-xs md:text-sm mb-3 line-clamp-2">
+                                      {item.description}
+                                    </p>
+                                  )}
 
-                            <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
-                              {quantity > 0 ? (
-                                <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-3">
-                                  <button
-                                    onClick={() => updateItemQuantity(item.id, Math.max(0, quantity - BACKEND_QUANTITY_UNIT))}
-                                    className="..."
-                                  >
-                                    −
-                                  </button>
-                                  <span className="font-medium text-xs md:text-sm text-base-content">
-                                    Feeds {displayQuantity} people
-                                  </span>
-                                  <button
-                                    onClick={() => updateItemQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)}
-                                    className="..."
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => handleAddItem(item)}
-                                  className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
-                                >
-                                  Add to Order
-                                </button>
-                              )}
-                              
-                              <p className="text-xs text-center text-base-content/40 mt-2">
-                                Click card to view details & allergens
-                              </p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {/* Expanded Details View (No Image) */}
-                          <div className="p-3 md:p-4 flex-1 flex flex-col h-full">
-                            <h3 className="font-bold text-base md:text-lg text-base-content mb-3">
-                              {item.name}
-                            </h3>
-                            
-                            <div className="mb-4 space-y-3 flex-1 overflow-y-auto">
-                              {item.description && (
-                                <div>
-                                  <h4 className="font-semibold text-xs text-base-content mb-1">Description</h4>
-                                  <p className="text-base-content/70 text-xs leading-relaxed">
-                                    {item.description}
-                                  </p>
-                                </div>
-                              )}
-                              
-                              {item.allergens && item.allergens.length > 0 ? (
-                                <div>
-                                  <h4 className="font-semibold text-xs text-base-content mb-2">Allergens</h4>
-                                  <div className="flex flex-wrap gap-1 mb-2">
-                                    {item.allergens.map((allergen : string, index : number) => (
-                                      <span 
-                                        key={index}
-                                        className="bg-warning/20 text-warning-content px-2 py-0.5 rounded-full text-xs font-medium"
-                                      >
-                                        {allergen}
-                                      </span>
-                                    ))}
+                                  {/* Show restaurant name in search results */}
+                                  {isSearching && item.restaurant && (
+                                    <p className="text-xs md:text-sm text-base-content/50 mb-2">
+                                      From: {item.restaurant.name}
+                                    </p>
+                                  )}
+
+                                  <div className="flex flex-column items-center gap-1 mb-3">
+                                    <span className="text-xl md:text-2xl font-bold text-primary">
+                                      £
+                                      {(
+                                        Number(displayPrice) *
+                                        BACKEND_QUANTITY_UNIT
+                                      ).toFixed(2)}
+                                    </span>
                                   </div>
-                                  <p className="text-xs text-base-content/50 italic mt-2 bg-base-200 p-2 rounded">
-                                    ⚠️ This is approximate. For full allergen info, contact the restaurant or our team.
-                                  </p>
-                                </div>
-                              ) : (
-                                <div className="bg-base-200 p-2 rounded">
-                                  <p className="text-xs text-base-content/60 italic">
-                                    ⚠️ Allergen info not available. Please contact the restaurant or our team.
-                                  </p>
-                                </div>
-                              )}
-                            </div>
+                                  <div className="flex flex-column items-center gap-1 mb-3">
+                                    <span className="text-xs text-base-content/60">
+                                      Feeds up to {DISPLAY_FEEDS_PER_UNIT}{" "}
+                                      people
+                                    </span>
+                                  </div>
 
-                            {/* Pricing */}
-                            <div className="flex flex-column items-center gap-1 mb-2">
-                              <span className="text-lg md:text-xl font-bold text-primary">
-                                £{(Number(displayPrice) * BACKEND_QUANTITY_UNIT).toFixed(2)}
-                              </span>
-                              <span className="text-xs text-base-content/60 ml-2">
-                                (Feeds {DISPLAY_FEEDS_PER_UNIT})
-                              </span>
-                            </div>
+                                  <div
+                                    className="mt-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {quantity > 0 ? (
+                                      <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-3">
+                                        <button
+                                          onClick={() =>
+                                            updateItemQuantity(
+                                              item.id,
+                                              Math.max(
+                                                0,
+                                                quantity - BACKEND_QUANTITY_UNIT
+                                              )
+                                            )
+                                          }
+                                          className="..."
+                                        >
+                                          −
+                                        </button>
+                                        <span className="font-medium text-xs md:text-sm text-base-content">
+                                          Feeds {displayQuantity} people
+                                        </span>
+                                        <button
+                                          onClick={() =>
+                                            updateItemQuantity(
+                                              item.id,
+                                              quantity + BACKEND_QUANTITY_UNIT
+                                            )
+                                          }
+                                          className="..."
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleAddItem(item)}
+                                        className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+                                      >
+                                        Add to Order
+                                      </button>
+                                    )}
 
-                            <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
-                              {quantity > 0 ? (
-                                <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-2">
-                                  <button
-                                    onClick={() => updateItemQuantity(item.id, Math.max(0, quantity - BACKEND_QUANTITY_UNIT))}
-                                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                                  >
-                                    −
-                                  </button>
-                                  <span className="font-medium text-xs text-base-content">
-                                    Feeds {displayQuantity} people
-                                  </span>
-                                  <button
-                                    onClick={() => updateItemQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)}
-                                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                                  >
-                                    +
-                                  </button>
+                                    <p className="text-xs text-center text-base-content/40 mt-2">
+                                      Click card to view details & allergens
+                                    </p>
+                                  </div>
                                 </div>
-                              ) : (
-                                <button
-                                  onClick={() => handleAddItem(item)}
-                                  className="w-full bg-primary hover:opacity-90 text-white py-2 rounded-lg font-medium transition-all text-sm"
-                                >
-                                  Add to Order
-                                </button>
-                              )}
-                              
-                              <p className="text-xs text-center text-primary mt-2 font-medium">
-                                Click card to go back
-                              </p>
-                            </div>
+                              </>
+                            ) : (
+                              <>
+                                {/* Expanded Details View (No Image) */}
+                                <div className="p-3 md:p-4 flex-1 flex flex-col h-full">
+                                  <h3 className="font-bold text-base md:text-lg text-base-content mb-3">
+                                    {item.name}
+                                  </h3>
+
+                                  <div className="mb-4 space-y-3 flex-1 overflow-y-auto">
+                                    {item.description && (
+                                      <div>
+                                        <h4 className="font-semibold text-xs text-base-content mb-1">
+                                          Description
+                                        </h4>
+                                        <p className="text-base-content/70 text-xs leading-relaxed">
+                                          {item.description}
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {item.allergens &&
+                                    item.allergens.length > 0 ? (
+                                      <div>
+                                        <h4 className="font-semibold text-xs text-base-content mb-2">
+                                          Allergens
+                                        </h4>
+                                        <div className="flex flex-wrap gap-1 mb-2">
+                                          {item.allergens.map(
+                                            (
+                                              allergen: string,
+                                              index: number
+                                            ) => (
+                                              <span
+                                                key={index}
+                                                className="bg-warning/20 text-warning-content px-2 py-0.5 rounded-full text-xs font-medium"
+                                              >
+                                                {allergen}
+                                              </span>
+                                            )
+                                          )}
+                                        </div>
+                                        <p className="text-xs text-base-content/50 italic mt-2 bg-base-200 p-2 rounded">
+                                          ⚠️ This is approximate. For full
+                                          allergen info, contact the restaurant
+                                          or our team.
+                                        </p>
+                                      </div>
+                                    ) : (
+                                      <div className="bg-base-200 p-2 rounded">
+                                        <p className="text-xs text-base-content/60 italic">
+                                          ⚠️ Allergen info not available. Please
+                                          contact the restaurant or our team.
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Pricing */}
+                                  <div className="flex flex-column items-center gap-1 mb-2">
+                                    <span className="text-lg md:text-xl font-bold text-primary">
+                                      £
+                                      {(
+                                        Number(displayPrice) *
+                                        BACKEND_QUANTITY_UNIT
+                                      ).toFixed(2)}
+                                    </span>
+                                    <span className="text-xs text-base-content/60 ml-2">
+                                      (Feeds {DISPLAY_FEEDS_PER_UNIT})
+                                    </span>
+                                  </div>
+
+                                  <div
+                                    className="mt-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {quantity > 0 ? (
+                                      <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-2">
+                                        <button
+                                          onClick={() =>
+                                            updateItemQuantity(
+                                              item.id,
+                                              Math.max(
+                                                0,
+                                                quantity - BACKEND_QUANTITY_UNIT
+                                              )
+                                            )
+                                          }
+                                          className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                                        >
+                                          −
+                                        </button>
+                                        <span className="font-medium text-xs text-base-content">
+                                          Feeds {displayQuantity} people
+                                        </span>
+                                        <button
+                                          onClick={() =>
+                                            updateItemQuantity(
+                                              item.id,
+                                              quantity + BACKEND_QUANTITY_UNIT
+                                            )
+                                          }
+                                          className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleAddItem(item)}
+                                        className="w-full bg-primary hover:opacity-90 text-white py-2 rounded-lg font-medium transition-all text-sm"
+                                      >
+                                        Add to Order
+                                      </button>
+                                    )}
+
+                                    <p className="text-xs text-center text-primary mt-2 font-medium">
+                                      Click card to go back
+                                    </p>
+                                  </div>
+                                </div>
+                              </>
+                            )}
                           </div>
-                        </>
-                      )}
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                ))}
+              </>
             )}
           </div>
 
           {/* Cart Sidebar - Desktop */}
           <div className="hidden lg:block lg:w-96 sticky top-4 h-fit">
             <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
-              <h3 className="text-xl font-bold text-base-content mb-6">Your Catering List</h3>
-              
+              <h3 className="text-xl font-bold text-base-content mb-6">
+                Your Catering List
+              </h3>
+
               {selectedItems.length === 0 ? (
-                <p className="text-base-content/50 text-center py-8">No items selected yet</p>
+                <p className="text-base-content/50 text-center py-8">
+                  No items selected yet
+                </p>
               ) : (
                 <>
                   <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
                     {selectedItems.map(({ item, quantity }) => {
-                      const price = parseFloat(item.price?.toString() || '0');
-                      const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-                      const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+                      const price = parseFloat(item.price?.toString() || "0");
+                      const discountPrice = parseFloat(
+                        item.discountPrice?.toString() || "0"
+                      );
+                      const itemPrice =
+                        item.isDiscount && discountPrice > 0
+                          ? discountPrice
+                          : price;
                       const subtotal = itemPrice * quantity;
-                      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                      const BACKEND_QUANTITY_UNIT =
+                        item.cateringQuantityUnit || 7;
                       const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                      
+
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
                       const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
 
                       return (
-                        <div key={item.id} className="flex gap-3 pb-4 border-b border-base-300">
+                        <div
+                          key={item.id}
+                          className="flex gap-3 pb-4 border-b border-base-300"
+                        >
                           {item.image && (
                             <img
                               src={item.image}
@@ -493,20 +681,39 @@ export default function Step2MenuItems() {
                             />
                           )}
                           <div className="flex-1">
-                            <h4 className="font-semibold text-sm text-base-content mb-1">{item.name}</h4>
-                            <p className="text-xl font-bold text-primary mb-2">£{subtotal.toFixed(2)}</p>
-                            
+                            <h4 className="font-semibold text-sm text-base-content mb-1">
+                              {item.name}
+                            </h4>
+                            <p className="text-xl font-bold text-primary mb-2">
+                              £{subtotal.toFixed(2)}
+                            </p>
+
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => updateItemQuantity(item.id, Math.max(0, quantity - BACKEND_QUANTITY_UNIT))}
+                                  onClick={() =>
+                                    updateItemQuantity(
+                                      item.id,
+                                      Math.max(
+                                        0,
+                                        quantity - BACKEND_QUANTITY_UNIT
+                                      )
+                                    )
+                                  }
                                   className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   −
                                 </button>
-                                <span className="text-sm font-medium text-base-content">Feeds {displayQuantity} people</span>
+                                <span className="text-sm font-medium text-base-content">
+                                  Feeds {displayQuantity} people
+                                </span>
                                 <button
-                                  onClick={() => updateItemQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)}
+                                  onClick={() =>
+                                    updateItemQuantity(
+                                      item.id,
+                                      quantity + BACKEND_QUANTITY_UNIT
+                                    )
+                                  }
                                   className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   +
@@ -528,20 +735,42 @@ export default function Step2MenuItems() {
                   <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
                     <div className="flex justify-between text-sm text-base-content/70">
                       <span>Items ({selectedItems.length})</span>
-                      <span>Feeds up to {selectedItems.reduce((sum, { item, quantity }) => {
-                        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                        return sum + (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
-                      }, 0)} people</span>
+                      <span>
+                        Feeds up to{" "}
+                        {selectedItems.reduce((sum, { item, quantity }) => {
+                          const BACKEND_QUANTITY_UNIT =
+                            item.cateringQuantityUnit || 7;
+                          const DISPLAY_FEEDS_PER_UNIT =
+                            item.feedsPerUnit || 10;
+                          return (
+                            sum +
+                            (quantity / BACKEND_QUANTITY_UNIT) *
+                              DISPLAY_FEEDS_PER_UNIT
+                          );
+                        }, 0)}{" "}
+                        people
+                      </span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-base-content">
                       <span>Total:</span>
-                      <span>£{selectedItems.reduce((sum, { item, quantity }) => {
-                        const price = parseFloat(item.price?.toString() || '0');
-                        const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-                        const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                        return sum + (itemPrice * quantity);
-                      }, 0).toFixed(2)}</span>
+                      <span>
+                        £
+                        {selectedItems
+                          .reduce((sum, { item, quantity }) => {
+                            const price = parseFloat(
+                              item.price?.toString() || "0"
+                            );
+                            const discountPrice = parseFloat(
+                              item.discountPrice?.toString() || "0"
+                            );
+                            const itemPrice =
+                              item.isDiscount && discountPrice > 0
+                                ? discountPrice
+                                : price;
+                            return sum + itemPrice * quantity;
+                          }, 0)
+                          .toFixed(2)}
+                      </span>
                     </div>
                   </div>
 
@@ -566,12 +795,22 @@ export default function Step2MenuItems() {
             className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg flex items-center justify-between px-6"
           >
             <span>View Cart ({selectedItems.length})</span>
-            <span>£{selectedItems.reduce((sum, { item, quantity }) => {
-              const price = parseFloat(item.price?.toString() || '0');
-              const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-              const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-              return sum + (itemPrice * quantity);
-            }, 0).toFixed(2)}</span>
+            <span>
+              £
+              {selectedItems
+                .reduce((sum, { item, quantity }) => {
+                  const price = parseFloat(item.price?.toString() || "0");
+                  const discountPrice = parseFloat(
+                    item.discountPrice?.toString() || "0"
+                  );
+                  const itemPrice =
+                    item.isDiscount && discountPrice > 0
+                      ? discountPrice
+                      : price;
+                  return sum + itemPrice * quantity;
+                }, 0)
+                .toFixed(2)}
+            </span>
           </button>
         ) : (
           <button
@@ -589,32 +828,50 @@ export default function Step2MenuItems() {
         <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] overflow-y-auto">
             <div className="sticky top-0 bg-base-100 border-b border-base-300 p-4 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-base-content">Your Catering List</h3>
-              <button onClick={() => setShowCartMobile(false)} className="text-2xl">×</button>
+              <h3 className="text-xl font-bold text-base-content">
+                Your Catering List
+              </h3>
+              <button
+                onClick={() => setShowCartMobile(false)}
+                className="text-2xl"
+              >
+                ×
+              </button>
             </div>
 
             <div className="p-4">
               {selectedItems.length === 0 ? (
-                <p className="text-base-content/50 text-center py-8">No items selected yet</p>
+                <p className="text-base-content/50 text-center py-8">
+                  No items selected yet
+                </p>
               ) : (
                 <>
                   <div className="space-y-4 mb-6">
                     {selectedItems.map(({ item, quantity }) => {
-                      const price = parseFloat(item.price?.toString() || '0');
-                      const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-                      const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+                      const price = parseFloat(item.price?.toString() || "0");
+                      const discountPrice = parseFloat(
+                        item.discountPrice?.toString() || "0"
+                      );
+                      const itemPrice =
+                        item.isDiscount && discountPrice > 0
+                          ? discountPrice
+                          : price;
                       const subtotal = itemPrice * quantity;
-                      
+
                       // USE ITEM'S OWN VALUES:
-                      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+                      const BACKEND_QUANTITY_UNIT =
+                        item.cateringQuantityUnit || 7;
                       const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                      
+
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-         
+
                       const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
 
                       return (
-                        <div key={item.id} className="flex gap-3 pb-4 border-b border-base-300">
+                        <div
+                          key={item.id}
+                          className="flex gap-3 pb-4 border-b border-base-300"
+                        >
                           {item.image && (
                             <img
                               src={item.image}
@@ -623,13 +880,25 @@ export default function Step2MenuItems() {
                             />
                           )}
                           <div className="flex-1">
-                            <h4 className="font-semibold text-sm text-base-content mb-1">{item.name}</h4>
-                            <p className="text-lg font-bold text-primary mb-2">£{subtotal.toFixed(2)}</p>
-                            
+                            <h4 className="font-semibold text-sm text-base-content mb-1">
+                              {item.name}
+                            </h4>
+                            <p className="text-lg font-bold text-primary mb-2">
+                              £{subtotal.toFixed(2)}
+                            </p>
+
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => updateItemQuantity(item.id, Math.max(0, quantity - BACKEND_QUANTITY_UNIT))}
+                                  onClick={() =>
+                                    updateItemQuantity(
+                                      item.id,
+                                      Math.max(
+                                        0,
+                                        quantity - BACKEND_QUANTITY_UNIT
+                                      )
+                                    )
+                                  }
                                   className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   −
@@ -638,7 +907,12 @@ export default function Step2MenuItems() {
                                   Feeds {displayQuantity} people
                                 </span>
                                 <button
-                                  onClick={() => updateItemQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)}
+                                  onClick={() =>
+                                    updateItemQuantity(
+                                      item.id,
+                                      quantity + BACKEND_QUANTITY_UNIT
+                                    )
+                                  }
                                   className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   +
@@ -660,20 +934,42 @@ export default function Step2MenuItems() {
                   <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
                     <div className="flex justify-between text-sm text-base-content/70">
                       <span>Items ({selectedItems.length})</span>
-                      <span>Feeds up to {selectedItems.reduce((sum, { item, quantity }) => {
-                        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                        return sum + (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
-                      }, 0)} people</span>
+                      <span>
+                        Feeds up to{" "}
+                        {selectedItems.reduce((sum, { item, quantity }) => {
+                          const BACKEND_QUANTITY_UNIT =
+                            item.cateringQuantityUnit || 7;
+                          const DISPLAY_FEEDS_PER_UNIT =
+                            item.feedsPerUnit || 10;
+                          return (
+                            sum +
+                            (quantity / BACKEND_QUANTITY_UNIT) *
+                              DISPLAY_FEEDS_PER_UNIT
+                          );
+                        }, 0)}{" "}
+                        people
+                      </span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-base-content">
                       <span>Total:</span>
-                      <span>£{selectedItems.reduce((sum, { item, quantity }) => {
-                        const price = parseFloat(item.price?.toString() || '0');
-                        const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
-                        const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                        return sum + (itemPrice * quantity);
-                      }, 0).toFixed(2)}</span>
+                      <span>
+                        £
+                        {selectedItems
+                          .reduce((sum, { item, quantity }) => {
+                            const price = parseFloat(
+                              item.price?.toString() || "0"
+                            );
+                            const discountPrice = parseFloat(
+                              item.discountPrice?.toString() || "0"
+                            );
+                            const itemPrice =
+                              item.isDiscount && discountPrice > 0
+                                ? discountPrice
+                                : price;
+                            return sum + itemPrice * quantity;
+                          }, 0)
+                          .toFixed(2)}
+                      </span>
                     </div>
                   </div>
 
