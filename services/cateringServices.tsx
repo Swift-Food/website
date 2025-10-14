@@ -33,7 +33,9 @@ class CateringService {
     if (filters?.maxPrice)
       params.append("maxPrice", filters.maxPrice.toString());
 
-    const response = await fetch(`${API_BASE_URL}/search?${params.toString()}`);
+    const response = await fetch(
+      `${API_BASE_URL}/search?catering=true&${params.toString()}`
+    );
 
     if (!response.ok) {
       throw new Error("Failed to search menu items");
