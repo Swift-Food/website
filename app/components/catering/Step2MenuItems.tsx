@@ -53,7 +53,7 @@ export default function Step2MenuItems() {
   const [loading, setLoading] = useState(false);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showCartMobile, setShowCartMobile] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
@@ -195,7 +195,7 @@ export default function Step2MenuItems() {
   const clearSearch = () => {
     setSearchQuery("");
     setIsSearching(false);
-    setSearchResults([]);
+    setSearchResults(null);
     fetchAllMenuItems();
   };
 
@@ -216,7 +216,7 @@ export default function Step2MenuItems() {
         menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
       );
     } else {
-      setDisplayItems(isSearching ? searchResults : menuItems);
+      setDisplayItems(isSearching ? searchResults || [] : menuItems);
     }
   }, [selectedRestaurantId, isSearching, menuItems, searchResults]);
 
@@ -358,11 +358,42 @@ export default function Step2MenuItems() {
       </div> */}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="mx-auto px-4 py-6">
+        <form onSubmit={handleSearch} className="mb-6">
+          <div className="flex gap-2 md:gap-4">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search menu items..."
+                className="w-full pl-10 md:pl-12 pr-4 py-2 md:py-3 bg-white border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
+              />
+              <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-base-content/40">
+                🔍
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="bg-primary hover:opacity-90 text-white px-4 md:px-8 py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+            >
+              Search
+            </button>
+            {isSearching && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="bg-base-300 text-base-content px-3 md:px-6 py-2 md:py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </form>
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Menu Items Grid */}
 
-          {selectedRestaurantId ? (
+          {selectedRestaurantId || searchResults !== null ? (
             <div className="flex-1">
               {loading ? (
                 <div className="text-center py-12 text-base-content/60">
@@ -650,7 +681,7 @@ export default function Step2MenuItems() {
               )}
             </div>
           ) : (
-            <div className="flex-1 mt-6">
+            <div className="flex-1">
               <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
                 Select Restaurant
               </h3>
@@ -854,6 +885,7 @@ export default function Step2MenuItems() {
                   className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
                   onClick={() => {
                     setSelectedRestaurantId(null);
+                    setSearchQuery("");
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                 >
@@ -900,7 +932,6 @@ export default function Step2MenuItems() {
         )}
       </div>
 
-      {/* Mobile Cart Modal */}
       {/* Mobile Cart Modal */}
       {showCartMobile && (
         <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
