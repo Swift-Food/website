@@ -491,13 +491,14 @@ export default function Step2MenuItems() {
                                           ).toFixed(2)}
                                         </span>
                                       </div>
-                                      <div className="flex flex-column items-center gap-1 mb-3">
-                                        <span className="text-xs text-base-content/60">
-                                          Feeds up to {DISPLAY_FEEDS_PER_UNIT}{" "}
-                                          people
-                                        </span>
-                                      </div>
-
+                                      {DISPLAY_FEEDS_PER_UNIT > 1 && (
+                                        <div className="flex flex-column items-center gap-1 mb-3">
+                                          <span className="text-xs text-base-content/60">
+                                            Feeds up to {DISPLAY_FEEDS_PER_UNIT}{" "}
+                                            people
+                                          </span>
+                                        </div>
+                                      )}
                                       <div
                                         className="mt-auto"
                                         onClick={(e) => e.stopPropagation()}
