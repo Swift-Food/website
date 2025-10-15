@@ -193,9 +193,9 @@ export default function Step2MenuItems() {
       if (lowerGroup === "drink" || lowerGroup === "drinks") {
         return;
       }
-      if (item.status === "CATERING") {
-        return;
-      }
+      // if (item.status === "CATERING") {
+      //   return;
+      // }
       if (!groupItems[group]) groupItems[group] = [];
       groupItems[group].push(item);
     });
@@ -229,9 +229,11 @@ export default function Step2MenuItems() {
   // Filter by selected restaurant if one is selected
   useEffect(() => {
     if (selectedRestaurantId && !isSearching) {
+      
       setDisplayItems(
         menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
       );
+      console.log("selected restaurant id", selectedRestaurantId, menuItems.filter((item) => item.restaurantId === selectedRestaurantId))
     } else {
       setDisplayItems(isSearching ? searchResults || [] : menuItems);
     }
