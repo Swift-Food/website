@@ -32,13 +32,14 @@ function CateringSteps() {
             {steps.map((s, idx) => (
               <div key={s.step} className="flex items-center gap-2">
                 <button
+                  disabled={true}
                   type="button"
                   className={`underline-offset-2 font-medium transition-colors ${
                     currentStep === s.step
                       ? "text-dark-pink cursor-default"
-                      : "text-gray-600 hover:text-dark-pink hover:underline cursor-pointer"
+                      : "text-gray-600" //hover:text-dark-pink hover:underline cursor-pointer
                   }`}
-                  onClick={() => setCurrentStep(s.step)}
+                  // onClick={() => setCurrentStep(s.step)}
                 >
                   {s.label}
                 </button>
