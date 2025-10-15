@@ -904,20 +904,32 @@ export default function Step2MenuItems() {
                 </>
               )}
             </div>
-            {selectedRestaurantId && (
-              <div className="flex justify-center w-full my-6">
-                <button
-                  className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
-                  onClick={() => {
-                    setSelectedRestaurantId(null);
-                    setSearchQuery("");
+            {/* {selectedRestaurantId && ( */}
+            <div className="flex justify-center w-full my-6">
+              <button
+                className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
+                onClick={
+                  () => {
+                    if (!selectedRestaurantId && !searchQuery) {
+                      setCurrentStep(1);
+                    } else {
+                      setSelectedRestaurantId(null);
+                      setSearchQuery("");
+                    }
                     window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  ← Go Back to Restaurants
-                </button>
-              </div>
-            )}
+                  }
+                  // setSelectedRestaurantId(null);
+                  // setSearchQuery("");
+                  // window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              >
+                ← Go Back to{" "}
+                {!selectedRestaurantId && !searchQuery
+                  ? "Step 1"
+                  : "Restaurants"}
+              </button>
+            </div>
+            {/* )} */}
           </div>
         </div>
       </div>
