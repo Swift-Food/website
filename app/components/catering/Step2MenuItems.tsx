@@ -7,6 +7,7 @@ interface Restaurant {
   restaurant_name: string;
   images: string[];
   averageRating: string;
+  minCateringOrderQuantity?: number;
 }
 
 export interface MenuItem {
@@ -23,6 +24,7 @@ export interface MenuItem {
   feedsPerUnit?: number;
   restaurantId: string;
   groupTitle?: string;
+  status?: string;
   restaurant?: {
     id: string;
     name: string;
@@ -53,7 +55,8 @@ export default function Step2MenuItems() {
   const [loading, setLoading] = useState(false);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [restaurantName, setRestaurantName] = useState("");
+  const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showCartMobile, setShowCartMobile] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
@@ -63,6 +66,17 @@ export default function Step2MenuItems() {
   useEffect(() => {
     fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    if (selectedRestaurantId) {
+      const selectedRestaurant = restaurants.find(
+        (r) => r.id === selectedRestaurantId
+      );
+      setRestaurantName(selectedRestaurant?.restaurant_name || "");
+    } else {
+      setRestaurantName("");
+    }
+  }, [restaurants, selectedRestaurantId]);
 
   // Fetch menu items when restaurant is selected
   useEffect(() => {
@@ -93,6 +107,7 @@ export default function Step2MenuItems() {
         cateringQuantityUnit: item.cateringQuantityUnit || 7, // Add with default
         feedsPerUnit: item.feedsPerUnit || 10, // Add with default
         groupTitle: item.groupTitle,
+        status: item.status,
         restaurant: {
           id: item.restaurantId,
           name: item.restaurant?.restaurant_name || "Unknown",
@@ -113,22 +128,71 @@ export default function Step2MenuItems() {
   // Determine which items to display
 
   useEffect(() => {
-    setDisplayItems(isSearching ? searchResults : menuItems);
+    setDisplayItems(isSearching ? searchResults || [] : menuItems);
   }, [isSearching, searchResults, menuItems]);
 
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/restaurant`
+        `${process.env.NEXT_PUBLIC_API_URL}/restaurant/catering/restaurants`
       );
       const data = await response.json();
+      // Filter to only show restaurants with isCatering = true
+      // const cateringRestaurants = data.filter(
+      //   (restaurant: any) => restaurant.isCatering === true
+      // );
       setRestaurants(data);
     } catch (error) {
       console.error("Error fetching restaurants:", error);
     } finally {
       setRestaurantsLoading(false);
     }
+  };
+
+  // Add this function at the top of the component, after other helper functions
+  const getRestaurantItemCounts = () => {
+    const counts: Record<
+      string,
+      { count: number; minRequired: number; name: string }
+    > = {};
+
+    selectedItems.forEach(({ item, quantity }) => {
+      const restaurantId = item.restaurantId;
+
+      // Skip if restaurantId is undefined
+      if (!restaurantId) return;
+
+      const restaurant = restaurants.find((r) => r.id === restaurantId);
+
+      if (!counts[restaurantId]) {
+        counts[restaurantId] = {
+          count: 0,
+          minRequired: restaurant?.minCateringOrderQuantity || 1,
+          name: restaurant?.restaurant_name || "Unknown Restaurant",
+        };
+      }
+
+      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+      counts[restaurantId].count += quantity / BACKEND_QUANTITY_UNIT;
+    });
+
+    return counts;
+  };
+
+  const getMinimumOrderWarnings = () => {
+    const counts = getRestaurantItemCounts();
+    const warnings: string[] = [];
+
+    Object.entries(counts).forEach(([, data]) => {
+      if (data.count < data.minRequired) {
+        warnings.push(
+          `${data.name}: Add ${data.minRequired - data.count} more item(s)`
+        );
+      }
+    });
+
+    return warnings;
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -162,12 +226,17 @@ export default function Step2MenuItems() {
     // Get menuGroupSettings from first item's restaurant
     const menuGroupSettings =
       displayItems[0]?.restaurant?.menuGroupSettings || {};
-    // Sort group names by displayOrder
-    const sortedGroups = Object.keys(menuGroupSettings).sort((a, b) => {
-      const orderA = menuGroupSettings[a]?.displayOrder ?? 999;
-      const orderB = menuGroupSettings[b]?.displayOrder ?? 999;
-      return orderA - orderB;
-    });
+    // Sort group names by displayOrder and filter out drinks
+    const sortedGroups = Object.keys(menuGroupSettings)
+      .filter((groupName) => {
+        const lowerGroupName = groupName.toLowerCase();
+        return lowerGroupName !== "drink" && lowerGroupName !== "drinks";
+      })
+      .sort((a, b) => {
+        const orderA = menuGroupSettings[a]?.displayOrder ?? 999;
+        const orderB = menuGroupSettings[b]?.displayOrder ?? 999;
+        return orderA - orderB;
+      });
 
     // Group items by menuGroup
     const groupItems: Record<string, MenuItem[]> = {};
@@ -179,6 +248,14 @@ export default function Step2MenuItems() {
 
     displayItems.forEach((item) => {
       const group = item.groupTitle || "Other";
+      const lowerGroup = group.toLowerCase();
+      // Skip drinks
+      if (lowerGroup === "drink" || lowerGroup === "drinks") {
+        return;
+      }
+      // if (item.status === "CATERING") {
+      //   return;
+      // }
       if (!groupItems[group]) groupItems[group] = [];
       groupItems[group].push(item);
     });
@@ -195,7 +272,7 @@ export default function Step2MenuItems() {
   const clearSearch = () => {
     setSearchQuery("");
     setIsSearching(false);
-    setSearchResults([]);
+    setSearchResults(null);
     fetchAllMenuItems();
   };
 
@@ -215,8 +292,13 @@ export default function Step2MenuItems() {
       setDisplayItems(
         menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
       );
+      console.log(
+        "selected restaurant id",
+        selectedRestaurantId,
+        menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
+      );
     } else {
-      setDisplayItems(isSearching ? searchResults : menuItems);
+      setDisplayItems(isSearching ? searchResults || [] : menuItems);
     }
   }, [selectedRestaurantId, isSearching, menuItems, searchResults]);
 
@@ -245,7 +327,7 @@ export default function Step2MenuItems() {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Header */}
-      <div className="bg-base-100 border-b border-base-300 pb-4">
+      {/* <div className="bg-base-100 border-b border-base-300 pb-4">
         <div className="max-w-7xl mx-auto px-4 pt-4">
           <div className="flex justify-between items-center mb-4">
             <div>
@@ -264,7 +346,6 @@ export default function Step2MenuItems() {
             </button>
           </div>
 
-          {/* Search Bar */}
           <form onSubmit={handleSearch} className="mb-6">
             <div className="flex gap-2 md:gap-4">
               <div className="relative flex-1">
@@ -297,7 +378,6 @@ export default function Step2MenuItems() {
             </div>
           </form>
 
-          {/* Restaurant Horizontal Scroll - Only show when not searching */}
           {!isSearching && (
             <div className="mt-6">
               <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
@@ -308,7 +388,7 @@ export default function Step2MenuItems() {
                   Loading restaurants...
                 </div>
               ) : (
-                <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+                <div className="flex flex-wrap sm:grid sm:grid-cols-3 gap-3 md:gap-4 pb-4">
                   {restaurants.map((restaurant) => (
                     <button
                       key={restaurant.id}
@@ -319,7 +399,7 @@ export default function Step2MenuItems() {
                             : restaurant.id
                         )
                       }
-                      className={`flex-shrink-0 w-32 md:w-40 rounded-xl overflow-hidden border-2 transition-all ${
+                      className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
                         selectedRestaurantId === restaurant.id
                           ? "border-primary shadow-lg"
                           : "border-base-300 hover:border-primary/50"
@@ -328,7 +408,7 @@ export default function Step2MenuItems() {
                       <img
                         src={restaurant.images[0] || "/placeholder.jpg"}
                         alt={restaurant.restaurant_name}
-                        className="w-full h-24 md:h-32 object-cover"
+                        className="w-full aspect-[16/9]  object-cover"
                       />
                       <div className="p-2 md:p-3 bg-base-100">
                         <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">
@@ -350,7 +430,6 @@ export default function Step2MenuItems() {
             </div>
           )}
 
-          {/* Search Results Header */}
           {isSearching && (
             <div className="mt-4 text-xs md:text-sm text-base-content/60">
               Showing search results for "{searchQuery}" ({displayItems.length}{" "}
@@ -358,303 +437,415 @@ export default function Step2MenuItems() {
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Menu Items Grid */}
-          <div className="flex-1">
-            {loading ? (
-              <div className="text-center py-12 text-base-content/60">
-                Loading menu items...
+      <div className="mx-auto px-4 py-6">
+        <form onSubmit={handleSearch} className="mb-6">
+          <div className="flex gap-2 md:gap-4">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search menu items..."
+                className="w-full pl-10 md:pl-12 pr-4 py-2 md:py-3 bg-white border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
+              />
+              <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-base-content/40">
+                🔍
               </div>
-            ) : displayItems.length === 0 ? (
-              <div className="text-center py-12 text-base-content/50 text-sm md:text-base">
-                {isSearching
-                  ? "No menu items found matching your search."
-                  : "No menu items available."}
-              </div>
-            ) : (
-              <>
-                {/* Group and sort items */}
-                {sortedGroups
-                  .filter(
-                    (groupName) =>
-                      groupedItems[groupName] &&
-                      groupedItems[groupName].length > 0
-                  )
-                  .map((groupName) => (
-                    <div key={groupName} className="mb-8">
-                      <h3 className="text-2xl font-bold text-primary mb-4">
-                        {groupName}
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                        {groupedItems[groupName].map((item) => {
-                          const quantity = getItemQuantity(item.id);
-                          const price = parseFloat(
-                            item.price?.toString() || "0"
-                          );
-                          const discountPrice = parseFloat(
-                            item.discountPrice?.toString() || "0"
-                          );
-                          const displayPrice =
-                            item.isDiscount && discountPrice > 0
-                              ? discountPrice
-                              : price;
-                          const BACKEND_QUANTITY_UNIT =
-                            item.cateringQuantityUnit || 7;
-                          const DISPLAY_FEEDS_PER_UNIT =
-                            item.feedsPerUnit || 10;
-
-                          const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-                          const displayQuantity =
-                            numUnits * DISPLAY_FEEDS_PER_UNIT;
-                          const isExpanded = expandedItemId === item.id;
-
-                          return (
-                            <div
-                              key={item.id}
-                              className="bg-base-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-base-300 h-full flex flex-col cursor-pointer"
-                              onClick={() =>
-                                setExpandedItemId(isExpanded ? null : item.id)
-                              }
-                            >
-                              {/* Show Image OR Details */}
-                              {!isExpanded ? (
-                                <>
-                                  {/* Normal Card View with Image */}
-                                  {item.image && (
-                                    <img
-                                      src={item.image}
-                                      alt={item.name}
-                                      className="w-full h-40 md:h-48 object-cover"
-                                    />
-                                  )}
-                                  <div className="p-3 md:p-4 flex-1 flex flex-col">
-                                    <h3 className="font-bold text-base md:text-lg text-base-content mb-2">
-                                      {item.name}
-                                    </h3>
-                                    {item.description && (
-                                      <p className="text-base-content/70 text-xs md:text-sm mb-3 line-clamp-2">
-                                        {item.description}
-                                      </p>
-                                    )}
-
-                                    {/* Show restaurant name in search results */}
-                                    {isSearching && item.restaurant && (
-                                      <p className="text-xs md:text-sm text-base-content/50 mb-2">
-                                        From: {item.restaurant.name}
-                                      </p>
-                                    )}
-
-                                    <div className="flex flex-column items-center gap-1 mb-3">
-                                      <span className="text-xl md:text-2xl font-bold text-primary">
-                                        £
-                                        {(
-                                          Number(displayPrice) *
-                                          BACKEND_QUANTITY_UNIT
-                                        ).toFixed(2)}
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-column items-center gap-1 mb-3">
-                                      <span className="text-xs text-base-content/60">
-                                        Feeds up to {DISPLAY_FEEDS_PER_UNIT}{" "}
-                                        people
-                                      </span>
-                                    </div>
-
-                                    <div
-                                      className="mt-auto"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      {quantity > 0 ? (
-                                        <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-3">
-                                          <button
-                                            onClick={() =>
-                                              updateItemQuantity(
-                                                item.id,
-                                                Math.max(
-                                                  0,
-                                                  quantity -
-                                                    BACKEND_QUANTITY_UNIT
-                                                )
-                                              )
-                                            }
-                                            className="..."
-                                          >
-                                            −
-                                          </button>
-                                          <span className="font-medium text-xs md:text-sm text-base-content">
-                                            Feeds {displayQuantity} people
-                                          </span>
-                                          <button
-                                            onClick={() =>
-                                              updateItemQuantity(
-                                                item.id,
-                                                quantity + BACKEND_QUANTITY_UNIT
-                                              )
-                                            }
-                                            className="..."
-                                          >
-                                            +
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        <button
-                                          onClick={() => handleAddItem(item)}
-                                          className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
-                                        >
-                                          Add to Order
-                                        </button>
-                                      )}
-
-                                      <p className="text-xs text-center text-base-content/40 mt-2">
-                                        Click card to view details & allergens
-                                      </p>
-                                    </div>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  {/* Expanded Details View (No Image) */}
-                                  <div className="p-3 md:p-4 flex-1 flex flex-col h-full">
-                                    <h3 className="font-bold text-base md:text-lg text-base-content mb-3">
-                                      {item.name}
-                                    </h3>
-
-                                    <div className="mb-4 space-y-3 flex-1 overflow-y-auto">
-                                      {item.description && (
-                                        <div>
-                                          <h4 className="font-semibold text-xs text-base-content mb-1">
-                                            Description
-                                          </h4>
-                                          <p className="text-base-content/70 text-xs leading-relaxed">
-                                            {item.description}
-                                          </p>
-                                        </div>
-                                      )}
-
-                                      {item.allergens &&
-                                      item.allergens.length > 0 ? (
-                                        <div>
-                                          <h4 className="font-semibold text-xs text-base-content mb-2">
-                                            Allergens
-                                          </h4>
-                                          <div className="flex flex-wrap gap-1 mb-2">
-                                            {item.allergens.map(
-                                              (
-                                                allergen: string,
-                                                index: number
-                                              ) => (
-                                                <span
-                                                  key={index}
-                                                  className="bg-warning/20 text-warning-content px-2 py-0.5 rounded-full text-xs font-medium"
-                                                >
-                                                  {allergen}
-                                                </span>
-                                              )
-                                            )}
-                                          </div>
-                                          <p className="text-xs text-base-content/50 italic mt-2 bg-base-200 p-2 rounded">
-                                            ⚠️ This is approximate. For full
-                                            allergen info, contact the
-                                            restaurant or our team.
-                                          </p>
-                                        </div>
-                                      ) : (
-                                        <div className="bg-base-200 p-2 rounded">
-                                          <p className="text-xs text-base-content/60 italic">
-                                            ⚠️ Allergen info not available.
-                                            Please contact the restaurant or our
-                                            team.
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    {/* Pricing */}
-                                    <div className="flex flex-column items-center gap-1 mb-2">
-                                      <span className="text-lg md:text-xl font-bold text-primary">
-                                        £
-                                        {(
-                                          Number(displayPrice) *
-                                          BACKEND_QUANTITY_UNIT
-                                        ).toFixed(2)}
-                                      </span>
-                                      <span className="text-xs text-base-content/60 ml-2">
-                                        (Feeds {DISPLAY_FEEDS_PER_UNIT})
-                                      </span>
-                                    </div>
-
-                                    <div
-                                      className="mt-auto"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      {quantity > 0 ? (
-                                        <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-2">
-                                          <button
-                                            onClick={() =>
-                                              updateItemQuantity(
-                                                item.id,
-                                                Math.max(
-                                                  0,
-                                                  quantity -
-                                                    BACKEND_QUANTITY_UNIT
-                                                )
-                                              )
-                                            }
-                                            className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                                          >
-                                            −
-                                          </button>
-                                          <span className="font-medium text-xs text-base-content">
-                                            Feeds {displayQuantity} people
-                                          </span>
-                                          <button
-                                            onClick={() =>
-                                              updateItemQuantity(
-                                                item.id,
-                                                quantity + BACKEND_QUANTITY_UNIT
-                                              )
-                                            }
-                                            className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                                          >
-                                            +
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        <button
-                                          onClick={() => handleAddItem(item)}
-                                          className="w-full bg-primary hover:opacity-90 text-white py-2 rounded-lg font-medium transition-all text-sm"
-                                        >
-                                          Add to Order
-                                        </button>
-                                      )}
-
-                                      <p className="text-xs text-center text-primary mt-2 font-medium">
-                                        Click card to go back
-                                      </p>
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-              </>
+            </div>
+            <button
+              type="submit"
+              className="bg-primary hover:opacity-90 text-white px-4 md:px-8 py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+            >
+              Search
+            </button>
+            {isSearching && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="bg-base-300 text-base-content px-3 md:px-6 py-2 md:py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
+              >
+                Clear
+              </button>
             )}
           </div>
+        </form>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Menu Items Grid */}
+
+          {selectedRestaurantId || searchResults !== null ? (
+            <div className="flex-1">
+              {loading ? (
+                <div className="text-center py-12 text-base-content/60">
+                  Loading menu items...
+                </div>
+              ) : displayItems.length === 0 ? (
+                <div className="text-center py-12 text-base-content/50 text-sm md:text-base">
+                  {isSearching
+                    ? "No menu items found matching your search."
+                    : "No menu items available."}
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-4xl font-bold text-primary mb-10 text-center">
+                    {restaurantName}
+                  </h2>
+                  {/* Group and sort items */}
+                  {sortedGroups
+                    .filter(
+                      (groupName) =>
+                        groupedItems[groupName] &&
+                        groupedItems[groupName].length > 0
+                    )
+                    .map((groupName) => (
+                      <div key={groupName} className="mb-8">
+                        <h3 className="text-2xl font-bold text-primary mb-4">
+                          {groupName}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                          {groupedItems[groupName].map((item) => {
+                            const quantity = getItemQuantity(item.id);
+                            const price = parseFloat(
+                              item.price?.toString() || "0"
+                            );
+                            const discountPrice = parseFloat(
+                              item.discountPrice?.toString() || "0"
+                            );
+                            const displayPrice =
+                              item.isDiscount && discountPrice > 0
+                                ? discountPrice
+                                : price;
+                            const BACKEND_QUANTITY_UNIT =
+                              item.cateringQuantityUnit || 7;
+                            const DISPLAY_FEEDS_PER_UNIT =
+                              item.feedsPerUnit || 10;
+
+                            const numUnits = quantity / BACKEND_QUANTITY_UNIT;
+                            const displayQuantity =
+                              numUnits * DISPLAY_FEEDS_PER_UNIT;
+                            const isExpanded = expandedItemId === item.id;
+
+                            return (
+                              <div
+                                key={item.id}
+                                className="bg-base-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-base-300 h-full flex flex-col cursor-pointer"
+                                onClick={() =>
+                                  setExpandedItemId(isExpanded ? null : item.id)
+                                }
+                              >
+                                {/* Show Image OR Details */}
+                                {!isExpanded ? (
+                                  <>
+                                    {/* Normal Card View with Image */}
+                                    {item.image && (
+                                      <img
+                                        src={item.image}
+                                        alt={item.name}
+                                        className="w-full h-40 md:h-48 object-cover"
+                                      />
+                                    )}
+                                    <div className="p-3 md:p-4 flex-1 flex flex-col">
+                                      <h3 className="font-bold text-base md:text-lg text-base-content mb-2">
+                                        {item.name}
+                                      </h3>
+                                      {item.description && (
+                                        <p className="text-base-content/70 text-xs md:text-sm mb-3 line-clamp-2">
+                                          {item.description}
+                                        </p>
+                                      )}
+
+                                      {/* Show restaurant name in search results */}
+                                      {isSearching && item.restaurant && (
+                                        <p className="text-xs md:text-sm text-base-content/50 mb-2">
+                                          From: {item.restaurant.name}
+                                        </p>
+                                      )}
+
+                                      <div className="flex flex-column items-center gap-1 mb-3">
+                                        <span className="text-xl md:text-2xl font-bold text-primary">
+                                          £
+                                          {(
+                                            Number(displayPrice) *
+                                            BACKEND_QUANTITY_UNIT
+                                          ).toFixed(2)}
+                                        </span>
+                                      </div>
+                                      {DISPLAY_FEEDS_PER_UNIT > 1 && (
+                                        <div className="flex flex-column items-center gap-1 mb-3">
+                                          <span className="text-xs text-base-content/60">
+                                            Feeds up to {DISPLAY_FEEDS_PER_UNIT}{" "}
+                                            people
+                                          </span>
+                                        </div>
+                                      )}
+                                      <div
+                                        className="mt-auto"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {quantity > 0 ? (
+                                          <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-3">
+                                            <button
+                                              onClick={() =>
+                                                updateItemQuantity(
+                                                  item.id,
+                                                  Math.max(
+                                                    0,
+                                                    quantity -
+                                                      BACKEND_QUANTITY_UNIT
+                                                  )
+                                                )
+                                              }
+                                              className="..."
+                                            >
+                                              −
+                                            </button>
+                                            <span className="font-medium text-xs md:text-sm text-base-content">
+                                              Feeds {displayQuantity} people
+                                            </span>
+                                            <button
+                                              onClick={() =>
+                                                updateItemQuantity(
+                                                  item.id,
+                                                  quantity +
+                                                    BACKEND_QUANTITY_UNIT
+                                                )
+                                              }
+                                              className="..."
+                                            >
+                                              +
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            onClick={() => handleAddItem(item)}
+                                            className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+                                          >
+                                            Add to Order
+                                          </button>
+                                        )}
+
+                                        <p className="text-xs text-center text-base-content/40 mt-2">
+                                          Click card to view details & allergens
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    {/* Expanded Details View (No Image) */}
+                                    <div className="p-3 md:p-4 flex-1 flex flex-col h-full">
+                                      <h3 className="font-bold text-base md:text-lg text-base-content mb-3">
+                                        {item.name}
+                                      </h3>
+
+                                      <div className="mb-4 space-y-3 flex-1 overflow-y-auto">
+                                        {item.description && (
+                                          <div>
+                                            <h4 className="font-semibold text-xs text-base-content mb-1">
+                                              Description
+                                            </h4>
+                                            <p className="text-base-content/70 text-xs leading-relaxed">
+                                              {item.description}
+                                            </p>
+                                          </div>
+                                        )}
+
+                                        {item.allergens &&
+                                        item.allergens.length > 0 ? (
+                                          <div>
+                                            <h4 className="font-semibold text-xs text-base-content mb-2">
+                                              Allergens
+                                            </h4>
+                                            <div className="flex flex-wrap gap-1 mb-2">
+                                              {item.allergens.map(
+                                                (
+                                                  allergen: string,
+                                                  index: number
+                                                ) => (
+                                                  <span
+                                                    key={index}
+                                                    className="bg-warning/20 text-warning-content px-2 py-0.5 rounded-full text-xs font-medium"
+                                                  >
+                                                    {allergen}
+                                                  </span>
+                                                )
+                                              )}
+                                            </div>
+                                            <p className="text-xs text-base-content/50 italic mt-2 bg-base-200 p-2 rounded">
+                                              ⚠️ This is approximate. For full
+                                              allergen info, contact the
+                                              restaurant or our team.
+                                            </p>
+                                          </div>
+                                        ) : (
+                                          <div className="bg-base-200 p-2 rounded">
+                                            <p className="text-xs text-base-content/60 italic">
+                                              ⚠️ Allergen info not available.
+                                              Please contact the restaurant or
+                                              our team.
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Pricing */}
+                                      <div className="flex flex-column items-center gap-1 mb-2">
+                                        <span className="text-lg md:text-xl font-bold text-primary">
+                                          £
+                                          {(
+                                            Number(displayPrice) *
+                                            BACKEND_QUANTITY_UNIT
+                                          ).toFixed(2)}
+                                        </span>
+                                        <span className="text-xs text-base-content/60 ml-2">
+                                          (Feeds {DISPLAY_FEEDS_PER_UNIT})
+                                        </span>
+                                      </div>
+
+                                      <div
+                                        className="mt-auto"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {quantity > 0 ? (
+                                          <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-2">
+                                            <button
+                                              onClick={() =>
+                                                updateItemQuantity(
+                                                  item.id,
+                                                  Math.max(
+                                                    0,
+                                                    quantity -
+                                                      BACKEND_QUANTITY_UNIT
+                                                  )
+                                                )
+                                              }
+                                              className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                                            >
+                                              −
+                                            </button>
+                                            <span className="font-medium text-xs text-base-content">
+                                              Feeds {displayQuantity} people
+                                            </span>
+                                            <button
+                                              onClick={() =>
+                                                updateItemQuantity(
+                                                  item.id,
+                                                  quantity +
+                                                    BACKEND_QUANTITY_UNIT
+                                                )
+                                              }
+                                              className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                                            >
+                                              +
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            onClick={() => handleAddItem(item)}
+                                            className="w-full bg-primary hover:opacity-90 text-white py-2 rounded-lg font-medium transition-all text-sm"
+                                          >
+                                            Add to Order
+                                          </button>
+                                        )}
+
+                                        <p className="text-xs text-center text-primary mt-2 font-medium">
+                                          Click card to go back
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="flex-1">
+              <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
+                Select Restaurant
+              </h3>
+              {restaurantsLoading ? (
+                <div className="text-center py-4 text-base-content/60 text-sm md:text-base">
+                  Loading restaurants...
+                </div>
+              ) : (
+                <div className="flex flex-wrap sm:grid sm:grid-cols-3 gap-3 md:gap-4 pb-4">
+                  {restaurants.map((restaurant) => (
+                    <button
+                      key={restaurant.id}
+                      onClick={() => {
+                        setSelectedRestaurantId(
+                          selectedRestaurantId === restaurant.id
+                            ? null
+                            : restaurant.id
+                        );
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
+                        selectedRestaurantId === restaurant.id
+                          ? "border-primary shadow-lg"
+                          : "border-base-300 hover:border-primary/50"
+                      }`}
+                    >
+                      <img
+                        src={restaurant.images[0] || "/placeholder.jpg"}
+                        alt={restaurant.restaurant_name}
+                        className="w-full aspect-[16/9]  object-cover"
+                      />
+                      <div className="p-2 md:p-3 bg-base-100">
+                        <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">
+                          {restaurant.restaurant_name}
+                        </h4>
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-yellow-500 text-xs md:text-sm">
+                            ★
+                          </span>
+                          <span className="text-xs md:text-sm text-base-content/70">
+                            {restaurant.averageRating}
+                          </span>
+                        </div>
+                        {restaurant.minCateringOrderQuantity &&
+                          restaurant.minCateringOrderQuantity > 1 && (
+                            <div className="mt-2 text-xs text-black bg-warning/10 px-2 py-1 rounded">
+                              Min. {restaurant.minCateringOrderQuantity} items
+                            </div>
+                          )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Cart Sidebar - Desktop */}
-          <div className="hidden lg:block lg:w-96 sticky top-4 h-fit">
+          <div className="hidden lg:block lg:w-96 sticky top-4 h-fit items-center justify-center">
             <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
               <h3 className="text-xl font-bold text-base-content mb-6">
                 Your Catering List
               </h3>
+              {(() => {
+                const warnings = getMinimumOrderWarnings();
+                return warnings.length > 0 ? (
+                  <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-xl">
+                    <p className="text-md font-semibold text-base-content mb-2">
+                      ⚠️ Minimum Order Requirements
+                    </p>
+                    {warnings.map((warning, index) => (
+                      <p key={index} className="text-md text-base-content">
+                        {warning}
+                      </p>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
 
               {selectedItems.length === 0 ? (
                 <p className="text-base-content/50 text-center py-8">
@@ -787,54 +978,112 @@ export default function Step2MenuItems() {
                   </div>
 
                   <button
-                    className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg"
-                    onClick={() => setCurrentStep(3)}
+                    className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                    onClick={() => {
+                      const warnings = getMinimumOrderWarnings();
+                      if (warnings.length > 0) {
+                        alert(
+                          `Please meet minimum order requirements:\n\n${warnings.join(
+                            "\n"
+                          )}`
+                        );
+                        return;
+                      }
+                      setCurrentStep(3);
+                    }}
+                    disabled={
+                      selectedItems.length === 0 ||
+                      getMinimumOrderWarnings().length > 0
+                    }
                   >
                     Continue to Contact Info
                   </button>
                 </>
               )}
             </div>
+            {/* {selectedRestaurantId && ( */}
+            <div className="flex justify-center w-full my-6">
+              <button
+                className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
+                onClick={
+                  () => {
+                    if (!selectedRestaurantId && !searchQuery) {
+                      setCurrentStep(1);
+                    } else {
+                      setSelectedRestaurantId(null);
+                      setSearchQuery("");
+                    }
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                  // setSelectedRestaurantId(null);
+                  // setSearchQuery("");
+                  // window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              >
+                ← Go Back to{" "}
+                {!selectedRestaurantId && !searchQuery
+                  ? "Step 1"
+                  : "Restaurants"}
+              </button>
+            </div>
+            {/* )} */}
           </div>
         </div>
       </div>
 
       {/* Mobile Cart Button - Fixed at bottom */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-4 z-20">
-        {selectedItems.length > 0 ? (
+        <div className="flex gap-2">
+          {/* {selectedRestaurantId && ( */}
           <button
-            onClick={() => setShowCartMobile(true)}
-            className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg flex items-center justify-between px-6"
+            className="bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm flex-shrink-0"
+            onClick={() => {
+              if (!selectedRestaurantId && !searchQuery) {
+                setCurrentStep(1);
+              } else {
+                setSelectedRestaurantId(null);
+                setSearchQuery("");
+              }
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           >
-            <span>View Cart ({selectedItems.length})</span>
-            <span>
-              £
-              {selectedItems
-                .reduce((sum, { item, quantity }) => {
-                  const price = parseFloat(item.price?.toString() || "0");
-                  const discountPrice = parseFloat(
-                    item.discountPrice?.toString() || "0"
-                  );
-                  const itemPrice =
-                    item.isDiscount && discountPrice > 0
-                      ? discountPrice
-                      : price;
-                  return sum + itemPrice * quantity;
-                }, 0)
-                .toFixed(2)}
-            </span>
+            ← Back
           </button>
-        ) : (
-          <button
-            disabled
-            className="w-full bg-base-300 text-base-content/50 py-4 rounded-lg font-bold text-lg cursor-not-allowed"
-          >
-            No items selected
-          </button>
-        )}
+          {/* )} */}
+          {selectedItems.length > 0 ? (
+            <button
+              onClick={() => setShowCartMobile(true)}
+              className="flex-1 bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg flex items-center justify-between px-6"
+            >
+              <span>View Cart ({selectedItems.length})</span>
+              <span>
+                £
+                {selectedItems
+                  .reduce((sum, { item, quantity }) => {
+                    const price = parseFloat(item.price?.toString() || "0");
+                    const discountPrice = parseFloat(
+                      item.discountPrice?.toString() || "0"
+                    );
+                    const itemPrice =
+                      item.isDiscount && discountPrice > 0
+                        ? discountPrice
+                        : price;
+                    return sum + itemPrice * quantity;
+                  }, 0)
+                  .toFixed(2)}
+              </span>
+            </button>
+          ) : (
+            <button
+              disabled
+              className="flex-1 bg-base-300 text-base-content/50 py-4 rounded-lg font-bold text-lg cursor-not-allowed"
+            >
+              No items selected
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Mobile Cart Modal */}
       {/* Mobile Cart Modal */}
       {showCartMobile && (
         <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
@@ -852,6 +1101,21 @@ export default function Step2MenuItems() {
             </div>
 
             <div className="p-4">
+              {(() => {
+                const warnings = getMinimumOrderWarnings();
+                return warnings.length > 0 ? (
+                  <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-xl">
+                    <p className="text-xs font-semibold text-base-content mb-2">
+                      ⚠️ Minimum Order Requirements
+                    </p>
+                    {warnings.map((warning, index) => (
+                      <p key={index} className="text-xs text-base-content">
+                        {warning}
+                      </p>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
               {selectedItems.length === 0 ? (
                 <p className="text-base-content/50 text-center py-8">
                   No items selected yet
@@ -986,11 +1250,21 @@ export default function Step2MenuItems() {
                   </div>
 
                   <button
-                    className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg"
+                    className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
                     onClick={() => {
+                      const warnings = getMinimumOrderWarnings();
+                      if (warnings.length > 0) {
+                        alert(
+                          `Please meet minimum order requirements:\n\n${warnings.join(
+                            "\n"
+                          )}`
+                        );
+                        return;
+                      }
                       setShowCartMobile(false);
                       setCurrentStep(3);
                     }}
+                    disabled={getMinimumOrderWarnings().length > 0}
                   >
                     Continue to Contact Info
                   </button>

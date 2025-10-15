@@ -8,8 +8,8 @@ import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 
 export default function Step3ContactInfo() {
-  const BACKEND_QUANTITY_UNIT = 7;
-  const DISPLAY_FEEDS_PER_UNIT = 10;
+  // const BACKEND_QUANTITY_UNIT = 7;
+  // const DISPLAY_FEEDS_PER_UNIT = 10;
   const {
     contactInfo,
     setContactInfo,
@@ -36,6 +36,8 @@ export default function Step3ContactInfo() {
   const [promoCode, setPromoCode] = useState<string>("");
   const [promoInput, setPromoInput] = useState("");
   const [validatingPromo, setValidatingPromo] = useState(false);
+  const [promoError, setPromoError] = useState("");
+  const [promoSuccess, setPromoSuccess] = useState("");
   const [promoError, setPromoError] = useState("");
   const [promoSuccess, setPromoSuccess] = useState("");
   const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
@@ -424,7 +426,7 @@ export default function Step3ContactInfo() {
               Your Catering List
             </h4>
 
-            {promoCode && (
+            {promoCodes.length > 0 && (
               <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-xl">
                 <p className="text-sm text-success font-medium">
                   ✓ Promo code applied: {promoCode}
@@ -993,7 +995,7 @@ export default function Step3ContactInfo() {
         </div>
 
         {/* Mobile Submit Button (Below Form) */}
-        <div className="lg:hidden mt-6">
+        {/* <div className="lg:hidden mt-6">
           <button
             type="submit"
             disabled={submitting}
@@ -1002,7 +1004,7 @@ export default function Step3ContactInfo() {
           >
             {submitting ? "Submitting..." : "Submit"}
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
