@@ -14,6 +14,7 @@ export default function Footer() {
                 width={40}
                 height={40}
                 alt="swift foods logo"
+                className="rounded-full"
               />
               <label className="font-bold text-primary">SWIFT FOOD</label>
             </div>
