@@ -82,7 +82,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   };
 
   const addMenuItem = (newItem: SelectedMenuItem) => {
-    const validQuantity = Math.max(7, newItem.quantity);
+    const validQuantity = Math.max(newItem.quantity);
     
     setSelectedItemsState((prev) => {
       const existingIndex = prev.findIndex((i) => i.item.id === newItem.item.id);

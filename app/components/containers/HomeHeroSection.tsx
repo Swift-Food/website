@@ -38,11 +38,11 @@ export default function HomeHeroSection() {
   const textSection = (
    <div
   className="
-    flex flex-col justify-center gap-8 md:gap-12 p-6 max-lg:p-4 max-sm:p-3 max-lg:text-center
+flex flex-col justify-center gap-8 md:gap-12 p-6 max-lg:p-4 max-sm:p-3 max-lg:text-center
     lg:basis-[35%] lg:flex-none
   "
   >
-      <h2 className="text-6xl font-bold text-primary max-lg:text-4xl max-sm:text-2xl">
+      <h2 className="text-6xl font-bold text-primary max-lg:text-4xl max-sm:text-2xl ">
         REAL, LOCAL & FAST
       </h2>
       <p className="text-primary leading-relaxed text-m max-lg:text-base max-sm:text-sm">

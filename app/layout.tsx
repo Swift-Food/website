@@ -48,7 +48,7 @@ export default function RootLayout({
         >
           {children}
         </main>
-        <div className="divider"></div>
+        {/* <div className="divider"></div> */}
         <Footer />
         <style>{`
           @keyframes marquee {
