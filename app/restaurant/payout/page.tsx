@@ -147,12 +147,21 @@ const api = {
     if (!response.ok) throw new Error('Failed to fetch withdrawal history');
     return response.json();
   },
+
+  getCateringOrders: async (restaurantId: string, token: string): Promise<CateringOrder[]> => {
+    console.log("the restaurnat id being sent", restaurantId)
+    const response = await fetch(`${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('Failed to fetch catering orders');
+    return response.json();
+  },
 };
 
 const useAuth = () => {
     const [user, setUser] = useState<any>(null);
     const [token, setToken] = useState<string | null>(null);
-  
+
     useEffect(() => {
       const storedToken = localStorage.getItem('access_token');
       const storedUser = localStorage.getItem('user');
@@ -211,7 +220,7 @@ const LoginPage = ({ onLogin }: { onLogin: (email: string, password: string) => 
       setLoading(false);
     }
   };
-
+  console.log("user is")
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
@@ -429,15 +438,156 @@ const WithdrawalHistory = ({ history }: { history: WithdrawalRequest[] }) => {
   );
 };
 
+// Add new component before WithdrawalDashboard
+const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
+  console.log("Catering orders are", orders)
+  const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  const formatCurrency = (amount: any) => `£${amount}`;
+
+  const getStatusColor = (status: string) => {
+    if (status === 'paid' || status === 'confirmed') {
+      return 'bg-green-100 text-green-800 border-green-300';
+    }
+    return 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+
+  if (orders.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <p className="text-lg">No catering orders yet</p>
+        <p className="text-sm mt-2">Your confirmed catering orders will appear here</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {orders.map((order) => (
+        <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-shadow">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+                {order.status.toUpperCase()}
+              </span>
+              <p className="text-xs text-gray-500 mt-2">Order: {order.id.substring(0, 8).toUpperCase()}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.finalTotal)}</p>
+              <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
+            </div>
+          </div>
+
+          {/* Customer Info */}
+          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Customer Details</h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <p className="text-gray-600">Name: <span className="text-gray-900 font-medium">{order.customerName}</span></p>
+              <p className="text-gray-600">Phone: <span className="text-gray-900 font-medium">{order.customerPhone}</span></p>
+              <p className="text-gray-600 col-span-2">Email: <span className="text-gray-900 font-medium">{order.customerEmail}</span></p>
+            </div>
+          </div>
+
+          {/* Event Details */}
+          <div className="mb-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Event Information</h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
+              <p className="text-gray-600">Time: <span className="text-gray-900 font-medium">{order.eventTime}</span></p>
+              <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
+              <p className="text-gray-600">Type: <span className="text-gray-900 font-medium">{order.eventType}</span></p>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              Delivery: <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>
+            </p>
+          </div>
+
+          {/* Order Items */}
+          <div className="border-t border-gray-200 pt-4">
+            <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
+            {order.orderItems.map((restaurant, idx) => (
+              <div key={idx} className="mb-3">
+                <div className="space-y-2">
+                  {restaurant.menuItems.map((item, itemIdx) => {
+                    const feeds = item.feedsPerUnit && item.cateringQuantityUnit
+                      ? Math.round((item.quantity / item.cateringQuantityUnit) * item.feedsPerUnit)
+                      : null;
+                    
+                    return (
+                      <div key={itemIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                        <div>
+                          <p className="font-medium text-gray-900">{item.name}</p>
+                          <p className="text-xs text-gray-500">
+                            Qty: {item.quantity}
+                            {feeds && ` • Feeds up to ${feeds} people`}
+                          </p>
+                        </div>
+                        <p className="font-semibold text-gray-900">{formatCurrency(item.totalPrice)}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Special Requirements */}
+          {order.specialRequirements && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs font-semibold text-yellow-900 mb-1">Special Requirements:</p>
+              <p className="text-sm text-yellow-800">{order.specialRequirements}</p>
+            </div>
+          )}
+
+          {/* Pricing Summary */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>Subtotal:</span>
+                <span>{formatCurrency(order.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Service Charge:</span>
+                <span>{formatCurrency(order.serviceCharge)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Delivery Fee:</span>
+                <span>{formatCurrency(order.deliveryFee)}</span>
+              </div>
+              {order.promoDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount:</span>
+                  <span>-{formatCurrency(order.promoDiscount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-200">
+                <span>Total:</span>
+                <span>{formatCurrency(order.finalTotal)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // Main Withdrawal Dashboard
 const WithdrawalDashboard = ({ 
   userId, 
   restaurantUserId,
+  restaurantId,
   token, 
   onLogout 
 }: { 
   userId: string; 
   restaurantUserId: string;
+  restaurantId: string;
   token: string; 
   onLogout: () => void;
 }) => {
@@ -450,19 +600,25 @@ const WithdrawalDashboard = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
+  const [activeTab, setActiveTab] = useState<'withdrawals' | 'catering'>('withdrawals');
 
+  // Update fetchData function to include catering orders
   const fetchData = async () => {
     setLoading(true);
     setError('');
     try {
-      const [statusData, balanceData, historyData] = await Promise.all([
+      const [statusData, balanceData, historyData, cateringData] = await Promise.all([
         api.checkStripeStatus(restaurantUserId, token),
         api.getBalance(restaurantUserId, token),
         api.getWithdrawalHistory(restaurantUserId, token),
+        api.getCateringOrders(restaurantId, token),
       ]);
       setStripeStatus(statusData);
       setBalance(balanceData);
       setHistory(historyData);
+      setCateringOrders(cateringData);
+      console.log("Catering data is", cateringData, restaurantUserId)
     } catch (err: any) {
       setError(err.message || 'Failed to load data');
     } finally {
@@ -526,29 +682,29 @@ const WithdrawalDashboard = ({
     );
   }
 
-  if (!stripeStatus?.complete) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-6xl mx-auto py-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Withdrawal Dashboard</h1>
-            <button
-              onClick={onLogout}
-              className="flex items-center text-gray-600 hover:text-gray-900"
-            >
-              <LogOut size={20} className="mr-2" />
-              Logout
-            </button>
-          </div>
-          <StripeOnboardingRequired 
-            userId={restaurantUserId} 
-            token={token} 
-            onRefresh={fetchData}
-          />
-        </div>
-      </div>
-    );
-  }
+  // if (!stripeStatus?.complete) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 p-4">
+  //       <div className="max-w-6xl mx-auto py-8">
+  //         <div className="flex justify-between items-center mb-8">
+  //           <h1 className="text-3xl font-bold text-gray-900">Withdrawal Dashboard</h1>
+  //           <button
+  //             onClick={onLogout}
+  //             className="flex items-center text-gray-600 hover:text-gray-900"
+  //           >
+  //             <LogOut size={20} className="mr-2" />
+  //             Logout
+  //           </button>
+  //         </div>
+  //         <StripeOnboardingRequired 
+  //           userId={restaurantUserId} 
+  //           token={token} 
+  //           onRefresh={fetchData}
+  //         />
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -596,6 +752,38 @@ const WithdrawalDashboard = ({
           </div> */}
         </div>
 
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('withdrawals')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'withdrawals'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Withdrawals
+              </button>
+              <button
+                onClick={() => setActiveTab('catering')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'catering'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Catering Orders
+                {cateringOrders.length > 0 && (
+                  <span className="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2 rounded-full text-xs">
+                    {cateringOrders.length}
+                  </span>
+                )}
+              </button>
+            </nav>
+          </div>
+        </div>
+
         {/* Early Withdrawal Fee Warning */}
         {balance && !balance.canWithdrawWithoutFee && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start">
@@ -609,9 +797,10 @@ const WithdrawalDashboard = ({
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Withdrawal Form */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
+        {activeTab === 'withdrawals' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Withdrawal Form */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Request Withdrawal</h2>
 
             {error && (
@@ -712,6 +901,17 @@ const WithdrawalDashboard = ({
             </div>
           </div>
         </div>
+   
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Catering Orders</h2>
+            <div className="max-h-[800px] overflow-y-auto">
+              <CateringOrdersList orders={cateringOrders} />
+            </div>
+          </div>
+        )}
+
+        
       </div>
     </div>
   );
@@ -731,6 +931,7 @@ const RestaurantWithdrawalApp = () => {
       <WithdrawalDashboard 
         userId={user.id} 
         restaurantUserId={user.restaurantUser.id}
+        restaurantId = {user.restaurantUser.restaurant.id}
         token={token} 
         onLogout={logout}
       />

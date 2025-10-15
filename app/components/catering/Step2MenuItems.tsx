@@ -103,7 +103,7 @@ export default function Step2MenuItems() {
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurant`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurant/catering/restaurants`);
       const data = await response.json();
       setRestaurants(data);
     } catch (error) {
