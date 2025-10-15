@@ -121,7 +121,9 @@ export default function Step2MenuItems() {
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurant/catering/restaurants`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/restaurant/catering/restaurants`
+      );
       const data = await response.json();
       // Filter to only show restaurants with isCatering = true
       // const cateringRestaurants = data.filter(
@@ -229,11 +231,14 @@ export default function Step2MenuItems() {
   // Filter by selected restaurant if one is selected
   useEffect(() => {
     if (selectedRestaurantId && !isSearching) {
-      
       setDisplayItems(
         menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
       );
-      console.log("selected restaurant id", selectedRestaurantId, menuItems.filter((item) => item.restaurantId === selectedRestaurantId))
+      console.log(
+        "selected restaurant id",
+        selectedRestaurantId,
+        menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
+      );
     } else {
       setDisplayItems(isSearching ? searchResults || [] : menuItems);
     }
@@ -920,18 +925,22 @@ export default function Step2MenuItems() {
       {/* Mobile Cart Button - Fixed at bottom */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-4 z-20">
         <div className="flex gap-2">
-          {selectedRestaurantId && (
-            <button
-              className="bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm flex-shrink-0"
-              onClick={() => {
+          {/* {selectedRestaurantId && ( */}
+          <button
+            className="bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm flex-shrink-0"
+            onClick={() => {
+              if (!selectedRestaurantId && !searchQuery) {
+                setCurrentStep(1);
+              } else {
                 setSelectedRestaurantId(null);
                 setSearchQuery("");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            >
-              ← Back
-            </button>
-          )}
+              }
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          >
+            ← Back
+          </button>
+          {/* )} */}
           {selectedItems.length > 0 ? (
             <button
               onClick={() => setShowCartMobile(true)}
