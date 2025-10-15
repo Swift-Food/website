@@ -9,7 +9,7 @@ function NavbarAction() {
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
       <Link href={"/catering"}>
         <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">
-          CATERING
+          EVENT ORDERING
         </button>
       </Link>
       <Link href={"/#aboutus"}>
@@ -70,9 +70,7 @@ export default function Navbar() {
             className="drawer-overlay"
           ></label>
           <div className="h-full bg-white w-[80%]">
-            <div className="px-3 mt-4">
-              {/* <SearchBar /> */}
-            </div>
+            <div className="px-3 mt-4">{/* <SearchBar /> */}</div>
             <NavbarAction />
           </div>
         </div>
