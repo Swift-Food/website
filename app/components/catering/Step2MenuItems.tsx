@@ -55,6 +55,7 @@ export default function Step2MenuItems() {
   const [loading, setLoading] = useState(false);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [restaurantName, setRestaurantName] = useState("");
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showCartMobile, setShowCartMobile] = useState(false);
@@ -65,6 +66,17 @@ export default function Step2MenuItems() {
   useEffect(() => {
     fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    if (selectedRestaurantId) {
+      const selectedRestaurant = restaurants.find(
+        (r) => r.id === selectedRestaurantId
+      );
+      setRestaurantName(selectedRestaurant?.restaurant_name || "");
+    } else {
+      setRestaurantName("");
+    }
+  }, [restaurants, selectedRestaurantId]);
 
   // Fetch menu items when restaurant is selected
   useEffect(() => {
@@ -140,41 +152,46 @@ export default function Step2MenuItems() {
 
   // Add this function at the top of the component, after other helper functions
   const getRestaurantItemCounts = () => {
-    const counts: Record<string, { count: number; minRequired: number; name: string }> = {};
-    
+    const counts: Record<
+      string,
+      { count: number; minRequired: number; name: string }
+    > = {};
+
     selectedItems.forEach(({ item, quantity }) => {
       const restaurantId = item.restaurantId;
-      
+
       // Skip if restaurantId is undefined
       if (!restaurantId) return;
-      
-      const restaurant = restaurants.find(r => r.id === restaurantId);
-      
+
+      const restaurant = restaurants.find((r) => r.id === restaurantId);
+
       if (!counts[restaurantId]) {
         counts[restaurantId] = {
           count: 0,
           minRequired: restaurant?.minCateringOrderQuantity || 1,
-          name: restaurant?.restaurant_name || 'Unknown Restaurant'
+          name: restaurant?.restaurant_name || "Unknown Restaurant",
         };
       }
-      
+
       const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
       counts[restaurantId].count += quantity / BACKEND_QUANTITY_UNIT;
     });
-    
+
     return counts;
   };
 
   const getMinimumOrderWarnings = () => {
     const counts = getRestaurantItemCounts();
     const warnings: string[] = [];
-    
+
     Object.entries(counts).forEach(([, data]) => {
       if (data.count < data.minRequired) {
-        warnings.push(`${data.name}: Add ${data.minRequired - data.count} more item(s)`);
+        warnings.push(
+          `${data.name}: Add ${data.minRequired - data.count} more item(s)`
+        );
       }
     });
-    
+
     return warnings;
   };
 
@@ -472,6 +489,9 @@ export default function Step2MenuItems() {
                 </div>
               ) : (
                 <>
+                  <h2 className="text-4xl font-bold text-primary mb-10 text-center">
+                    {restaurantName}
+                  </h2>
                   {/* Group and sort items */}
                   {sortedGroups
                     .filter(
@@ -791,11 +811,12 @@ export default function Step2MenuItems() {
                             {restaurant.averageRating}
                           </span>
                         </div>
-                        {restaurant.minCateringOrderQuantity && restaurant.minCateringOrderQuantity > 1 && (
-                          <div className="mt-2 text-xs text-black bg-warning/10 px-2 py-1 rounded">
-                            Min. {restaurant.minCateringOrderQuantity} items
-                          </div>
-                        )}
+                        {restaurant.minCateringOrderQuantity &&
+                          restaurant.minCateringOrderQuantity > 1 && (
+                            <div className="mt-2 text-xs text-black bg-warning/10 px-2 py-1 rounded">
+                              Min. {restaurant.minCateringOrderQuantity} items
+                            </div>
+                          )}
                       </div>
                     </button>
                   ))}
@@ -814,9 +835,13 @@ export default function Step2MenuItems() {
                 const warnings = getMinimumOrderWarnings();
                 return warnings.length > 0 ? (
                   <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-xl">
-                    <p className="text-md font-semibold text-base-content mb-2">⚠️ Minimum Order Requirements</p>
+                    <p className="text-md font-semibold text-base-content mb-2">
+                      ⚠️ Minimum Order Requirements
+                    </p>
                     {warnings.map((warning, index) => (
-                      <p key={index} className="text-md text-base-content">{warning}</p>
+                      <p key={index} className="text-md text-base-content">
+                        {warning}
+                      </p>
                     ))}
                   </div>
                 ) : null;
@@ -952,18 +977,24 @@ export default function Step2MenuItems() {
                     </div>
                   </div>
 
-          
                   <button
                     className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
                     onClick={() => {
                       const warnings = getMinimumOrderWarnings();
                       if (warnings.length > 0) {
-                        alert(`Please meet minimum order requirements:\n\n${warnings.join('\n')}`);
+                        alert(
+                          `Please meet minimum order requirements:\n\n${warnings.join(
+                            "\n"
+                          )}`
+                        );
                         return;
                       }
                       setCurrentStep(3);
                     }}
-                    disabled={selectedItems.length === 0 || getMinimumOrderWarnings().length > 0}
+                    disabled={
+                      selectedItems.length === 0 ||
+                      getMinimumOrderWarnings().length > 0
+                    }
                   >
                     Continue to Contact Info
                   </button>
@@ -1070,14 +1101,17 @@ export default function Step2MenuItems() {
             </div>
 
             <div className="p-4">
-           
               {(() => {
                 const warnings = getMinimumOrderWarnings();
                 return warnings.length > 0 ? (
                   <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-xl">
-                    <p className="text-xs font-semibold text-base-content mb-2">⚠️ Minimum Order Requirements</p>
+                    <p className="text-xs font-semibold text-base-content mb-2">
+                      ⚠️ Minimum Order Requirements
+                    </p>
                     {warnings.map((warning, index) => (
-                      <p key={index} className="text-xs text-base-content">{warning}</p>
+                      <p key={index} className="text-xs text-base-content">
+                        {warning}
+                      </p>
                     ))}
                   </div>
                 ) : null;
@@ -1220,7 +1254,11 @@ export default function Step2MenuItems() {
                     onClick={() => {
                       const warnings = getMinimumOrderWarnings();
                       if (warnings.length > 0) {
-                        alert(`Please meet minimum order requirements:\n\n${warnings.join('\n')}`);
+                        alert(
+                          `Please meet minimum order requirements:\n\n${warnings.join(
+                            "\n"
+                          )}`
+                        );
                         return;
                       }
                       setShowCartMobile(false);
