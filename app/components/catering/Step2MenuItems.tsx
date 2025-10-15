@@ -124,10 +124,10 @@ export default function Step2MenuItems() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurant/catering/restaurants`);
       const data = await response.json();
       // Filter to only show restaurants with isCatering = true
-      const cateringRestaurants = data.filter(
-        (restaurant: any) => restaurant.isCatering === true
-      );
-      setRestaurants(cateringRestaurants);
+      // const cateringRestaurants = data.filter(
+      //   (restaurant: any) => restaurant.isCatering === true
+      // );
+      setRestaurants(data);
     } catch (error) {
       console.error("Error fetching restaurants:", error);
     } finally {
