@@ -23,6 +23,7 @@ export interface MenuItem {
   feedsPerUnit?: number;
   restaurantId: string;
   groupTitle?: string;
+  status?: string;
   restaurant?: {
     id: string;
     name: string;
@@ -93,6 +94,7 @@ export default function Step2MenuItems() {
         cateringQuantityUnit: item.cateringQuantityUnit || 7, // Add with default
         feedsPerUnit: item.feedsPerUnit || 10, // Add with default
         groupTitle: item.groupTitle,
+        status: item.status,
         restaurant: {
           id: item.restaurantId,
           name: item.restaurant?.restaurant_name || "Unknown",
@@ -120,14 +122,14 @@ export default function Step2MenuItems() {
     setRestaurantsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/restaurant/catering/restaurants`
+        `${process.env.NEXT_PUBLIC_API_URL}/restaurant`
       );
       const data = await response.json();
       // Filter to only show restaurants with isCatering = true
-      // const cateringRestaurants = data.filter(
-      //   (restaurant: any) => restaurant.isCatering === true
-      // );
-      setRestaurants(data);
+      const cateringRestaurants = data.filter(
+        (restaurant: any) => restaurant.isCatering === true
+      );
+      setRestaurants(cateringRestaurants);
     } catch (error) {
       console.error("Error fetching restaurants:", error);
     } finally {
@@ -191,6 +193,9 @@ export default function Step2MenuItems() {
       const lowerGroup = group.toLowerCase();
       // Skip drinks
       if (lowerGroup === "drink" || lowerGroup === "drinks") {
+        return;
+      }
+      if (item.status === "CATERING") {
         return;
       }
       if (!groupItems[group]) groupItems[group] = [];
