@@ -95,12 +95,20 @@ const api = {
   },
 
   // Stripe onboarding endpoints
-  checkStripeStatus: async (userId: string, token: string): Promise<StripeOnboardingStatus> => {
-    const response = await fetch(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to check Stripe status');
-    return response.json();
+  checkStripeStatus: async (userId: string, token: string): Promise<StripeOnboardingStatus | null> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        console.warn('Stripe status fetch failed:', response.status);
+        return null;
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Stripe status error:', error);
+      return null;
+    }
   },
 
   refreshOnboardingLink: async (userId: string, token: string): Promise<{ onboardingUrl: string }> => {
@@ -113,13 +121,22 @@ const api = {
   },
 
   // Withdrawal endpoints
-  getBalance: async (userId: string, token: string): Promise<BalanceInfo> => {
-    const response = await fetch(`${API_BASE_URL}/withdrawals/balance/${userId}/restaurant`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to fetch balance');
-    return response.json();
+  getBalance: async (userId: string, token: string): Promise<BalanceInfo | null> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/withdrawals/balance/${userId}/restaurant`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        console.warn('Balance fetch failed:', response.status);
+        return null; // Return null instead of throwing
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Balance error:', error);
+      return null;
+    }
   },
+  
 
   requestWithdrawal: async (data: {
     userId: string;
@@ -148,13 +165,16 @@ const api = {
     return response.json();
   },
 
-  getCateringOrders: async (restaurantId: string, token: string): Promise<CateringOrder[]> => {
-    console.log("the restaurnat id being sent", restaurantId)
-    const response = await fetch(`${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to fetch catering orders');
-    return response.json();
+  getCateringOrders: async (restaurantId: string, token: string) => {
+ 
+    console.log("catering order rq", `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}` )
+    const response = await fetch(`${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`);
+    
+
+    const data = await response.json();
+
+    
+    return data;
   },
 };
 
@@ -440,7 +460,7 @@ const WithdrawalHistory = ({ history }: { history: WithdrawalRequest[] }) => {
 
 // Add new component before WithdrawalDashboard
 const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
-  console.log("Catering orders are", orders)
+
   const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'short',
@@ -472,13 +492,13 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
           {/* Header */}
           <div className="flex justify-between items-start mb-4">
             <div>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+              {/* <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
                 {order.status.toUpperCase()}
-              </span>
+              </span> */}
               <p className="text-xs text-gray-500 mt-2">Order: {order.id.substring(0, 8).toUpperCase()}</p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.finalTotal)}</p>
+              <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
               <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
             </div>
           </div>
@@ -524,10 +544,10 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
                           <p className="font-medium text-gray-900">{item.name}</p>
                           <p className="text-xs text-gray-500">
                             Qty: {item.quantity}
-                            {feeds && ` • Feeds up to ${feeds} people`}
+                            {/* {feeds && ` • Feeds up to ${feeds} people`} */}
                           </p>
                         </div>
-                        <p className="font-semibold text-gray-900">{formatCurrency(item.totalPrice)}</p>
+                        {/* <p className="font-semibold text-gray-900">{formatCurrency(item.totalPrice)}</p> */}
                       </div>
                     );
                   })}
@@ -545,7 +565,7 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
           )}
 
           {/* Pricing Summary */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          {/* <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="space-y-1 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>
@@ -570,7 +590,7 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
                 <span>{formatCurrency(order.finalTotal)}</span>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       ))}
     </div>
@@ -614,12 +634,14 @@ const WithdrawalDashboard = ({
         api.getWithdrawalHistory(restaurantUserId, token),
         api.getCateringOrders(restaurantId, token),
       ]);
-      setStripeStatus(statusData);
-      setBalance(balanceData);
-      setHistory(historyData);
-      setCateringOrders(cateringData);
-      console.log("Catering data is", cateringData, restaurantUserId)
+      
+      if (statusData) setStripeStatus(statusData);
+      if (balanceData) setBalance(balanceData);
+      setHistory(historyData || []);
+      setCateringOrders(cateringData || []);
+      console.log("Catering data is", cateringData, restaurantId);
     } catch (err: any) {
+      console.error('Fetch error:', err);
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
@@ -682,29 +704,29 @@ const WithdrawalDashboard = ({
     );
   }
 
-  // if (!stripeStatus?.complete) {
-  //   return (
-  //     <div className="min-h-screen bg-gray-50 p-4">
-  //       <div className="max-w-6xl mx-auto py-8">
-  //         <div className="flex justify-between items-center mb-8">
-  //           <h1 className="text-3xl font-bold text-gray-900">Withdrawal Dashboard</h1>
-  //           <button
-  //             onClick={onLogout}
-  //             className="flex items-center text-gray-600 hover:text-gray-900"
-  //           >
-  //             <LogOut size={20} className="mr-2" />
-  //             Logout
-  //           </button>
-  //         </div>
-  //         <StripeOnboardingRequired 
-  //           userId={restaurantUserId} 
-  //           token={token} 
-  //           onRefresh={fetchData}
-  //         />
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (!stripeStatus?.complete) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-6xl mx-auto py-8">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Withdrawal Dashboard</h1>
+            <button
+              onClick={onLogout}
+              className="flex items-center text-gray-600 hover:text-gray-900"
+            >
+              <LogOut size={20} className="mr-2" />
+              Logout
+            </button>
+          </div>
+          <StripeOnboardingRequired 
+            userId={restaurantUserId} 
+            token={token} 
+            onRefresh={fetchData}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">

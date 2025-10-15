@@ -31,6 +31,7 @@ interface CateringOrderItem {
     promoDiscount: number;
     estimatedTotal: number;
     finalTotal: number;
+    restaurantTotalCost: number;
     status: string;
     createdAt: string;
   }
