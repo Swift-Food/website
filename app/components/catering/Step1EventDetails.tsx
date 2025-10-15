@@ -139,24 +139,26 @@ export default function Step1EventDetails() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div className="w-full">
               <label className="block text-sm font-medium mb-2">
                 Event Date
               </label>
 
-              <input
-                type="date"
-                required
-                value={formData.eventDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, eventDate: e.target.value })
-                }
-                min={getMinDate()}
-                max={getMaxDate()}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <div className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <input
+                  type="date"
+                  required
+                  value={formData.eventDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, eventDate: e.target.value })
+                  }
+                  min={getMinDate()}
+                  max={getMaxDate()}
+                  className="w-full"
+                />
+              </div>
             </div>
-            <div>
+            <div className="w-full">
               <label className="block text-sm font-medium mb-2">
                 Event Time
               </label>
