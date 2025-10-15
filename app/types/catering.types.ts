@@ -1,5 +1,5 @@
 // Add after existing types
-interface CateringOrderItem {
+export interface CateringOrderItem {
     restaurantId: string;
     restaurantName: string;
     menuItems: {
@@ -13,7 +13,7 @@ interface CateringOrderItem {
     specialInstructions?: string;
   }
   
-  interface CateringOrder {
+ export interface CateringOrder {
     id: string;
     customerName: string;
     customerEmail: string;

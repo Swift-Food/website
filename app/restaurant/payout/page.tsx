@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, Clock, CreditCard, DollarSign, ExternalLink, LogOut, Loader } from 'lucide-react';
+import { CateringOrder } from '@/app/types/catering.types';
 
 // Types
 const WithdrawalStatus = {
@@ -95,7 +96,7 @@ const api = {
   },
 
   // Stripe onboarding endpoints
-  checkStripeStatus: async (userId: string, token: string): Promise<StripeOnboardingStatus | null> => {
+  checkStripeStatus: async (userId: string): Promise<StripeOnboardingStatus | null> => {
     try {
       console.log(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`)
       const response = await fetch(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`);
@@ -165,7 +166,7 @@ const api = {
     return response.json();
   },
 
-  getCateringOrders: async (restaurantId: string, token: string) => {
+  getCateringOrders: async (restaurantId: string) => {
  
     console.log("catering order rq", `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}` )
     const response = await fetch(`${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`);
@@ -469,12 +470,12 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
 
   const formatCurrency = (amount: any) => `£${amount}`;
 
-  const getStatusColor = (status: string) => {
-    if (status === 'paid' || status === 'confirmed') {
-      return 'bg-green-100 text-green-800 border-green-300';
-    }
-    return 'bg-gray-100 text-gray-800 border-gray-300';
-  };
+  // const getStatusColor = (status: string) => {
+  //   if (status === 'paid' || status === 'confirmed') {
+  //     return 'bg-green-100 text-green-800 border-green-300';
+  //   }
+  //   return 'bg-gray-100 text-gray-800 border-gray-300';
+  // };
 
   if (orders.length === 0) {
     return (
@@ -534,9 +535,9 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
               <div key={idx} className="mb-3">
                 <div className="space-y-2">
                   {restaurant.menuItems.map((item, itemIdx) => {
-                    const feeds = item.feedsPerUnit && item.cateringQuantityUnit
-                      ? Math.round((item.quantity / item.cateringQuantityUnit) * item.feedsPerUnit)
-                      : null;
+                    // const feeds = item.feedsPerUnit && item.cateringQuantityUnit
+                    //   ? Math.round((item.quantity / item.cateringQuantityUnit) * item.feedsPerUnit)
+                    //   : null;
                     
                     return (
                       <div key={itemIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded">
@@ -631,10 +632,10 @@ const WithdrawalDashboard = ({
     setError('');
     try {
       const [statusData, balanceData, historyData, cateringData] = await Promise.all([
-        api.checkStripeStatus(restaurantUserId, token),
+        api.checkStripeStatus(restaurantUserId),
         api.getBalance(restaurantUserId, token),
         api.getWithdrawalHistory(restaurantUserId, token),
-        api.getCateringOrders(restaurantId, token),
+        api.getCateringOrders(restaurantId),
       ]);
       
       if (statusData) setStripeStatus(statusData);
