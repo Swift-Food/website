@@ -608,6 +608,7 @@ const WithdrawalDashboard = ({
   userId: string; 
   restaurantUserId: string;
   restaurantId: string;
+  restaurant: any;
   token: string; 
   onLogout: () => void;
 }) => {
@@ -733,6 +734,7 @@ const WithdrawalDashboard = ({
       <div className="max-w-6xl mx-auto py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Restaurant Dashboard</h1>
           <h1 className="text-3xl font-bold text-gray-900">Restaurant Dashboard</h1>
           <button
             onClick={onLogout}
