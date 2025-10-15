@@ -6,7 +6,10 @@ import Step2MenuItems from "@/app/components/catering/Step2MenuItems";
 import Step3ContactInfo from "@/app/components/catering/Step3ContactDetails";
 
 function CateringSteps() {
-  const { currentStep, setCurrentStep } = useCatering();
+  const {
+    currentStep,
+    // setCurrentStep
+  } = useCatering();
 
   const steps = [
     { label: "Event Details", step: 1 },

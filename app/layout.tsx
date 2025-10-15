@@ -1,8 +1,8 @@
-
 import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import { IBM_Plex_Mono } from "next/font/google";
+import type { Metadata } from "next";
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -11,6 +11,11 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+export const metadata: Metadata = {
+  icons: {
+    icon: "/favicon.png",
+  },
+};
 
 export default function RootLayout({
   children,
