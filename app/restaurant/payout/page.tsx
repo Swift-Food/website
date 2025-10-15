@@ -957,8 +957,8 @@ const RestaurantWithdrawalApp = () => {
       <WithdrawalDashboard 
         userId={user.id} 
         restaurantUserId={user.restaurantUser.id}
-        restaurantId = {user.restaurantUser.restaurant.id}
-        restaurant={user.restaurantUser.restaurant}
+        restaurantId = {user.restaurantUser.restaurant?.id}
+        restaurant={user.restaurantUser?.restaurant}
         token={token} 
         onLogout={logout}
       />
