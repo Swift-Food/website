@@ -602,6 +602,7 @@ const WithdrawalDashboard = ({
   userId, 
   restaurantUserId,
   restaurantId,
+  restaurant,
   token, 
   onLogout 
 }: { 
@@ -735,7 +736,7 @@ const WithdrawalDashboard = ({
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Restaurant Dashboard</h1>
-          <h1 className="text-3xl font-bold text-gray-900">Restaurant Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">${restaurant.restaurant_name}</h1>
           <button
             onClick={onLogout}
             className="flex items-center text-gray-600 hover:text-gray-900 font-medium"
@@ -956,6 +957,7 @@ const RestaurantWithdrawalApp = () => {
         userId={user.id} 
         restaurantUserId={user.restaurantUser.id}
         restaurantId = {user.restaurantUser.restaurant.id}
+        restaurant={user.restaurantUsser.restaurant}
         token={token} 
         onLogout={logout}
       />
