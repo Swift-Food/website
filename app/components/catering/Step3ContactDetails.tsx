@@ -38,8 +38,6 @@ export default function Step3ContactInfo() {
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [promoSuccess, setPromoSuccess] = useState("");
-  const [promoError, setPromoError] = useState("");
-  const [promoSuccess, setPromoSuccess] = useState("");
   const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
   const [calculatingPricing, setCalculatingPricing] = useState(false);
   const [preferredContact, setPreferredContact] = useState<"email" | "phone">(
@@ -426,7 +424,7 @@ export default function Step3ContactInfo() {
               Your Catering List
             </h4>
 
-            {promoCodes.length > 0 && (
+            {promoCode && (
               <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-xl">
                 <p className="text-sm text-success font-medium">
                   ✓ Promo code applied: {promoCode}
