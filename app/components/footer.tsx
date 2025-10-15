@@ -52,7 +52,7 @@ export default function Footer() {
             />
           </button>
         </Link>
-        <Link href={"www.tiktok.com/@swiftfood_uk"}>
+        <Link href={"https://www.tiktok.com/@swiftfood_uk"}>
           <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
             <Image
               src={"/socials/tiktok.png"}
@@ -62,7 +62,7 @@ export default function Footer() {
             />
           </button>
         </Link>
-        <Link href={"www.tiktok.com/@swiftfood_uk"}>
+        {/* <Link href={"www.tiktok.com/@swiftfood_uk"}>
           <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
             <Image
               src={"/socials/youtube.png"}
@@ -71,7 +71,7 @@ export default function Footer() {
               alt="social"
             />
           </button>
-        </Link>
+        </Link> */}
         <Link href={" https://www.instagram.com/swiftfood_uk/"}>
           <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
             <Image
