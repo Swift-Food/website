@@ -83,29 +83,32 @@ export default function Step1EventDetails() {
   // REPLACE handleSubmit with:
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    // Collect validation errors
+    const errors: string[] = [];
 
-    // Validate all required fields
-    if (
-      !formData.eventDate ||
-      !formData.eventTime ||
-      !formData.eventType ||
-      formData.guestCount === 0
-    ) {
-      alert("Please fill in all required fields");
-      return;
-    }
+    if (!formData.eventDate) errors.push("Event date is required.");
+    if (!formData.eventTime) errors.push("Event time is required.");
+    if (!formData.eventType) errors.push("Event type is required.");
+    if (formData.guestCount === 0)
+      errors.push("Please select an estimated guest count.");
 
     // Validate date is not in the past or too soon
-    const selectedDate = new Date(formData.eventDate);
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() + 2);
-    minDate.setHours(0, 0, 0, 0); // Reset time for accurate comparison
-    selectedDate.setHours(0, 0, 0, 0);
+    if (formData.eventDate) {
+      const selectedDate = new Date(formData.eventDate);
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() + 2);
+      minDate.setHours(0, 0, 0, 0); // Reset time for accurate comparison
+      selectedDate.setHours(0, 0, 0, 0);
 
-    if (selectedDate < minDate) {
-      alert(
-        "Please select a date at least 2 days from today. Catering orders require advance notice."
-      );
+      if (selectedDate < minDate) {
+        errors.push(
+          "Please select a date at least 2 days from today. Catering orders require advance notice."
+        );
+      }
+    }
+
+    if (errors.length > 0) {
+      alert(errors.join("\n"));
       return;
     }
 
