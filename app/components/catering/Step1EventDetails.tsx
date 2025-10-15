@@ -64,18 +64,31 @@ export default function Step1EventDetails() {
 
 
   // REPLACE handleSubmit with:
-const handleSubmit = (e: FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    
+    // Validate all required fields
+    if (!formData.eventDate || !formData.eventTime || !formData.eventType || formData.guestCount === 0) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    
+    // Validate date is not in the past or too soon
+    const selectedDate = new Date(formData.eventDate);
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 2);
+    minDate.setHours(0, 0, 0, 0); // Reset time for accurate comparison
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < minDate) {
+      alert('Please select a date at least 2 days from today. Catering orders require advance notice.');
+      return;
+    }
+    
+    setEventDetails(formData);
+    setCurrentStep(2);
+  };
   
-  // Validate all required fields
-  if (!formData.eventDate || !formData.eventTime || !formData.eventType || formData.guestCount === 0) {
-    alert('Please fill in all required fields');
-    return;
-  }
-  
-  setEventDetails(formData);
-  setCurrentStep(2);
-};
 
 
   const handleGuestCountSelect = (optionValue: number) => {
@@ -102,6 +115,7 @@ const handleSubmit = (e: FormEvent) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">Event Date</label>
+
             <input
               type="date"
               required
