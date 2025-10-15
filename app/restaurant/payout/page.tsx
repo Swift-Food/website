@@ -97,9 +97,9 @@ const api = {
   // Stripe onboarding endpoints
   checkStripeStatus: async (userId: string, token: string): Promise<StripeOnboardingStatus | null> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      console.log(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`)
+      const response = await fetch(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`);
+      
       if (!response.ok) {
         console.warn('Stripe status fetch failed:', response.status);
         return null;
@@ -504,14 +504,14 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
           </div>
 
           {/* Customer Info */}
-          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+          {/* <div className="bg-gray-50 p-4 rounded-lg mb-4">
             <h4 className="font-semibold text-gray-900 mb-2">Customer Details</h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <p className="text-gray-600">Name: <span className="text-gray-900 font-medium">{order.customerName}</span></p>
               <p className="text-gray-600">Phone: <span className="text-gray-900 font-medium">{order.customerPhone}</span></p>
               <p className="text-gray-600 col-span-2">Email: <span className="text-gray-900 font-medium">{order.customerEmail}</span></p>
             </div>
-          </div>
+          </div> */}
 
           {/* Event Details */}
           <div className="mb-4">
@@ -733,7 +733,7 @@ const WithdrawalDashboard = ({
       <div className="max-w-6xl mx-auto py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Withdrawal Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Restaurant Dashboard</h1>
           <button
             onClick={onLogout}
             className="flex items-center text-gray-600 hover:text-gray-900 font-medium"
