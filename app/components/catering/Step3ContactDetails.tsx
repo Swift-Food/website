@@ -46,6 +46,60 @@ export default function Step3ContactInfo() {
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Add this function after initAutocomplete
+  const handleManualAddressInput = async (value: string) => {
+    // Check if input looks like a UK postcode (basic regex)
+    const postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
+    
+    if (postcodeRegex.test(value.trim())) {
+      try {
+        const geocoder = new google.maps.Geocoder();
+        const result = await geocoder.geocode({ 
+          address: value,
+          componentRestrictions: { country: 'GB' }
+        });
+
+        if (result.results && result.results.length > 0) {
+          const place = result.results[0];
+          
+          let addressLine1 = "";
+          let city = "";
+          let zipcode = "";
+          const latitude = place.geometry.location.lat();
+          const longitude = place.geometry.location.lng();
+
+          place.address_components?.forEach((component) => {
+            const types = component.types;
+
+            if (types.includes("street_number")) {
+              addressLine1 = component.long_name;
+            }
+            if (types.includes("route")) {
+              addressLine1 += (addressLine1 ? " " : "") + component.long_name;
+            }
+            if (types.includes("postal_town") || types.includes("locality")) {
+              city = component.long_name;
+            }
+            if (types.includes("postal_code")) {
+              zipcode = component.long_name;
+            }
+          });
+
+          setFormData((prev) => ({
+            ...prev,
+            addressLine1: addressLine1 || place.formatted_address || "",
+            city,
+            zipcode,
+            latitude,
+            longitude,
+          }));
+        }
+      } catch (error) {
+        console.error("Geocoding error:", error);
+      }
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -174,6 +228,7 @@ export default function Step3ContactInfo() {
       setCalculatingPricing(false);
     }
   };
+  
 
   useEffect(() => {
     calculatePricing();
@@ -309,16 +364,16 @@ export default function Step3ContactInfo() {
       console.error("Google Maps Places not available");
       return;
     }
-
+  
     autocompleteRef.current = new google.maps.places.Autocomplete(
       inputRef.current,
       {
-        types: ["address"],
+        // Remove types restriction or use "geocode" instead of "address"
         componentRestrictions: { country: "gb" },
         fields: ["address_components", "geometry", "formatted_address"],
       }
     );
-
+  
     autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
   };
 
@@ -664,6 +719,7 @@ export default function Step3ContactInfo() {
               </div>
 
               {/* Address Search */}
+              {/* Address Search */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
                   Search Address
@@ -671,11 +727,12 @@ export default function Step3ContactInfo() {
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Start typing your address..."
+                  placeholder="Start typing your address or enter postcode..."
+                  onBlur={(e) => handleManualAddressInput(e.target.value)}
                   className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                 />
                 <p className="text-xs text-base-content/60 mt-2">
-                  Select your address from the dropdown
+                  Select from dropdown
                 </p>
               </div>
 
