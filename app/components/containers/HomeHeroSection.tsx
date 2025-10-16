@@ -13,7 +13,7 @@ export default function HomeHeroSection() {
       className="
       relative rounded-xl overflow-hidden
       lg:basis-[40%] lg:flex-none
-      max-lg:w-full max-lg:flex-none max-lg:max-w-md max-lg:mx-auto py-8
+      max-lg:w-full max-lg:flex-none max-lg:max-w-md max-lg:mx-auto py-[5%] px-[5%] sm:py-[3%] sm:px-[3%]
     "
     >
       <div className="relative w-full aspect-[4/3]">
@@ -24,7 +24,7 @@ export default function HomeHeroSection() {
           fill
           className="object-cover rounded-4xl"
         />
-        <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden">
+        <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden translate-y-[25%] translate-x-[25%]">
           <Image
             src="/logo.png"
             alt="Swift Food logo"
