@@ -154,11 +154,11 @@ export default function Home() {
               className="text-primary text-center font-mono font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              EVERYTHING YOU
+              HELP STREET FOOD VENDORS
               <br />
-              CRAVE, DELIVERED TOGETHER
+              AND LOCAL RESTAURANTS
               <br />
-              IN ONE GO.
+              THRIVE IN EVERY ORDER.
             </p>
           </div>
         </div>

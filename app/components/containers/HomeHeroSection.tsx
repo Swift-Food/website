@@ -20,12 +20,12 @@ export default function HomeHeroSection() {
         <Image src="/catering.jpg" alt="Market" fill className="object-cover" />
         <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden">
           {/* <Image
-    src="/logo.png"
-   alt="Swift Food logo"
-    fill
-    className="object-cover"
-    priority
-  /> */}
+            src="/logo.png"
+            alt="Swift Food logo"
+            fill
+            className="object-cover"
+            priority
+          /> */}
         </div>
       </div>
     </div>
@@ -39,23 +39,28 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
   "
     >
       <p
-        className={`text-6xl font-bold text-primary max-lg:text-4xl max-sm:text-2xl  ${styles.montFont}`}
+        className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
       >
         REAL,
       </p>
       <p
-        className={`text-6xl font-bold text-primary max-lg:text-4xl max-sm:text-2xl  ${styles.montFont}`}
+        className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
       >
         LOCAL & FAST
       </p>
-      <p className="text-primary leading-relaxed text-m max-lg:text-base max-sm:text-sm">
+      {/* <p
+        className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
+      >
+        FAST
+      </p> */}
+      <p className="text-primary leading-relaxed text-xl max-lg:text-base max-sm:text-md font-medium">
         WE ALSO CATER EVENTS OF ANY SIZE - BROWSE THE MENU AND ORDER ONLINE FOR
         EASY DELIVERY!
       </p>
-      <div className="max-lg:flex max-lg:justify-center">
+      <div className="max-lg:flex max-lg:justify-center mt-5">
         <button
           onClick={handleButtonClick}
-          className="btn btn-primary rounded-full btn-sm text-white w-fit px-8 py-6 text-2xl font-bold"
+          className="btn btn-primary rounded-full btn-sm text-white w-fit px-8 py-6 text-2xl font-normal"
         >
           ORDER NOW
         </button>

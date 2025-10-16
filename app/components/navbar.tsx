@@ -8,17 +8,17 @@ function NavbarAction() {
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
       <Link href={"/catering"}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">
+        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white text-lg">
           EVENT ORDERING
         </button>
       </Link>
       <Link href={"/#aboutus"}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white ">
+        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white text-lg">
           ABOUT
         </button>
       </Link>
       <Link href={"/contact"}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary hover:bg-primary border-0 hover:text-white  ">
+        <button className="btn btn-md btn-ghost rounded-full text-primary hover:bg-primary border-0 hover:text-white text-lg">
           CONTACT US
         </button>
       </Link>
