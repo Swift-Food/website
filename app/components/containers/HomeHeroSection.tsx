@@ -17,7 +17,13 @@ export default function HomeHeroSection() {
     "
     >
       <div className="relative w-full aspect-[4/3]">
-        <Image src="/catering.jpg" alt="Market" fill className="object-cover" />
+        <Image
+          // src="/blurred-market.png"
+          src="/catering.jpg"
+          alt="Market"
+          fill
+          className="object-cover"
+        />
         <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden">
           {/* <Image
             src="/logo.png"
@@ -60,7 +66,7 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
       <div className="max-lg:flex max-lg:justify-center mt-5">
         <button
           onClick={handleButtonClick}
-          className="btn btn-primary rounded-full btn-sm text-white w-fit px-8 py-6 text-2xl font-normal"
+          className="btn btn-primary rounded-full btn-sm text-white w-fit px-12 py-8 text-2xl font-bold tracking-wider"
         >
           ORDER NOW
         </button>

@@ -93,9 +93,9 @@ export default function Home() {
         </section>
       </section> */}
 
-      <section className="w-full bg-primary py-10 px-4">
+      <section className="w-full bg-base-100 py-10 px-4">
         <h2
-          className="text-center text-white text-4xl font-bold tracking-wide mb-10"
+          className="text-center text-primary text-4xl font-bold tracking-wide mb-10"
           style={{ fontFamily: "IBM Plex Mono, monospace" }}
         >
           WHAT MAKES US DIFFERENT?
