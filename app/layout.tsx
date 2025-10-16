@@ -26,7 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
         <Navbar />
-        <div className="wrapper">
+        {/* <div className="wrapper">
           <div className="marquee-text">
             <div className="marquee-text-track">
               <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
@@ -47,7 +47,7 @@ export default function RootLayout({
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
         <main
         // className="px-16 max-lg:px-4"
         >
