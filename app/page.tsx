@@ -106,7 +106,7 @@ export default function Home() {
               className="text-primary font-extrabold text-2xl text-center mb-4"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              MUTIPLE ORDERS,
+              MUTIPLE STORES,
               <br />
               ONE DELIVERY
             </h3>
@@ -126,19 +126,17 @@ export default function Home() {
               className="text-primary font-extrabold text-2xl text-center mb-4"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              FASTER
-              <br />
-              DELIVERY
+              £5 FLAT DELIVERY RATE
             </h3>
             <p
               className="text-primary text-center font-mono font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              EVERYTHING YOU
+              ALL EVENT ORDERS HAVE A
               <br />
-              CRAVE, DELIVERED TOGETHER
+              £5 DELIVERY FEE.
               <br />
-              IN ONE GO.
+              NO HIDDEN COSTS.
             </p>
           </div>
           <div className="flex-1 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
