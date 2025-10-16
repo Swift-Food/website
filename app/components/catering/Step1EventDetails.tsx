@@ -197,7 +197,7 @@ export default function Step1EventDetails() {
                   type="button"
                   onClick={() => handleGuestCountSelect(option.value)}
                   className={`
-                      px-5 py-2 rounded-full text-base font-medium transition-all duration-200 
+                      px-5 py-2 rounded-full text-base font-medium transition-all duration-200  cursor-pointer
                       ${
                         isActive
                           ? "bg-dark-pink text-white shadow-lg"
