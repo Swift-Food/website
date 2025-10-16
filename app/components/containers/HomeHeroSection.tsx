@@ -24,7 +24,7 @@ export default function HomeHeroSection() {
           fill
           className="object-cover rounded-4xl"
         />
-        <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden translate-y-[25%] translate-x-[25%]">
+        <div className="absolute bottom-0 right-0 w-[25%] aspect-square rounded-full overflow-hidden translate-y-[18%] translate-x-[18%]">
           <Image
             src="/logo.png"
             alt="Swift Food logo"
