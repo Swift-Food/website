@@ -5,7 +5,7 @@ function OurStorySection() {
     <section id="aboutus" className="relative w-full flex flex-col">
       <div className="relative w-full aspect-[16/9]">
         <Image
-          src="/pink-blurred-market.png"
+          src="/pink-blurred-market-with-bird2.png"
           alt="Pink blurred market background"
           fill
           className="object-cover"
