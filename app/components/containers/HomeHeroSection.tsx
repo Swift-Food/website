@@ -12,8 +12,8 @@ export default function HomeHeroSection() {
     <div
       className="
       relative rounded-xl overflow-hidden
-      lg:basis-[65%] lg:flex-none
-      max-lg:w-full max-lg:flex-none max-lg:max-w-md max-lg:mx-auto
+      lg:basis-[40%] lg:flex-none
+      max-lg:w-full max-lg:flex-none max-lg:max-w-md max-lg:mx-auto py-8
     "
     >
       <div className="relative w-full aspect-[4/3]">
@@ -22,16 +22,16 @@ export default function HomeHeroSection() {
           src="/catering.jpg"
           alt="Market"
           fill
-          className="object-cover"
+          className="object-cover rounded-4xl"
         />
         <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden">
-          {/* <Image
+          <Image
             src="/logo.png"
             alt="Swift Food logo"
             fill
             className="object-cover"
             priority
-          /> */}
+          />
         </div>
       </div>
     </div>
