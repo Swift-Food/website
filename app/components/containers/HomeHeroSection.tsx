@@ -16,20 +16,20 @@ export default function HomeHeroSection() {
     "
   >
      <div className="relative w-full aspect-[4/3]">
-  <Image
-    src="/blurred-market.png"
-    alt="Market"
-    fill
-    className="object-cover"
-  />
+      <Image
+        src="/catering.jpg"
+        alt="Market"
+        fill
+        className="object-cover"
+      />
        <div className="absolute bottom-0 right-0 w-[20%] aspect-square rounded-full overflow-hidden">
-   <Image
+   {/* <Image
     src="/logo.png"
    alt="Swift Food logo"
     fill
     className="object-cover"
     priority
-  />
+  /> */}
 </div>
       </div>
     </div>
