@@ -66,6 +66,8 @@ export default function Home() {
   return (
     <div>
       <HomeHeroSection />
+      <div className="bg-primary h-10 w-full" />
+      <OurStorySection />
       <section className="w-full bg-base-100 py-10 px-4">
         <div>
           <h2
@@ -136,8 +138,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <div className="bg-primary h-10 w-full" />
-      <OurStorySection />
     </div>
   );
 }
