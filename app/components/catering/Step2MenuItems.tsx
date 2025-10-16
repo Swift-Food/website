@@ -871,7 +871,7 @@ export default function Step2MenuItems() {
           )}
 
           {/* Cart Sidebar - Desktop */}
-          <div className="hidden lg:block lg:w-96 sticky top-4 h-fit items-center justify-center">
+          <div className="hidden lg:block lg:w-96 sticky top-32 h-fit items-center justify-center">
             <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
               <h3 className="text-xl font-bold text-base-content mb-6">
                 Your Catering List
