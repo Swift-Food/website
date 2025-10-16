@@ -35,7 +35,7 @@ export interface MenuItem {
     id: string;
     name: string;
     restaurantId: string;
-    menuGroupSettings?: Record<string, { displayOrder: number }>;
+    menuGroupSettings?: Record<string, any>;
   };
 }
 
@@ -252,39 +252,53 @@ export default function Step2MenuItems() {
   };
 
   useEffect(() => {
-    // Get menuGroupSettings from first item's restaurant
-    const menuGroupSettings =
-      displayItems[0]?.restaurant?.menuGroupSettings || {};
-    // Sort group names by displayOrder and filter out drinks
-    const sortedGroups = Object.keys(menuGroupSettings)
-      .filter((groupName) => {
-        const lowerGroupName = groupName.toLowerCase();
-        return lowerGroupName !== "drink" && lowerGroupName !== "drinks";
-      })
-      .sort((a, b) => {
-        const orderA = menuGroupSettings[a]?.displayOrder ?? 999;
-        const orderB = menuGroupSettings[b]?.displayOrder ?? 999;
-        return orderA - orderB;
-      });
+    // Handle multi-restaurant search results by deriving groups from items
+    const menuGroupSettings = displayItems[0]?.restaurant?.menuGroupSettings;
+    const hasSettings =
+      menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
 
-    // Group items by menuGroup
+    // Check if all items are from the same restaurant
+    const restaurantIds = new Set(
+      displayItems.map((item) => item.restaurantId)
+    );
+    const singleRestaurant = restaurantIds.size === 1;
+
+    let groups: string[] = [];
+
+    // Only use menuGroupSettings if all items are from the same restaurant
+    if (hasSettings && singleRestaurant) {
+      groups = Object.keys(menuGroupSettings!)
+        .filter((g) => {
+          const lower = g.toLowerCase();
+          return lower !== "drink" && lower !== "drinks";
+        })
+        .sort((a, b) => {
+          const orderA = menuGroupSettings![a]?.displayOrder ?? 999;
+          const orderB = menuGroupSettings![b]?.displayOrder ?? 999;
+          return orderA - orderB;
+        });
+    } else {
+      // Multi-restaurant or no settings: derive groups from items
+      groups = Array.from(
+        new Set(
+          displayItems
+            .map((i) => i.groupTitle || "Other")
+            .filter((g) => {
+              const lower = g.toLowerCase();
+              return lower !== "drink" && lower !== "drinks";
+            })
+        )
+      );
+      groups.sort((a, b) => a.localeCompare(b));
+    }
+
     const groupItems: Record<string, MenuItem[]> = {};
-
-    // Initialise groupItems with groups
-    sortedGroups.forEach((groupName) => {
-      groupItems[groupName] = [];
-    });
+    groups.forEach((g) => (groupItems[g] = []));
 
     displayItems.forEach((item) => {
       const group = item.groupTitle || "Other";
-      const lowerGroup = group.toLowerCase();
-      // Skip drinks
-      if (lowerGroup === "drink" || lowerGroup === "drinks") {
-        return;
-      }
-      // if (item.status === "CATERING") {
-      //   return;
-      // }
+      const lower = group.toLowerCase();
+      if (lower === "drink" || lower === "drinks") return;
       if (!groupItems[group]) groupItems[group] = [];
       groupItems[group].push(item);
     });
@@ -294,13 +308,8 @@ export default function Step2MenuItems() {
       );
     });
 
-    console.log("Sorted groups:");
-    console.log(sortedGroups);
-    console.log("Group Items:");
-    console.log(groupItems);
-
     setGroupedItems(groupItems);
-    setSortedGroups(sortedGroups);
+    setSortedGroups(groups);
   }, [displayItems]);
 
   const clearSearch = () => {
