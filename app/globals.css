@@ -122,3 +122,13 @@ body {
   color: var(--color-primary);
   background-color: var(--color-primary);
 }
+@font-face {
+  font-family: 'Mont';
+  src: url('/fonts/Mont-HeavyDEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.montFont {
+  font-family: 'Mont', Arial, sans-serif;
+}

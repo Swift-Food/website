@@ -29,6 +29,7 @@ export interface MenuItem {
   restaurantId: string;
   groupTitle?: string;
   status?: string;
+  itemDisplayOrder: number;
   restaurant?: {
     id: string;
     name: string;
@@ -112,6 +113,7 @@ export default function Step2MenuItems() {
         feedsPerUnit: item.feedsPerUnit || 10, // Add with default
         groupTitle: item.groupTitle,
         status: item.status,
+        itemDisplayOrder: item.itemDisplayOrder,
         restaurant: {
           id: item.restaurantId,
           name: item.restaurant?.restaurant_name || "Unknown",
@@ -284,6 +286,9 @@ export default function Step2MenuItems() {
       // }
       if (!groupItems[group]) groupItems[group] = [];
       groupItems[group].push(item);
+    });
+    Object.keys(groupItems).forEach((groupName) => {
+      groupItems[groupName].sort((a, b) => (a.itemDisplayOrder ?? 999) - (b.itemDisplayOrder ?? 999));
     });
 
     console.log("Sorted groups:");
