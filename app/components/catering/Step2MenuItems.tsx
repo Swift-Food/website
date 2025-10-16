@@ -303,12 +303,12 @@ export default function Step2MenuItems() {
     setSortedGroups(sortedGroups);
   }, [displayItems]);
 
-  // const clearSearch = () => {
-  //   setSearchQuery("");
-  //   setIsSearching(false);
-  //   setSearchResults(null);
-  //   fetchAllMenuItems();
-  // };
+  const clearSearch = () => {
+    setSearchQuery("");
+    setIsSearching(false);
+    setSearchResults(null);
+    fetchAllMenuItems();
+  };
 
   const getItemQuantity = (itemId: string) => {
     return selectedItems.find((i) => i.item.id === itemId)?.quantity || 0;
