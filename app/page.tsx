@@ -26,9 +26,9 @@ function OurStorySection() {
             >
               Swift Food was created by students for students in London. We
               wanted an faster way to get great local food delivered — without
-              the high prices or long waits.We work with independent local
+              the high prices or long waits. We work with independent local
               businesses, helping support the community while giving students
-              more variety and better meals.Our goal is simple: fast delivery,
+              more variety and better meals. Our goal is simple: fast delivery,
               affordable food, and a platform that puts local first.
             </p>
           </div>
@@ -48,10 +48,10 @@ function OurStorySection() {
           >
             Swift Food was created by students for students in London. We wanted
             an faster way to get great local food delivered — without the high
-            prices or long waits.We work with independent local businesses,
+            prices or long waits. We work with independent local businesses,
             helping support the community while giving students more variety and
-            better meals.Our goal is simple: fast delivery, affordable food, and
-            a platform that puts local first.
+            better meals. Our goal is simple: fast delivery, affordable food,
+            and a platform that puts local first.
           </p>
         </div>
       </div>
