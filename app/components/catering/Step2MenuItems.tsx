@@ -303,12 +303,12 @@ export default function Step2MenuItems() {
     setSortedGroups(sortedGroups);
   }, [displayItems]);
 
-  const clearSearch = () => {
-    setSearchQuery("");
-    setIsSearching(false);
-    setSearchResults(null);
-    fetchAllMenuItems();
-  };
+  // const clearSearch = () => {
+  //   setSearchQuery("");
+  //   setIsSearching(false);
+  //   setSearchResults(null);
+  //   fetchAllMenuItems();
+  // };
 
   const getItemQuantity = (itemId: string) => {
     return selectedItems.find((i) => i.item.id === itemId)?.quantity || 0;
@@ -475,7 +475,7 @@ export default function Step2MenuItems() {
 
       {/* Main Content */}
       <div className="mx-auto px-4 py-6">
-        {/* <form onSubmit={handleSearch} className="mb-6">
+        <form onSubmit={handleSearch} className="mb-6">
           <div className="flex gap-2 md:gap-4">
             <div className="relative flex-1">
               <input
@@ -505,7 +505,7 @@ export default function Step2MenuItems() {
               </button>
             )}
           </div>
-        </form> */}
+        </form>
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Menu Items Grid */}
 

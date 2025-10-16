@@ -1,4 +1,4 @@
-import { MenuItem } from "@/app/types/restaurant";
+import { MenuItem } from "./Step2MenuItems";
 
 interface MenuItemCardProps {
   item: MenuItem;
