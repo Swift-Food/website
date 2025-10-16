@@ -8,6 +8,10 @@ interface Restaurant {
   images: string[];
   averageRating: string;
   minCateringOrderQuantity?: number;
+  cateringMinOrderSettings?: {
+    minQuantity: number;
+    applicableSections: string[];
+  } | null;
 }
 
 export interface MenuItem {
@@ -152,11 +156,9 @@ export default function Step2MenuItems() {
 
   // Add this function at the top of the component, after other helper functions
   const getRestaurantItemCounts = () => {
-    const counts: Record<
-      string,
-      { count: number; minRequired: number; name: string }
-    > = {};
 
+    const counts: Record<string, { count: number; minRequired: number; name: string; applicableSections: string[] }> = {};
+    
     selectedItems.forEach(({ item, quantity }) => {
       const restaurantId = item.restaurantId;
 
@@ -166,15 +168,23 @@ export default function Step2MenuItems() {
       const restaurant = restaurants.find((r) => r.id === restaurantId);
 
       if (!counts[restaurantId]) {
+        const settings = restaurant?.cateringMinOrderSettings;
         counts[restaurantId] = {
           count: 0,
-          minRequired: restaurant?.minCateringOrderQuantity || 1,
-          name: restaurant?.restaurant_name || "Unknown Restaurant",
+          minRequired: settings?.minQuantity || restaurant?.minCateringOrderQuantity || 1,
+          name: restaurant?.restaurant_name || 'Unknown Restaurant',
+          applicableSections: settings?.applicableSections || []
         };
       }
-
-      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-      counts[restaurantId].count += quantity / BACKEND_QUANTITY_UNIT;
+      
+      // Only count if item's groupTitle is in applicableSections (or if applicableSections is empty)
+      const shouldCount = counts[restaurantId].applicableSections.length === 0 || 
+                         (item.groupTitle && counts[restaurantId].applicableSections.includes(item.groupTitle));
+      
+      if (shouldCount) {
+        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+        counts[restaurantId].count += quantity / BACKEND_QUANTITY_UNIT;
+      }
     });
 
     return counts;
@@ -186,8 +196,11 @@ export default function Step2MenuItems() {
 
     Object.entries(counts).forEach(([, data]) => {
       if (data.count < data.minRequired) {
+        const sectionInfo = data.applicableSections.length > 0 
+          ? ` from sections: ${data.applicableSections.join(', ')}`
+          : '';
         warnings.push(
-          `${data.name}: Add ${data.minRequired - data.count} more item(s)`
+          `${data.name}: Add ${data.minRequired - data.count} more item(s)${sectionInfo}`
         );
       }
     });
