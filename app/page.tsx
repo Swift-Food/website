@@ -2,7 +2,7 @@ import Image from "next/image";
 // OUR STORY SECTION
 function OurStorySection() {
   return (
-    <section className="relative w-full flex flex-col">
+    <section id="aboutus" className="relative w-full flex flex-col">
       <div className="relative w-full aspect-[16/9]">
         <Image
           src="/pink-blurred-market.png"
