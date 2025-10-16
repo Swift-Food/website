@@ -135,7 +135,7 @@ export interface CateringPricingData {
 export interface CateringPricingResult {
   isValid: boolean;
   subtotal: number;
-  serviceCharge: number;
+  // serviceCharge: number;
   deliveryFee: number;
   promoDiscount?: number;
   total: number;

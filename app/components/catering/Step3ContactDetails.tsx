@@ -490,10 +490,10 @@ export default function Step3ContactInfo() {
                   <span>Subtotal</span>
                   <span>£{pricing.subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-base-content/70">
+                {/* <div className="flex justify-between text-base-content/70">
                   <span>Service Charge</span>
                   <span>£{pricing.serviceCharge.toFixed(2)}</span>
-                </div>
+                </div> */}
                 <div className="flex justify-between text-base-content/70">
                   <span>Estimated Delivery Cost</span>
                   <span>£{pricing.deliveryFee.toFixed(2)}</span>
@@ -951,10 +951,10 @@ export default function Step3ContactInfo() {
                     <span>Subtotal</span>
                     <span>£{pricing.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-base-content/70">
+                  {/* <div className="flex justify-between text-sm text-base-content/70">
                     <span>Service Charge</span>
                     <span>£{pricing.serviceCharge.toFixed(2)}</span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between text-sm text-base-content/70">
                     <span>Estimated Delivery Cost</span>
                     <span>£{pricing.deliveryFee.toFixed(2)}</span>
