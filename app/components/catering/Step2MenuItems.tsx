@@ -68,6 +68,23 @@ export default function Step2MenuItems() {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [displayItems, setDisplayItems] = useState<MenuItem[]>([]);
 
+  // Helper: stable sort items by restaurant name (fallback to id)
+  const sortByRestaurant = (items: MenuItem[] | null) => {
+    if (!items || items.length === 0) return [];
+    return [...items].sort((a, b) => {
+      const getName = (item: MenuItem) =>
+        (
+          item?.restaurant?.name ||
+          item?.restaurant?.restaurantId ||
+          item?.restaurantId ||
+          ""
+        )
+          .toString()
+          .toLowerCase();
+      return getName(a).localeCompare(getName(b));
+    });
+  };
+
   // Fetch all restaurants on mount
   useEffect(() => {
     fetchRestaurants();
@@ -110,8 +127,8 @@ export default function Step2MenuItems() {
         image: item.image,
         averageRating: item.averageRating?.toString(),
         restaurantId: item.restaurantId || "",
-        cateringQuantityUnit: item.cateringQuantityUnit || 7, // Add with default
-        feedsPerUnit: item.feedsPerUnit || 10, // Add with default
+        cateringQuantityUnit: item.cateringQuantityUnit || 7,
+        feedsPerUnit: item.feedsPerUnit || 10,
         groupTitle: item.groupTitle,
         status: item.status,
         itemDisplayOrder: item.itemDisplayOrder,
@@ -135,7 +152,9 @@ export default function Step2MenuItems() {
   // Determine which items to display
 
   useEffect(() => {
-    setDisplayItems(isSearching ? searchResults || [] : menuItems);
+    // Always sort items by restaurant so UI shows items grouped by restaurant
+    const source = isSearching ? searchResults || [] : menuItems;
+    setDisplayItems(sortByRestaurant(source));
   }, [isSearching, searchResults, menuItems]);
 
   const fetchRestaurants = async () => {
@@ -332,16 +351,14 @@ export default function Step2MenuItems() {
   // Filter by selected restaurant if one is selected
   useEffect(() => {
     if (selectedRestaurantId && !isSearching) {
-      setDisplayItems(
-        menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
+      const filtered = menuItems.filter(
+        (item) => item.restaurantId === selectedRestaurantId
       );
-      console.log(
-        "selected restaurant id",
-        selectedRestaurantId,
-        menuItems.filter((item) => item.restaurantId === selectedRestaurantId)
-      );
+      setDisplayItems(sortByRestaurant(filtered));
+      console.log("selected restaurant id", selectedRestaurantId, filtered);
     } else {
-      setDisplayItems(isSearching ? searchResults || [] : menuItems);
+      const source = isSearching ? searchResults || [] : menuItems;
+      setDisplayItems(sortByRestaurant(source));
     }
   }, [selectedRestaurantId, isSearching, menuItems, searchResults]);
 
@@ -825,13 +842,13 @@ export default function Step2MenuItems() {
                 className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
                 onClick={
                   () => {
-                    if (!selectedRestaurantId && !searchQuery) {
-                      setCurrentStep(1);
-                    } else {
-                      setSelectedRestaurantId(null);
-                      setSearchQuery("");
-                    }
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  if (!selectedRestaurantId && !searchQuery) {
+                    setCurrentStep(1);
+                  } else {
+                    setSelectedRestaurantId(null);
+                    setSearchQuery("");
+                  }
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                   // setSelectedRestaurantId(null);
                   // setSearchQuery("");
