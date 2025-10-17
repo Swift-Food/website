@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { EventDetails, SelectedMenuItem, ContactInfo } from '@/types/catering.types';
+import { Restaurant } from '@/app/components/catering/Step2MenuItems';
 
 interface CateringContextType {
   currentStep: number;
@@ -9,6 +10,7 @@ interface CateringContextType {
   selectedItems: SelectedMenuItem[];
   contactInfo: ContactInfo | null;
   promoCodes: string[] | null;
+  selectedRestaurants: Restaurant[];
   setCurrentStep: (step: number) => void;
   setEventDetails: (details: EventDetails) => void;
   addMenuItem: (item: SelectedMenuItem) => void;
@@ -18,6 +20,7 @@ interface CateringContextType {
   setContactInfo: (info: ContactInfo) => void;
   getTotalPrice: () => number;
   resetOrder: () => void;
+  setSelectedRestaurants: (restaurants: Restaurant[]) => void;
 }
 
 const CateringContext = createContext<CateringContextType | undefined>(undefined);
@@ -29,6 +32,7 @@ const STORAGE_KEYS = {
   SELECTED_ITEMS: 'catering_selected_items',
   CONTACT_INFO: 'catering_contact_info',
   PROMO_CODES: 'catering_promo_codes',
+  SELECTED_RESTAURANTS: 'catering_selected_restaurants',
 };
 
 export function CateringProvider({ children }: { children: ReactNode }) {
@@ -38,6 +42,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const [selectedItems, setSelectedItemsState] = useState<SelectedMenuItem[]>([]);
   const [contactInfo, setContactInfoState] = useState<ContactInfo | null>(null);
   const [promoCodes, setPromoCodesState] = useState<string[]>([]);
+  const [selectedRestaurants, setSelectedRestaurantsState] = useState<Restaurant[]>([]);
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -47,12 +52,14 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       const savedItems = localStorage.getItem(STORAGE_KEYS.SELECTED_ITEMS);
       const savedContactInfo = localStorage.getItem(STORAGE_KEYS.CONTACT_INFO);
       const savedPromoCodes = localStorage.getItem(STORAGE_KEYS.PROMO_CODES);
+      const savedRestaurants = localStorage.getItem(STORAGE_KEYS.SELECTED_RESTAURANTS);
 
       if (savedStep) setCurrentStepState(JSON.parse(savedStep));
       if (savedEventDetails) setEventDetailsState(JSON.parse(savedEventDetails));
       if (savedItems) setSelectedItemsState(JSON.parse(savedItems));
       if (savedContactInfo) setContactInfoState(JSON.parse(savedContactInfo));
       if (savedPromoCodes) setPromoCodesState(JSON.parse(savedPromoCodes));
+      if (savedRestaurants) setSelectedRestaurantsState(JSON.parse(savedRestaurants));
     } catch (error) {
       console.error('Error loading catering data from localStorage:', error);
     } finally {
@@ -64,6 +71,11 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const setCurrentStep = (step: number) => {
     setCurrentStepState(step);
     localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, JSON.stringify(step));
+  };
+
+  const setSelectedRestaurants = (restaurants: Restaurant[]) => {
+    setSelectedRestaurantsState(restaurants);
+    localStorage.setItem(STORAGE_KEYS.SELECTED_RESTAURANTS, JSON.stringify(restaurants));
   };
 
   const setEventDetails = (details: EventDetails) => {
@@ -137,6 +149,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     setSelectedItemsState([]);
     setContactInfoState(null);
     setPromoCodesState([]);
+    setSelectedRestaurantsState([]);
     
     // Clear localStorage
     localStorage.removeItem(STORAGE_KEYS.CURRENT_STEP);
@@ -144,6 +157,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEYS.SELECTED_ITEMS);
     localStorage.removeItem(STORAGE_KEYS.CONTACT_INFO);
     localStorage.removeItem(STORAGE_KEYS.PROMO_CODES);
+    localStorage.removeItem(STORAGE_KEYS.SELECTED_RESTAURANTS);
   };
 
   // Prevent hydration mismatch by not rendering until client-side data is loaded
@@ -159,6 +173,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         selectedItems,
         contactInfo,
         promoCodes,
+        selectedRestaurants,
         setCurrentStep,
         setEventDetails,
         addMenuItem,
@@ -168,6 +183,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         getTotalPrice,
         resetOrder,
         setPromoCodes,
+        setSelectedRestaurants,
       }}
     >
       {children}

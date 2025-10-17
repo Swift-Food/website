@@ -3,12 +3,13 @@ import { cateringService } from "@/services/cateringServices";
 import { useCatering } from "@/context/CateringContext";
 import MenuItemCard from "./MenuItemCard";
 
-interface Restaurant {
+export interface Restaurant {
   id: string;
   restaurant_name: string;
   images: string[];
   averageRating: string;
   minCateringOrderQuantity?: number;
+  minimumDeliveryNoticeHours?: number;
   cateringMinOrderSettings?: {
     minQuantity: number;
     applicableSections: string[];
@@ -51,6 +52,7 @@ export default function Step2MenuItems() {
     removeMenuItem,
     updateItemQuantity,
     setCurrentStep,
+    setSelectedRestaurants
   } = useCatering();
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -89,6 +91,11 @@ export default function Step2MenuItems() {
   useEffect(() => {
     fetchRestaurants();
   }, []);
+  useEffect(() => {
+    const restaurantIds = new Set(selectedItems.map(item => item.item.restaurantId));
+    const selectedRests = restaurants.filter(r => restaurantIds.has(r.id));
+    setSelectedRestaurants(selectedRests);
+  }, [selectedItems, restaurants]);
 
   // useEffect(() => {
   //   if (selectedRestaurantId) {
@@ -957,44 +964,33 @@ export default function Step2MenuItems() {
                         );
                         return;
                       }
-                      setCurrentStep(3);
+                      setCurrentStep(2);
                     }}
                     disabled={
                       selectedItems.length === 0 ||
                       getMinimumOrderWarnings().length > 0
                     }
                   >
-                    Continue to Contact Info
+                    Continue to Event Details
                   </button>
                 </>
               )}
             </div>
-            {/* {selectedRestaurantId && ( */}
-            <div className="flex justify-center w-full my-6">
-              <button
-                className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
-                onClick={
-                  () => {
-                    if (!selectedRestaurantId && !searchQuery) {
-                      setCurrentStep(1);
-                    } else {
-                      setSelectedRestaurantId(null);
-                      setSearchQuery("");
-                    }
+            {/* Remove the back button section and replace with: */}
+            {selectedRestaurantId && (
+              <div className="flex justify-center w-full my-6">
+                <button
+                  className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
+                  onClick={() => {
+                    setSelectedRestaurantId(null);
+                    setSearchQuery("");
                     window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
-                  // setSelectedRestaurantId(null);
-                  // setSearchQuery("");
-                  // window.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              >
-                ← Go Back to{" "}
-                {!selectedRestaurantId && !searchQuery
-                  ? "Step 1"
-                  : "Restaurants"}
-              </button>
-            </div>
-            {/* )} */}
+                  }}
+                >
+                  ← Back to Restaurants
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1002,22 +998,18 @@ export default function Step2MenuItems() {
       {/* Mobile Cart Button - Fixed at bottom */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-4 z-20">
         <div className="flex gap-2">
-          {/* {selectedRestaurantId && ( */}
+        {selectedRestaurantId && (
           <button
             className="bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm flex-shrink-0"
             onClick={() => {
-              if (!selectedRestaurantId && !searchQuery) {
-                setCurrentStep(1);
-              } else {
-                setSelectedRestaurantId(null);
-                setSearchQuery("");
-              }
+              setSelectedRestaurantId(null);
+              setSearchQuery("");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           >
             ← Back
           </button>
-          {/* )} */}
+        )}
           {selectedItems.length > 0 ? (
             <button
               onClick={() => setShowCartMobile(true)}

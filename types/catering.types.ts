@@ -23,7 +23,7 @@ export interface SearchResult {
   restaurantId?: string;
   fsa?: number;
   fsaLink?: string;
-  
+  minimumDeliveryNoticeHours?: number;
   restaurant?: {
     id: string;
     name: string;
@@ -35,6 +35,7 @@ export interface SearchResult {
     isOpen: boolean;
     openHours: string;
     openingHours: any[];
+    minimumDeliveryNoticeHours?: number;
     marketId: string;
     restaurantId: string;
     fsa?: number;

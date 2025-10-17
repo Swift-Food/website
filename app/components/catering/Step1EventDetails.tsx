@@ -54,7 +54,7 @@ const TIME_SLOT_OPTIONS = [
 ];
 
 export default function Step1EventDetails() {
-  const { eventDetails, setEventDetails, setCurrentStep } = useCatering();
+  const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants } = useCatering();
 
   // Calculate min and max dates
   const getMinDate = () => {
@@ -68,6 +68,15 @@ export default function Step1EventDetails() {
     date.setMonth(date.getMonth() + 2);
     return date.toISOString().split("T")[0];
   };
+  const getMaxNoticeHours = () => {
+    if (!selectedRestaurants || selectedRestaurants.length === 0) {
+      return 48; // Default 48 hours
+    }
+    
+    return Math.max(
+      ...selectedRestaurants.map(r => r.minimumDeliveryNoticeHours || 48)
+    );
+  };
 
   // REPLACE with:
   const [formData, setFormData] = useState<EventDetails>(
@@ -80,40 +89,37 @@ export default function Step1EventDetails() {
     }
   );
 
-  // REPLACE handleSubmit with:
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // Collect validation errors
     const errors: string[] = [];
-
+  
     if (!formData.eventDate) errors.push("Event date is required.");
     if (!formData.eventTime) errors.push("Event time is required.");
     if (!formData.eventType) errors.push("Event type is required.");
     if (formData.guestCount === 0)
       errors.push("Please select an estimated guest count.");
-
-    // Validate date is not in the past or too soon
-    if (formData.eventDate) {
-      const selectedDate = new Date(formData.eventDate);
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() + 2);
-      minDate.setHours(0, 0, 0, 0); // Reset time for accurate comparison
-      selectedDate.setHours(0, 0, 0, 0);
-
-      if (selectedDate < minDate) {
+  
+    // Validate delivery notice
+    if (formData.eventDate && formData.eventTime) {
+      const eventDateTime = new Date(`${formData.eventDate}T${formData.eventTime}`);
+      const now = new Date();
+      const hoursUntilEvent = (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      const requiredNoticeHours = getMaxNoticeHours();
+      
+      if (hoursUntilEvent < requiredNoticeHours) {
         errors.push(
-          "Please select a date at least 2 days from today. Catering orders require advance notice."
+          `Please select a date/time at least ${requiredNoticeHours} hours in advance. Your selected restaurants require this notice for catering orders.`
         );
       }
     }
-
+  
     if (errors.length > 0) {
       alert(errors.join("\n"));
       return;
     }
-
+  
     setEventDetails(formData);
-    setCurrentStep(2);
+    setCurrentStep(3);
   };
 
   const handleGuestCountSelect = (optionValue: number) => {
@@ -123,10 +129,20 @@ export default function Step1EventDetails() {
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       {/* Event Details Header */}
-      <h2 className="text-4xl font-bold mb-2">Event Details</h2>
-      <p className="text-lg text-gray-600 mb-10">
-        We just need a few details before we start building your catering menu.
-      </p>
+      <div className="flex justify-between items-start mb-10">
+        <div>
+          <h2 className="text-4xl font-bold mb-2">Event Details</h2>
+          <p className="text-lg text-gray-600">
+            We just need a few details before we start building your catering menu.
+          </p>
+        </div>
+        <button
+          onClick={() => setCurrentStep(1)}
+          className="text-dark-pink hover:opacity-80 font-medium flex items-center gap-1 mt-1"
+        >
+          ← Back
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-10">
         {/* Delivery Date & Time Section */}
@@ -152,7 +168,7 @@ export default function Step1EventDetails() {
                   onChange={(e) =>
                     setFormData({ ...formData, eventDate: e.target.value })
                   }
-                  min={getMinDate()}
+                  // min={getMinDate()}
                   max={getMaxDate()}
                   className="w-full"
                 />
@@ -260,7 +276,7 @@ export default function Step1EventDetails() {
             type="submit"
             className="bg-dark-pink text-white py-4 px-12 rounded-full font-bold text-lg hover:bg-pink-700 transition-colors shadow-lg shadow-dark-pink/30"
           >
-            Next - Choose Menu
+            Continue to contact details
           </button>
           <p className="text-sm text-gray-500 mt-3">
             You can edit your event details later before submission.

@@ -12,8 +12,8 @@ function CateringSteps() {
   } = useCatering();
 
   const steps = [
-    { label: "Event Details", step: 1 },
-    { label: "Menu Selection", step: 2 },
+    { label: "Menu Selection", step: 1 },
+    { label: "Event Details", step: 2 },
     { label: "Contact & Confirmation", step: 3 },
   ];
 
@@ -54,23 +54,9 @@ function CateringSteps() {
           </div>
         </div>
 
-        {/* Back button (visible when not on first step) */}
-        {/* {currentStep > 1 && (
-          <div className="mb-4">
-            <button
-              type="button"
-              onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-semibold"
-            >
-              ← Back
-            </button>
-          </div>
-        )} */}
-
-        {/* Step Content */}
         <div className="bg-white rounded-lg shadow-sm sm:p-8 max-w-none">
-          {currentStep === 1 && <Step1EventDetails />}
-          {currentStep === 2 && <Step2MenuItems />}
+          {currentStep === 1 && <Step2MenuItems />}
+          {currentStep === 2 && <Step1EventDetails />}
           {currentStep === 3 && <Step3ContactInfo />}
         </div>
       </div>
