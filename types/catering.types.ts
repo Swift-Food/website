@@ -116,6 +116,7 @@ export interface CreateCateringOrderDto {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  ccEmails: string[],
   eventDate: string;
   eventTime: string;
   guestCount: number;

@@ -972,7 +972,9 @@ export default function Step2MenuItems() {
                                   −
                                 </button>
                                 <span className="text-sm font-medium text-base-content">
-                                  Feeds {displayQuantity} people
+                                  <span className="text-sm font-medium text-base-content">
+                                    {numUnits} × (serves {DISPLAY_FEEDS_PER_UNIT}) = {displayQuantity} people
+                                  </span>
                                 </span>
                                 <button
                                   onClick={() =>

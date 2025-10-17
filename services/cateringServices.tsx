@@ -60,12 +60,13 @@ class CateringService {
     eventDetails: EventDetails,
     selectedItems: SelectedMenuItem[],
     contactInfo: ContactInfo,
-    promoCodes: string[]
+    promoCodes: string[],
+    ccEmails?: string[] 
   ): Promise<{ success: boolean; orderId: string }> {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
 
     // Step 2: Create address
-    await this.createAddress(userId, contactInfo);
+    // await this.createAddress(userId, contactInfo);
 
     // Group items by restaurant
     const groupedByRestaurant = selectedItems.reduce(
@@ -118,7 +119,7 @@ class CateringService {
           status: "pending",
           restaurantCost: restaurantTotal,
           totalPrice: restaurantTotal,
-          specialInstructions: eventDetails.specialRequests,
+          specialInstructions: eventDetails.specialRequests || "",
         };
       }
     );
@@ -133,6 +134,7 @@ class CateringService {
       customerName: contactInfo.fullName,
       customerEmail: contactInfo.email,
       customerPhone: contactInfo.phone,
+      ccEmails: ccEmails || [],
       eventDate: eventDetails.eventDate,
       eventTime: eventDetails.eventTime,
       guestCount: eventDetails.guestCount,
@@ -140,7 +142,7 @@ class CateringService {
       deliveryAddress: `${contactInfo.addressLine1}${
         contactInfo.addressLine2 ? ", " + contactInfo.addressLine2 : ""
       }, ${contactInfo.city}, ${contactInfo.zipcode}`,
-      specialRequirements: eventDetails.specialRequests,
+      specialRequirements: eventDetails.specialRequests || "",
       orderItems,
       estimatedTotal,
       promoCodes,

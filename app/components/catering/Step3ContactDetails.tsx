@@ -43,18 +43,46 @@ export default function Step3ContactInfo() {
   const [preferredContact, setPreferredContact] = useState<"email" | "phone">(
     "email"
   );
+  const [ccEmails, setCcEmails] = useState<string[]>([]);
+  const [ccEmailInput, setCcEmailInput] = useState("");
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
 
+  const handleAddCcEmail = () => {
+    const trimmedEmail = ccEmailInput.trim();
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!trimmedEmail) {
+      return;
+    }
+    
+    if (!emailRegex.test(trimmedEmail)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+    
+    if (ccEmails.includes(trimmedEmail)) {
+      alert("This email is already added");
+      return;
+    }
+    
+    setCcEmails([...ccEmails, trimmedEmail]);
+    setCcEmailInput("");
+  };
+  
+  const handleRemoveCcEmail = (emailToRemove: string) => {
+    setCcEmails(ccEmails.filter(email => email !== emailToRemove));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
   
     try {
-      // Remove the latitude/longitude check or make it optional
       if (!pricing) {
         alert("Please wait for pricing calculation to complete");
         setSubmitting(false);
@@ -62,12 +90,14 @@ export default function Step3ContactInfo() {
       }
   
       setContactInfo(formData);
-  
+      console.log("the event details are", JSON.stringify(eventDetails))
+      // Pass ccEmails to the service
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
         formData,
-        promoCodes
+        promoCodes,
+        ccEmails // Add this parameter
       );
       setSuccess(true);
     } catch (error) {
@@ -632,6 +662,57 @@ export default function Step3ContactInfo() {
                   className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-base-content">
+                  CC Additional Emails (Optional)
+                </label>
+                <p className="text-xs text-base-content/60 mb-3">
+                  Add additional email addresses to receive order updates
+                </p>
+                
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="email"
+                    value={ccEmailInput}
+                    onChange={(e) => setCcEmailInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCcEmail();
+                      }
+                    }}
+                    placeholder="additional@email.com"
+                    className="flex-1 px-4 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCcEmail}
+                    className="px-4 py-2 bg-dark-pink text-white rounded-lg font-medium hover:opacity-90 transition-all text-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {ccEmails.length > 0 && (
+                  <div className="space-y-2">
+                    {ccEmails.map((email, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
+                      >
+                        <span className="text-sm text-base-content">{email}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCcEmail(email)}
+                          className="text-error hover:opacity-80 text-xs font-medium"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Preferred Contact Method */}
               <div>
@@ -667,7 +748,7 @@ export default function Step3ContactInfo() {
               {/* Address Search */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Search Address (Optional)
+                  Search Address
                 </label>
                 <input
                   ref={inputRef}
