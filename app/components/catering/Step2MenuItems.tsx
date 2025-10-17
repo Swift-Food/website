@@ -40,10 +40,10 @@ export interface MenuItem {
 }
 
 export default function Step2MenuItems() {
-  const [sortedGroups, setSortedGroups] = useState<string[]>([]);
-  const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>(
-    {}
-  );
+  // const [sortedGroups, setSortedGroups] = useState<string[]>([]);
+  // const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>(
+  //   {}
+  // );
 
   const {
     selectedItems,
@@ -61,7 +61,7 @@ export default function Step2MenuItems() {
   const [loading, setLoading] = useState(false);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [restaurantName, setRestaurantName] = useState("");
+  // const [restaurantName, setRestaurantName] = useState("");
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showCartMobile, setShowCartMobile] = useState(false);
@@ -90,16 +90,16 @@ export default function Step2MenuItems() {
     fetchRestaurants();
   }, []);
 
-  useEffect(() => {
-    if (selectedRestaurantId) {
-      const selectedRestaurant = restaurants.find(
-        (r) => r.id === selectedRestaurantId
-      );
-      setRestaurantName(selectedRestaurant?.restaurant_name || "");
-    } else {
-      setRestaurantName("");
-    }
-  }, [restaurants, selectedRestaurantId]);
+  // useEffect(() => {
+  //   if (selectedRestaurantId) {
+  //     const selectedRestaurant = restaurants.find(
+  //       (r) => r.id === selectedRestaurantId
+  //     );
+  //     setRestaurantName(selectedRestaurant?.restaurant_name || "");
+  //   } else {
+  //     setRestaurantName("");
+  //   }
+  // }, [restaurants, selectedRestaurantId]);
 
   // Fetch menu items when restaurant is selected
   useEffect(() => {
@@ -327,8 +327,8 @@ export default function Step2MenuItems() {
       );
     });
 
-    setGroupedItems(groupItems);
-    setSortedGroups(groups);
+    // setGroupedItems(groupItems);
+    // setSortedGroups(groups);
   }, [displayItems]);
 
   const clearSearch = () => {
