@@ -43,82 +43,26 @@ export default function Step3ContactInfo() {
   const [preferredContact, setPreferredContact] = useState<"email" | "phone">(
     "email"
   );
+
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Add this function after initAutocomplete
-  const handleManualAddressInput = async (value: string) => {
-    // Check if input looks like a UK postcode (basic regex)
-    const postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
-    
-    if (postcodeRegex.test(value.trim())) {
-      try {
-        const geocoder = new google.maps.Geocoder();
-        const result = await geocoder.geocode({ 
-          address: value,
-          componentRestrictions: { country: 'GB' }
-        });
 
-        if (result.results && result.results.length > 0) {
-          const place = result.results[0];
-          
-          let addressLine1 = "";
-          let city = "";
-          let zipcode = "";
-          const latitude = place.geometry.location.lat();
-          const longitude = place.geometry.location.lng();
-
-          place.address_components?.forEach((component) => {
-            const types = component.types;
-
-            if (types.includes("street_number")) {
-              addressLine1 = component.long_name;
-            }
-            if (types.includes("route")) {
-              addressLine1 += (addressLine1 ? " " : "") + component.long_name;
-            }
-            if (types.includes("postal_town") || types.includes("locality")) {
-              city = component.long_name;
-            }
-            if (types.includes("postal_code")) {
-              zipcode = component.long_name;
-            }
-          });
-
-          setFormData((prev) => ({
-            ...prev,
-            addressLine1: addressLine1 || place.formatted_address || "",
-            city,
-            zipcode,
-            latitude,
-            longitude,
-          }));
-        }
-      } catch (error) {
-        console.error("Geocoding error:", error);
-      }
-    }
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-
+  
     try {
-      if (!formData.latitude || !formData.longitude) {
-        alert("Please select an address from the dropdown");
-        setSubmitting(false);
-        return;
-      }
-
+      // Remove the latitude/longitude check or make it optional
       if (!pricing) {
         alert("Please wait for pricing calculation to complete");
         setSubmitting(false);
         return;
       }
-
+  
       setContactInfo(formData);
-
+  
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
@@ -379,21 +323,21 @@ export default function Step3ContactInfo() {
 
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current?.getPlace();
-
+  
     if (!place || !place.address_components) {
       console.error("No place data received");
       return;
     }
-
+  
     let addressLine1 = "";
     let city = "";
     let zipcode = "";
     const latitude = place.geometry?.location?.lat() || 0;
     const longitude = place.geometry?.location?.lng() || 0;
-
+  
     place.address_components.forEach((component) => {
       const types = component.types;
-
+  
       if (types.includes("street_number")) {
         addressLine1 = component.long_name;
       }
@@ -407,7 +351,7 @@ export default function Step3ContactInfo() {
         zipcode = component.long_name;
       }
     });
-
+  
     setFormData((prev) => ({
       ...prev,
       addressLine1,
@@ -416,6 +360,8 @@ export default function Step3ContactInfo() {
       latitude,
       longitude,
     }));
+    
+
   };
 
   if (success) {
@@ -719,20 +665,18 @@ export default function Step3ContactInfo() {
               </div>
 
               {/* Address Search */}
-              {/* Address Search */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Search Address
+                  Search Address (Optional)
                 </label>
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Start typing your address or enter postcode..."
-                  onBlur={(e) => handleManualAddressInput(e.target.value)}
+                  placeholder="Start typing to autofill address fields..."
                   className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                 />
                 <p className="text-xs text-base-content/60 mt-2">
-                  Select from dropdown
+                  Select from dropdown to autofill, or enter manually below
                 </p>
               </div>
 
@@ -744,13 +688,12 @@ export default function Step3ContactInfo() {
                 <input
                   type="text"
                   required
-                  disabled={!formData.addressLine1}
                   value={formData.addressLine1}
                   onChange={(e) =>
                     setFormData({ ...formData, addressLine1: e.target.value })
                   }
-                  placeholder="Select from search above first"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all disabled:bg-base-300/30 disabled:cursor-not-allowed"
+                  placeholder="Street address"
+                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                 />
               </div>
 
@@ -761,13 +704,12 @@ export default function Step3ContactInfo() {
                 </label>
                 <input
                   type="text"
-                  disabled={!formData.addressLine1}
                   value={formData.addressLine2 || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, addressLine2: e.target.value })
                   }
                   placeholder="Apartment, suite, unit, etc."
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all disabled:bg-base-300/30 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                 />
               </div>
 
@@ -780,13 +722,12 @@ export default function Step3ContactInfo() {
                   <input
                     type="text"
                     required
-                    disabled={!formData.city}
                     value={formData.city}
                     onChange={(e) =>
                       setFormData({ ...formData, city: e.target.value })
                     }
-                    placeholder="Select from search"
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all disabled:bg-base-300/30 disabled:cursor-not-allowed"
+                    placeholder="City"
+                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   />
                 </div>
                 <div>
@@ -796,17 +737,16 @@ export default function Step3ContactInfo() {
                   <input
                     type="text"
                     required
-                    disabled={!formData.zipcode}
                     value={formData.zipcode}
                     onChange={(e) =>
                       setFormData({ ...formData, zipcode: e.target.value })
                     }
-                    placeholder="Select from search"
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all disabled:bg-base-300/30 disabled:cursor-not-allowed"
+                    placeholder="Postcode"
+                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   />
                 </div>
               </div>
-
+    
               {/* Submit Button - Desktop */}
               <div className="hidden lg:block pt-4">
                 <button
