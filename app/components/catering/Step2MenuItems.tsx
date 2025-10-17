@@ -557,7 +557,7 @@ export default function Step2MenuItems() {
                               item.discountPrice?.toString() || "0"
                             );
                             return (
-                              item.cateringQuantityUnit *
+                              (item.cateringQuantityUnit ?? 7) *
                               (item.isDiscount && discountPrice > 0
                                 ? discountPrice
                                 : price)
@@ -578,7 +578,7 @@ export default function Step2MenuItems() {
                               item.discountPrice?.toString() || "0"
                             );
                             return (
-                              item.cateringQuantityUnit *
+                              (item.cateringQuantityUnit ?? 7) *
                               (item.isDiscount && discountPrice > 0
                                 ? discountPrice
                                 : price)
