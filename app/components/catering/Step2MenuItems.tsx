@@ -549,55 +549,162 @@ export default function Step2MenuItems() {
                 </div>
               ) : (
                 <>
-                  <h2 className="text-4xl font-bold text-primary mb-10 text-center">
-                    {restaurantName}
-                  </h2>
-                  {/* Group and sort items */}
-                  {sortedGroups
-                    .filter(
-                      (groupName) =>
-                        groupedItems[groupName] &&
-                        groupedItems[groupName].length > 0
-                    )
-                    .map((groupName) => {
-                      // Split items into those with images and those without
-                      const itemsWithImage = groupedItems[groupName].filter(
-                        (item) => item.image && item.image.trim() !== ""
-                      );
-                      const itemsWithoutImage = groupedItems[groupName].filter(
-                        (item) => !item.image || item.image.trim() === ""
-                      );
-                      const orderedItems = [
-                        ...itemsWithImage,
-                        ...itemsWithoutImage,
-                      ];
+                  {/* Group items by restaurant */}
+                  {(() => {
+                    // Build map: restaurantId -> { restaurantName, items[] }
+                    const byRestaurant: Record<
+                      string,
+                      {
+                        restaurantId: string;
+                        restaurantName: string;
+                        items: MenuItem[];
+                      }
+                    > = {};
+
+                    const sorted = sortByRestaurant(displayItems);
+                    sorted.forEach((item) => {
+                      const rid =
+                        item.restaurantId ||
+                        item.restaurant?.id ||
+                        item.restaurant?.restaurantId ||
+                        "unknown";
+                      const rname =
+                        item.restaurant?.name ||
+                        restaurants.find((r) => r.id === rid)
+                          ?.restaurant_name ||
+                        "Unknown Restaurant";
+
+                      if (!byRestaurant[rid]) {
+                        byRestaurant[rid] = {
+                          restaurantId: rid,
+                          restaurantName: rname,
+                          items: [],
+                        };
+                      }
+                      byRestaurant[rid].items.push(item);
+                    });
+
+                    const restaurantList = Object.values(byRestaurant).sort(
+                      (a, b) => a.restaurantName.localeCompare(b.restaurantName)
+                    );
+
+                    return restaurantList.map((rest) => {
+                      // derive groups for this restaurant's items (fallback to groupTitle)
+                      const menuGroupSettings =
+                        rest.items[0]?.restaurant?.menuGroupSettings;
+                      const hasSettings =
+                        menuGroupSettings &&
+                        Object.keys(menuGroupSettings).length > 0;
+
+                      let groupsForRest: string[] = [];
+                      if (hasSettings) {
+                        groupsForRest = Object.keys(menuGroupSettings!)
+                          .filter((g) => {
+                            const lower = g.toLowerCase();
+                            return lower !== "drink" && lower !== "drinks";
+                          })
+                          .sort((a, b) => {
+                            const orderA =
+                              menuGroupSettings![a]?.displayOrder ?? 999;
+                            const orderB =
+                              menuGroupSettings![b]?.displayOrder ?? 999;
+                            return orderA - orderB;
+                          });
+                      } else {
+                        groupsForRest = Array.from(
+                          new Set(
+                            rest.items
+                              .map((i) => i.groupTitle || "Other")
+                              .filter((g) => {
+                                const lower = g.toLowerCase();
+                                return lower !== "drink" && lower !== "drinks";
+                              })
+                          )
+                        ).sort((a, b) => a.localeCompare(b));
+                      }
+
+                      const groupItemsForRest: Record<string, MenuItem[]> = {};
+                      groupsForRest.forEach((g) => (groupItemsForRest[g] = []));
+                      rest.items.forEach((item) => {
+                        const group = item.groupTitle || "Other";
+                        const lower = group.toLowerCase();
+                        if (lower === "drink" || lower === "drinks") return;
+                        if (!groupItemsForRest[group])
+                          groupItemsForRest[group] = [];
+                        groupItemsForRest[group].push(item);
+                      });
+
+                      Object.keys(groupItemsForRest).forEach((groupName) => {
+                        groupItemsForRest[groupName].sort(
+                          (a, b) =>
+                            (a.itemDisplayOrder ?? 999) -
+                            (b.itemDisplayOrder ?? 999)
+                        );
+                      });
 
                       return (
-                        <div key={groupName} className="mb-8">
-                          <h3 className="text-2xl font-bold text-primary mb-4">
-                            {groupName}
-                          </h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                            {orderedItems.map((item) => (
-                              <MenuItemCard
-                                key={item.id}
-                                item={item}
-                                quantity={getItemQuantity(item.id)}
-                                isExpanded={expandedItemId === item.id}
-                                isSearching={isSearching}
-                                onToggleExpand={() =>
-                                  setExpandedItemId(
-                                    expandedItemId === item.id ? null : item.id
-                                  )
-                                }
-                                onAddItem={handleAddItem}
-                                onUpdateQuantity={updateItemQuantity}
-                              />
-                            ))}
-                          </div>
+                        <div key={rest.restaurantId} className="mb-12">
+                          <h2 className="text-4xl font-bold text-primary mb-6 text-center">
+                            {rest.restaurantName}
+                          </h2>
+                          {groupsForRest
+                            .filter(
+                              (groupName) =>
+                                groupItemsForRest[groupName] &&
+                                groupItemsForRest[groupName].length > 0
+                            )
+                            .map((groupName) => {
+                              const itemsWithImage = groupItemsForRest[
+                                groupName
+                              ].filter(
+                                (item) => item.image && item.image.trim() !== ""
+                              );
+                              const itemsWithoutImage = groupItemsForRest[
+                                groupName
+                              ].filter(
+                                (item) =>
+                                  !item.image || item.image.trim() === ""
+                              );
+                              const orderedItems = [
+                                ...itemsWithImage,
+                                ...itemsWithoutImage,
+                              ];
+
+                              return (
+                                <div
+                                  key={`${rest.restaurantId}-${groupName}`}
+                                  className="mb-8"
+                                >
+                                  <h3 className="text-2xl font-bold text-primary mb-4">
+                                    {groupName}
+                                  </h3>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                                    {orderedItems.map((item) => (
+                                      <MenuItemCard
+                                        key={item.id}
+                                        item={item}
+                                        quantity={getItemQuantity(item.id)}
+                                        isExpanded={expandedItemId === item.id}
+                                        isSearching={isSearching}
+                                        onToggleExpand={() =>
+                                          setExpandedItemId(
+                                            expandedItemId === item.id
+                                              ? null
+                                              : item.id
+                                          )
+                                        }
+                                        onAddItem={handleAddItem}
+                                        onUpdateQuantity={updateItemQuantity}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
                         </div>
                       );
-                    })}
+                    });
+                  })()}
                 </>
               )}
             </div>
@@ -842,13 +949,13 @@ export default function Step2MenuItems() {
                 className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
                 onClick={
                   () => {
-                  if (!selectedRestaurantId && !searchQuery) {
-                    setCurrentStep(1);
-                  } else {
-                    setSelectedRestaurantId(null);
-                    setSearchQuery("");
-                  }
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                    if (!selectedRestaurantId && !searchQuery) {
+                      setCurrentStep(1);
+                    } else {
+                      setSelectedRestaurantId(null);
+                      setSearchQuery("");
+                    }
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                   // setSelectedRestaurantId(null);
                   // setSearchQuery("");
