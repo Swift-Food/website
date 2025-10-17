@@ -57,11 +57,11 @@ export default function Step1EventDetails() {
   const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants } = useCatering();
 
   // Calculate min and max dates
-  const getMinDate = () => {
-    const date = new Date();
-    date.setDate(date.getDate() + 3);
-    return date.toISOString().split("T")[0];
-  };
+  // const getMinDate = () => {
+  //   const date = new Date();
+  //   date.setDate(date.getDate() + 3);
+  //   return date.toISOString().split("T")[0];
+  // };
 
   const getMaxDate = () => {
     const date = new Date();

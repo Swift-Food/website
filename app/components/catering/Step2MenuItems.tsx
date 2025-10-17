@@ -10,6 +10,8 @@ export interface Restaurant {
   averageRating: string;
   minCateringOrderQuantity?: number;
   minimumDeliveryNoticeHours?: number;
+  contactEmail?: string; // Add this
+  contactNumber?: string; // Add this
   cateringMinOrderSettings?: {
     minQuantity: number;
     applicableSections: string[];
@@ -651,9 +653,50 @@ export default function Step2MenuItems() {
 
                       return (
                         <div key={rest.restaurantId} className="mb-12">
-                          <h2 className="text-4xl font-bold text-primary mb-6 text-center">
-                            {rest.restaurantName}
-                          </h2>
+                          <div className="flex items-center justify-center gap-3 mb-6">
+                            <h2 className="text-4xl font-bold text-primary">
+                              {rest.restaurantName}
+                            </h2>
+                            {(() => {
+                              const restaurant = restaurants.find(r => r.id === rest.restaurantId);
+                              return (restaurant?.contactEmail || restaurant?.contactNumber) && (
+                                <div className="group relative">
+                                  <button 
+                                    type="button"
+                                    className="text-primary/60 hover:text-primary cursor-pointer touch-manipulation active:scale-95"
+                                    onClick={(e) => {
+                                      e.currentTarget.nextElementSibling?.classList.toggle('hidden');
+                                    }}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 md:w-6 md:h-6">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                    </svg>
+                                  </button>
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden md:group-hover:block z-10 w-56">
+                                    <div className="bg-base-content text-base-100 text-sm rounded-lg p-3 shadow-lg">
+                                      <p className="font-semibold mb-2">Contact Restaurant:</p>
+                                      {restaurant?.contactEmail && (
+                                        <p className="mb-1 break-words">
+                                          <span className="opacity-70">Email:</span><br />
+                                          <a href={`mailto:${restaurant.contactEmail}`} className="underline">
+                                            {restaurant.contactEmail}
+                                          </a>
+                                        </p>
+                                      )}
+                                      {restaurant?.contactNumber && (
+                                        <p className="break-words">
+                                          <span className="opacity-70">Phone:</span><br />
+                                          <a href={`tel:${restaurant.contactNumber}`} className="underline">
+                                            {restaurant.contactNumber}
+                                          </a>
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
                           {groupsForRest
                             .filter(
                               (groupName) =>
@@ -775,9 +818,48 @@ export default function Step2MenuItems() {
                         className="w-full aspect-[16/9]  object-cover"
                       />
                       <div className="p-2 md:p-3 bg-base-100">
-                        <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">
-                          {restaurant.restaurant_name}
-                        </h4>
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">
+                            {restaurant.restaurant_name}
+                          </h4>
+                          {(restaurant.contactEmail || restaurant.contactNumber) && (
+                            <div className="group relative flex-shrink-0">
+                              <button
+                                type="button"
+                                className="text-base-content/60 hover:text-base-content cursor-pointer touch-manipulation active:scale-95"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.currentTarget.nextElementSibling?.classList.toggle('hidden');
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 md:w-4 md:h-4">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                </svg>
+                              </button>
+                              <div className="absolute bottom-full right-0 mb-2 hidden md:group-hover:block z-10 w-48">
+                                <div className="bg-base-content text-base-100 text-xs rounded-lg p-3 shadow-lg">
+                                  <p className="font-semibold mb-2">Contact Info:</p>
+                                  {restaurant.contactEmail && (
+                                    <p className="mb-1 break-words">
+                                      <span className="opacity-70">Email:</span><br />
+                                      <a href={`mailto:${restaurant.contactEmail}`} className="underline">
+                                        {restaurant.contactEmail}
+                                      </a>
+                                    </p>
+                                  )}
+                                  {restaurant.contactNumber && (
+                                    <p className="break-words">
+                                      <span className="opacity-70">Phone:</span><br />
+                                      <a href={`tel:${restaurant.contactNumber}`} className="underline">
+                                        {restaurant.contactNumber}
+                                      </a>
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1 mt-1">
                           <span className="text-yellow-500 text-xs md:text-sm">
                             ★
@@ -792,6 +874,13 @@ export default function Step2MenuItems() {
                               Min. {restaurant.minCateringOrderQuantity} items
                             </div>
                           )}
+                        {restaurant.minimumDeliveryNoticeHours && (
+                          <div className="mt-2 text-xs text-base-content/70 bg-info/10 px-2 py-1 rounded">
+                            {restaurant.minimumDeliveryNoticeHours >= 24
+                              ? `${Math.floor(restaurant.minimumDeliveryNoticeHours / 24)} day${Math.floor(restaurant.minimumDeliveryNoticeHours / 24) > 1 ? 's' : ''} notice required`
+                              : `${restaurant.minimumDeliveryNoticeHours}h notice required`}
+                          </div>
+                        )}
                       </div>
                     </button>
                   ))}
