@@ -544,12 +544,48 @@ export default function Step2MenuItems() {
                     )
                     .map((groupName) => {
                       // Split items into those with images and those without
-                      const itemsWithImage = groupedItems[groupName].filter(
-                        (item) => item.image && item.image.trim() !== ""
-                      );
-                      const itemsWithoutImage = groupedItems[groupName].filter(
-                        (item) => !item.image || item.image.trim() === ""
-                      );
+                      const itemsWithImage = groupedItems[groupName]
+                        .filter(
+                          (item) => item.image && item.image.trim() !== ""
+                        )
+                        .sort((a, b) => {
+                          const getDisplayPrice = (item: MenuItem) => {
+                            const price = parseFloat(
+                              item.price?.toString() || "0"
+                            );
+                            const discountPrice = parseFloat(
+                              item.discountPrice?.toString() || "0"
+                            );
+                            return (
+                              item.cateringQuantityUnit *
+                              (item.isDiscount && discountPrice > 0
+                                ? discountPrice
+                                : price)
+                            );
+                          };
+                          return getDisplayPrice(a) - getDisplayPrice(b);
+                        });
+                      const itemsWithoutImage = groupedItems[groupName]
+                        .filter(
+                          (item) => !item.image || item.image.trim() === ""
+                        )
+                        .sort((a, b) => {
+                          const getDisplayPrice = (item: MenuItem) => {
+                            const price = parseFloat(
+                              item.price?.toString() || "0"
+                            );
+                            const discountPrice = parseFloat(
+                              item.discountPrice?.toString() || "0"
+                            );
+                            return (
+                              item.cateringQuantityUnit *
+                              (item.isDiscount && discountPrice > 0
+                                ? discountPrice
+                                : price)
+                            );
+                          };
+                          return getDisplayPrice(a) - getDisplayPrice(b);
+                        });
                       const orderedItems = [
                         ...itemsWithImage,
                         ...itemsWithoutImage,
