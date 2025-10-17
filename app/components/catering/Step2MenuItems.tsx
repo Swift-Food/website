@@ -654,17 +654,43 @@ export default function Step2MenuItems() {
                                 groupItemsForRest[groupName].length > 0
                             )
                             .map((groupName) => {
+                              // Sort items with images and without images separately by display price
+                              const getDisplayPrice = (item: MenuItem) => {
+                                const price = parseFloat(
+                                  item.price?.toString() || "0"
+                                );
+                                const discountPrice = parseFloat(
+                                  item.discountPrice?.toString() || "0"
+                                );
+                                return (
+                                  (item.cateringQuantityUnit ?? 7) *
+                                  (item.isDiscount && discountPrice > 0
+                                    ? discountPrice
+                                    : price)
+                                );
+                              };
                               const itemsWithImage = groupItemsForRest[
                                 groupName
-                              ].filter(
-                                (item) => item.image && item.image.trim() !== ""
-                              );
+                              ]
+                                .filter(
+                                  (item) =>
+                                    item.image && item.image.trim() !== ""
+                                )
+                                .sort(
+                                  (a, b) =>
+                                    getDisplayPrice(a) - getDisplayPrice(b)
+                                );
                               const itemsWithoutImage = groupItemsForRest[
                                 groupName
-                              ].filter(
-                                (item) =>
-                                  !item.image || item.image.trim() === ""
-                              );
+                              ]
+                                .filter(
+                                  (item) =>
+                                    !item.image || item.image.trim() === ""
+                                )
+                                .sort(
+                                  (a, b) =>
+                                    getDisplayPrice(a) - getDisplayPrice(b)
+                                );
                               const orderedItems = [
                                 ...itemsWithImage,
                                 ...itemsWithoutImage,
