@@ -19,6 +19,7 @@ export default function MenuItemCard({
   onAddItem,
   onUpdateQuantity,
 }: MenuItemCardProps) {
+  console.log("Item: ", JSON.stringify(item, null, 2));
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
   const displayPrice =

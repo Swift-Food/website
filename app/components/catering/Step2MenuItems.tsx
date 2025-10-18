@@ -34,6 +34,7 @@ export interface MenuItem {
   groupTitle?: string;
   status?: string;
   itemDisplayOrder: number;
+  addons: any[];
   restaurant?: {
     id: string;
     name: string;
@@ -143,6 +144,7 @@ export default function Step2MenuItems() {
         groupTitle: item.groupTitle,
         status: item.status,
         itemDisplayOrder: item.itemDisplayOrder,
+        addons: item.addons,
         restaurant: {
           id: item.restaurantId,
           name: item.restaurant?.restaurant_name || "Unknown",
@@ -281,66 +283,66 @@ export default function Step2MenuItems() {
     }
   };
 
-  useEffect(() => {
-    // Handle multi-restaurant search results by deriving groups from items
-    const menuGroupSettings = displayItems[0]?.restaurant?.menuGroupSettings;
-    const hasSettings =
-      menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
+  // useEffect(() => {
+  //   // Handle multi-restaurant search results by deriving groups from items
+  //   const menuGroupSettings = displayItems[0]?.restaurant?.menuGroupSettings;
+  //   const hasSettings =
+  //     menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
 
-    // Check if all items are from the same restaurant
-    const restaurantIds = new Set(
-      displayItems.map((item) => item.restaurantId)
-    );
-    const singleRestaurant = restaurantIds.size === 1;
+  //   // Check if all items are from the same restaurant
+  //   const restaurantIds = new Set(
+  //     displayItems.map((item) => item.restaurantId)
+  //   );
+  //   const singleRestaurant = restaurantIds.size === 1;
 
-    let groups: string[] = [];
+  //   let groups: string[] = [];
 
-    // Only use menuGroupSettings if all items are from the same restaurant
-    if (hasSettings && singleRestaurant) {
-      groups = Object.keys(menuGroupSettings!)
-        .filter((g) => {
-          const lower = g.toLowerCase();
-          return lower !== "drink" && lower !== "drinks";
-        })
-        .sort((a, b) => {
-          const orderA = menuGroupSettings![a]?.displayOrder ?? 999;
-          const orderB = menuGroupSettings![b]?.displayOrder ?? 999;
-          return orderA - orderB;
-        });
-    } else {
-      // Multi-restaurant or no settings: derive groups from items
-      groups = Array.from(
-        new Set(
-          displayItems
-            .map((i) => i.groupTitle || "Other")
-            .filter((g) => {
-              const lower = g.toLowerCase();
-              return lower !== "drink" && lower !== "drinks";
-            })
-        )
-      );
-      groups.sort((a, b) => a.localeCompare(b));
-    }
+  //   // Only use menuGroupSettings if all items are from the same restaurant
+  //   if (hasSettings && singleRestaurant) {
+  //     groups = Object.keys(menuGroupSettings!)
+  //       .filter((g) => {
+  //         const lower = g.toLowerCase();
+  //         return lower !== "drink" && lower !== "drinks";
+  //       })
+  //       .sort((a, b) => {
+  //         const orderA = menuGroupSettings![a]?.displayOrder ?? 999;
+  //         const orderB = menuGroupSettings![b]?.displayOrder ?? 999;
+  //         return orderA - orderB;
+  //       });
+  //   } else {
+  //     // Multi-restaurant or no settings: derive groups from items
+  //     groups = Array.from(
+  //       new Set(
+  //         displayItems
+  //           .map((i) => i.groupTitle || "Other")
+  //           .filter((g) => {
+  //             const lower = g.toLowerCase();
+  //             return lower !== "drink" && lower !== "drinks";
+  //           })
+  //       )
+  //     );
+  //     groups.sort((a, b) => a.localeCompare(b));
+  //   }
 
-    const groupItems: Record<string, MenuItem[]> = {};
-    groups.forEach((g) => (groupItems[g] = []));
+  //   const groupItems: Record<string, MenuItem[]> = {};
+  //   groups.forEach((g) => (groupItems[g] = []));
 
-    displayItems.forEach((item) => {
-      const group = item.groupTitle || "Other";
-      const lower = group.toLowerCase();
-      if (lower === "drink" || lower === "drinks") return;
-      if (!groupItems[group]) groupItems[group] = [];
-      groupItems[group].push(item);
-    });
-    Object.keys(groupItems).forEach((groupName) => {
-      groupItems[groupName].sort(
-        (a, b) => (a.itemDisplayOrder ?? 999) - (b.itemDisplayOrder ?? 999)
-      );
-    });
+  //   displayItems.forEach((item) => {
+  //     const group = item.groupTitle || "Other";
+  //     const lower = group.toLowerCase();
+  //     if (lower === "drink" || lower === "drinks") return;
+  //     if (!groupItems[group]) groupItems[group] = [];
+  //     groupItems[group].push(item);
+  //   });
+  //   Object.keys(groupItems).forEach((groupName) => {
+  //     groupItems[groupName].sort(
+  //       (a, b) => (a.itemDisplayOrder ?? 999) - (b.itemDisplayOrder ?? 999)
+  //     );
+  //   });
 
-    // setGroupedItems(groupItems);
-    // setSortedGroups(groups);
-  }, [displayItems]);
+  //   // setGroupedItems(groupItems);
+  //   // setSortedGroups(groups);
+  // }, [displayItems]);
 
   const clearSearch = () => {
     setSearchQuery("");
@@ -373,143 +375,8 @@ export default function Step2MenuItems() {
     }
   }, [selectedRestaurantId, isSearching, menuItems, searchResults]);
 
-  // // Get menu groups from restaurant.menuGroupSettings
-  // const menuGroupSettings =
-  //   displayItems[0]?.restaurant?.menuGroupSettings || {};
-  // const sortedGroups = Object.keys(menuGroupSettings).sort(
-  //   (a, b) =>
-  //     (menuGroupSettings[a]?.displayOrder ?? 999) -
-  //     (menuGroupSettings[b]?.displayOrder ?? 999)
-  // );
-
-  // // Group items by menuGroup from displayItems
-  // const groupedItems: Record<string, MenuItem[]> = {};
-  // displayItems.forEach((item) => {
-  //   const group = item.menuGroup || "Other";
-  //   if (!groupedItems[group]) groupedItems[group] = [];
-  //   groupedItems[group].push(item);
-  // });
-
-  // console.log("Sorted groups:");
-  // console.log(sortedGroups);
-  // console.log("Group Items:");
-  // console.log(groupedItems);
-
   return (
     <div className="min-h-screen bg-base-100">
-      {/* Header */}
-      {/* <div className="bg-base-100 border-b border-base-300 pb-4">
-        <div className="max-w-7xl mx-auto px-4 pt-4">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-base-content">
-                Select Menu Items
-              </h2>
-              <p className="text-sm md:text-base text-base-content/60">
-                Choose items for your catering order
-              </p>
-            </div>
-            <button
-              className="text-primary hover:opacity-80 font-medium text-sm md:text-base"
-              onClick={() => setCurrentStep(1)}
-            >
-              ← Back
-            </button>
-          </div>
-
-          <form onSubmit={handleSearch} className="mb-6">
-            <div className="flex gap-2 md:gap-4">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search menu items..."
-                  className="w-full pl-10 md:pl-12 pr-4 py-2 md:py-3 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
-                />
-                <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-base-content/40">
-                  🔍
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="bg-primary hover:opacity-90 text-white px-4 md:px-8 py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
-              >
-                Search
-              </button>
-              {isSearching && (
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="bg-base-300 text-base-content px-3 md:px-6 py-2 md:py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </form>
-
-          {!isSearching && (
-            <div className="mt-6">
-              <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
-                Select Restaurant
-              </h3>
-              {restaurantsLoading ? (
-                <div className="text-center py-4 text-base-content/60 text-sm md:text-base">
-                  Loading restaurants...
-                </div>
-              ) : (
-                <div className="flex flex-wrap sm:grid sm:grid-cols-3 gap-3 md:gap-4 pb-4">
-                  {restaurants.map((restaurant) => (
-                    <button
-                      key={restaurant.id}
-                      onClick={() =>
-                        setSelectedRestaurantId(
-                          selectedRestaurantId === restaurant.id
-                            ? null
-                            : restaurant.id
-                        )
-                      }
-                      className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedRestaurantId === restaurant.id
-                          ? "border-primary shadow-lg"
-                          : "border-base-300 hover:border-primary/50"
-                      }`}
-                    >
-                      <img
-                        src={restaurant.images[0] || "/placeholder.jpg"}
-                        alt={restaurant.restaurant_name}
-                        className="w-full aspect-[16/9]  object-cover"
-                      />
-                      <div className="p-2 md:p-3 bg-base-100">
-                        <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">
-                          {restaurant.restaurant_name}
-                        </h4>
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-yellow-500 text-xs md:text-sm">
-                            ★
-                          </span>
-                          <span className="text-xs md:text-sm text-base-content/70">
-                            {restaurant.averageRating}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {isSearching && (
-            <div className="mt-4 text-xs md:text-sm text-base-content/60">
-              Showing search results for "{searchQuery}" ({displayItems.length}{" "}
-              items found)
-            </div>
-          )}
-        </div>
-      </div> */}
-
       {/* Main Content */}
       <div className="mx-auto px-4 py-6">
         <form onSubmit={handleSearch} className="mb-6">
