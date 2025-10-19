@@ -34,7 +34,9 @@ export default function MenuItemCard({
   const numUnits = quantity / BACKEND_QUANTITY_UNIT;
   const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
 
-  const [quantityInput, setQuantityInput] = useState(displayQuantity.toString());
+  const [quantityInput, setQuantityInput] = useState(
+    displayQuantity.toString()
+  );
 
   // Sync input with external quantity changes
   useEffect(() => {
@@ -102,22 +104,31 @@ export default function MenuItemCard({
             )}
             {/* end price block */}
           </div>
-          {DISPLAY_FEEDS_PER_UNIT > 1 && (!item.addons || item.addons.length === 0) && (
-            <div className="flex flex-column items-center gap-1 mb-3">
-              <span className="text-xs text-base-content/60">
-                Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
-              </span>
-            </div>
-          )}
+          {DISPLAY_FEEDS_PER_UNIT > 1 &&
+            (!item.addons || item.addons.length === 0) && (
+              <div className="flex flex-column items-center gap-1 mb-3">
+                <span className="text-xs text-base-content/60">
+                  Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
+                </span>
+              </div>
+            )}
           <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
             {quantity > 0 ? (
-              <div className="bg-base-200 p-2 rounded-lg mb-3">
-                <div className="flex items-center justify-between mb-1">
+              <div className="bg-[#F5F1E8] p-2 rounded-lg mb-3 border border-[#F0ECE3] flex items-center justify-between">
+                <span className="text-sm text-base-content/80 ml-1">
+                  Feeds people
+                </span>
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      const newQty = Math.max(0, quantity - BACKEND_QUANTITY_UNIT);
+                      const newQty = Math.max(
+                        0,
+                        quantity - BACKEND_QUANTITY_UNIT
+                      );
                       onUpdateQuantity(item.id, newQty);
-                      const newDisplayQty = (newQty / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                      const newDisplayQty =
+                        (newQty / BACKEND_QUANTITY_UNIT) *
+                        DISPLAY_FEEDS_PER_UNIT;
                       setQuantityInput(newDisplayQty.toString());
                     }}
                     className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
@@ -130,17 +141,22 @@ export default function MenuItemCard({
                     value={quantityInput}
                     onChange={(e) => {
                       const val = e.target.value;
-                      if (val === '' || /^\d+$/.test(val)) {
+                      if (val === "" || /^\d+$/.test(val)) {
                         setQuantityInput(val);
-                        if (val !== '' && !isNaN(parseInt(val))) {
+                        if (val !== "" && !isNaN(parseInt(val))) {
                           const portions = parseInt(val);
-                          const backendQty = Math.ceil(portions / DISPLAY_FEEDS_PER_UNIT) * BACKEND_QUANTITY_UNIT;
+                          const backendQty =
+                            Math.ceil(portions / DISPLAY_FEEDS_PER_UNIT) *
+                            BACKEND_QUANTITY_UNIT;
                           onUpdateQuantity(item.id, Math.max(0, backendQty));
                         }
                       }
                     }}
                     onBlur={(e) => {
-                      if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                      if (
+                        e.target.value === "" ||
+                        parseInt(e.target.value) < 1
+                      ) {
                         onUpdateQuantity(item.id, 0);
                         setQuantityInput("0");
                       }
@@ -151,7 +167,9 @@ export default function MenuItemCard({
                     onClick={() => {
                       const newQty = quantity + BACKEND_QUANTITY_UNIT;
                       onUpdateQuantity(item.id, newQty);
-                      const newDisplayQty = (newQty / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                      const newDisplayQty =
+                        (newQty / BACKEND_QUANTITY_UNIT) *
+                        DISPLAY_FEEDS_PER_UNIT;
                       setQuantityInput(newDisplayQty.toString());
                     }}
                     className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
@@ -159,9 +177,6 @@ export default function MenuItemCard({
                     +
                   </button>
                 </div>
-                <p className="text-xs text-center text-base-content/60">
-                  Feeds people
-                </p>
               </div>
             ) : (
               <button
