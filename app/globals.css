@@ -87,7 +87,9 @@ body {
   background-color: #f6f5f3;
 }
 .marquee-text {
-  overflow: clip;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 .marquee-text-track {
@@ -118,7 +120,9 @@ body {
 /* This wrapper div is only there so we know for sure we have enough text to fill your screen.
    If you want to have this marquee loop on devices with a very large width, you simply need to add more text.*/
 .wrapper {
-  /* max-width: 800px; */
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
   margin: 0 auto;
   color: var(--color-primary);
   background-color: var(--color-primary);
