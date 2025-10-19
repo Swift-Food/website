@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { MenuItem } from "./Step2MenuItems";
 import MenuItemModal from "./MenuItemModal";
 
@@ -32,6 +33,25 @@ export default function MenuItemCard({
 
   const numUnits = quantity / BACKEND_QUANTITY_UNIT;
   const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+
+  const [quantityInput, setQuantityInput] = useState(displayQuantity.toString());
+
+  // Sync input with external quantity changes
+  useEffect(() => {
+    setQuantityInput(displayQuantity.toString());
+  }, [displayQuantity]);
+
+  const hasAddons = item.addons && item.addons.length > 0;
+
+  const handleAddToOrder = () => {
+    if (hasAddons) {
+      // If item has addons, open modal
+      onAddOrderPress(item);
+    } else {
+      // If no addons, directly add to cart with default quantity
+      onAddItem({ ...item, portionQuantity: 1 });
+    }
+  };
 
   return (
     <>
@@ -91,33 +111,61 @@ export default function MenuItemCard({
           )}
           <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
             {quantity > 0 ? (
-              <div className="flex items-center justify-between bg-base-200 p-2 rounded-lg mb-3">
-                <button
-                  onClick={() =>
-                    onUpdateQuantity(
-                      item.id,
-                      Math.max(0, quantity - BACKEND_QUANTITY_UNIT)
-                    )
-                  }
-                  className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                >
-                  −
-                </button>
-                <span className="font-medium text-xs md:text-sm text-base-content">
-                  Feeds {displayQuantity} people
-                </span>
-                <button
-                  onClick={() =>
-                    onUpdateQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)
-                  }
-                  className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                >
-                  +
-                </button>
+              <div className="bg-base-200 p-2 rounded-lg mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <button
+                    onClick={() => {
+                      const newQty = Math.max(0, quantity - BACKEND_QUANTITY_UNIT);
+                      onUpdateQuantity(item.id, newQty);
+                      const newDisplayQty = (newQty / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                      setQuantityInput(newDisplayQty.toString());
+                    }}
+                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={quantityInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || /^\d+$/.test(val)) {
+                        setQuantityInput(val);
+                        if (val !== '' && !isNaN(parseInt(val))) {
+                          const portions = parseInt(val);
+                          const backendQty = Math.ceil(portions / DISPLAY_FEEDS_PER_UNIT) * BACKEND_QUANTITY_UNIT;
+                          onUpdateQuantity(item.id, Math.max(0, backendQty));
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                        onUpdateQuantity(item.id, 0);
+                        setQuantityInput("0");
+                      }
+                    }}
+                    className="w-12 text-center font-medium text-xs md:text-sm text-base-content bg-base-100 border border-base-300 rounded px-1 py-1"
+                  />
+                  <button
+                    onClick={() => {
+                      const newQty = quantity + BACKEND_QUANTITY_UNIT;
+                      onUpdateQuantity(item.id, newQty);
+                      const newDisplayQty = (newQty / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                      setQuantityInput(newDisplayQty.toString());
+                    }}
+                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+                <p className="text-xs text-center text-base-content/60">
+                  Feeds people
+                </p>
               </div>
             ) : (
               <button
-                onClick={() => onAddOrderPress(item)}
+                onClick={handleAddToOrder}
                 className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
               >
                 Add to Order

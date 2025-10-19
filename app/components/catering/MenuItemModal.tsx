@@ -362,9 +362,9 @@ export default function MenuItemModal({
     Object.entries(addonGroups).forEach(([groupTitle, group]) => {
       if (group.selectionType === "single") {
         const total = getSingleSelectionTotal(groupTitle);
-        const hasAnySelection = Object.values(selectedAddons[groupTitle] || {}).some(
-          (isSelected) => isSelected
-        );
+        const hasAnySelection = Object.values(
+          selectedAddons[groupTitle] || {}
+        ).some((isSelected) => isSelected);
 
         if (hasAnySelection && total !== itemQuantity) {
           errors.push(
@@ -391,9 +391,7 @@ export default function MenuItemModal({
     // Validate single-selection totals
     const validationErrors = validateSingleSelectionTotals();
     if (validationErrors.length > 0) {
-      alert(
-        "Please adjust your selections:\n\n" + validationErrors.join("\n")
-      );
+      alert("Please adjust your selections:\n\n" + validationErrors.join("\n"));
       return;
     }
 
@@ -565,15 +563,18 @@ export default function MenuItemModal({
                       onChange={(e) => {
                         const val = e.target.value;
                         // Allow empty or numeric input only
-                        if (val === '' || /^\d+$/.test(val)) {
+                        if (val === "" || /^\d+$/.test(val)) {
                           setItemQuantityInput(val);
-                          if (val !== '' && !isNaN(parseInt(val))) {
+                          if (val !== "" && !isNaN(parseInt(val))) {
                             setItemQuantity(Math.max(1, parseInt(val)));
                           }
                         }
                       }}
                       onBlur={(e) => {
-                        if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                        if (
+                          e.target.value === "" ||
+                          parseInt(e.target.value) < 1
+                        ) {
                           setItemQuantity(1);
                           setItemQuantityInput("1");
                         }
@@ -640,7 +641,9 @@ export default function MenuItemModal({
                                 ? "border-primary bg-primary/5"
                                 : "border-base-300 bg-base-100 hover:border-primary/30"
                             }`}
-                            onClick={() => handleAddonRowClick(groupTitle, addon.name)}
+                            onClick={() =>
+                              handleAddonRowClick(groupTitle, addon.name)
+                            }
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 flex-1">
                               <span className="text-sm text-base-content">
@@ -652,7 +655,10 @@ export default function MenuItemModal({
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <div
+                              className="flex items-center gap-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <button
                                 onClick={() =>
                                   updateAddonQuantity(
@@ -672,10 +678,13 @@ export default function MenuItemModal({
                                 onChange={(e) => {
                                   const val = e.target.value;
                                   // Allow empty or numeric input only
-                                  if (val === '' || /^\d+$/.test(val)) {
+                                  if (val === "" || /^\d+$/.test(val)) {
                                     // Update input string
                                     setAddonQuantityInputs((prev) => {
-                                      const newInputs: Record<string, Record<string, string>> = {};
+                                      const newInputs: Record<
+                                        string,
+                                        Record<string, string>
+                                      > = {};
                                       Object.keys(prev).forEach((key) => {
                                         newInputs[key] = { ...prev[key] };
                                       });
@@ -687,14 +696,25 @@ export default function MenuItemModal({
                                     });
 
                                     // Update actual quantity
-                                    if (val !== '' && !isNaN(parseInt(val))) {
-                                      setAddonQuantityDirect(groupTitle, addon.name, parseInt(val));
+                                    if (val !== "" && !isNaN(parseInt(val))) {
+                                      setAddonQuantityDirect(
+                                        groupTitle,
+                                        addon.name,
+                                        parseInt(val)
+                                      );
                                     }
                                   }
                                 }}
                                 onBlur={(e) => {
-                                  if (e.target.value === '' || parseInt(e.target.value) < 0) {
-                                    setAddonQuantityDirect(groupTitle, addon.name, 0);
+                                  if (
+                                    e.target.value === "" ||
+                                    parseInt(e.target.value) < 0
+                                  ) {
+                                    setAddonQuantityDirect(
+                                      groupTitle,
+                                      addon.name,
+                                      0
+                                    );
                                   }
                                 }}
                                 className="w-12 text-center text-sm font-medium text-base-content bg-base-100 border border-base-300 rounded px-1 py-0.5"
@@ -763,54 +783,22 @@ export default function MenuItemModal({
               </div>
             )}
 
-            {/* Add/Update Quantity Controls */}
-            <div className="pt-2">
-              {quantity > 0 ? (
-                <div className="flex items-center justify-between bg-base-200 p-3 rounded-lg mb-3">
-                  <button
-                    onClick={() =>
-                      onUpdateQuantity(
-                        item.id,
-                        Math.max(0, quantity - BACKEND_QUANTITY_UNIT)
-                      )
-                    }
-                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium"
-                  >
-                    −
-                  </button>
-                  <span className="font-medium text-base text-base-content">
-                    Feeds {displayQuantity} people
-                  </span>
-                  <button
-                    onClick={() =>
-                      onUpdateQuantity(
-                        item.id,
-                        quantity + BACKEND_QUANTITY_UNIT
-                      )
-                    }
-                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium"
-                  >
-                    +
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-                >
-                  Add to Order
-                </button>
-              )}
-            </div>
-
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+            >
+              Add to Order
+            </button>
             {/* Show total with customizations - always show if quantity > 1 or addons selected */}
-            {(itemQuantity > 1 || Object.values(selectedAddons).some((group) =>
-              Object.values(group).some((selected) => selected)
-            )) && (
+            {(itemQuantity > 1 ||
+              Object.values(selectedAddons).some((group) =>
+                Object.values(group).some((selected) => selected)
+              )) && (
               <div className="pt-2 border-t border-base-300">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-base-content/70">
-                    Total {itemQuantity > 1 ? `(${itemQuantity} portions)` : ""}:
+                    Total {itemQuantity > 1 ? `(${itemQuantity} portions)` : ""}
+                    :
                   </span>
                   <span className="text-lg font-bold text-primary">
                     £
