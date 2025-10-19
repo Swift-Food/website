@@ -95,18 +95,39 @@ export function CateringProvider({ children }: { children: ReactNode }) {
 
   const addMenuItem = (newItem: SelectedMenuItem) => {
     const validQuantity = Math.max(newItem.quantity);
-    
+
     setSelectedItemsState((prev) => {
-      const existingIndex = prev.findIndex((i) => i.item.id === newItem.item.id);
+      // Check if item exists with same addons
+      const existingIndex = prev.findIndex((i) => {
+        if (i.item.id !== newItem.item.id) return false;
+
+        // Check if addons match
+        const existingAddons = i.item.selectedAddons || [];
+        const newAddons = newItem.item.selectedAddons || [];
+
+        if (existingAddons.length !== newAddons.length) return false;
+
+        // Compare addon selections
+        return existingAddons.every((existingAddon) =>
+          newAddons.some(
+            (newAddon) =>
+              newAddon.name === existingAddon.name &&
+              newAddon.groupTitle === existingAddon.groupTitle
+          )
+        );
+      });
+
       let updated;
-      
+
       if (existingIndex >= 0) {
+        // Item with same addons exists, increase quantity
         updated = [...prev];
         updated[existingIndex].quantity += validQuantity;
       } else {
+        // New item or different addon combination
         updated = [...prev, { ...newItem, quantity: validQuantity }];
       }
-      
+
       // Save to localStorage
       localStorage.setItem(STORAGE_KEYS.SELECTED_ITEMS, JSON.stringify(updated));
       return updated;
@@ -139,7 +160,11 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       const price = parseFloat(item.price?.toString() || '0');
       const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
       const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-      return total + itemPrice * quantity;
+
+      // Add addon price if available
+      const addonPrice = item.addonPrice || 0;
+
+      return total + (itemPrice * quantity) + addonPrice;
     }, 0);
   };
 

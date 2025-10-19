@@ -18,6 +18,15 @@ export interface Restaurant {
   } | null;
 }
 
+export interface Addon {
+  name: string;
+  price: string;
+  allergens: string;
+  groupTitle: string;
+  isRequired: boolean;
+  selectionType: "single" | "multiple";
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -34,7 +43,15 @@ export interface MenuItem {
   groupTitle?: string;
   status?: string;
   itemDisplayOrder: number;
-  addons: any[];
+  addons: Addon[];
+  selectedAddons?: {
+    name: string;
+    price: number;
+    quantity: number;
+    groupTitle: string;
+  }[];
+  addonPrice?: number;
+  portionQuantity?: number; // Number of portions selected in modal
   restaurant?: {
     id: string;
     name: string;
@@ -127,33 +144,37 @@ export default function Step2MenuItems() {
     setLoading(true);
     try {
       const response = await cateringService.getMenuItems();
-      // console.log("All menu items response:", response);
+      console.log("All menu items response:", response);
 
-      const menuItemsOnly = (response || []).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        price: item.price?.toString() || "0",
-        discountPrice: item.discountPrice?.toString(),
-        isDiscount: item.isDiscount || false,
-        image: item.image,
-        averageRating: item.averageRating?.toString(),
-        restaurantId: item.restaurantId || "",
-        cateringQuantityUnit: item.cateringQuantityUnit || 7,
-        feedsPerUnit: item.feedsPerUnit || 10,
-        groupTitle: item.groupTitle,
-        status: item.status,
-        itemDisplayOrder: item.itemDisplayOrder,
-        addons: item.addons,
-        restaurant: {
-          id: item.restaurantId,
-          name: item.restaurant?.restaurant_name || "Unknown",
-          restaurantId: item.restaurantId,
-          menuGroupSettings: item.restaurant?.menuGroupSettings,
-        },
-      }));
+      const menuItemsOnly = (response || []).map((item: any) => {
+        console.log("Item addons:", item.id, item.addons);
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price?.toString() || "0",
+          discountPrice: item.discountPrice?.toString(),
+          isDiscount: item.isDiscount || false,
+          image: item.image,
+          averageRating: item.averageRating?.toString(),
+          restaurantId: item.restaurantId || "",
+          cateringQuantityUnit: item.cateringQuantityUnit || 7,
+          feedsPerUnit: item.feedsPerUnit || 10,
+          groupTitle: item.groupTitle,
+          status: item.status,
+          itemDisplayOrder: item.itemDisplayOrder,
+          addons: Array.isArray(item.addons) ? item.addons : [],
+          restaurant: {
+            id: item.restaurantId,
+            name: item.restaurant?.restaurant_name || "Unknown",
+            restaurantId: item.restaurantId,
+            menuGroupSettings: item.restaurant?.menuGroupSettings,
+          },
+        };
+      });
 
       setMenuItems(menuItemsOnly);
+      console.log("Processed menu items:", menuItemsOnly);
     } catch (error) {
       console.error("Error fetching all menu items:", error);
       setMenuItems([]);
@@ -356,9 +377,18 @@ export default function Step2MenuItems() {
   };
 
   const handleAddItem = (item: MenuItem) => {
-    const backendQuantity = item.cateringQuantityUnit || 7;
-    console.log("Adding item with backend quantity:", backendQuantity);
-    addMenuItem({ item: item, quantity: backendQuantity });
+    // This is called from the modal after user selects addons
+    const backendQuantityUnit = item.cateringQuantityUnit || 7;
+    const portionQuantity = item.portionQuantity || 1;
+    // Calculate total backend quantity based on portions
+    const totalBackendQuantity = backendQuantityUnit * portionQuantity;
+    console.log("Adding item to cart:", item, "Portions:", portionQuantity, "Backend Quantity:", totalBackendQuantity);
+    addMenuItem({ item: item, quantity: totalBackendQuantity });
+  };
+
+  const handleOrderPress = (item: MenuItem) => {
+    // This opens the modal when clicking "Add to Order" button
+    setExpandedItemId(expandedItemId === item.id ? null : item.id);
   };
 
   // Filter by selected restaurant if one is selected
@@ -672,6 +702,7 @@ export default function Step2MenuItems() {
                                         }
                                         onAddItem={handleAddItem}
                                         onUpdateQuantity={updateItemQuantity}
+                                        onAddOrderPress={handleOrderPress}
                                       />
                                     ))}
                                   </div>
@@ -860,7 +891,8 @@ export default function Step2MenuItems() {
                         item.isDiscount && discountPrice > 0
                           ? discountPrice
                           : price;
-                      const subtotal = itemPrice * quantity;
+                      const addonPrice = item.addonPrice || 0;
+                      const subtotal = itemPrice * quantity + addonPrice;
                       const BACKEND_QUANTITY_UNIT =
                         item.cateringQuantityUnit || 7;
                       const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
@@ -884,6 +916,19 @@ export default function Step2MenuItems() {
                             <h4 className="font-semibold text-sm text-base-content mb-1">
                               {item.name}
                             </h4>
+                            {item.selectedAddons &&
+                              item.selectedAddons.length > 0 && (
+                                <div className="text-xs text-base-content/60 mb-1">
+                                  {item.selectedAddons.map((addon, idx) => (
+                                    <span key={idx}>
+                                      + {addon.name}
+                                      {idx < item.selectedAddons!.length - 1
+                                        ? ", "
+                                        : ""}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             <p className="text-xl font-bold text-primary mb-2">
                               £{subtotal.toFixed(2)}
                             </p>
@@ -967,7 +1012,8 @@ export default function Step2MenuItems() {
                               item.isDiscount && discountPrice > 0
                                 ? discountPrice
                                 : price;
-                            return sum + itemPrice * quantity;
+                            const addonPrice = item.addonPrice || 0;
+                            return sum + itemPrice * quantity + addonPrice;
                           }, 0)
                           .toFixed(2)}
                       </span>
@@ -1050,7 +1096,8 @@ export default function Step2MenuItems() {
                       item.isDiscount && discountPrice > 0
                         ? discountPrice
                         : price;
-                    return sum + itemPrice * quantity;
+                    const addonPrice = item.addonPrice || 0;
+                    return sum + itemPrice * quantity + addonPrice;
                   }, 0)
                   .toFixed(2)}
               </span>
@@ -1114,7 +1161,8 @@ export default function Step2MenuItems() {
                         item.isDiscount && discountPrice > 0
                           ? discountPrice
                           : price;
-                      const subtotal = itemPrice * quantity;
+                      const addonPrice = item.addonPrice || 0;
+                      const subtotal = itemPrice * quantity + addonPrice;
 
                       // USE ITEM'S OWN VALUES:
                       const BACKEND_QUANTITY_UNIT =
@@ -1141,6 +1189,19 @@ export default function Step2MenuItems() {
                             <h4 className="font-semibold text-sm text-base-content mb-1">
                               {item.name}
                             </h4>
+                            {item.selectedAddons &&
+                              item.selectedAddons.length > 0 && (
+                                <div className="text-xs text-base-content/60 mb-1">
+                                  {item.selectedAddons.map((addon, idx) => (
+                                    <span key={idx}>
+                                      + {addon.name}
+                                      {idx < item.selectedAddons!.length - 1
+                                        ? ", "
+                                        : ""}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             <p className="text-lg font-bold text-primary mb-2">
                               £{subtotal.toFixed(2)}
                             </p>
@@ -1224,7 +1285,8 @@ export default function Step2MenuItems() {
                               item.isDiscount && discountPrice > 0
                                 ? discountPrice
                                 : price;
-                            return sum + itemPrice * quantity;
+                            const addonPrice = item.addonPrice || 0;
+                            return sum + itemPrice * quantity + addonPrice;
                           }, 0)
                           .toFixed(2)}
                       </span>

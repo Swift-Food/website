@@ -2,6 +2,13 @@
 
 import { MenuItem } from "@/app/components/catering/Step2MenuItems";
 
+export interface SelectedAddon {
+  name: string;
+  price: number;
+  quantity: number;
+  groupTitle: string;
+}
+
 export interface SearchResult {
   type: 'restaurant' | 'menu_item';
   id: string;
@@ -104,6 +111,8 @@ export interface OrderItemDto {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    selectedAddons?: SelectedAddon[];
+    addonPrice?: number;
   }[];
   status: string;
   restaurantCost: number;

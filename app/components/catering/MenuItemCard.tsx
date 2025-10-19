@@ -9,6 +9,7 @@ interface MenuItemCardProps {
   onToggleExpand?: () => void;
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
+  onAddOrderPress: () => void;
 }
 
 export default function MenuItemCard({
@@ -19,6 +20,7 @@ export default function MenuItemCard({
   onToggleExpand = () => {},
   onAddItem,
   onUpdateQuantity,
+  onAddOrderPress,
 }: MenuItemCardProps) {
   console.log("Item: ", JSON.stringify(item, null, 2));
   const price = parseFloat(item.price?.toString() || "0");
@@ -106,10 +108,7 @@ export default function MenuItemCard({
                 </span>
                 <button
                   onClick={() =>
-                    onUpdateQuantity(
-                      item.id,
-                      quantity + BACKEND_QUANTITY_UNIT
-                    )
+                    onUpdateQuantity(item.id, quantity + BACKEND_QUANTITY_UNIT)
                   }
                   className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
                 >
@@ -118,7 +117,7 @@ export default function MenuItemCard({
               </div>
             ) : (
               <button
-                onClick={() => onAddItem(item)}
+                onClick={() => onAddOrderPress(item)}
                 className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
               >
                 Add to Order
