@@ -49,48 +49,47 @@ export default function Step3ContactInfo() {
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-
   const handleAddCcEmail = () => {
     const trimmedEmail = ccEmailInput.trim();
-    
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     if (!trimmedEmail) {
       return;
     }
-    
+
     if (!emailRegex.test(trimmedEmail)) {
       alert("Please enter a valid email address");
       return;
     }
-    
+
     if (ccEmails.includes(trimmedEmail)) {
       alert("This email is already added");
       return;
     }
-    
+
     setCcEmails([...ccEmails, trimmedEmail]);
     setCcEmailInput("");
   };
-  
+
   const handleRemoveCcEmail = (emailToRemove: string) => {
-    setCcEmails(ccEmails.filter(email => email !== emailToRemove));
+    setCcEmails(ccEmails.filter((email) => email !== emailToRemove));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-  
+
     try {
       if (!pricing) {
         alert("Please wait for pricing calculation to complete");
         setSubmitting(false);
         return;
       }
-  
+
       setContactInfo(formData);
-      console.log("the event details are", JSON.stringify(eventDetails))
+      console.log("the event details are", JSON.stringify(eventDetails));
       // Pass ccEmails to the service
       await cateringService.submitCateringOrder(
         eventDetails!,
@@ -100,7 +99,6 @@ export default function Step3ContactInfo() {
         ccEmails // Add this parameter
       );
       setSuccess(true);
-      
     } catch (error) {
       console.error("Error submitting order:", error);
       alert("Failed to submit order. Please try again.");
@@ -137,7 +135,10 @@ export default function Step3ContactInfo() {
           const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
           const addonPricePerUnit = (item.selectedAddons || []).reduce(
             (addonTotal, { price, quantity }) => {
-              return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+              return (
+                addonTotal +
+                (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+              );
             },
             0
           );
@@ -216,7 +217,6 @@ export default function Step3ContactInfo() {
       setCalculatingPricing(false);
     }
   };
-  
 
   useEffect(() => {
     calculatePricing();
@@ -256,7 +256,10 @@ export default function Step3ContactInfo() {
           const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
           const addonPricePerUnit = (item.selectedAddons || []).reduce(
             (addonTotal, { price, quantity }) => {
-              return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+              return (
+                addonTotal +
+                (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+              );
             },
             0
           );
@@ -365,7 +368,7 @@ export default function Step3ContactInfo() {
       console.error("Google Maps Places not available");
       return;
     }
-  
+
     autocompleteRef.current = new google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -374,27 +377,27 @@ export default function Step3ContactInfo() {
         fields: ["address_components", "geometry", "formatted_address"],
       }
     );
-  
+
     autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
   };
 
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current?.getPlace();
-  
+
     if (!place || !place.address_components) {
       console.error("No place data received");
       return;
     }
-  
+
     let addressLine1 = "";
     let city = "";
     let zipcode = "";
     const latitude = place.geometry?.location?.lat() || 0;
     const longitude = place.geometry?.location?.lng() || 0;
-  
+
     place.address_components.forEach((component) => {
       const types = component.types;
-  
+
       if (types.includes("street_number")) {
         addressLine1 = component.long_name;
       }
@@ -408,7 +411,7 @@ export default function Step3ContactInfo() {
         zipcode = component.long_name;
       }
     });
-  
+
     setFormData((prev) => ({
       ...prev,
       addressLine1,
@@ -417,8 +420,6 @@ export default function Step3ContactInfo() {
       latitude,
       longitude,
     }));
-    
-
   };
 
   if (success) {
@@ -497,7 +498,7 @@ export default function Step3ContactInfo() {
             )}
 
             <div className="space-y-3 mb-6">
-              {selectedItems.map(({ item, quantity }) => {
+              {selectedItems.map(({ item, quantity }, index) => {
                 const price = parseFloat(item.price?.toString() || "0");
                 const discountPrice = parseFloat(
                   item.discountPrice?.toString() || "0"
@@ -514,7 +515,10 @@ export default function Step3ContactInfo() {
                 // Calculate addon price
                 const addonPrice = (item.selectedAddons || []).reduce(
                   (addonTotal, { price, quantity }) => {
-                    return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+                    return (
+                      addonTotal +
+                      (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+                    );
                   },
                   0
                 );
@@ -523,7 +527,7 @@ export default function Step3ContactInfo() {
 
                 return (
                   <div
-                    key={item.id}
+                    key={index}
                     className="flex items-center gap-3 p-3 bg-base-100 rounded-xl"
                   >
                     {item.image && (
@@ -537,17 +541,20 @@ export default function Step3ContactInfo() {
                       <p className="font-semibold text-base-content truncate">
                         {item.name}
                       </p>
-                      {item.selectedAddons && item.selectedAddons.length > 0 && (
-                        <p className="text-xs text-base-content/50 mb-1">
-                          {item.selectedAddons.map((addon, idx) => (
-                            <span key={idx}>
-                              + {addon.name}
-                              {addon.quantity > 1 && ` (×${addon.quantity})`}
-                              {idx < item.selectedAddons!.length - 1 ? ", " : ""}
-                            </span>
-                          ))}
-                        </p>
-                      )}
+                      {item.selectedAddons &&
+                        item.selectedAddons.length > 0 && (
+                          <p className="text-xs text-base-content/50 mb-1">
+                            {item.selectedAddons.map((addon, idx) => (
+                              <span key={idx}>
+                                + {addon.name}
+                                {addon.quantity > 1 && ` (×${addon.quantity})`}
+                                {idx < item.selectedAddons!.length - 1
+                                  ? ", "
+                                  : ""}
+                              </span>
+                            ))}
+                          </p>
+                        )}
                       <p className="text-sm text-base-content/60">
                         Feeds {displayFeeds} people
                       </p>
@@ -716,7 +723,7 @@ export default function Step3ContactInfo() {
                 <p className="text-xs text-base-content/60 mb-3">
                   Add additional email addresses to receive order updates
                 </p>
-                
+
                 <div className="flex gap-2 mb-3">
                   <input
                     type="email"
@@ -747,7 +754,9 @@ export default function Step3ContactInfo() {
                         key={index}
                         className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
                       >
-                        <span className="text-sm text-base-content">{email}</span>
+                        <span className="text-sm text-base-content">
+                          {email}
+                        </span>
                         <button
                           type="button"
                           onClick={() => handleRemoveCcEmail(email)}
@@ -874,7 +883,7 @@ export default function Step3ContactInfo() {
                   />
                 </div>
               </div>
-    
+
               {/* Submit Button - Desktop */}
               <div className="hidden lg:block pt-4">
                 <button
@@ -1017,7 +1026,7 @@ export default function Step3ContactInfo() {
 
               {/* Order Items */}
               <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
-                {selectedItems.map(({ item, quantity }) => {
+                {selectedItems.map(({ item, quantity }, index) => {
                   const price = parseFloat(item.price?.toString() || "0");
                   const discountPrice = parseFloat(
                     item.discountPrice?.toString() || "0"
@@ -1036,7 +1045,10 @@ export default function Step3ContactInfo() {
                   // Calculate addon price
                   const addonPrice = (item.selectedAddons || []).reduce(
                     (addonTotal, { price, quantity }) => {
-                      return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+                      return (
+                        addonTotal +
+                        (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+                      );
                     },
                     0
                   );
@@ -1044,7 +1056,7 @@ export default function Step3ContactInfo() {
                   const subtotal = itemPrice * quantity + addonPrice;
 
                   return (
-                    <div key={item.id} className="flex items-center gap-3">
+                    <div key={index} className="flex items-center gap-3">
                       {item.image && (
                         <img
                           src={item.image}
@@ -1056,17 +1068,21 @@ export default function Step3ContactInfo() {
                         <p className="font-semibold text-sm text-base-content truncate">
                           {item.name}
                         </p>
-                        {item.selectedAddons && item.selectedAddons.length > 0 && (
-                          <p className="text-xs text-base-content/50 mb-1">
-                            {item.selectedAddons.map((addon, idx) => (
-                              <span key={idx}>
-                                + {addon.name}
-                                {addon.quantity > 1 && ` (×${addon.quantity})`}
-                                {idx < item.selectedAddons!.length - 1 ? ", " : ""}
-                              </span>
-                            ))}
-                          </p>
-                        )}
+                        {item.selectedAddons &&
+                          item.selectedAddons.length > 0 && (
+                            <p className="text-xs text-base-content/50 mb-1">
+                              {item.selectedAddons.map((addon, idx) => (
+                                <span key={idx}>
+                                  + {addon.name}
+                                  {addon.quantity > 1 &&
+                                    ` (×${addon.quantity})`}
+                                  {idx < item.selectedAddons!.length - 1
+                                    ? ", "
+                                    : ""}
+                                </span>
+                              ))}
+                            </p>
+                          )}
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-base-content/70">
                             feeds up to {displayFeeds} people
