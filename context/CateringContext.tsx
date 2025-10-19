@@ -164,10 +164,9 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         STORAGE_KEYS.SELECTED_ITEMS,
         JSON.stringify(updated)
       );
+      getTotalPrice(updated);
       return updated;
     });
-
-    console.log("Updating context: ", selectedItems);
   };
 
   const removeMenuItemByIndex = (index: number) => {
@@ -178,9 +177,9 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         STORAGE_KEYS.SELECTED_ITEMS,
         JSON.stringify(updated)
       );
+      getTotalPrice(updated);
       return updated;
     });
-    getTotalPrice();
   };
 
   const removeMenuItem = (itemId: string) => {
@@ -190,9 +189,9 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         STORAGE_KEYS.SELECTED_ITEMS,
         JSON.stringify(updated)
       );
+      getTotalPrice(updated);
       return updated;
     });
-    getTotalPrice();
   };
 
   const updateItemQuantity = (itemId: string, quantity: number) => {
@@ -209,40 +208,46 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         STORAGE_KEYS.SELECTED_ITEMS,
         JSON.stringify(updated)
       );
+      getTotalPrice(updated);
       return updated;
     });
-    getTotalPrice();
   };
 
-  const getTotalPrice = () => {
-    const newTotalPrice = selectedItems.reduce((total, { item, quantity }) => {
-      console.log(item, quantity);
-      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-      console.log("Backend quantity unit: ", BACKEND_QUANTITY_UNIT);
+  const getTotalPrice = (optionalSelectedItems?: SelectedMenuItem[] = []) => {
+    const usedSelectedItems =
+      optionalSelectedItems.length > 0 ? optionalSelectedItems : selectedItems;
+    const newTotalPrice = usedSelectedItems.reduce(
+      (total, { item, quantity }) => {
+        console.log(item, quantity);
+        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+        console.log("Backend quantity unit: ", BACKEND_QUANTITY_UNIT);
 
-      const price = parseFloat(item.price?.toString() || "0");
-      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-      const unitPrice =
-        item.isDiscount && discountPrice > 0 ? discountPrice : price;
+        const price = parseFloat(item.price?.toString() || "0");
+        const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+        const unitPrice =
+          item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-      console.log("Unit price: ", unitPrice);
-      const itemPrice = unitPrice * quantity;
-      console.log("item price: ", itemPrice);
-      // Addon price: sum of (addon price * addon quantity * backend unit), or 0 if no addons
-      const addonPrice = (item.selectedAddons || []).reduce(
-        (addonTotal, { price, quantity }) => {
-          return (
-            addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-          );
-        },
-        0
-      );
+        console.log("Unit price: ", unitPrice);
+        const itemPrice = unitPrice * quantity;
+        console.log("item price: ", itemPrice);
+        // Addon price: sum of (addon price * addon quantity * backend unit), or 0 if no addons
+        const addonPrice = (item.selectedAddons || []).reduce(
+          (addonTotal, { price, quantity }) => {
+            return (
+              addonTotal +
+              (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+            );
+          },
+          0
+        );
 
-      console.log("addon price: ", addonPrice);
+        console.log("addon price: ", addonPrice);
 
-      return total + itemPrice + addonPrice;
-    }, 0);
+        return total + itemPrice + addonPrice;
+      },
+      0
+    );
     setTotalPrice(newTotalPrice);
     return newTotalPrice;
     //  let basePrice =

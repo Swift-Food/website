@@ -908,6 +908,9 @@ export default function Step2MenuItems() {
                 <>
                   <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
                     {selectedItems.map(({ item, quantity }, index) => {
+                      const BACKEND_QUANTITY_UNIT =
+                        item.cateringQuantityUnit || 7;
+                      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                       const price = parseFloat(item.price?.toString() || "0");
                       const discountPrice = parseFloat(
                         item.discountPrice?.toString() || "0"
@@ -916,11 +919,9 @@ export default function Step2MenuItems() {
                         item.isDiscount && discountPrice > 0
                           ? discountPrice
                           : price;
-                      const addonPrice = item.addonPrice || 0;
+                      const addonPrice =
+                        DISPLAY_FEEDS_PER_UNIT * item.addonPrice || 0;
                       const subtotal = itemPrice * quantity + addonPrice;
-                      const BACKEND_QUANTITY_UNIT =
-                        item.cateringQuantityUnit || 7;
-                      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
                       const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
