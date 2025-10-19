@@ -82,7 +82,7 @@ export default function MenuItemCard({
             )}
             {/* end price block */}
           </div>
-          {DISPLAY_FEEDS_PER_UNIT > 1 && (
+          {DISPLAY_FEEDS_PER_UNIT > 1 && (!item.addons || item.addons.length === 0) && (
             <div className="flex flex-column items-center gap-1 mb-3">
               <span className="text-xs text-base-content/60">
                 Feeds up to {DISPLAY_FEEDS_PER_UNIT} people

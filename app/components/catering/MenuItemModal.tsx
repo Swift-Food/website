@@ -26,12 +26,16 @@ export default function MenuItemModal({
 }: MenuItemModalProps) {
   console.log("Modal received item: ", item);
   const [itemQuantity, setItemQuantity] = useState(1);
+  const [itemQuantityInput, setItemQuantityInput] = useState("1"); // String for input field
   const [selectedAddons, setSelectedAddons] = useState<
     Record<string, Record<string, boolean>>
   >({});
   const [addonQuantities, setAddonQuantities] = useState<
     Record<string, Record<string, number>>
   >({}); // For single-selection groups: tracks quantity per addon
+  const [addonQuantityInputs, setAddonQuantityInputs] = useState<
+    Record<string, Record<string, string>>
+  >({}); // String values for input fields
   const [addonGroups, setAddonGroups] = useState<Record<string, AddonGroup>>(
     {}
   );
@@ -51,8 +55,10 @@ export default function MenuItemModal({
   useEffect(() => {
     if (isOpen) {
       setItemQuantity(1);
+      setItemQuantityInput("1");
       setSelectedAddons({});
       setAddonQuantities({});
+      setAddonQuantityInputs({});
     }
   }, [isOpen]);
 
@@ -93,19 +99,23 @@ export default function MenuItemModal({
     // Initialize selected addons state
     const initialSelections: Record<string, Record<string, boolean>> = {};
     const initialQuantities: Record<string, Record<string, number>> = {};
+    const initialQuantityInputs: Record<string, Record<string, string>> = {};
 
     Object.keys(grouped).forEach((groupTitle) => {
       initialSelections[groupTitle] = {};
       initialQuantities[groupTitle] = {};
+      initialQuantityInputs[groupTitle] = {};
       grouped[groupTitle].items.forEach((addon) => {
         initialSelections[groupTitle][addon.name] = false;
         initialQuantities[groupTitle][addon.name] = 0;
+        initialQuantityInputs[groupTitle][addon.name] = "0";
       });
     });
     console.log("Initial selections:", initialSelections);
     console.log("Initial quantities:", initialQuantities);
     setSelectedAddons(initialSelections);
     setAddonQuantities(initialQuantities);
+    setAddonQuantityInputs(initialQuantityInputs);
   }, [item]);
 
   // Calculate total price when quantity or selected addons change
@@ -162,6 +172,19 @@ export default function MenuItemModal({
 
       newQuantities[groupTitle][addonName] = newQty;
 
+      // Update input string to match
+      setAddonQuantityInputs((prevInputs) => {
+        const newInputs: Record<string, Record<string, string>> = {};
+        Object.keys(prevInputs).forEach((key) => {
+          newInputs[key] = { ...prevInputs[key] };
+        });
+        if (!newInputs[groupTitle]) {
+          newInputs[groupTitle] = {};
+        }
+        newInputs[groupTitle][addonName] = newQty.toString();
+        return newInputs;
+      });
+
       // Update selected state based on quantity
       setSelectedAddons((prevSelected) => {
         const newSelections: Record<string, Record<string, boolean>> = {};
@@ -172,6 +195,116 @@ export default function MenuItemModal({
           newSelections[groupTitle] = {};
         }
         newSelections[groupTitle][addonName] = newQty > 0;
+        return newSelections;
+      });
+
+      return newQuantities;
+    });
+  };
+
+  // Set addon quantity directly (for text input or click-to-fill)
+  const setAddonQuantityDirect = (
+    groupTitle: string,
+    addonName: string,
+    newQty: number
+  ) => {
+    const validQty = Math.max(0, Math.floor(newQty));
+
+    setAddonQuantities((prev) => {
+      const newQuantities: Record<string, Record<string, number>> = {};
+      Object.keys(prev).forEach((key) => {
+        newQuantities[key] = { ...prev[key] };
+      });
+
+      if (!newQuantities[groupTitle]) {
+        newQuantities[groupTitle] = {};
+      }
+
+      newQuantities[groupTitle][addonName] = validQty;
+
+      // Update input value to match
+      setAddonQuantityInputs((prevInputs) => {
+        const newInputs: Record<string, Record<string, string>> = {};
+        Object.keys(prevInputs).forEach((key) => {
+          newInputs[key] = { ...prevInputs[key] };
+        });
+        if (!newInputs[groupTitle]) {
+          newInputs[groupTitle] = {};
+        }
+        newInputs[groupTitle][addonName] = validQty.toString();
+        return newInputs;
+      });
+
+      // Update selected state based on quantity
+      setSelectedAddons((prevSelected) => {
+        const newSelections: Record<string, Record<string, boolean>> = {};
+        Object.keys(prevSelected).forEach((key) => {
+          newSelections[key] = { ...prevSelected[key] };
+        });
+        if (!newSelections[groupTitle]) {
+          newSelections[groupTitle] = {};
+        }
+        newSelections[groupTitle][addonName] = validQty > 0;
+        return newSelections;
+      });
+
+      return newQuantities;
+    });
+  };
+
+  // Handle clicking on the addon row to set it to all portions and reset others in group
+  const handleAddonRowClick = (groupTitle: string, addonName: string) => {
+    setAddonQuantities((prev) => {
+      const newQuantities: Record<string, Record<string, number>> = {};
+      Object.keys(prev).forEach((key) => {
+        newQuantities[key] = { ...prev[key] };
+      });
+
+      if (!newQuantities[groupTitle]) {
+        newQuantities[groupTitle] = {};
+      }
+
+      // Reset all addons in this group to 0
+      Object.keys(newQuantities[groupTitle]).forEach((addon) => {
+        newQuantities[groupTitle][addon] = 0;
+      });
+
+      // Set the clicked addon to itemQuantity
+      newQuantities[groupTitle][addonName] = itemQuantity;
+
+      // Update input strings
+      setAddonQuantityInputs((prevInputs) => {
+        const newInputs: Record<string, Record<string, string>> = {};
+        Object.keys(prevInputs).forEach((key) => {
+          newInputs[key] = { ...prevInputs[key] };
+        });
+        if (!newInputs[groupTitle]) {
+          newInputs[groupTitle] = {};
+        }
+        // Reset all addon inputs in this group to "0"
+        Object.keys(newInputs[groupTitle]).forEach((addon) => {
+          newInputs[groupTitle][addon] = "0";
+        });
+        // Set the clicked addon input to itemQuantity
+        newInputs[groupTitle][addonName] = itemQuantity.toString();
+        return newInputs;
+      });
+
+      // Update selected state
+      setSelectedAddons((prevSelected) => {
+        const newSelections: Record<string, Record<string, boolean>> = {};
+        Object.keys(prevSelected).forEach((key) => {
+          newSelections[key] = { ...prevSelected[key] };
+        });
+        if (!newSelections[groupTitle]) {
+          newSelections[groupTitle] = {};
+        }
+        // Reset all selections in this group
+        Object.keys(newSelections[groupTitle]).forEach((addon) => {
+          newSelections[groupTitle][addon] = false;
+        });
+        // Only the clicked addon is selected
+        newSelections[groupTitle][addonName] = true;
         return newSelections;
       });
 
@@ -413,26 +546,51 @@ export default function MenuItemModal({
                 <h3 className="font-semibold text-sm text-base-content mb-3">
                   Number of Portions
                 </h3>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <button
-                    onClick={() =>
-                      setItemQuantity(Math.max(1, itemQuantity - 1))
-                    }
-                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium"
+                    onClick={() => {
+                      const newQty = Math.max(1, itemQuantity - 1);
+                      setItemQuantity(newQty);
+                      setItemQuantityInput(newQty.toString());
+                    }}
+                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
                     −
                   </button>
-                  <div className="text-center">
-                    <span className="font-bold text-lg text-base-content">
-                      {itemQuantity}
-                    </span>
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={itemQuantityInput}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        // Allow empty or numeric input only
+                        if (val === '' || /^\d+$/.test(val)) {
+                          setItemQuantityInput(val);
+                          if (val !== '' && !isNaN(parseInt(val))) {
+                            setItemQuantity(Math.max(1, parseInt(val)));
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                          setItemQuantity(1);
+                          setItemQuantityInput("1");
+                        }
+                      }}
+                      className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
+                    />
                     <p className="text-xs text-base-content/60">
                       Feeds {itemQuantity * DISPLAY_FEEDS_PER_UNIT} people
                     </p>
                   </div>
                   <button
-                    onClick={() => setItemQuantity(itemQuantity + 1)}
-                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium"
+                    onClick={() => {
+                      const newQty = itemQuantity + 1;
+                      setItemQuantity(newQty);
+                      setItemQuantityInput(newQty.toString());
+                    }}
+                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
                     +
                   </button>
@@ -470,16 +628,19 @@ export default function MenuItemModal({
                       {group.items.map((addon, index) => {
                         const addonQty =
                           addonQuantities[groupTitle]?.[addon.name] || 0;
+                        const addonQtyInput =
+                          addonQuantityInputs[groupTitle]?.[addon.name] || "0";
 
                         return group.selectionType === "single" ? (
                           // Single selection: Show quantity controls
                           <div
                             key={index}
-                            className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                            className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer ${
                               addonQty > 0
                                 ? "border-primary bg-primary/5"
-                                : "border-base-300 bg-base-100"
+                                : "border-base-300 bg-base-100 hover:border-primary/30"
                             }`}
+                            onClick={() => handleAddonRowClick(groupTitle, addon.name)}
                           >
                             <div className="flex items-center gap-3 flex-1">
                               <span className="text-sm text-base-content">
@@ -491,7 +652,7 @@ export default function MenuItemModal({
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() =>
                                   updateAddonQuantity(
@@ -504,9 +665,41 @@ export default function MenuItemModal({
                               >
                                 −
                               </button>
-                              <span className="text-sm font-medium text-base-content min-w-[20px] text-center">
-                                {addonQty}
-                              </span>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={addonQtyInput}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  // Allow empty or numeric input only
+                                  if (val === '' || /^\d+$/.test(val)) {
+                                    // Update input string
+                                    setAddonQuantityInputs((prev) => {
+                                      const newInputs: Record<string, Record<string, string>> = {};
+                                      Object.keys(prev).forEach((key) => {
+                                        newInputs[key] = { ...prev[key] };
+                                      });
+                                      if (!newInputs[groupTitle]) {
+                                        newInputs[groupTitle] = {};
+                                      }
+                                      newInputs[groupTitle][addon.name] = val;
+                                      return newInputs;
+                                    });
+
+                                    // Update actual quantity
+                                    if (val !== '' && !isNaN(parseInt(val))) {
+                                      setAddonQuantityDirect(groupTitle, addon.name, parseInt(val));
+                                    }
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  if (e.target.value === '' || parseInt(e.target.value) < 0) {
+                                    setAddonQuantityDirect(groupTitle, addon.name, 0);
+                                  }
+                                }}
+                                className="w-12 text-center text-sm font-medium text-base-content bg-base-100 border border-base-300 rounded px-1 py-0.5"
+                                onClick={(e) => e.stopPropagation()}
+                              />
                               <button
                                 onClick={() =>
                                   updateAddonQuantity(groupTitle, addon.name, 1)

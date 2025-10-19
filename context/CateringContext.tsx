@@ -97,7 +97,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     const validQuantity = Math.max(newItem.quantity);
 
     setSelectedItemsState((prev) => {
-      // Check if item exists with same addons
+      // Check if item exists with same addons AND same addon quantities
       const existingIndex = prev.findIndex((i) => {
         if (i.item.id !== newItem.item.id) return false;
 
@@ -107,12 +107,13 @@ export function CateringProvider({ children }: { children: ReactNode }) {
 
         if (existingAddons.length !== newAddons.length) return false;
 
-        // Compare addon selections
+        // Compare addon selections (including quantities)
         return existingAddons.every((existingAddon) =>
           newAddons.some(
             (newAddon) =>
               newAddon.name === existingAddon.name &&
-              newAddon.groupTitle === existingAddon.groupTitle
+              newAddon.groupTitle === existingAddon.groupTitle &&
+              newAddon.quantity === existingAddon.quantity // Also compare quantities
           )
         );
       });
@@ -120,7 +121,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       let updated;
 
       if (existingIndex >= 0) {
-        // Item with same addons exists, increase quantity
+        // Item with exact same addons and quantities exists, increase item quantity
         updated = [...prev];
         updated[existingIndex].quantity += validQuantity;
       } else {

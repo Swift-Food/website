@@ -372,7 +372,13 @@ export default function Step2MenuItems() {
     fetchAllMenuItems();
   };
 
-  const getItemQuantity = (itemId: string) => {
+  const getItemQuantity = (itemId: string, item?: MenuItem) => {
+    // For items with addons, always return 0 so the card shows "Add to Order"
+    // This allows users to add the same item with different addon combinations
+    if (item && item.addons && item.addons.length > 0) {
+      return 0;
+    }
+    // For items without addons, show the quantity in cart
     return selectedItems.find((i) => i.item.id === itemId)?.quantity || 0;
   };
 
@@ -690,7 +696,7 @@ export default function Step2MenuItems() {
                                       <MenuItemCard
                                         key={item.id}
                                         item={item}
-                                        quantity={getItemQuantity(item.id)}
+                                        quantity={getItemQuantity(item.id, item)}
                                         isExpanded={expandedItemId === item.id}
                                         isSearching={isSearching}
                                         onToggleExpand={() =>
