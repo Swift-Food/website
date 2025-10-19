@@ -642,7 +642,7 @@ export default function MenuItemModal({
                             }`}
                             onClick={() => handleAddonRowClick(groupTitle, addon.name)}
                           >
-                            <div className="flex items-center gap-3 flex-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 flex-1">
                               <span className="text-sm text-base-content">
                                 {addon.name}
                               </span>
