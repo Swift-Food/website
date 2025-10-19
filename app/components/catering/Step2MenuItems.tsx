@@ -69,7 +69,8 @@ export default function Step2MenuItems() {
   const {
     selectedItems,
     addMenuItem,
-    removeMenuItem,
+    removeMenuItemByIndex,
+    // removeMenuItem,
     updateItemQuantity,
     setCurrentStep,
     setSelectedRestaurants,
@@ -988,7 +989,7 @@ export default function Step2MenuItems() {
                                 </button>
                               </div>
                               <button
-                                onClick={() => removeMenuItem(item.id)}
+                                onClick={() => removeMenuItemByIndex(index)}
                                 className="text-error hover:opacity-80 text-xs"
                               >
                                 Remove
@@ -1263,7 +1264,7 @@ export default function Step2MenuItems() {
                                 </button>
                               </div>
                               <button
-                                onClick={() => removeMenuItem(item.id)}
+                                onClick={() => removeMenuItemByIndex(index)}
                                 className="text-error hover:opacity-80 text-sm"
                               >
                                 Remove

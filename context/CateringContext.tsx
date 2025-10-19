@@ -25,6 +25,7 @@ interface CateringContextType {
   setEventDetails: (details: EventDetails) => void;
   addMenuItem: (item: SelectedMenuItem) => void;
   setPromoCodes: (code: string[]) => void;
+  removeMenuItemByIndex: (index: number) => void;
   removeMenuItem: (itemId: string) => void;
   updateItemQuantity: (itemId: string, quantity: number) => void;
   setContactInfo: (info: ContactInfo) => void;
@@ -167,6 +168,18 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     console.log("Updating context: ", selectedItems);
   };
 
+  const removeMenuItemByIndex = (index: number) => {
+    setSelectedItemsState((prev) => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      localStorage.setItem(
+        STORAGE_KEYS.SELECTED_ITEMS,
+        JSON.stringify(updated)
+      );
+      return updated;
+    });
+  };
+
   const removeMenuItem = (itemId: string) => {
     setSelectedItemsState((prev) => {
       const updated = prev.filter((i) => i.item.id !== itemId);
@@ -244,6 +257,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         setCurrentStep,
         setEventDetails,
         addMenuItem,
+        removeMenuItemByIndex,
         removeMenuItem,
         updateItemQuantity,
         setContactInfo,
