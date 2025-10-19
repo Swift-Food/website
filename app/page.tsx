@@ -25,11 +25,13 @@ function OurStorySection() {
               style={{ letterSpacing: "0.05em" }}
             >
               Swift Food was created by students for students in London. We
-              wanted an faster way to get great local food delivered — without
-              the high prices or long waits. We work with independent local
-              businesses, helping support the community while giving students
-              more variety and better meals. Our goal is simple: fast delivery,
-              affordable food, and a platform that puts local first.
+              wanted a faster way to get great local food delivered — without
+              the high prices or long waits. <br />
+              <br /> We work with independent local businesses, helping support
+              the community while giving students more variety and better meals.{" "}
+              <br /> <br />
+              Our goal is simple: fast delivery, affordable food, and a platform
+              that puts local first.
             </p>
           </div>
         </div>
@@ -47,11 +49,13 @@ function OurStorySection() {
             style={{ letterSpacing: "0.05em" }}
           >
             Swift Food was created by students for students in London. We wanted
-            an faster way to get great local food delivered — without the high
-            prices or long waits. We work with independent local businesses,
-            helping support the community while giving students more variety and
-            better meals. Our goal is simple: fast delivery, affordable food,
-            and a platform that puts local first.
+            a faster way to get great local food delivered — without the high
+            prices or long waits. <br /> <br />
+            We work with independent local businesses, helping support the
+            community while giving students more variety and better meals.{" "}
+            <br /> <br />
+            Our goal is simple: fast delivery, affordable food, and a platform
+            that puts local first.
           </p>
         </div>
       </div>
