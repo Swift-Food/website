@@ -60,16 +60,13 @@ export default function MenuItemModal({
           <div className="space-y-4">
             {item.description && (
               <div>
-                <h3 className="font-semibold text-sm text-base-content mb-2">
-                  Description
-                </h3>
                 <p className="text-base-content/70 text-sm leading-relaxed">
                   {item.description}
                 </p>
               </div>
             )}
 
-            {item.allergens && item.allergens.length > 0 ? (
+            {/* {item.allergens && item.allergens.length > 0 ? (
               <div>
                 <h3 className="font-semibold text-sm text-base-content mb-2">
                   Allergens
@@ -96,7 +93,7 @@ export default function MenuItemModal({
                   restaurant or our team.
                 </p>
               </div>
-            )}
+            )} */}
 
             {/* Pricing */}
             <div className="pt-2">
