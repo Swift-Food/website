@@ -3,9 +3,9 @@ import { MenuItem } from "./Step2MenuItems";
 interface MenuItemCardProps {
   item: MenuItem;
   quantity: number;
-  isExpanded: boolean;
+  isExpanded?: boolean;
   isSearching: boolean;
-  onToggleExpand: () => void;
+  onToggleExpand?: () => void;
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
 }
@@ -13,9 +13,9 @@ interface MenuItemCardProps {
 export default function MenuItemCard({
   item,
   quantity,
-  isExpanded,
+  isExpanded = false,
   isSearching,
-  onToggleExpand,
+  onToggleExpand = () => {},
   onAddItem,
   onUpdateQuantity,
 }: MenuItemCardProps) {

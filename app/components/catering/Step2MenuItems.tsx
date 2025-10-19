@@ -127,7 +127,7 @@ export default function Step2MenuItems() {
     setLoading(true);
     try {
       const response = await cateringService.getMenuItems();
-      console.log("All menu items response:", response);
+      // console.log("All menu items response:", response);
 
       const menuItemsOnly = (response || []).map((item: any) => ({
         id: item.id,
@@ -661,15 +661,15 @@ export default function Step2MenuItems() {
                                         key={item.id}
                                         item={item}
                                         quantity={getItemQuantity(item.id)}
-                                        isExpanded={expandedItemId === item.id}
+                                        // isExpanded={expandedItemId === item.id}
                                         isSearching={isSearching}
-                                        onToggleExpand={() =>
-                                          setExpandedItemId(
-                                            expandedItemId === item.id
-                                              ? null
-                                              : item.id
-                                          )
-                                        }
+                                        // onToggleExpand={() =>
+                                        //   setExpandedItemId(
+                                        //     expandedItemId === item.id
+                                        //       ? null
+                                        //       : item.id
+                                        //   )
+                                        // }
                                         onAddItem={handleAddItem}
                                         onUpdateQuantity={updateItemQuantity}
                                       />
