@@ -59,7 +59,8 @@ export default function MenuItemModal({
   useEffect(() => {
     if (isOpen) {
       // Calculate initial quantity in portions
-      const initialPortions = quantity > 0 ? (quantity / BACKEND_QUANTITY_UNIT) : 1;
+      const initialPortions =
+        quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 1;
       setItemQuantity(initialPortions);
       setItemQuantityInput(initialPortions.toString());
       setInitialModalQuantity(initialPortions);
@@ -475,7 +476,13 @@ export default function MenuItemModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-base-200 hover:bg-base-300 transition-colors z-10"
+          className="sticky top-3 right-3 float-right w-8 h-8 flex items-center justify-center rounded-full bg-secondary hover:bg-primary transition-colors z-30"
+          style={{
+            position: "sticky",
+            top: "0.75rem",
+            right: "0.75rem",
+            marginLeft: "auto",
+          }}
           aria-label="Close modal"
         >
           ✕
@@ -558,7 +565,10 @@ export default function MenuItemModal({
                       const newQty = Math.max(1, itemQuantity - 1);
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
-                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                      if (
+                        quantity > 0 &&
+                        (!item.addons || item.addons.length === 0)
+                      ) {
                         setHasModifiedQuantity(newQty !== initialModalQuantity);
                       }
                     }}
@@ -579,8 +589,13 @@ export default function MenuItemModal({
                           if (val !== "" && !isNaN(parseInt(val))) {
                             const newQty = Math.max(1, parseInt(val));
                             setItemQuantity(newQty);
-                            if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
-                              setHasModifiedQuantity(newQty !== initialModalQuantity);
+                            if (
+                              quantity > 0 &&
+                              (!item.addons || item.addons.length === 0)
+                            ) {
+                              setHasModifiedQuantity(
+                                newQty !== initialModalQuantity
+                              );
                             }
                           }
                         }
@@ -592,7 +607,10 @@ export default function MenuItemModal({
                         ) {
                           setItemQuantity(1);
                           setItemQuantityInput("1");
-                          if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                          if (
+                            quantity > 0 &&
+                            (!item.addons || item.addons.length === 0)
+                          ) {
                             setHasModifiedQuantity(1 !== initialModalQuantity);
                           }
                         }
@@ -608,7 +626,10 @@ export default function MenuItemModal({
                       const newQty = itemQuantity + 1;
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
-                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                      if (
+                        quantity > 0 &&
+                        (!item.addons || item.addons.length === 0)
+                      ) {
                         setHasModifiedQuantity(newQty !== initialModalQuantity);
                       }
                     }}
@@ -809,7 +830,8 @@ export default function MenuItemModal({
                 {hasModifiedQuantity && (
                   <button
                     onClick={() => {
-                      const newBackendQty = itemQuantity * BACKEND_QUANTITY_UNIT;
+                      const newBackendQty =
+                        itemQuantity * BACKEND_QUANTITY_UNIT;
                       onUpdateQuantity(item.id, newBackendQty);
                       onClose();
                     }}
