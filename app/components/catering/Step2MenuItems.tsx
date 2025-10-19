@@ -202,7 +202,13 @@ export default function Step2MenuItems() {
       // const cateringRestaurants = data.filter(
       //   (restaurant: any) => restaurant.isCatering === true
       // );
-      setRestaurants(data);
+      // Sort restaurants by minimumDeliveryNoticeHours (ascending)
+      const sortedRestaurants = data.sort((a, b) => {
+        const aNotice = a.minimumDeliveryNoticeHours ?? 0;
+        const bNotice = b.minimumDeliveryNoticeHours ?? 0;
+        return aNotice - bNotice;
+      });
+      setRestaurants(sortedRestaurants);
     } catch (error) {
       console.error("Error fetching restaurants:", error);
     } finally {
@@ -388,7 +394,14 @@ export default function Step2MenuItems() {
     const portionQuantity = item.portionQuantity || 1;
     // Calculate total backend quantity based on portions
     const totalBackendQuantity = backendQuantityUnit * portionQuantity;
-    console.log("Adding item to cart:", item, "Portions:", portionQuantity, "Backend Quantity:", totalBackendQuantity);
+    console.log(
+      "Adding item to cart:",
+      item,
+      "Portions:",
+      portionQuantity,
+      "Backend Quantity:",
+      totalBackendQuantity
+    );
     addMenuItem({ item: item, quantity: totalBackendQuantity });
   };
 
@@ -696,7 +709,10 @@ export default function Step2MenuItems() {
                                       <MenuItemCard
                                         key={item.id}
                                         item={item}
-                                        quantity={getItemQuantity(item.id, item)}
+                                        quantity={getItemQuantity(
+                                          item.id,
+                                          item
+                                        )}
                                         isExpanded={expandedItemId === item.id}
                                         isSearching={isSearching}
                                         onToggleExpand={() =>
@@ -928,7 +944,8 @@ export default function Step2MenuItems() {
                                   {item.selectedAddons.map((addon, idx) => (
                                     <span key={idx}>
                                       + {addon.name}
-                                      {addon.quantity > 1 && ` (×${addon.quantity})`}
+                                      {addon.quantity > 1 &&
+                                        ` (×${addon.quantity})`}
                                       {idx < item.selectedAddons!.length - 1
                                         ? ", "
                                         : ""}
@@ -1202,7 +1219,8 @@ export default function Step2MenuItems() {
                                   {item.selectedAddons.map((addon, idx) => (
                                     <span key={idx}>
                                       + {addon.name}
-                                      {addon.quantity > 1 && ` (×${addon.quantity})`}
+                                      {addon.quantity > 1 &&
+                                        ` (×${addon.quantity})`}
                                       {idx < item.selectedAddons!.length - 1
                                         ? ", "
                                         : ""}
