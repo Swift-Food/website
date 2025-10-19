@@ -46,9 +46,9 @@ class CateringService {
 
   async getMenuItems() {
     const fullUrl = `${API_BASE_URL}/menu-item`;
-    console.log('🌐 Fetching menu items from:', fullUrl);
+    console.log("🌐 Fetching menu items from:", fullUrl);
     const response = await fetch(`${API_BASE_URL}/menu-item/catering`);
-    console.log('📡 Response status:', response.status);
+    console.log("📡 Response status:", response.status);
     if (!response.ok) {
       throw new Error("Failed to search menu items");
     }
@@ -61,7 +61,7 @@ class CateringService {
     selectedItems: SelectedMenuItem[],
     contactInfo: ContactInfo,
     promoCodes: string[],
-    ccEmails?: string[] 
+    ccEmails?: string[]
   ): Promise<{ success: boolean; orderId: string }> {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
 
@@ -88,12 +88,26 @@ class CateringService {
         const unitPrice =
           item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
+        // Calculate addon price
+        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+        const addonPricePerUnit = (item.selectedAddons || []).reduce(
+          (addonTotal, { price, quantity }) => {
+            return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+          },
+          0
+        );
+
+        // Total price includes both item price and addon price
+        const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
+
         acc[restaurantId].items.push({
           menuItemId: item.id,
           name: item.name,
           quantity,
           unitPrice,
-          totalPrice: unitPrice * quantity,
+          addonPrice: addonPricePerUnit,
+          selectedAddons: item.selectedAddons || [],
+          totalPrice: itemTotalPrice,
         });
 
         return acc;
@@ -281,6 +295,7 @@ class CateringService {
     orderItems: OrderItemDto[],
     promoCodes?: string[]
   ): Promise<CateringPricingResult> {
+    console.log("Order items in calculateCateringPricing: ", orderItems);
     const pricingData = {
       orderItems,
       promoCodes,
