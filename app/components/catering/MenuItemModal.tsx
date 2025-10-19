@@ -51,16 +51,24 @@ export default function MenuItemModal({
   const numUnits = quantity / BACKEND_QUANTITY_UNIT;
   const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
 
+  // Track if user has modified the quantity for items without addons
+  const [hasModifiedQuantity, setHasModifiedQuantity] = useState(false);
+  const [initialModalQuantity, setInitialModalQuantity] = useState(0);
+
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setItemQuantity(1);
-      setItemQuantityInput("1");
+      // Calculate initial quantity in portions
+      const initialPortions = quantity > 0 ? (quantity / BACKEND_QUANTITY_UNIT) : 1;
+      setItemQuantity(initialPortions);
+      setItemQuantityInput(initialPortions.toString());
+      setInitialModalQuantity(initialPortions);
+      setHasModifiedQuantity(false);
       setSelectedAddons({});
       setAddonQuantities({});
       setAddonQuantityInputs({});
     }
-  }, [isOpen]);
+  }, [isOpen, quantity, BACKEND_QUANTITY_UNIT]);
 
   // Group addons and initialize selections
   useEffect(() => {
@@ -550,6 +558,9 @@ export default function MenuItemModal({
                       const newQty = Math.max(1, itemQuantity - 1);
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
+                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                        setHasModifiedQuantity(newQty !== initialModalQuantity);
+                      }
                     }}
                     className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
@@ -566,7 +577,11 @@ export default function MenuItemModal({
                         if (val === "" || /^\d+$/.test(val)) {
                           setItemQuantityInput(val);
                           if (val !== "" && !isNaN(parseInt(val))) {
-                            setItemQuantity(Math.max(1, parseInt(val)));
+                            const newQty = Math.max(1, parseInt(val));
+                            setItemQuantity(newQty);
+                            if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                              setHasModifiedQuantity(newQty !== initialModalQuantity);
+                            }
                           }
                         }
                       }}
@@ -577,6 +592,9 @@ export default function MenuItemModal({
                         ) {
                           setItemQuantity(1);
                           setItemQuantityInput("1");
+                          if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                            setHasModifiedQuantity(1 !== initialModalQuantity);
+                          }
                         }
                       }}
                       className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
@@ -590,6 +608,9 @@ export default function MenuItemModal({
                       const newQty = itemQuantity + 1;
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
+                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                        setHasModifiedQuantity(newQty !== initialModalQuantity);
+                      }
                     }}
                     className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
@@ -783,12 +804,38 @@ export default function MenuItemModal({
               </div>
             )}
 
-            <button
-              onClick={handleAddToCart}
-              className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-            >
-              Add to Order
-            </button>
+            {quantity > 0 && (!item.addons || item.addons.length === 0) ? (
+              <div className="space-y-2">
+                {hasModifiedQuantity && (
+                  <button
+                    onClick={() => {
+                      const newBackendQty = itemQuantity * BACKEND_QUANTITY_UNIT;
+                      onUpdateQuantity(item.id, newBackendQty);
+                      onClose();
+                    }}
+                    className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  >
+                    Save Order
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    onUpdateQuantity(item.id, 0);
+                    onClose();
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Order
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+              >
+                Add to Order
+              </button>
+            )}
             {/* Show total with customizations - always show if quantity > 1 or addons selected */}
             {(itemQuantity > 1 ||
               Object.values(selectedAddons).some((group) =>
