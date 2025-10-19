@@ -131,9 +131,11 @@ export default function MenuItemModal({
     if (!item) return;
 
     // Get base price (use discount price if available)
-    let basePrice = item.isDiscount
-      ? parseFloat(item.discountPrice || "0")
-      : parseFloat(item.price || "0");
+    let basePrice =
+      BACKEND_QUANTITY_UNIT *
+      (item.isDiscount
+        ? parseFloat(item.discountPrice || "0")
+        : parseFloat(item.price || "0"));
 
     if (isNaN(basePrice)) basePrice = 0;
 
@@ -146,15 +148,33 @@ export default function MenuItemModal({
           if (group.selectionType === "single") {
             // For single selection: multiply by specific addon quantity
             const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
-            addonCost += addonPrice * qty;
+            addonCost += addonPrice * qty * DISPLAY_FEEDS_PER_UNIT;
           } else {
             // For multiple selection: multiply by total item quantity (applies to all portions)
-            addonCost += addonPrice * itemQuantity;
+            addonCost += addonPrice * itemQuantity * DISPLAY_FEEDS_PER_UNIT;
           }
         }
       });
     });
 
+    //  (displayPrice +
+    //                     Object.entries(addonGroups).reduce(
+    //                       (sum, [groupTitle, group]) => {
+    //                         return (
+    //                           sum +
+    //                           group.items.reduce((addonSum, addon) => {
+    //                             if (selectedAddons[groupTitle]?.[addon.name]) {
+    //                               return addonSum + parseFloat(addon.price);
+    //                             }
+    //                             return addonSum;
+    //                           }, 0)
+    //                         );
+    //                       },
+    //                       0
+    //                     )) *
+    //                   BACKEND_QUANTITY_UNIT *
+    //                   itemQuantity
+    //                 )
     // Set total price based on quantity and addons
     setTotalPrice(basePrice * itemQuantity + addonCost);
   }, [item, itemQuantity, selectedAddons, addonQuantities, addonGroups]);
@@ -869,8 +889,8 @@ export default function MenuItemModal({
                     :
                   </span>
                   <span className="text-lg font-bold text-primary">
-                    £
-                    {(
+                    £{totalPrice.toFixed(2)}
+                    {/* {(
                       (displayPrice +
                         Object.entries(addonGroups).reduce(
                           (sum, [groupTitle, group]) => {
@@ -888,7 +908,7 @@ export default function MenuItemModal({
                         )) *
                       BACKEND_QUANTITY_UNIT *
                       itemQuantity
-                    ).toFixed(2)}
+                    ).toFixed(2)} */}
                   </span>
                 </div>
               </div>
