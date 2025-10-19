@@ -92,7 +92,10 @@ class CateringService {
         const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
         const addonPricePerUnit = (item.selectedAddons || []).reduce(
           (addonTotal, { price, quantity }) => {
-            return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+            return (
+              addonTotal +
+              (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+            );
           },
           0
         );
@@ -163,6 +166,7 @@ class CateringService {
     };
     console.log("catering req", JSON.stringify(createDto));
 
+    return;
     const response = await fetch(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
       headers: {

@@ -411,7 +411,10 @@ export default function Step2MenuItems() {
 
     // Check if we're editing an existing item
     if (editingItemIndex !== null) {
-      updateMenuItemByIndex(editingItemIndex, { item: item, quantity: totalBackendQuantity });
+      updateMenuItemByIndex(editingItemIndex, {
+        item: item,
+        quantity: totalBackendQuantity,
+      });
       setEditingItemIndex(null);
     } else {
       addMenuItem({ item: item, quantity: totalBackendQuantity });
@@ -960,17 +963,43 @@ export default function Step2MenuItems() {
                             </h4>
                             {item.selectedAddons &&
                               item.selectedAddons.length > 0 && (
-                                <div className="text-xs text-base-content/60 mb-1">
-                                  {item.selectedAddons.map((addon, idx) => (
-                                    <span key={idx}>
-                                      + {addon.name}
-                                      {addon.quantity > 1 &&
-                                        ` (×${addon.quantity})`}
-                                      {idx < item.selectedAddons!.length - 1
-                                        ? ", "
-                                        : ""}
-                                    </span>
-                                  ))}
+                                <div className="text-xs text-base-content/60 mb-1 flex flex-col gap-1">
+                                  {/* Group addons by groupTitle */}
+                                  {(() => {
+                                    const grouped = item.selectedAddons.reduce(
+                                      (acc, addon) => {
+                                        if (!acc[addon.groupTitle])
+                                          acc[addon.groupTitle] = [];
+                                        acc[addon.groupTitle].push(addon);
+                                        return acc;
+                                      },
+                                      {} as Record<
+                                        string,
+                                        typeof item.selectedAddons
+                                      >
+                                    );
+                                    return Object.entries(grouped).map(
+                                      ([groupTitle, addons], groupIdx) => (
+                                        <div key={groupTitle} className="mb-1">
+                                          <span className="font-semibold text-base-content/80 block mb-0.5">
+                                            {groupTitle}
+                                          </span>
+                                          <span>
+                                            {addons.map((addon, idx) => (
+                                              <span key={idx}>
+                                                + {addon.name}
+                                                {addon.quantity > 1 &&
+                                                  ` (×${addon.quantity})`}
+                                                {idx < addons.length - 1
+                                                  ? ", "
+                                                  : ""}
+                                              </span>
+                                            ))}
+                                          </span>
+                                        </div>
+                                      )
+                                    );
+                                  })()}
                                 </div>
                               )}
                             <p className="text-xl font-bold text-primary mb-2">
@@ -1243,17 +1272,43 @@ export default function Step2MenuItems() {
                             </h4>
                             {item.selectedAddons &&
                               item.selectedAddons.length > 0 && (
-                                <div className="text-xs text-base-content/60 mb-1">
-                                  {item.selectedAddons.map((addon, idx) => (
-                                    <span key={idx}>
-                                      + {addon.name}
-                                      {addon.quantity > 1 &&
-                                        ` (×${addon.quantity})`}
-                                      {idx < item.selectedAddons!.length - 1
-                                        ? ", "
-                                        : ""}
-                                    </span>
-                                  ))}
+                                <div className="text-xs text-base-content/60 mb-1 flex flex-col gap-1">
+                                  {/* Group addons by groupTitle */}
+                                  {(() => {
+                                    const grouped = item.selectedAddons.reduce(
+                                      (acc, addon) => {
+                                        if (!acc[addon.groupTitle])
+                                          acc[addon.groupTitle] = [];
+                                        acc[addon.groupTitle].push(addon);
+                                        return acc;
+                                      },
+                                      {} as Record<
+                                        string,
+                                        typeof item.selectedAddons
+                                      >
+                                    );
+                                    return Object.entries(grouped).map(
+                                      ([groupTitle, addons]) => (
+                                        <div key={groupTitle} className="mb-1">
+                                          <span className="font-semibold text-base-content/80 block mb-0.5">
+                                            {groupTitle}
+                                          </span>
+                                          <span>
+                                            {addons.map((addon, idx) => (
+                                              <span key={idx}>
+                                                + {addon.name}
+                                                {addon.quantity > 1 &&
+                                                  ` (×${addon.quantity})`}
+                                                {idx < addons.length - 1
+                                                  ? ", "
+                                                  : ""}
+                                              </span>
+                                            ))}
+                                          </span>
+                                        </div>
+                                      )
+                                    );
+                                  })()}
                                 </div>
                               )}
                             <p className="text-lg font-bold text-primary mb-2">

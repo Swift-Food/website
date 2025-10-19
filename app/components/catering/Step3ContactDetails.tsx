@@ -100,6 +100,7 @@ export default function Step3ContactInfo() {
         ccEmails // Add this parameter
       );
       setSuccess(true);
+      
     } catch (error) {
       console.error("Error submitting order:", error);
       alert("Failed to submit order. Please try again.");
