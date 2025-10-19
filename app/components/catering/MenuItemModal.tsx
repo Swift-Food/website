@@ -29,6 +29,9 @@ export default function MenuItemModal({
   const [selectedAddons, setSelectedAddons] = useState<
     Record<string, Record<string, boolean>>
   >({});
+  const [addonQuantities, setAddonQuantities] = useState<
+    Record<string, Record<string, number>>
+  >({}); // For single-selection groups: tracks quantity per addon
   const [addonGroups, setAddonGroups] = useState<Record<string, AddonGroup>>(
     {}
   );
@@ -49,6 +52,7 @@ export default function MenuItemModal({
     if (isOpen) {
       setItemQuantity(1);
       setSelectedAddons({});
+      setAddonQuantities({});
     }
   }, [isOpen]);
 
@@ -88,14 +92,20 @@ export default function MenuItemModal({
 
     // Initialize selected addons state
     const initialSelections: Record<string, Record<string, boolean>> = {};
+    const initialQuantities: Record<string, Record<string, number>> = {};
+
     Object.keys(grouped).forEach((groupTitle) => {
       initialSelections[groupTitle] = {};
+      initialQuantities[groupTitle] = {};
       grouped[groupTitle].items.forEach((addon) => {
         initialSelections[groupTitle][addon.name] = false;
+        initialQuantities[groupTitle][addon.name] = 0;
       });
     });
     console.log("Initial selections:", initialSelections);
+    console.log("Initial quantities:", initialQuantities);
     setSelectedAddons(initialSelections);
+    setAddonQuantities(initialQuantities);
   }, [item]);
 
   // Calculate total price when quantity or selected addons change
@@ -114,47 +124,91 @@ export default function MenuItemModal({
     Object.entries(addonGroups).forEach(([groupTitle, group]) => {
       group.items.forEach((addon) => {
         if (selectedAddons[groupTitle]?.[addon.name]) {
-          addonCost += parseFloat(addon.price) || 0;
+          const addonPrice = parseFloat(addon.price) || 0;
+          if (group.selectionType === "single") {
+            // For single selection: multiply by specific addon quantity
+            const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
+            addonCost += addonPrice * qty;
+          } else {
+            // For multiple selection: multiply by total item quantity (applies to all portions)
+            addonCost += addonPrice * itemQuantity;
+          }
         }
       });
     });
 
     // Set total price based on quantity and addons
-    setTotalPrice((basePrice + addonCost) * itemQuantity);
-  }, [item, itemQuantity, selectedAddons, addonGroups]);
+    setTotalPrice(basePrice * itemQuantity + addonCost);
+  }, [item, itemQuantity, selectedAddons, addonQuantities, addonGroups]);
+
+  // Handle quantity change for single-selection addons
+  const updateAddonQuantity = (
+    groupTitle: string,
+    addonName: string,
+    change: number
+  ) => {
+    setAddonQuantities((prev) => {
+      const newQuantities: Record<string, Record<string, number>> = {};
+      Object.keys(prev).forEach((key) => {
+        newQuantities[key] = { ...prev[key] };
+      });
+
+      if (!newQuantities[groupTitle]) {
+        newQuantities[groupTitle] = {};
+      }
+
+      const currentQty = newQuantities[groupTitle][addonName] || 0;
+      const newQty = Math.max(0, currentQty + change);
+
+      newQuantities[groupTitle][addonName] = newQty;
+
+      // Update selected state based on quantity
+      setSelectedAddons((prevSelected) => {
+        const newSelections: Record<string, Record<string, boolean>> = {};
+        Object.keys(prevSelected).forEach((key) => {
+          newSelections[key] = { ...prevSelected[key] };
+        });
+        if (!newSelections[groupTitle]) {
+          newSelections[groupTitle] = {};
+        }
+        newSelections[groupTitle][addonName] = newQty > 0;
+        return newSelections;
+      });
+
+      return newQuantities;
+    });
+  };
 
   const toggleAddon = (groupTitle: string, addonName: string) => {
-    setSelectedAddons((prev) => {
-      // Create a deep copy of the selections
-      const newSelections: Record<string, Record<string, boolean>> = {};
+    const group = addonGroups[groupTitle];
 
-      // Deep copy each group
+    // For single-selection groups, we don't toggle - we use quantity controls
+    if (group.selectionType === "single") {
+      return; // Quantity controls handle this
+    }
+
+    // For multiple selection, toggle the clicked addon
+    setSelectedAddons((prev) => {
+      const newSelections: Record<string, Record<string, boolean>> = {};
       Object.keys(prev).forEach((key) => {
         newSelections[key] = { ...prev[key] };
       });
 
-      const group = addonGroups[groupTitle];
-
-      // Ensure the group exists in newSelections
       if (!newSelections[groupTitle]) {
         newSelections[groupTitle] = {};
       }
 
-      if (group.selectionType === "single") {
-        // For single selection, deselect all others in the group first
-        Object.keys(newSelections[groupTitle]).forEach((name) => {
-          newSelections[groupTitle][name] = false;
-        });
-        // Then select the clicked addon
-        newSelections[groupTitle][addonName] = true;
-      } else {
-        // For multiple selection, toggle the clicked addon
-        const currentValue = prev[groupTitle]?.[addonName] || false;
-        newSelections[groupTitle][addonName] = !currentValue;
-      }
+      const currentValue = prev[groupTitle]?.[addonName] || false;
+      newSelections[groupTitle][addonName] = !currentValue;
 
       return newSelections;
     });
+  };
+
+  // Helper to get total selected quantity for a single-selection group
+  const getSingleSelectionTotal = (groupTitle: string) => {
+    const quantities = addonQuantities[groupTitle] || {};
+    return Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
   };
 
   const validateRequiredAddons = () => {
@@ -168,6 +222,30 @@ export default function MenuItemModal({
     });
   };
 
+  const validateSingleSelectionTotals = () => {
+    // Check that all single-selection groups have quantities that add up to itemQuantity
+    const errors: string[] = [];
+
+    Object.entries(addonGroups).forEach(([groupTitle, group]) => {
+      if (group.selectionType === "single") {
+        const total = getSingleSelectionTotal(groupTitle);
+        const hasAnySelection = Object.values(selectedAddons[groupTitle] || {}).some(
+          (isSelected) => isSelected
+        );
+
+        if (hasAnySelection && total !== itemQuantity) {
+          errors.push(
+            `${groupTitle}: Please select exactly ${itemQuantity} portion${
+              itemQuantity > 1 ? "s" : ""
+            } (currently ${total})`
+          );
+        }
+      }
+    });
+
+    return errors;
+  };
+
   const handleAddToCart = () => {
     if (!item) return;
 
@@ -177,37 +255,61 @@ export default function MenuItemModal({
       return;
     }
 
-    // Collect selected addons with their prices
+    // Validate single-selection totals
+    const validationErrors = validateSingleSelectionTotals();
+    if (validationErrors.length > 0) {
+      alert(
+        "Please adjust your selections:\n\n" + validationErrors.join("\n")
+      );
+      return;
+    }
+
+    // Collect selected addons with their quantities and prices
     const addonsForCart: {
       name: string;
       price: number;
       quantity: number;
       groupTitle: string;
     }[] = [];
+
+    let totalAddonPrice = 0;
+
     Object.entries(addonGroups).forEach(([groupTitle, group]) => {
       group.items.forEach((addon) => {
         if (selectedAddons[groupTitle]?.[addon.name]) {
-          addonsForCart.push({
-            name: addon.name,
-            price: Number(addon.price) || 0,
-            quantity: 1,
-            groupTitle: groupTitle,
-          });
+          const addonPrice = Number(addon.price) || 0;
+
+          if (group.selectionType === "single") {
+            // For single selection: use the specific quantity
+            const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
+            if (qty > 0) {
+              addonsForCart.push({
+                name: addon.name,
+                price: addonPrice,
+                quantity: qty,
+                groupTitle: groupTitle,
+              });
+              totalAddonPrice += addonPrice * qty;
+            }
+          } else {
+            // For multiple selection: quantity is always equal to itemQuantity
+            addonsForCart.push({
+              name: addon.name,
+              price: addonPrice,
+              quantity: itemQuantity,
+              groupTitle: groupTitle,
+            });
+            totalAddonPrice += addonPrice * itemQuantity;
+          }
         }
       });
     });
-
-    // Calculate addon price per portion, then multiply by quantity
-    const addonPricePerPortion = addonsForCart.reduce(
-      (sum, addon) => sum + addon.price,
-      0
-    );
 
     // Create item with selected addons
     const itemWithAddons = {
       ...item,
       selectedAddons: addonsForCart,
-      addonPrice: addonPricePerPortion * itemQuantity,
+      addonPrice: totalAddonPrice,
       // Store the portion quantity for the parent to use
       portionQuantity: itemQuantity,
     };
@@ -356,37 +458,77 @@ export default function MenuItemModal({
                         </h4>
                         <span className="text-xs text-base-content/60 italic">
                           {group.selectionType === "single"
-                            ? "Choose one"
-                            : "Choose multiple"}
+                            ? `Select portions (total: ${getSingleSelectionTotal(
+                                groupTitle
+                              )}/${itemQuantity})`
+                            : "Choose multiple (applies to all portions)"}
                         </span>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      {group.items.map((addon, index) => (
-                        <button
-                          key={index}
-                          onClick={() => toggleAddon(groupTitle, addon.name)}
-                          className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
-                            selectedAddons[groupTitle]?.[addon.name]
-                              ? "border-primary bg-primary/5"
-                              : "border-base-300 bg-base-100 hover:border-primary/50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            {group.selectionType === "single" ? (
-                              <div
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                  selectedAddons[groupTitle]?.[addon.name]
-                                    ? "border-primary bg-primary/10"
-                                    : "border-base-300"
-                                }`}
+                      {group.items.map((addon, index) => {
+                        const addonQty =
+                          addonQuantities[groupTitle]?.[addon.name] || 0;
+
+                        return group.selectionType === "single" ? (
+                          // Single selection: Show quantity controls
+                          <div
+                            key={index}
+                            className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                              addonQty > 0
+                                ? "border-primary bg-primary/5"
+                                : "border-base-300 bg-base-100"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 flex-1">
+                              <span className="text-sm text-base-content">
+                                {addon.name}
+                              </span>
+                              {parseFloat(addon.price) > 0 && (
+                                <span className="text-xs font-medium text-primary">
+                                  +£{parseFloat(addon.price).toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() =>
+                                  updateAddonQuantity(
+                                    groupTitle,
+                                    addon.name,
+                                    -1
+                                  )
+                                }
+                                className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium"
                               >
-                                {selectedAddons[groupTitle]?.[addon.name] && (
-                                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                                )}
-                              </div>
-                            ) : (
+                                −
+                              </button>
+                              <span className="text-sm font-medium text-base-content min-w-[20px] text-center">
+                                {addonQty}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  updateAddonQuantity(groupTitle, addon.name, 1)
+                                }
+                                className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          // Multiple selection: Show checkbox
+                          <button
+                            key={index}
+                            onClick={() => toggleAddon(groupTitle, addon.name)}
+                            className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                              selectedAddons[groupTitle]?.[addon.name]
+                                ? "border-primary bg-primary/5"
+                                : "border-base-300 bg-base-100 hover:border-primary/50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
                               <div
                                 className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                                   selectedAddons[groupTitle]?.[addon.name]
@@ -410,18 +552,18 @@ export default function MenuItemModal({
                                   </svg>
                                 )}
                               </div>
+                              <span className="text-sm text-base-content">
+                                {addon.name}
+                              </span>
+                            </div>
+                            {parseFloat(addon.price) > 0 && (
+                              <span className="text-sm font-medium text-primary">
+                                +£{parseFloat(addon.price).toFixed(2)}
+                              </span>
                             )}
-                            <span className="text-sm text-base-content">
-                              {addon.name}
-                            </span>
-                          </div>
-                          {parseFloat(addon.price) > 0 && (
-                            <span className="text-sm font-medium text-primary">
-                              +£{parseFloat(addon.price).toFixed(2)}
-                            </span>
-                          )}
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

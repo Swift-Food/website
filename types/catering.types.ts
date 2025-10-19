@@ -5,7 +5,7 @@ import { MenuItem } from "@/app/components/catering/Step2MenuItems";
 export interface SelectedAddon {
   name: string;
   price: number;
-  quantity: number;
+  quantity: number; // For single-selection: portions with this addon; For multiple: always matches total portions
   groupTitle: string;
 }
 

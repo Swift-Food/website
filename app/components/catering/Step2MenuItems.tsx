@@ -922,6 +922,7 @@ export default function Step2MenuItems() {
                                   {item.selectedAddons.map((addon, idx) => (
                                     <span key={idx}>
                                       + {addon.name}
+                                      {addon.quantity > 1 && ` (×${addon.quantity})`}
                                       {idx < item.selectedAddons!.length - 1
                                         ? ", "
                                         : ""}
@@ -1195,6 +1196,7 @@ export default function Step2MenuItems() {
                                   {item.selectedAddons.map((addon, idx) => (
                                     <span key={idx}>
                                       + {addon.name}
+                                      {addon.quantity > 1 && ` (×${addon.quantity})`}
                                       {idx < item.selectedAddons!.length - 1
                                         ? ", "
                                         : ""}
