@@ -661,15 +661,15 @@ export default function Step2MenuItems() {
                                         key={item.id}
                                         item={item}
                                         quantity={getItemQuantity(item.id)}
-                                        // isExpanded={expandedItemId === item.id}
+                                        isExpanded={expandedItemId === item.id}
                                         isSearching={isSearching}
-                                        // onToggleExpand={() =>
-                                        //   setExpandedItemId(
-                                        //     expandedItemId === item.id
-                                        //       ? null
-                                        //       : item.id
-                                        //   )
-                                        // }
+                                        onToggleExpand={() =>
+                                          setExpandedItemId(
+                                            expandedItemId === item.id
+                                              ? null
+                                              : item.id
+                                          )
+                                        }
                                         onAddItem={handleAddItem}
                                         onUpdateQuantity={updateItemQuantity}
                                       />
