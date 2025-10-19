@@ -481,9 +481,9 @@ export default function Step3ContactInfo() {
 
                 // USE ITEM'S OWN VALUES:
                 const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                // const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                 const displayFeeds =
-                  (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                  (quantity / BACKEND_QUANTITY_UNIT);
 
                 return (
                   <div
@@ -502,7 +502,7 @@ export default function Step3ContactInfo() {
                         {item.name}
                       </p>
                       <p className="text-sm text-base-content/60">
-                        Feeds {displayFeeds} people
+                        {displayFeeds} portions
                       </p>
                     </div>
                     <div className="text-right">
@@ -983,9 +983,9 @@ export default function Step3ContactInfo() {
 
                   // USE ITEM'S OWN VALUES:
                   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                  // const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                   const displayFeeds =
-                    (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                    (quantity / BACKEND_QUANTITY_UNIT);
 
                   return (
                     <div key={item.id} className="flex items-center gap-3">
@@ -1002,7 +1002,7 @@ export default function Step3ContactInfo() {
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-base-content/70">
-                            feeds up to {displayFeeds} people
+                            {displayFeeds} portions
                           </span>
                         </div>
                       </div>
