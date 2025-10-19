@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { cateringService } from "@/services/cateringServices";
 import { useCatering } from "@/context/CateringContext";
 import MenuItemCard from "./MenuItemCard";
+import MenuItemModal from "./MenuItemModal";
 
 export interface Restaurant {
   id: string;
@@ -74,6 +75,7 @@ export default function Step2MenuItems() {
     // removeMenuItem,
     getTotalPrice,
     updateItemQuantity,
+    updateMenuItemByIndex,
     setCurrentStep,
     setSelectedRestaurants,
   } = useCatering();
@@ -92,6 +94,7 @@ export default function Step2MenuItems() {
   const [showCartMobile, setShowCartMobile] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [displayItems, setDisplayItems] = useState<MenuItem[]>([]);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
   // Helper: stable sort items by restaurant name (fallback to id)
   const sortByRestaurant = (items: MenuItem[] | null) => {
@@ -405,7 +408,20 @@ export default function Step2MenuItems() {
       "Backend Quantity:",
       totalBackendQuantity
     );
-    addMenuItem({ item: item, quantity: totalBackendQuantity });
+
+    // Check if we're editing an existing item
+    if (editingItemIndex !== null) {
+      updateMenuItemByIndex(editingItemIndex, { item: item, quantity: totalBackendQuantity });
+      setEditingItemIndex(null);
+    } else {
+      addMenuItem({ item: item, quantity: totalBackendQuantity });
+    }
+  };
+
+  const handleEditItem = (index: number) => {
+    const selectedItem = selectedItems[index];
+    setEditingItemIndex(index);
+    setExpandedItemId(selectedItem.item.id);
   };
 
   const handleOrderPress = (item: MenuItem) => {
@@ -992,12 +1008,20 @@ export default function Step2MenuItems() {
                                   +
                                 </button> */}
                               </div>
-                              <button
-                                onClick={() => removeMenuItemByIndex(index)}
-                                className="text-error hover:opacity-80 text-xs"
-                              >
-                                Remove
-                              </button>
+                              <div className="flex flex-col gap-1">
+                                <button
+                                  onClick={() => handleEditItem(index)}
+                                  className="text-primary hover:opacity-80 text-xs"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => removeMenuItemByIndex(index)}
+                                  className="text-error hover:opacity-80 text-xs"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1267,12 +1291,23 @@ export default function Step2MenuItems() {
                                   +
                                 </button> */}
                               </div>
-                              <button
-                                onClick={() => removeMenuItemByIndex(index)}
-                                className="text-error hover:opacity-80 text-sm"
-                              >
-                                Remove
-                              </button>
+                              <div className="flex flex-col gap-1">
+                                <button
+                                  onClick={() => {
+                                    handleEditItem(index);
+                                    setShowCartMobile(false);
+                                  }}
+                                  className="text-primary hover:opacity-80 text-sm"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => removeMenuItemByIndex(index)}
+                                  className="text-error hover:opacity-80 text-sm"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1347,6 +1382,22 @@ export default function Step2MenuItems() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Modal for Cart Items */}
+      {editingItemIndex !== null && selectedItems[editingItemIndex] && (
+        <MenuItemModal
+          item={selectedItems[editingItemIndex].item}
+          isOpen={editingItemIndex !== null}
+          onClose={() => {
+            setEditingItemIndex(null);
+            setExpandedItemId(null);
+          }}
+          quantity={selectedItems[editingItemIndex].quantity}
+          onAddItem={handleAddItem}
+          onUpdateQuantity={updateItemQuantity}
+          isEditMode={true}
+        />
       )}
     </div>
   );

@@ -8,6 +8,7 @@ interface MenuItemModalProps {
   quantity: number;
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
+  isEditMode?: boolean;
 }
 
 interface AddonGroup {
@@ -23,6 +24,7 @@ export default function MenuItemModal({
   quantity,
   onAddItem,
   onUpdateQuantity,
+  isEditMode = false,
 }: MenuItemModalProps) {
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemQuantityInput, setItemQuantityInput] = useState("1"); // String for input field
@@ -64,11 +66,18 @@ export default function MenuItemModal({
       setItemQuantityInput(initialPortions.toString());
       setInitialModalQuantity(initialPortions);
       setHasModifiedQuantity(false);
-      setSelectedAddons({});
-      setAddonQuantities({});
-      setAddonQuantityInputs({});
+
+      // If in edit mode, pre-populate the selected addons
+      if (isEditMode && item.selectedAddons && item.selectedAddons.length > 0) {
+        // We'll set these after addon groups are initialized
+        // This is handled in the next useEffect
+      } else {
+        setSelectedAddons({});
+        setAddonQuantities({});
+        setAddonQuantityInputs({});
+      }
     }
-  }, [isOpen, quantity, BACKEND_QUANTITY_UNIT]);
+  }, [isOpen, quantity, BACKEND_QUANTITY_UNIT, isEditMode]);
 
   // Group addons and initialize selections
   useEffect(() => {
@@ -119,12 +128,27 @@ export default function MenuItemModal({
         initialQuantityInputs[groupTitle][addon.name] = "0";
       });
     });
+
+    // If in edit mode, pre-populate with existing selections
+    if (isEditMode && item.selectedAddons && item.selectedAddons.length > 0) {
+      item.selectedAddons.forEach((selectedAddon) => {
+        const groupTitle = selectedAddon.groupTitle;
+        const addonName = selectedAddon.name;
+
+        if (initialSelections[groupTitle] && initialSelections[groupTitle][addonName] !== undefined) {
+          initialSelections[groupTitle][addonName] = true;
+          initialQuantities[groupTitle][addonName] = selectedAddon.quantity || 0;
+          initialQuantityInputs[groupTitle][addonName] = (selectedAddon.quantity || 0).toString();
+        }
+      });
+    }
+
     console.log("Initial selections:", initialSelections);
     console.log("Initial quantities:", initialQuantities);
     setSelectedAddons(initialSelections);
     setAddonQuantities(initialQuantities);
     setAddonQuantityInputs(initialQuantityInputs);
-  }, [item]);
+  }, [item, isEditMode]);
 
   // Calculate total price when quantity or selected addons change
   useEffect(() => {
@@ -863,7 +887,7 @@ export default function MenuItemModal({
                 onClick={handleAddToCart}
                 className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
               >
-                Add to Order
+                {isEditMode ? "Save Changes" : "Add to Order"}
               </button>
             )}
             {/* Show total with customizations - always show if quantity > 1 or addons selected */}

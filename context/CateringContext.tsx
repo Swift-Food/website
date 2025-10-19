@@ -29,6 +29,7 @@ interface CateringContextType {
   removeMenuItemByIndex: (index: number) => void;
   removeMenuItem: (itemId: string) => void;
   updateItemQuantity: (itemId: string, quantity: number) => void;
+  updateMenuItemByIndex: (index: number, item: SelectedMenuItem) => void;
   setContactInfo: (info: ContactInfo) => void;
   getTotalPrice: () => number;
   resetOrder: () => void;
@@ -213,6 +214,19 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateMenuItemByIndex = (index: number, item: SelectedMenuItem) => {
+    setSelectedItemsState((prev) => {
+      const updated = [...prev];
+      updated[index] = item;
+      localStorage.setItem(
+        STORAGE_KEYS.SELECTED_ITEMS,
+        JSON.stringify(updated)
+      );
+      getTotalPrice(updated);
+      return updated;
+    });
+  };
+
   const getTotalPrice = (optionalSelectedItems?: SelectedMenuItem[] = []) => {
     const usedSelectedItems =
       optionalSelectedItems.length > 0 ? optionalSelectedItems : selectedItems;
@@ -315,6 +329,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         removeMenuItemByIndex,
         removeMenuItem,
         updateItemQuantity,
+        updateMenuItemByIndex,
         setContactInfo,
         getTotalPrice,
         resetOrder,
