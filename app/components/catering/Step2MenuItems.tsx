@@ -1012,7 +1012,7 @@ export default function Step2MenuItems() {
                       const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-                      const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+                      const displayQuantity = numUnits;
 
                       return (
                         <div
@@ -1030,6 +1030,9 @@ export default function Step2MenuItems() {
                             <h4 className="font-semibold text-sm text-base-content mb-1">
                               {item.name}
                             </h4>
+                            <p className="text-sm text-ps mb-2">
+                              feeds {DISPLAY_FEEDS_PER_UNIT} people
+                            </p>
                             <p className="text-xl font-bold text-primary mb-2">
                               £{subtotal.toFixed(2)}
                             </p>
@@ -1051,7 +1054,7 @@ export default function Step2MenuItems() {
                                   −
                                 </button>
                                 <span className="text-sm font-medium text-base-content">
-                                  Feeds {displayQuantity} people
+                                  {displayQuantity} portion
                                 </span>
                                 <button
                                   onClick={() =>
@@ -1269,7 +1272,7 @@ export default function Step2MenuItems() {
 
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
 
-                      const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+                      const displayQuantity = numUnits ;
 
                       return (
                         <div
@@ -1287,6 +1290,9 @@ export default function Step2MenuItems() {
                             <h4 className="font-semibold text-sm text-base-content mb-1">
                               {item.name}
                             </h4>
+                            <p className="text-sm text-ps mb-2">
+                              feeds {DISPLAY_FEEDS_PER_UNIT} people
+                            </p>
                             <p className="text-lg font-bold text-primary mb-2">
                               £{subtotal.toFixed(2)}
                             </p>
@@ -1303,12 +1309,12 @@ export default function Step2MenuItems() {
                                       )
                                     )
                                   }
-                                  className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   −
                                 </button>
                                 <span className="text-sm font-medium text-base-content">
-                                  Feeds {displayQuantity} people
+                                  {numUnits}
                                 </span>
                                 <button
                                   onClick={() =>
@@ -1317,18 +1323,21 @@ export default function Step2MenuItems() {
                                       quantity + BACKEND_QUANTITY_UNIT
                                     )
                                   }
-                                  className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   +
                                 </button>
                               </div>
                               <button
                                 onClick={() => removeMenuItem(item.id)}
-                                className="text-error hover:opacity-80 text-sm"
+                                className="text-error hover:opacity-80 text-xs"
                               >
                                 Remove
                               </button>
                             </div>
+                            <p className="text-xs text-base-content/60 mt-1">
+                              {displayQuantity} portion
+                            </p>
                           </div>
                         </div>
                       );
