@@ -68,9 +68,11 @@ export default function Step2MenuItems() {
 
   const {
     selectedItems,
+    totalPrice,
     addMenuItem,
     removeMenuItemByIndex,
     // removeMenuItem,
+    getTotalPrice,
     updateItemQuantity,
     setCurrentStep,
     setSelectedRestaurants,
@@ -111,6 +113,7 @@ export default function Step2MenuItems() {
   // Fetch all restaurants on mount
   useEffect(() => {
     fetchRestaurants();
+    getTotalPrice();
   }, []);
   useEffect(() => {
     const restaurantIds = new Set(
@@ -1023,8 +1026,8 @@ export default function Step2MenuItems() {
                     <div className="flex justify-between text-lg font-bold text-base-content">
                       <span>Total:</span>
                       <span>
-                        £
-                        {selectedItems
+                        £{totalPrice.toFixed(2)}
+                        {/* {selectedItems
                           .reduce((sum, { item, quantity }) => {
                             const price = parseFloat(
                               item.price?.toString() || "0"
@@ -1039,7 +1042,7 @@ export default function Step2MenuItems() {
                             const addonPrice = item.addonPrice || 0;
                             return sum + itemPrice * quantity + addonPrice;
                           }, 0)
-                          .toFixed(2)}
+                          .toFixed(2)} */}
                       </span>
                     </div>
                   </div>
@@ -1298,8 +1301,8 @@ export default function Step2MenuItems() {
                     <div className="flex justify-between text-lg font-bold text-base-content">
                       <span>Total:</span>
                       <span>
-                        £
-                        {selectedItems
+                        £{totalPrice.toFixed(2)}
+                        {/* {selectedItems
                           .reduce((sum, { item, quantity }) => {
                             const price = parseFloat(
                               item.price?.toString() || "0"
@@ -1314,7 +1317,7 @@ export default function Step2MenuItems() {
                             const addonPrice = item.addonPrice || 0;
                             return sum + itemPrice * quantity + addonPrice;
                           }, 0)
-                          .toFixed(2)}
+                          .toFixed(2)} */}
                       </span>
                     </div>
                   </div>

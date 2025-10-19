@@ -156,26 +156,6 @@ export default function MenuItemModal({
         }
       });
     });
-
-    //  (displayPrice +
-    //                     Object.entries(addonGroups).reduce(
-    //                       (sum, [groupTitle, group]) => {
-    //                         return (
-    //                           sum +
-    //                           group.items.reduce((addonSum, addon) => {
-    //                             if (selectedAddons[groupTitle]?.[addon.name]) {
-    //                               return addonSum + parseFloat(addon.price);
-    //                             }
-    //                             return addonSum;
-    //                           }, 0)
-    //                         );
-    //                       },
-    //                       0
-    //                     )) *
-    //                   BACKEND_QUANTITY_UNIT *
-    //                   itemQuantity
-    //                 )
-    // Set total price based on quantity and addons
     setTotalPrice(basePrice * itemQuantity + addonCost);
   }, [item, itemQuantity, selectedAddons, addonQuantities, addonGroups]);
 
@@ -712,7 +692,11 @@ export default function MenuItemModal({
                               </span>
                               {parseFloat(addon.price) > 0 && (
                                 <span className="text-xs font-medium text-primary">
-                                  +£{parseFloat(addon.price).toFixed(2)}
+                                  +£
+                                  {parseFloat(
+                                    parseFloat(addon.price) *
+                                      DISPLAY_FEEDS_PER_UNIT
+                                  ).toFixed(2)}
                                 </span>
                               )}
                             </div>
@@ -832,7 +816,12 @@ export default function MenuItemModal({
                             </div>
                             {parseFloat(addon.price) > 0 && (
                               <span className="text-sm font-medium text-primary">
-                                +£{parseFloat(addon.price).toFixed(2)}
+                                +£
+                                {parseFloat(
+                                  parseFloat(addon.price) *
+                                    DISPLAY_FEEDS_PER_UNIT *
+                                    itemQuantity
+                                ).toFixed(2)}
                               </span>
                             )}
                           </button>

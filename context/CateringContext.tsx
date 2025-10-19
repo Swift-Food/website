@@ -21,6 +21,7 @@ interface CateringContextType {
   contactInfo: ContactInfo | null;
   promoCodes: string[] | null;
   selectedRestaurants: Restaurant[];
+  totalPrice: number;
   setCurrentStep: (step: number) => void;
   setEventDetails: (details: EventDetails) => void;
   addMenuItem: (item: SelectedMenuItem) => void;
@@ -54,6 +55,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const [eventDetails, setEventDetailsState] = useState<EventDetails | null>(
     null
   );
+  const [totalPrice, setTotalPrice] = useState(0);
   const [selectedItems, setSelectedItemsState] = useState<SelectedMenuItem[]>(
     []
   );
@@ -178,6 +180,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       );
       return updated;
     });
+    getTotalPrice();
   };
 
   const removeMenuItem = (itemId: string) => {
@@ -189,6 +192,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       );
       return updated;
     });
+    getTotalPrice();
   };
 
   const updateItemQuantity = (itemId: string, quantity: number) => {
@@ -207,20 +211,65 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       );
       return updated;
     });
+    getTotalPrice();
   };
 
   const getTotalPrice = () => {
-    return selectedItems.reduce((total, { item, quantity }) => {
+    const newTotalPrice = selectedItems.reduce((total, { item, quantity }) => {
+      console.log(item, quantity);
+      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+      console.log("Backend quantity unit: ", BACKEND_QUANTITY_UNIT);
+
       const price = parseFloat(item.price?.toString() || "0");
       const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-      const itemPrice =
+      const unitPrice =
         item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-      // Add addon price if available
-      const addonPrice = item.addonPrice || 0;
+      console.log("Unit price: ", unitPrice);
+      const itemPrice = unitPrice * quantity;
+      console.log("item price: ", itemPrice);
+      // Addon price: sum of (addon price * addon quantity * backend unit), or 0 if no addons
+      const addonPrice = (item.selectedAddons || []).reduce(
+        (addonTotal, { price, quantity }) => {
+          return (
+            addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+          );
+        },
+        0
+      );
 
-      return total + itemPrice * quantity + addonPrice;
+      console.log("addon price: ", addonPrice);
+
+      return total + itemPrice + addonPrice;
     }, 0);
+    setTotalPrice(newTotalPrice);
+    return newTotalPrice;
+    //  let basePrice =
+    //     BACKEND_QUANTITY_UNIT *
+    //     (item.isDiscount
+    //       ? parseFloat(item.discountPrice || "0")
+    //       : parseFloat(item.price || "0"));
+
+    //   if (isNaN(basePrice)) basePrice = 0;
+
+    //   // Calculate addon costs
+    //   let addonCost = 0;
+    //   Object.entries(addonGroups).forEach(([groupTitle, group]) => {
+    //     group.items.forEach((addon) => {
+    //       if (selectedAddons[groupTitle]?.[addon.name]) {
+    //         const addonPrice = parseFloat(addon.price) || 0;
+    //         if (group.selectionType === "single") {
+    //           // For single selection: multiply by specific addon quantity
+    //           const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
+    //           addonCost += addonPrice * qty * DISPLAY_FEEDS_PER_UNIT;
+    //         } else {
+    //           // For multiple selection: multiply by total item quantity (applies to all portions)
+    //           addonCost += addonPrice * itemQuantity * DISPLAY_FEEDS_PER_UNIT;
+    //         }
+    //       }
+    //     });
+    //   });
   };
 
   const resetOrder = () => {
@@ -250,6 +299,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       value={{
         currentStep,
         eventDetails,
+        totalPrice,
         selectedItems,
         contactInfo,
         promoCodes,
