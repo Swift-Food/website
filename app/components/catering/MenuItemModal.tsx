@@ -24,7 +24,6 @@ export default function MenuItemModal({
   onAddItem,
   onUpdateQuantity,
 }: MenuItemModalProps) {
-  console.log("Modal received item: ", item);
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemQuantityInput, setItemQuantityInput] = useState("1"); // String for input field
   const [selectedAddons, setSelectedAddons] = useState<
@@ -73,10 +72,10 @@ export default function MenuItemModal({
 
   // Group addons and initialize selections
   useEffect(() => {
-    console.log("Modal item changed:", item);
-    console.log("Modal item addons:", item?.addons);
-    console.log("Addons is array?", Array.isArray(item?.addons));
-    console.log("Addons length:", item?.addons?.length);
+    // console.log("Modal item changed:", item);
+    // console.log("Modal item addons:", item?.addons);
+    // console.log("Addons is array?", Array.isArray(item?.addons));
+    // console.log("Addons length:", item?.addons?.length);
 
     if (!item?.addons || item.addons.length === 0) {
       console.log("No addons found, resetting groups");

@@ -147,7 +147,6 @@ export default function Step2MenuItems() {
       console.log("All menu items response:", response);
 
       const menuItemsOnly = (response || []).map((item: any) => {
-        console.log("Item addons:", item.id, item.addons);
         return {
           id: item.id,
           name: item.name,
@@ -904,7 +903,7 @@ export default function Step2MenuItems() {
               ) : (
                 <>
                   <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
-                    {selectedItems.map(({ item, quantity }) => {
+                    {selectedItems.map(({ item, quantity }, index) => {
                       const price = parseFloat(item.price?.toString() || "0");
                       const discountPrice = parseFloat(
                         item.discountPrice?.toString() || "0"
@@ -924,7 +923,7 @@ export default function Step2MenuItems() {
 
                       return (
                         <div
-                          key={item.id}
+                          key={index}
                           className="flex gap-3 pb-4 border-b border-base-300"
                         >
                           {item.image && (
@@ -1176,7 +1175,7 @@ export default function Step2MenuItems() {
               ) : (
                 <>
                   <div className="space-y-4 mb-6">
-                    {selectedItems.map(({ item, quantity }) => {
+                    {selectedItems.map(({ item, quantity }, index) => {
                       const price = parseFloat(item.price?.toString() || "0");
                       const discountPrice = parseFloat(
                         item.discountPrice?.toString() || "0"
@@ -1199,7 +1198,7 @@ export default function Step2MenuItems() {
 
                       return (
                         <div
-                          key={item.id}
+                          key={index}
                           className="flex gap-3 pb-4 border-b border-base-300"
                         >
                           {item.image && (
