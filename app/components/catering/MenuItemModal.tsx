@@ -9,6 +9,8 @@ interface MenuItemModalProps {
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   isEditMode?: boolean;
+  onRemoveItem?: (index: number) => void;
+  editingIndex?: number | null;
 }
 
 interface AddonGroup {
@@ -25,6 +27,8 @@ export default function MenuItemModal({
   onAddItem,
   onUpdateQuantity,
   isEditMode = false,
+  onRemoveItem,
+  editingIndex = null,
 }: MenuItemModalProps) {
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemQuantityInput, setItemQuantityInput] = useState("1"); // String for input field
@@ -857,7 +861,27 @@ export default function MenuItemModal({
               </div>
             )}
 
-            {quantity > 0 && (!item.addons || item.addons.length === 0) ? (
+            {isEditMode ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    if (onRemoveItem && editingIndex !== null) {
+                      onRemoveItem(editingIndex);
+                      onClose();
+                    }
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Order
+                </button>
+              </div>
+            ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
               <div className="space-y-2">
                 {hasModifiedQuantity && (
                   <button
@@ -887,7 +911,7 @@ export default function MenuItemModal({
                 onClick={handleAddToCart}
                 className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
               >
-                {isEditMode ? "Save Changes" : "Add to Order"}
+                Add to Order
               </button>
             )}
             {/* Show total with customizations - always show if quantity > 1 or addons selected */}

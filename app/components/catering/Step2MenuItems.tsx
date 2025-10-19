@@ -1397,6 +1397,8 @@ export default function Step2MenuItems() {
           onAddItem={handleAddItem}
           onUpdateQuantity={updateItemQuantity}
           isEditMode={true}
+          onRemoveItem={removeMenuItemByIndex}
+          editingIndex={editingItemIndex}
         />
       )}
     </div>
