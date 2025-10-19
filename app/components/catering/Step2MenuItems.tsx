@@ -935,16 +935,29 @@ export default function Step2MenuItems() {
                         {restaurant.minimumDeliveryNoticeHours && (
                           <div className="mt-2 text-xs text-base-content/70 bg-info/10 px-2 py-1 rounded">
                             {restaurant.minimumDeliveryNoticeHours >= 24
-                              ? `${Math.floor(
-                                  restaurant.minimumDeliveryNoticeHours / 24
-                                )} day${
-                                  Math.floor(
-                                    restaurant.minimumDeliveryNoticeHours / 24
-                                  ) > 1
-                                    ? "s"
-                                    : ""
-                                } notice required`
-                              : `${restaurant.minimumDeliveryNoticeHours}h notice required`}
+                              ? <>
+                                  <span className="font-bold">
+                                    {Math.floor(
+                                      restaurant.minimumDeliveryNoticeHours / 24
+                                    )} day{
+                                      Math.floor(
+                                        restaurant.minimumDeliveryNoticeHours / 24
+                                      ) > 1
+                                        ? "s"
+                                        : ""
+                                    }
+                                  </span>
+                                  {" "}
+                                  <span className="">notice required</span>
+                                </>
+                              : <>
+                                  <span className="font-bold">
+                                    {restaurant.minimumDeliveryNoticeHours} hours
+                                  </span>
+                                  {" "}
+                                  <span className="">notice required</span>
+                                </>
+                            }
                           </div>
                         )}
                       </div>
