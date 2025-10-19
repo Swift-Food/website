@@ -415,7 +415,7 @@ export default function Step3ContactInfo() {
               </svg>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
-              Thank you! Your catering request has been submitted.
+              Thank you! Your event order request has been submitted.
             </h2>
             <p className="text-base-content/70 text-lg">
               We'll get back to you within 24 hours via your preferred contact
@@ -458,7 +458,7 @@ export default function Step3ContactInfo() {
             </div>
 
             <h4 className="font-bold mb-4 text-base-content">
-              Your Catering List
+              Your List
             </h4>
 
             {promoCodes.length > 0 && (
@@ -595,7 +595,7 @@ export default function Step3ContactInfo() {
               </h2>
               <p className="text-base-content/70">
                 Please provide your contact details so we can confirm your
-                catering request.
+                event order request.
               </p>
             </div>
             <button
@@ -882,7 +882,7 @@ export default function Step3ContactInfo() {
 
               {/* Catering List */}
               <h4 className="font-bold mb-4 text-base-content">
-                Your Catering List
+                Your List
               </h4>
 
               {/* Important Notes */}

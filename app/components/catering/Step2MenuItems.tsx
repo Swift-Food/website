@@ -972,7 +972,7 @@ export default function Step2MenuItems() {
           <div className="hidden lg:block lg:w-96 sticky top-32 h-fit items-center justify-center">
             <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
               <h3 className="text-xl font-bold text-base-content mb-6">
-                Your Catering List
+                Your List
               </h3>
               {(() => {
                 const warnings = getMinimumOrderWarnings();
@@ -1218,7 +1218,7 @@ export default function Step2MenuItems() {
           <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] overflow-y-auto">
             <div className="sticky top-0 bg-base-100 border-b border-base-300 p-4 flex justify-between items-center">
               <h3 className="text-xl font-bold text-base-content">
-                Your Catering List
+                Your List
               </h3>
               <button
                 onClick={() => setShowCartMobile(false)}
