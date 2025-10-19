@@ -963,7 +963,7 @@ export default function Step2MenuItems() {
 
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <button
+                                {/* <button
                                   onClick={() =>
                                     updateItemQuantity(
                                       item.id,
@@ -976,11 +976,11 @@ export default function Step2MenuItems() {
                                   className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   −
-                                </button>
+                                </button> */}
                                 <span className="text-sm font-medium text-base-content">
                                   Feeds {displayQuantity} people
                                 </span>
-                                <button
+                                {/* <button
                                   onClick={() =>
                                     updateItemQuantity(
                                       item.id,
@@ -990,7 +990,7 @@ export default function Step2MenuItems() {
                                   className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   +
-                                </button>
+                                </button> */}
                               </div>
                               <button
                                 onClick={() => removeMenuItemByIndex(index)}
@@ -1238,7 +1238,7 @@ export default function Step2MenuItems() {
 
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <button
+                                {/* <button
                                   onClick={() =>
                                     updateItemQuantity(
                                       item.id,
@@ -1251,11 +1251,11 @@ export default function Step2MenuItems() {
                                   className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   −
-                                </button>
+                                </button> */}
                                 <span className="text-sm font-medium text-base-content">
                                   Feeds {displayQuantity} people
                                 </span>
-                                <button
+                                {/* <button
                                   onClick={() =>
                                     updateItemQuantity(
                                       item.id,
@@ -1265,7 +1265,7 @@ export default function Step2MenuItems() {
                                   className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   +
-                                </button>
+                                </button> */}
                               </div>
                               <button
                                 onClick={() => removeMenuItemByIndex(index)}
