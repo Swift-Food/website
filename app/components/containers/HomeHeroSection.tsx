@@ -6,7 +6,7 @@ import styles from "../navbar.module.css";
 export default function HomeHeroSection() {
   const router = useRouter();
   const handleButtonClick = () => {
-    router.push("/catering");
+    router.push("/event-order");
   };
   const imageSection = (
     <div
