@@ -104,9 +104,9 @@ class CateringService {
         const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
         // Transform addon quantities for backend
-        const transformedAddons = (item.selectedAddons || []).map(addon => ({
+        const transformedAddons = (item.selectedAddons || []).map((addon) => ({
           ...addon,
-          quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+          quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
         }));
 
         acc[restaurantId].items.push({
@@ -194,6 +194,7 @@ class CateringService {
         `${API_BASE_URL}/users/email/${encodeURIComponent(contactInfo.email)}`
       );
 
+      console.log("Find or create consumer account response: ", checkResponse);
       if (checkResponse.ok) {
         const existingUser = await checkResponse.json();
         return existingUser.id; // User exists, return their ID
