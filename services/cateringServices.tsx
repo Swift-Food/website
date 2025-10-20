@@ -3,7 +3,6 @@
 import {
   SearchResponse,
   SearchFilters,
-  CateringOrder,
   CreateCateringOrderDto,
   OrderItemDto,
   EventDetails,
@@ -12,7 +11,7 @@ import {
   CateringPricingResult,
   PromoCodeValidation,
 } from "@/types/catering.types";
-import { create } from "domain";
+// import { create } from "domain";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -181,7 +180,7 @@ class CateringService {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to submit catering order", response);
+      throw new Error("Failed to submit catering order");
     }
 
     return response.json();
@@ -189,7 +188,7 @@ class CateringService {
 
   async findOrCreateConsumerAccount(contactInfo: ContactInfo): Promise<string> {
     // Step 1: Check if user exists by email
-    console.log("contact info being sent", JSON.stringify(contactInfo))
+    console.log("contact info being sent", JSON.stringify(contactInfo));
     try {
       const checkResponse = await fetch(
         `${API_BASE_URL}/users/email/${encodeURIComponent(contactInfo.email)}`
@@ -201,9 +200,10 @@ class CateringService {
         return existingUser.id; // User exists, return their ID
       }
     } catch (error) {
+      console.error(error);
       // User doesn't exist, continue to create
     }
-    
+
     // Step 2: Create new user if not found
     const randomPassword = Math.random().toString(36).slice(-10) + "A1";
     const formattedPhone = contactInfo.phone.startsWith("+")

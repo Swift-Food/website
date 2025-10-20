@@ -247,7 +247,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const getTotalPrice = (optionalSelectedItems?: SelectedMenuItem[] = []) => {
+  const getTotalPrice = (optionalSelectedItems: SelectedMenuItem[] = []) => {
     const usedSelectedItems =
       optionalSelectedItems.length > 0 ? optionalSelectedItems : selectedItems;
     const newTotalPrice = usedSelectedItems.reduce(

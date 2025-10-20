@@ -525,7 +525,7 @@ export default function Step3ContactInfo() {
 
                 // USE ITEM'S OWN VALUES:
                 const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                // const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                 const displayFeeds =
                   (quantity / BACKEND_QUANTITY_UNIT);
 
@@ -1055,7 +1055,7 @@ export default function Step3ContactInfo() {
 
                   // USE ITEM'S OWN VALUES:
                   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                  // const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                   const displayFeeds =
                     (quantity / BACKEND_QUANTITY_UNIT);
 

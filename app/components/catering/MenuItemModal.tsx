@@ -53,8 +53,8 @@ export default function MenuItemModal({
   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
-  const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-  const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+  // const numUnits = quantity / BACKEND_QUANTITY_UNIT;
+  // const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
 
   // Track if user has modified the quantity for items without addons
   const [hasModifiedQuantity, setHasModifiedQuantity] = useState(false);
@@ -81,7 +81,13 @@ export default function MenuItemModal({
         setAddonQuantityInputs({});
       }
     }
-  }, [isOpen, quantity, BACKEND_QUANTITY_UNIT, isEditMode]);
+  }, [
+    isOpen,
+    quantity,
+    BACKEND_QUANTITY_UNIT,
+    isEditMode,
+    item.selectedAddons,
+  ]);
 
   // Group addons and initialize selections
   useEffect(() => {
@@ -139,10 +145,16 @@ export default function MenuItemModal({
         const groupTitle = selectedAddon.groupTitle;
         const addonName = selectedAddon.name;
 
-        if (initialSelections[groupTitle] && initialSelections[groupTitle][addonName] !== undefined) {
+        if (
+          initialSelections[groupTitle] &&
+          initialSelections[groupTitle][addonName] !== undefined
+        ) {
           initialSelections[groupTitle][addonName] = true;
-          initialQuantities[groupTitle][addonName] = selectedAddon.quantity || 0;
-          initialQuantityInputs[groupTitle][addonName] = (selectedAddon.quantity || 0).toString();
+          initialQuantities[groupTitle][addonName] =
+            selectedAddon.quantity || 0;
+          initialQuantityInputs[groupTitle][addonName] = (
+            selectedAddon.quantity || 0
+          ).toString();
         }
       });
     }
@@ -185,7 +197,15 @@ export default function MenuItemModal({
       });
     });
     setTotalPrice(basePrice * itemQuantity + addonCost);
-  }, [item, itemQuantity, selectedAddons, addonQuantities, addonGroups]);
+  }, [
+    item,
+    itemQuantity,
+    selectedAddons,
+    addonQuantities,
+    addonGroups,
+    DISPLAY_FEEDS_PER_UNIT,
+    BACKEND_QUANTITY_UNIT,
+  ]);
 
   // Handle quantity change for single-selection addons
   const updateAddonQuantity = (
@@ -721,9 +741,9 @@ export default function MenuItemModal({
                               {parseFloat(addon.price) > 0 && (
                                 <span className="text-xs font-medium text-primary">
                                   +£
-                                  {parseFloat(
+                                  {(
                                     parseFloat(addon.price) *
-                                      DISPLAY_FEEDS_PER_UNIT
+                                    DISPLAY_FEEDS_PER_UNIT
                                   ).toFixed(2)}
                                 </span>
                               )}
@@ -771,11 +791,17 @@ export default function MenuItemModal({
 
                                     // Update actual quantity with validation
                                     if (val !== "" && !isNaN(parseInt(val))) {
-                                      const currentTotal = getSingleSelectionTotal(groupTitle);
+                                      const currentTotal =
+                                        getSingleSelectionTotal(groupTitle);
                                       const requestedQty = parseInt(val);
-                                      const otherAddonsTotal = currentTotal - addonQty;
-                                      const maxAllowed = itemQuantity - otherAddonsTotal;
-                                      const finalQty = Math.min(requestedQty, Math.max(0, maxAllowed));
+                                      const otherAddonsTotal =
+                                        currentTotal - addonQty;
+                                      const maxAllowed =
+                                        itemQuantity - otherAddonsTotal;
+                                      const finalQty = Math.min(
+                                        requestedQty,
+                                        Math.max(0, maxAllowed)
+                                      );
 
                                       setAddonQuantityDirect(
                                         groupTitle,
@@ -804,7 +830,10 @@ export default function MenuItemModal({
                                 onClick={() =>
                                   updateAddonQuantity(groupTitle, addon.name, 1)
                                 }
-                                disabled={getSingleSelectionTotal(groupTitle) >= itemQuantity}
+                                disabled={
+                                  getSingleSelectionTotal(groupTitle) >=
+                                  itemQuantity
+                                }
                                 className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-base-100"
                               >
                                 +
@@ -853,7 +882,7 @@ export default function MenuItemModal({
                             {parseFloat(addon.price) > 0 && (
                               <span className="text-sm font-medium text-primary">
                                 +£
-                                {parseFloat(
+                                {(
                                   parseFloat(addon.price) *
                                     DISPLAY_FEEDS_PER_UNIT *
                                     itemQuantity

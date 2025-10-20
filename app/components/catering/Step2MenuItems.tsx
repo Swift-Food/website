@@ -209,7 +209,7 @@ export default function Step2MenuItems() {
       //   (restaurant: any) => restaurant.isCatering === true
       // );
       // Sort restaurants by minimumDeliveryNoticeHours (ascending)
-      const sortedRestaurants = data.sort((a, b) => {
+      const sortedRestaurants = data.sort((a: Restaurant, b: Restaurant) => {
         const aNotice = a.minimumDeliveryNoticeHours ?? 0;
         const bNotice = b.minimumDeliveryNoticeHours ?? 0;
         return aNotice - bNotice;
@@ -876,30 +876,29 @@ export default function Step2MenuItems() {
                           )}
                         {restaurant.minimumDeliveryNoticeHours && (
                           <div className="mt-2 text-xs text-base-content/70 bg-info/10 px-2 py-1 rounded">
-                            {restaurant.minimumDeliveryNoticeHours >= 24
-                              ? <>
-                                  <span className="font-bold">
-                                    {Math.floor(
-                                      restaurant.minimumDeliveryNoticeHours / 24
-                                    )} day{
-                                      Math.floor(
-                                        restaurant.minimumDeliveryNoticeHours / 24
-                                      ) > 1
-                                        ? "s"
-                                        : ""
-                                    }
-                                  </span>
-                                  {" "}
-                                  <span className="">notice required</span>
-                                </>
-                              : <>
-                                  <span className="font-bold">
-                                    {restaurant.minimumDeliveryNoticeHours} hours
-                                  </span>
-                                  {" "}
-                                  <span className="">notice required</span>
-                                </>
-                            }
+                            {restaurant.minimumDeliveryNoticeHours >= 24 ? (
+                              <>
+                                <span className="font-bold">
+                                  {Math.floor(
+                                    restaurant.minimumDeliveryNoticeHours / 24
+                                  )}{" "}
+                                  day
+                                  {Math.floor(
+                                    restaurant.minimumDeliveryNoticeHours / 24
+                                  ) > 1
+                                    ? "s"
+                                    : ""}
+                                </span>{" "}
+                                <span className="">notice required</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="font-bold">
+                                  {restaurant.minimumDeliveryNoticeHours} hours
+                                </span>{" "}
+                                <span className="">notice required</span>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -952,7 +951,7 @@ export default function Step2MenuItems() {
                           ? discountPrice
                           : price;
                       const addonPrice =
-                        DISPLAY_FEEDS_PER_UNIT * item.addonPrice || 0;
+                        DISPLAY_FEEDS_PER_UNIT * (item.addonPrice || 0);
                       const subtotal = itemPrice * quantity + addonPrice;
 
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
@@ -996,20 +995,20 @@ export default function Step2MenuItems() {
                                       >
                                     );
                                     return Object.entries(grouped).map(
-                                      ([groupTitle, addons], groupIdx) => (
+                                      ([groupTitle, addons]) => (
                                         <div key={groupTitle} className="mb-1">
                                           <span className="font-semibold text-base-content/80 block mb-0.5">
                                             {groupTitle}
                                           </span>
-                                          <span>
+                                          <span className="flex flex-col">
                                             {addons.map((addon, idx) => (
                                               <span key={idx}>
                                                 + {addon.name}
                                                 {addon.quantity > 1 &&
                                                   ` (×${addon.quantity})`}
-                                                {idx < addons.length - 1
+                                                {/* {idx < addons.length - 1
                                                   ? ", "
-                                                  : ""}
+                                                  : ""} */}
                                               </span>
                                             ))}
                                           </span>
@@ -1216,9 +1215,7 @@ export default function Step2MenuItems() {
         <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] overflow-y-auto">
             <div className="sticky top-0 bg-base-100 border-b border-base-300 p-4 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-base-content">
-                Your List
-              </h3>
+              <h3 className="text-xl font-bold text-base-content">Your List</h3>
               <button
                 onClick={() => setShowCartMobile(false)}
                 className="text-2xl"
@@ -1265,11 +1262,10 @@ export default function Step2MenuItems() {
                       // USE ITEM'S OWN VALUES:
                       const BACKEND_QUANTITY_UNIT =
                         item.cateringQuantityUnit || 7;
-                      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
 
-                      const displayQuantity = numUnits ;
+                      const displayQuantity = numUnits;
 
                       return (
                         <div

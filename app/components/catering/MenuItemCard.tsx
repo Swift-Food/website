@@ -10,7 +10,7 @@ interface MenuItemCardProps {
   onToggleExpand?: () => void;
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
-  onAddOrderPress: () => void;
+  onAddOrderPress: (item: MenuItem) => void;
 }
 
 export default function MenuItemCard({
@@ -26,8 +26,8 @@ export default function MenuItemCard({
   // console.log("Item: ", JSON.stringify(item, null, 2));
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-  const displayPrice =
-    item.isDiscount && discountPrice > 0 ? discountPrice : price;
+  // const displayPrice =
+  //   item.isDiscount && discountPrice > 0 ? discountPrice : price;
   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
