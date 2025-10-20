@@ -61,7 +61,7 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
         & FAST
       </p> */}
       <p className="text-primary leading-relaxed text-xl max-lg:text-base max-sm:text-md font-medium">
-        WE ALSO CATER EVENTS OF ANY SIZE - BROWSE THE MENU AND ORDER ONLINE FOR
+        WE ALSO SERVE EVENTS OF ANY SIZE - BROWSE THE MENU AND ORDER ONLINE FOR
         EASY DELIVERY!
       </p>
       <div className="max-lg:flex max-lg:justify-center mt-5">

@@ -177,6 +177,24 @@ const api = {
     
     return data;
   },
+
+  reviewCateringOrder: async (
+    orderId: string, 
+    restaurantId: string, 
+    accepted: boolean,
+    token: string
+  ): Promise<CateringOrder> => {
+    const response = await fetch(`${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ restaurantId, accepted }),
+    });
+    if (!response.ok) throw new Error('Failed to review catering order');
+    return response.json();
+  },
 };
 
 const useAuth = () => {
@@ -460,7 +478,19 @@ const WithdrawalHistory = ({ history }: { history: WithdrawalRequest[] }) => {
 };
 
 // Add new component before WithdrawalDashboard
-const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
+const CateringOrdersList = ({ 
+  orders, 
+  restaurantId,
+  token,
+  onRefresh 
+}: { 
+  orders: CateringOrder[]; 
+  restaurantId: string;
+  token: string;
+  onRefresh: () => void;
+}) => {
+  const [reviewing, setReviewing] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -470,12 +500,45 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
 
   const formatCurrency = (amount: any) => `£${amount}`;
 
-  // const getStatusColor = (status: string) => {
-  //   if (status === 'paid' || status === 'confirmed') {
-  //     return 'bg-green-100 text-green-800 border-green-300';
-  //   }
-  //   return 'bg-gray-100 text-gray-800 border-gray-300';
-  // };
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'admin_reviewed': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'restaurant_reviewed': 'bg-blue-100 text-blue-800 border-blue-300',
+      'paid': 'bg-green-100 text-green-800 border-green-300',
+      'confirmed': 'bg-green-100 text-green-800 border-green-300',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+
+  const handleReview = async (orderId: string, accepted: boolean) => {
+    setReviewing(orderId);
+    setError('');
+    
+    try {
+      await api.reviewCateringOrder(orderId, restaurantId, accepted, token);
+      await onRefresh();
+    } catch (err: any) {
+      setError(err.message || 'Failed to review order');
+    } finally {
+      setReviewing(null);
+    }
+  };
+
+  // Group orders by status
+  const ordersByStatus = orders.reduce((acc, order) => {
+    const status = order.status;
+    if (!acc[status]) acc[status] = [];
+    acc[status].push(order);
+    return acc;
+  }, {} as Record<string, CateringOrder[]>);
+
+  const statusOrder = ['admin_reviewed', 'restaurant_reviewed', 'paid', 'confirmed'];
+  const statusLabels: Record<string, string> = {
+    'admin_reviewed': 'Pending Your Review',
+    'restaurant_reviewed': 'Awaiting Payment',
+    'paid': 'Paid',
+    'confirmed': 'Confirmed',
+  };
 
   if (orders.length === 0) {
     return (
@@ -487,113 +550,133 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
   }
 
   return (
-    <div className="space-y-4">
-      {orders.map((order) => (
-        <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-shadow">
-          {/* Header */}
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              {/* <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                {order.status.toUpperCase()}
-              </span> */}
-              <p className="text-xs text-gray-500 mt-2">Order: {order.id.substring(0, 8).toUpperCase()}</p>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
-              <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
-            </div>
-          </div>
+    <div className="space-y-8">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
+          <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
+          <span className="text-sm">{error}</span>
+        </div>
+      )}
 
-          {/* Customer Info */}
-          {/* <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <h4 className="font-semibold text-gray-900 mb-2">Customer Details</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <p className="text-gray-600">Name: <span className="text-gray-900 font-medium">{order.customerName}</span></p>
-              <p className="text-gray-600">Phone: <span className="text-gray-900 font-medium">{order.customerPhone}</span></p>
-              <p className="text-gray-600 col-span-2">Email: <span className="text-gray-900 font-medium">{order.customerEmail}</span></p>
-            </div>
-          </div> */}
+      {statusOrder.map((status) => {
+        const statusOrders = ordersByStatus[status];
+        if (!statusOrders || statusOrders.length === 0) return null;
 
-          {/* Event Details */}
-          <div className="mb-4">
-            <h4 className="font-semibold text-gray-900 mb-2">Event Information</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
-              <p className="text-gray-600">Time: <span className="text-gray-900 font-medium">{order.eventTime}</span></p>
-              <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
-              <p className="text-gray-600">Type: <span className="text-gray-900 font-medium">{order.eventType}</span></p>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">
-              Delivery: <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>
-            </p>
-          </div>
+        return (
+          <div key={status} className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              {statusLabels[status] || status}
+              <span className="ml-2 bg-gray-200 text-gray-700 text-sm px-2 py-0.5 rounded-full">
+                {statusOrders.length}
+              </span>
+            </h3>
 
-          {/* Order Items */}
-          <div className="border-t border-gray-200 pt-4">
-            <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
-            {order.orderItems.map((restaurant, idx) => (
-              <div key={idx} className="mb-3">
-                <div className="space-y-2">
-                  {restaurant.menuItems.map((item, itemIdx) => {
-                    // const feeds = item.feedsPerUnit && item.cateringQuantityUnit
-                    //   ? Math.round((item.quantity / item.cateringQuantityUnit) * item.feedsPerUnit)
-                    //   : null;
-                    
-                    return (
-                      <div key={itemIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded">
-                        <div>
-                          <p className="font-medium text-gray-900">{item.name}</p>
-                          <p className="text-xs text-gray-500">
-                            Qty: {item.quantity}
-                            {/* {feeds && ` • Feeds up to ${feeds} people`} */}
-                          </p>
-                        </div>
-                        {/* <p className="font-semibold text-gray-900">{formatCurrency(item.totalPrice)}</p> */}
-                      </div>
-                    );
-                  })}
+            {statusOrders.map((order) => (
+              <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-shadow">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+                      {order.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                    <p className="text-xs text-gray-500 mt-2">Order: {order.id.substring(0, 8).toUpperCase()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
+                    <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
+                  </div>
                 </div>
+
+                {/* Event Details */}
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">Event Information</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
+                    <p className="text-gray-600">Time: <span className="text-gray-900 font-medium">{order.eventTime}</span></p>
+                    <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
+                    <p className="text-gray-600">Type: <span className="text-gray-900 font-medium">{order.eventType}</span></p>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Delivery: <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>
+                  </p>
+                </div>
+
+                {/* Order Items */}
+                <div className="border-t border-gray-200 pt-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
+                  {order.orderItems.map((restaurant, idx) => (
+                    <div key={idx} className="mb-3">
+                      <div className="space-y-2">
+                        {restaurant.menuItems.map((item, itemIdx) => (
+                          <div key={itemIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                            <div>
+                              <p className="font-medium text-gray-900">{item.name}</p>
+                              <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Special Requirements */}
+                {order.specialRequirements && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-xs font-semibold text-yellow-900 mb-1">Special Requirements:</p>
+                    <p className="text-sm text-yellow-800">{order.specialRequirements}</p>
+                  </div>
+                )}
+
+                {/* Review Buttons - Only show for ADMIN_REVIEWED status */}
+                {order.status === 'admin_reviewed' && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm font-medium text-gray-900 mb-3">
+                      Please review this order and confirm your availability
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleReview(order.id, true)}
+                        disabled={reviewing === order.id}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-green-300 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        {reviewing === order.id ? (
+                          <>
+                            <Loader size={16} className="mr-2 animate-spin" />
+                            Accepting...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={16} className="mr-2" />
+                            Accept Order
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleReview(order.id, false)}
+                        disabled={reviewing === order.id}
+                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        {reviewing === order.id ? (
+                          <>
+                            <Loader size={16} className="mr-2 animate-spin" />
+                            Rejecting...
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle size={16} className="mr-2" />
+                            Reject Order
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
-
-          {/* Special Requirements */}
-          {order.specialRequirements && (
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-xs font-semibold text-yellow-900 mb-1">Special Requirements:</p>
-              <p className="text-sm text-yellow-800">{order.specialRequirements}</p>
-            </div>
-          )}
-
-          {/* Pricing Summary */}
-          {/* <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal:</span>
-                <span>{formatCurrency(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Service Charge:</span>
-                <span>{formatCurrency(order.serviceCharge)}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Delivery Fee:</span>
-                <span>{formatCurrency(order.deliveryFee)}</span>
-              </div>
-              {order.promoDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount:</span>
-                  <span>-{formatCurrency(order.promoDiscount)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-200">
-                <span>Total:</span>
-                <span>{formatCurrency(order.finalTotal)}</span>
-              </div>
-            </div>
-          </div> */}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
@@ -932,7 +1015,12 @@ const WithdrawalDashboard = ({
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Event Orders</h2>
             <div className="max-h-[800px] overflow-y-auto">
-              <CateringOrdersList orders={cateringOrders} />
+              <CateringOrdersList 
+                orders={cateringOrders} 
+                restaurantId={restaurantId}
+                token={token}
+                onRefresh={fetchData}
+              />
             </div>
           </div>
         )}
