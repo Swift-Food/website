@@ -740,7 +740,8 @@ export default function MenuItemModal({
                                     -1
                                   )
                                 }
-                                className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium"
+                                disabled={addonQty === 0}
+                                className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-base-100"
                               >
                                 −
                               </button>
@@ -768,12 +769,18 @@ export default function MenuItemModal({
                                       return newInputs;
                                     });
 
-                                    // Update actual quantity
+                                    // Update actual quantity with validation
                                     if (val !== "" && !isNaN(parseInt(val))) {
+                                      const currentTotal = getSingleSelectionTotal(groupTitle);
+                                      const requestedQty = parseInt(val);
+                                      const otherAddonsTotal = currentTotal - addonQty;
+                                      const maxAllowed = itemQuantity - otherAddonsTotal;
+                                      const finalQty = Math.min(requestedQty, Math.max(0, maxAllowed));
+
                                       setAddonQuantityDirect(
                                         groupTitle,
                                         addon.name,
-                                        parseInt(val)
+                                        finalQty
                                       );
                                     }
                                   }
@@ -797,7 +804,8 @@ export default function MenuItemModal({
                                 onClick={() =>
                                   updateAddonQuantity(groupTitle, addon.name, 1)
                                 }
-                                className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium"
+                                disabled={getSingleSelectionTotal(groupTitle) >= itemQuantity}
+                                className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-base-100"
                               >
                                 +
                               </button>
