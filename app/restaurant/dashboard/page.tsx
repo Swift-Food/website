@@ -5,13 +5,13 @@ import { AlertCircle, CheckCircle, Clock, CreditCard, DollarSign, ExternalLink, 
 import { CateringOrder } from '@/app/types/catering.types';
 
 // Types
-const WithdrawalStatus = {
-  PENDING: 'pending',
-  APPROVED: 'approved',
-  REJECTED: 'rejected',
-  COMPLETED: 'completed',
-  FAILED: 'failed',
-} as const;
+// const WithdrawalStatus = {
+//   PENDING: 'pending',
+//   APPROVED: 'approved',
+//   REJECTED: 'rejected',
+//   COMPLETED: 'completed',
+//   FAILED: 'failed',
+// } as const;
 
 const UserRole = {
   RESTAURANT: 'restaurant_owner',
@@ -20,7 +20,7 @@ const UserRole = {
   ADMIN: 'admin',
 } as const;
 
-type WithdrawalStatusType = typeof WithdrawalStatus[keyof typeof WithdrawalStatus];
+type WithdrawalStatusType = 'pending' | 'approved' | 'rejected' | 'completed' | 'failed';
 
 interface TokenPair {
   access_token: string;
@@ -580,14 +580,6 @@ const CateringOrdersList = ({
   };
   
   const activeOrders = getActiveOrders();
-
-  const statusOrder = ['admin_reviewed', 'restaurant_reviewed', 'paid', 'confirmed'];
-  const statusLabels: Record<string, string> = {
-    'admin_reviewed': 'Pending Your Review',
-    'restaurant_reviewed': 'Awaiting Payment',
-    'paid': 'Paid',
-    'confirmed': 'Confirmed',
-  };
 
   if (orders.length === 0) {
     return (
