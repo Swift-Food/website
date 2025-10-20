@@ -34,4 +34,5 @@ export interface CateringOrderItem {
     restaurantTotalCost: number;
     status: string;
     createdAt: string;
+    restaurantReviews: string[];
   }

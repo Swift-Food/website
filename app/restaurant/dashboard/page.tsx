@@ -415,16 +415,17 @@ const WithdrawalHistory = ({ history }: { history: WithdrawalRequest[] }) => {
     minute: '2-digit',
   });
 
-  const getStatusColor = (status: WithdrawalStatusType) => {
-    const colors = {
-      [WithdrawalStatus.PENDING]: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      [WithdrawalStatus.APPROVED]: 'bg-blue-100 text-blue-800 border-blue-300',
-      [WithdrawalStatus.COMPLETED]: 'bg-green-100 text-green-800 border-green-300',
-      [WithdrawalStatus.REJECTED]: 'bg-red-100 text-red-800 border-red-300',
-      [WithdrawalStatus.FAILED]: 'bg-red-100 text-red-800 border-red-300',
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'admin_reviewed': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'restaurant_reviewed': 'bg-blue-100 text-blue-800 border-blue-300',
+      'paid': 'bg-green-100 text-green-800 border-green-300',
+      'confirmed': 'bg-green-100 text-green-800 border-green-300',
     };
     return colors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
   };
+  
+  
 
   if (history.length === 0) {
     return (
@@ -491,6 +492,9 @@ const CateringOrdersList = ({
 }) => {
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [activeStatusTab, setActiveStatusTab] = useState<string>('admin_reviewed');
+
+  
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -506,8 +510,29 @@ const CateringOrdersList = ({
       'restaurant_reviewed': 'bg-blue-100 text-blue-800 border-blue-300',
       'paid': 'bg-green-100 text-green-800 border-green-300',
       'confirmed': 'bg-green-100 text-green-800 border-green-300',
+      'completed': 'bg-gray-100 text-gray-800 border-gray-300',
     };
     return colors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+  
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'admin_reviewed': 'REVIEW',
+      'restaurant_reviewed': 'PENDING PAYMENT',
+      'paid': 'CONFIRMED',
+      'confirmed': 'CONFIRMED',
+      'completed': 'COMPLETED',
+    };
+    return labels[status] || status.toUpperCase();
+  };
+  
+  const formatEventTime = (eventTime: string) => {
+    // Parse the time and subtract 1.5 hours
+    const [hours, minutes] = eventTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes - 90;
+    const newHours = Math.floor(totalMinutes / 60);
+    const newMinutes = totalMinutes % 60;
+    return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
   };
 
   const handleReview = async (orderId: string, accepted: boolean) => {
@@ -531,6 +556,30 @@ const CateringOrdersList = ({
     acc[status].push(order);
     return acc;
   }, {} as Record<string, CateringOrder[]>);
+  const statusTabs = [
+    { key: 'admin_reviewed', label: 'Pending Review', count: ordersByStatus['admin_reviewed']?.length || 0 },
+    { key: 'restaurant_reviewed', label: 'Awaiting Payment', count: ordersByStatus['restaurant_reviewed']?.length || 0 },
+    { key: 'confirmed', label: 'Confirmed', count: (ordersByStatus['paid']?.length || 0) + (ordersByStatus['confirmed']?.length || 0) },
+    { key: 'completed', label: 'Completed', count: ordersByStatus['completed']?.length || 0 },
+  ];
+
+  const getActiveOrders = () => {
+    if (activeStatusTab === 'confirmed') {
+      return [...(ordersByStatus['paid'] || []), ...(ordersByStatus['confirmed'] || [])];
+    }
+    
+    if (activeStatusTab === 'restaurant_reviewed') {
+      // Show orders that are either status restaurant_reviewed OR have this restaurant's ID in restaurantReviews
+      return orders.filter(order => 
+        order.status === 'restaurant_reviewed' || 
+        (order.restaurantReviews && order.restaurantReviews.includes(restaurantId))
+      );
+    }
+    
+    return ordersByStatus[activeStatusTab] || [];
+  };
+  
+  const activeOrders = getActiveOrders();
 
   const statusOrder = ['admin_reviewed', 'restaurant_reviewed', 'paid', 'confirmed'];
   const statusLabels: Record<string, string> = {
@@ -550,60 +599,83 @@ const CateringOrdersList = ({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
           <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
           <span className="text-sm">{error}</span>
         </div>
       )}
-
-      {statusOrder.map((status) => {
-        const statusOrders = ordersByStatus[status];
-        if (!statusOrders || statusOrders.length === 0) return null;
-
-        return (
-          <div key={status} className="space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              {statusLabels[status] || status}
-              <span className="ml-2 bg-gray-200 text-gray-700 text-sm px-2 py-0.5 rounded-full">
-                {statusOrders.length}
-              </span>
-            </h3>
-
-            {statusOrders.map((order) => (
-              <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-shadow">
-                {/* Header */}
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                      {order.status.replace('_', ' ').toUpperCase()}
-                    </span>
-                    <p className="text-xs text-gray-500 mt-2">Order: {order.id.substring(0, 8).toUpperCase()}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
-                    <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
-                  </div>
+  
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8">
+          {statusTabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveStatusTab(tab.key)}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeStatusTab === tab.key
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeStatusTab === tab.key
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+  
+      {/* Orders */}
+      {activeOrders.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <p className="text-lg">No orders in this category</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {activeOrders.map((order) => (
+            <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-shadow">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>
+                    {getStatusLabel(order.status)}
+                  </span>
+                  {/* <p className="text-xs text-gray-500 mt-2">Order: {order.id.substring(0, 8).toUpperCase()}</p> */}
                 </div>
-
-                {/* Event Details */}
-                <div className="mb-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Event Information</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
-                    <p className="text-gray-600">Time: <span className="text-gray-900 font-medium">{order.eventTime}</span></p>
-                    <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
-                    <p className="text-gray-600">Type: <span className="text-gray-900 font-medium">{order.eventType}</span></p>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Delivery: <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>
-                  </p>
+                <div className="text-right">
+                  <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
+                  <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
                 </div>
-
-                {/* Order Items */}
-                <div className="border-t border-gray-200 pt-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
+              </div>
+  
+              {/* Event Details */}
+              <div className="mb-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Event Information</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
+                  <p className="text-gray-600">Complete By: <span className="text-gray-900 font-medium">{formatEventTime(order.eventTime)}</span></p>
+                  <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
+                  <p className="text-gray-600">Type: <span className="text-gray-900 font-medium">{order.eventType}</span></p>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Delivery: <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>
+                </p>
+              </div>
+  
+              {/* Order Items - SCROLLABLE */}
+              <div className="border-t border-gray-200 pt-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
+                <div className="max-h-64 overflow-y-auto pr-2">
                   {order.orderItems.map((restaurant, idx) => (
                     <div key={idx} className="mb-3">
                       <div className="space-y-2">
@@ -619,64 +691,64 @@ const CateringOrdersList = ({
                     </div>
                   ))}
                 </div>
-
-                {/* Special Requirements */}
-                {order.specialRequirements && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-xs font-semibold text-yellow-900 mb-1">Special Requirements:</p>
-                    <p className="text-sm text-yellow-800">{order.specialRequirements}</p>
-                  </div>
-                )}
-
-                {/* Review Buttons - Only show for ADMIN_REVIEWED status */}
-                {order.status === 'admin_reviewed' && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-sm font-medium text-gray-900 mb-3">
-                      Please review this order and confirm your availability
-                    </p>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleReview(order.id, true)}
-                        disabled={reviewing === order.id}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-green-300 disabled:cursor-not-allowed flex items-center justify-center"
-                      >
-                        {reviewing === order.id ? (
-                          <>
-                            <Loader size={16} className="mr-2 animate-spin" />
-                            Accepting...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle size={16} className="mr-2" />
-                            Accept Order
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleReview(order.id, false)}
-                        disabled={reviewing === order.id}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center"
-                      >
-                        {reviewing === order.id ? (
-                          <>
-                            <Loader size={16} className="mr-2 animate-spin" />
-                            Rejecting...
-                          </>
-                        ) : (
-                          <>
-                            <AlertCircle size={16} className="mr-2" />
-                            Reject Order
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
-            ))}
-          </div>
-        );
-      })}
+  
+              {/* Special Requirements */}
+              {order.specialRequirements && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-xs font-semibold text-yellow-900 mb-1">Special Requirements:</p>
+                  <p className="text-sm text-yellow-800">{order.specialRequirements}</p>
+                </div>
+              )}
+  
+              {/* Review Buttons */}
+              {order.status === 'admin_reviewed' && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-900 mb-3">
+                    Please review this order and confirm your availability
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleReview(order.id, true)}
+                      disabled={reviewing === order.id}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-green-300 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                      {reviewing === order.id ? (
+                        <>
+                          <Loader size={16} className="mr-2 animate-spin" />
+                          Accepting...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={16} className="mr-2" />
+                          Accept Order
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleReview(order.id, false)}
+                      disabled={reviewing === order.id}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                      {reviewing === order.id ? (
+                        <>
+                          <Loader size={16} className="mr-2 animate-spin" />
+                          Rejecting...
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle size={16} className="mr-2" />
+                          Reject Order
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
