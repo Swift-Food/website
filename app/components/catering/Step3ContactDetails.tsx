@@ -18,6 +18,7 @@ export default function Step3ContactInfo() {
     selectedItems,
     getTotalPrice,
     resetOrder,
+    markOrderAsSubmitted,
   } = useCatering();
 
   const [formData, setFormData] = useState<ContactInfo>(
@@ -98,6 +99,8 @@ export default function Step3ContactInfo() {
         promoCodes,
         ccEmails // Add this parameter
       );
+      // Mark order as submitted so cart is cleared on next page load
+      markOrderAsSubmitted();
       setSuccess(true);
     } catch (error) {
       console.error("Error submitting order:", error);

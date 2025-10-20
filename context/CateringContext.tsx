@@ -34,6 +34,7 @@ interface CateringContextType {
   getTotalPrice: () => number;
   resetOrder: () => void;
   setSelectedRestaurants: (restaurants: Restaurant[]) => void;
+  markOrderAsSubmitted: () => void;
 }
 
 const CateringContext = createContext<CateringContextType | undefined>(
@@ -48,6 +49,7 @@ const STORAGE_KEYS = {
   CONTACT_INFO: "catering_contact_info",
   PROMO_CODES: "catering_promo_codes",
   SELECTED_RESTAURANTS: "catering_selected_restaurants",
+  ORDER_SUBMITTED: "catering_order_submitted",
 };
 
 export function CateringProvider({ children }: { children: ReactNode }) {
@@ -69,6 +71,24 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   // Load data from localStorage on mount
   useEffect(() => {
     try {
+      // Check if order was submitted in previous session
+      const orderSubmitted = localStorage.getItem(STORAGE_KEYS.ORDER_SUBMITTED);
+
+      if (orderSubmitted === "true") {
+        // Clear all cart data if order was submitted
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_STEP);
+        localStorage.removeItem(STORAGE_KEYS.EVENT_DETAILS);
+        localStorage.removeItem(STORAGE_KEYS.SELECTED_ITEMS);
+        localStorage.removeItem(STORAGE_KEYS.CONTACT_INFO);
+        localStorage.removeItem(STORAGE_KEYS.PROMO_CODES);
+        localStorage.removeItem(STORAGE_KEYS.SELECTED_RESTAURANTS);
+        localStorage.removeItem(STORAGE_KEYS.ORDER_SUBMITTED);
+
+        // States are already initialized to empty/null values
+        setIsHydrated(true);
+        return;
+      }
+
       const savedStep = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
       const savedEventDetails = localStorage.getItem(
         STORAGE_KEYS.EVENT_DETAILS
@@ -299,6 +319,11 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEYS.CONTACT_INFO);
     localStorage.removeItem(STORAGE_KEYS.PROMO_CODES);
     localStorage.removeItem(STORAGE_KEYS.SELECTED_RESTAURANTS);
+    localStorage.removeItem(STORAGE_KEYS.ORDER_SUBMITTED);
+  };
+
+  const markOrderAsSubmitted = () => {
+    localStorage.setItem(STORAGE_KEYS.ORDER_SUBMITTED, "true");
   };
 
   // Prevent hydration mismatch by not rendering until client-side data is loaded
@@ -328,6 +353,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         resetOrder,
         setPromoCodes,
         setSelectedRestaurants,
+        markOrderAsSubmitted,
       }}
     >
       {children}
