@@ -80,8 +80,8 @@ export default function Home() {
           >
             WHAT MAKES US DIFFERENT?
           </h2>
-          <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
-            <div className="flex-1 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+          <div className="flex flex-col md:flex-row gap-8 justify-center items-center md:items-stretch">
+            <div className="w-full md:w-80 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center">
               <h3
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -101,7 +101,7 @@ export default function Home() {
                 IN ONE GO.
               </p>
             </div>
-            <div className="flex-1 bg-accent rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <div className="w-full md:w-80 bg-accent rounded-3xl p-8 flex flex-col items-center justify-center">
               <h3
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -119,7 +119,7 @@ export default function Home() {
                 NO HIDDEN COSTS.
               </p>
             </div>
-            <div className="flex-1 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center min-w-[220px] max-w-xs mx-auto">
+            <div className="w-full md:w-80 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center">
               <h3
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
