@@ -103,13 +103,19 @@ class CateringService {
         // Total price includes both item price and addon price
         const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
+        // Transform addon quantities for backend
+        const transformedAddons = (item.selectedAddons || []).map(addon => ({
+          ...addon,
+          quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+        }));
+
         acc[restaurantId].items.push({
           menuItemId: item.id,
           name: item.name,
           quantity,
           unitPrice,
           addonPrice: addonPricePerUnit,
-          selectedAddons: item.selectedAddons || [],
+          selectedAddons: transformedAddons,
           totalPrice: itemTotalPrice,
         });
 
@@ -166,7 +172,6 @@ class CateringService {
     };
     console.log("catering req", JSON.stringify(createDto));
 
-    return;
     const response = await fetch(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
       headers: {
@@ -176,7 +181,7 @@ class CateringService {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to submit catering order");
+      throw new Error("Failed to submit catering order", response);
     }
 
     return response.json();
@@ -299,7 +304,6 @@ class CateringService {
     orderItems: OrderItemDto[],
     promoCodes?: string[]
   ): Promise<CateringPricingResult> {
-    console.log("Order items in calculateCateringPricing: ", orderItems);
     const pricingData = {
       orderItems,
       promoCodes,

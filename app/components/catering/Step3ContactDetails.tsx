@@ -146,12 +146,19 @@ export default function Step3ContactInfo() {
           // Total price includes both item price and addon price
           const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
+          // Transform addon quantities for backend
+          const transformedAddons = (item.selectedAddons || []).map(addon => ({
+            ...addon,
+            quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+          }));
+
           acc[restaurantId].items.push({
             menuItemId: item.id,
             name: item.name,
             quantity,
             unitPrice,
             addonPrice: addonPricePerUnit,
+            selectedAddons: transformedAddons,
             totalPrice: itemTotalPrice,
           });
 
@@ -267,12 +274,19 @@ export default function Step3ContactInfo() {
           // Total price includes both item price and addon price
           const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
+          // Transform addon quantities for backend
+          const transformedAddons = (item.selectedAddons || []).map(addon => ({
+            ...addon,
+            quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
+          }));
+
           acc[restaurantId].items.push({
             menuItemId: item.id,
             name: item.name,
             quantity,
             unitPrice,
             addonPrice: addonPricePerUnit,
+            selectedAddons: transformedAddons,
             totalPrice: itemTotalPrice,
           });
 

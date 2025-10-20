@@ -232,19 +232,14 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       optionalSelectedItems.length > 0 ? optionalSelectedItems : selectedItems;
     const newTotalPrice = usedSelectedItems.reduce(
       (total, { item, quantity }) => {
-        console.log(item, quantity);
-        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
         const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-        console.log("Backend quantity unit: ", BACKEND_QUANTITY_UNIT);
 
         const price = parseFloat(item.price?.toString() || "0");
         const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
         const unitPrice =
           item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-        console.log("Unit price: ", unitPrice);
         const itemPrice = unitPrice * quantity;
-        console.log("item price: ", itemPrice);
         // Addon price: sum of (addon price * addon quantity * backend unit), or 0 if no addons
         const addonPrice = (item.selectedAddons || []).reduce(
           (addonTotal, { price, quantity }) => {
@@ -255,8 +250,6 @@ export function CateringProvider({ children }: { children: ReactNode }) {
           },
           0
         );
-
-        console.log("addon price: ", addonPrice);
 
         return total + itemPrice + addonPrice;
       },
