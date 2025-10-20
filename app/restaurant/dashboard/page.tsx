@@ -529,7 +529,7 @@ const CateringOrdersList = ({
   const formatEventTime = (eventTime: string) => {
     // Parse the time and subtract 1.5 hours
     const [hours, minutes] = eventTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes - 90;
+    const totalMinutes = hours * 60 + minutes - 30;
     const newHours = Math.floor(totalMinutes / 60);
     const newMinutes = totalMinutes % 60;
     return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
