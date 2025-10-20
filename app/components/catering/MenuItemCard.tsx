@@ -32,7 +32,7 @@ export default function MenuItemCard({
   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
   const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-  const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+  const displayQuantity = numUnits;
 
   const [quantityInput, setQuantityInput] = useState(
     displayQuantity.toString()

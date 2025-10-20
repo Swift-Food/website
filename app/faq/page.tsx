@@ -65,15 +65,15 @@ export default function FAQ() {
       ],
     },
     {
-      title: "Catering & Events",
+      title: "Event Ordering",
       questions: [
         {
-          question: "Do you offer catering for big events?",
+          question: "Do you offer event ordering for big events?",
           answer: (
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
-                  Yes! If you're planning an event, we offer a catering option
+                  Yes! If you're planning an event, we offer a event ordering option
                   where you can:
                 </h4>
                 <p className="text-gray-600 mb-3">
@@ -87,7 +87,7 @@ export default function FAQ() {
               <div className="bg-primary/10 p-3 rounded-lg">
                 <h4 className="font-semibold text-primary">
                   For more details, visit our{" "}
-                  <span className="underline font-bold">Catering Page</span> on
+                  <span className="underline font-bold">Event Ordering Page</span> on
                   the app or website.
                 </h4>
               </div>

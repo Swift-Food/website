@@ -189,6 +189,7 @@ class CateringService {
 
   async findOrCreateConsumerAccount(contactInfo: ContactInfo): Promise<string> {
     // Step 1: Check if user exists by email
+    console.log("contact info being sent", JSON.stringify(contactInfo))
     try {
       const checkResponse = await fetch(
         `${API_BASE_URL}/users/email/${encodeURIComponent(contactInfo.email)}`
@@ -202,7 +203,7 @@ class CateringService {
     } catch (error) {
       // User doesn't exist, continue to create
     }
-
+    
     // Step 2: Create new user if not found
     const randomPassword = Math.random().toString(36).slice(-10) + "A1";
     const formattedPhone = contactInfo.phone.startsWith("+")

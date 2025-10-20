@@ -141,7 +141,7 @@ export default function Step1EventDetails() {
       
       if (hoursUntilEvent < requiredNoticeHours) {
         errors.push(
-          `Please select a date/time at least ${requiredNoticeHours} hours in advance. Your selected restaurants require this notice for catering orders.`
+          `Please select a date/time at least ${requiredNoticeHours} hours in advance. Your selected restaurants require this notice for your event orders.`
         );
       }
     }
@@ -166,7 +166,7 @@ export default function Step1EventDetails() {
         <div>
           <h2 className="text-4xl font-bold mb-2">Event Details</h2>
           <p className="text-lg text-gray-600">
-            We just need a few details before we start building your catering menu.
+            We just need a few details before we start building your event order menu.
           </p>
         </div>
         <button

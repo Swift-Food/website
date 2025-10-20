@@ -877,16 +877,29 @@ export default function Step2MenuItems() {
                         {restaurant.minimumDeliveryNoticeHours && (
                           <div className="mt-2 text-xs text-base-content/70 bg-info/10 px-2 py-1 rounded">
                             {restaurant.minimumDeliveryNoticeHours >= 24
-                              ? `${Math.floor(
-                                  restaurant.minimumDeliveryNoticeHours / 24
-                                )} day${
-                                  Math.floor(
-                                    restaurant.minimumDeliveryNoticeHours / 24
-                                  ) > 1
-                                    ? "s"
-                                    : ""
-                                } notice required`
-                              : `${restaurant.minimumDeliveryNoticeHours}h notice required`}
+                              ? <>
+                                  <span className="font-bold">
+                                    {Math.floor(
+                                      restaurant.minimumDeliveryNoticeHours / 24
+                                    )} day{
+                                      Math.floor(
+                                        restaurant.minimumDeliveryNoticeHours / 24
+                                      ) > 1
+                                        ? "s"
+                                        : ""
+                                    }
+                                  </span>
+                                  {" "}
+                                  <span className="">notice required</span>
+                                </>
+                              : <>
+                                  <span className="font-bold">
+                                    {restaurant.minimumDeliveryNoticeHours} hours
+                                  </span>
+                                  {" "}
+                                  <span className="">notice required</span>
+                                </>
+                            }
                           </div>
                         )}
                       </div>
@@ -901,7 +914,7 @@ export default function Step2MenuItems() {
           <div className="hidden lg:block lg:w-96 sticky top-32 h-fit items-center justify-center">
             <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
               <h3 className="text-xl font-bold text-base-content mb-6">
-                Your Catering List
+                Your List
               </h3>
               {(() => {
                 const warnings = getMinimumOrderWarnings();
@@ -943,7 +956,7 @@ export default function Step2MenuItems() {
                       const subtotal = itemPrice * quantity + addonPrice;
 
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-                      const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+                      const displayQuantity = numUnits;
 
                       return (
                         <div
@@ -1027,7 +1040,7 @@ export default function Step2MenuItems() {
                                   −
                                 </button> */}
                                 <span className="text-sm font-medium text-base-content">
-                                  Feeds {displayQuantity} people
+                                  {displayQuantity} portion
                                 </span>
                                 {/* <button
                                   onClick={() =>
@@ -1204,7 +1217,7 @@ export default function Step2MenuItems() {
           <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] overflow-y-auto">
             <div className="sticky top-0 bg-base-100 border-b border-base-300 p-4 flex justify-between items-center">
               <h3 className="text-xl font-bold text-base-content">
-                Your Catering List
+                Your List
               </h3>
               <button
                 onClick={() => setShowCartMobile(false)}
@@ -1256,7 +1269,7 @@ export default function Step2MenuItems() {
 
                       const numUnits = quantity / BACKEND_QUANTITY_UNIT;
 
-                      const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
+                      const displayQuantity = numUnits ;
 
                       return (
                         <div
@@ -1331,12 +1344,12 @@ export default function Step2MenuItems() {
                                       )
                                     )
                                   }
-                                  className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   −
                                 </button> */}
                                 <span className="text-sm font-medium text-base-content">
-                                  Feeds {displayQuantity} people
+                                  {numUnits}
                                 </span>
                                 {/* <button
                                   onClick={() =>
@@ -1345,7 +1358,7 @@ export default function Step2MenuItems() {
                                       quantity + BACKEND_QUANTITY_UNIT
                                     )
                                   }
-                                  className="w-8 h-8 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
                                 >
                                   +
                                 </button> */}
@@ -1368,6 +1381,9 @@ export default function Step2MenuItems() {
                                 </button>
                               </div>
                             </div>
+                            <p className="text-xs text-base-content/60 mt-1">
+                              {displayQuantity} portion
+                            </p>
                           </div>
                         </div>
                       );

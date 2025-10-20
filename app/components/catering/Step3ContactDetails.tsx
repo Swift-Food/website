@@ -460,7 +460,7 @@ export default function Step3ContactInfo() {
               </svg>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
-              Thank you! Your catering request has been submitted.
+              Thank you! Your event order request has been submitted.
             </h2>
             <p className="text-base-content/70 text-lg">
               We'll get back to you within 24 hours via your preferred contact
@@ -503,7 +503,7 @@ export default function Step3ContactInfo() {
             </div>
 
             <h4 className="font-bold mb-4 text-base-content">
-              Your Catering List
+              Your List
             </h4>
 
             {promoCodes.length > 0 && (
@@ -525,9 +525,9 @@ export default function Step3ContactInfo() {
 
                 // USE ITEM'S OWN VALUES:
                 const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                // const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                 const displayFeeds =
-                  (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                  (quantity / BACKEND_QUANTITY_UNIT);
 
                 // Calculate addon price
                 const addonPrice = (item.selectedAddons || []).reduce(
@@ -573,7 +573,7 @@ export default function Step3ContactInfo() {
                           </p>
                         )}
                       <p className="text-sm text-base-content/60">
-                        Feeds {displayFeeds} people
+                        {displayFeeds} portions
                       </p>
                     </div>
                     <div className="text-right">
@@ -666,7 +666,7 @@ export default function Step3ContactInfo() {
               </h2>
               <p className="text-base-content/70">
                 Please provide your contact details so we can confirm your
-                catering request.
+                event order request.
               </p>
             </div>
             <button
@@ -955,7 +955,7 @@ export default function Step3ContactInfo() {
 
               {/* Catering List */}
               <h4 className="font-bold mb-4 text-base-content">
-                Your Catering List
+                Your List
               </h4>
 
               {/* Important Notes */}
@@ -1055,9 +1055,9 @@ export default function Step3ContactInfo() {
 
                   // USE ITEM'S OWN VALUES:
                   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+                  // const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                   const displayFeeds =
-                    (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+                    (quantity / BACKEND_QUANTITY_UNIT);
 
                   // Calculate addon price
                   const addonPrice = (item.selectedAddons || []).reduce(
@@ -1102,7 +1102,7 @@ export default function Step3ContactInfo() {
                           )}
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-base-content/70">
-                            feeds up to {displayFeeds} people
+                            {displayFeeds} portions
                           </span>
                         </div>
                       </div>
