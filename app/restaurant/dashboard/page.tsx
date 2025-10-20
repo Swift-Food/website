@@ -480,8 +480,8 @@ const CateringOrdersList = ({ orders }: { orders: CateringOrder[] }) => {
   if (orders.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <p className="text-lg">No catering orders yet</p>
-        <p className="text-sm mt-2">Your confirmed catering orders will appear here</p>
+        <p className="text-lg">No Event orders yet</p>
+        <p className="text-sm mt-2">Your confirmed Event orders will appear here</p>
       </div>
     );
   }
@@ -799,7 +799,7 @@ const WithdrawalDashboard = ({
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Catering Orders
+                Event Orders
                 {cateringOrders.length > 0 && (
                   <span className="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2 rounded-full text-xs">
                     {cateringOrders.length}
@@ -930,7 +930,7 @@ const WithdrawalDashboard = ({
    
         ) : (
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Catering Orders</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Event Orders</h2>
             <div className="max-h-[800px] overflow-y-auto">
               <CateringOrdersList orders={cateringOrders} />
             </div>
