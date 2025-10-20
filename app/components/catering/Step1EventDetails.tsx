@@ -43,14 +43,22 @@ const EVENT_TYPE_OPTIONS = [
   },
 ];
 
-const TIME_SLOT_OPTIONS = [
-  { label: "Morning (8:00 AM - 10:00 AM)", value: "09:00" },
-  { label: "Late Morning (10:00 AM - 12:00 PM)", value: "11:00" },
-  { label: "Lunch (12:00 PM - 2:00 PM)", value: "13:00" },
-  { label: "Afternoon (2:00 PM - 4:00 PM)", value: "15:00" },
-  { label: "Early Evening (4:00 PM - 6:00 PM)", value: "17:00" },
-  { label: "Evening (6:00 PM - 8:00 PM)", value: "19:00" },
-  { label: "Late Evening (8:00 PM - 10:00 PM)", value: "21:00" },
+// Generate hours from 6 AM to 11 PM
+const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => {
+  const hour24 = i + 6; // Start from 6 AM
+  const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+  const ampm = hour24 >= 12 ? 'PM' : 'AM';
+  return {
+    label: `${hour12} ${ampm}`,
+    value: String(hour24).padStart(2, '0')
+  };
+});
+
+const MINUTE_OPTIONS = [
+  { label: '00', value: '00' },
+  { label: '15', value: '15' },
+  { label: '30', value: '30' },
+  { label: '45', value: '45' },
 ];
 
 export default function Step1EventDetails() {
@@ -88,6 +96,31 @@ export default function Step1EventDetails() {
       specialRequests: "",
     }
   );
+
+  // Separate state for hour and minute
+  const [selectedHour, setSelectedHour] = useState(() => {
+    if (eventDetails?.eventTime) {
+      return eventDetails.eventTime.split(':')[0];
+    }
+    return '';
+  });
+
+  const [selectedMinute, setSelectedMinute] = useState(() => {
+    if (eventDetails?.eventTime) {
+      return eventDetails.eventTime.split(':')[1];
+    }
+    return '';
+  });
+
+  // Update eventTime when hour or minute changes
+  const handleTimeChange = (hour: string, minute: string) => {
+    if (hour && minute) {
+      const timeValue = `${hour}:${minute}`;
+      setFormData({ ...formData, eventTime: timeValue });
+    } else {
+      setFormData({ ...formData, eventTime: '' });
+    }
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -151,7 +184,7 @@ export default function Step1EventDetails() {
             Delivery Date & Time
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            Event orders require at least 3 days' notice.
+            Select your preferred delivery date and time. Most catering orders require advance notice.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -178,21 +211,41 @@ export default function Step1EventDetails() {
               <label className="block text-sm font-medium mb-2">
                 Event Time
               </label>
-              <select
-                required
-                value={formData.eventTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, eventTime: e.target.value })
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select a time slot</option>
-                {TIME_SLOT_OPTIONS.map((slot) => (
-                  <option key={slot.value} value={slot.value}>
-                    {slot.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  required
+                  value={selectedHour}
+                  onChange={(e) => {
+                    setSelectedHour(e.target.value);
+                    handleTimeChange(e.target.value, selectedMinute);
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Hour</option>
+                  {HOUR_OPTIONS.map((hour) => (
+                    <option key={hour.value} value={hour.value}>
+                      {hour.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="flex items-center text-2xl font-bold text-gray-400">:</span>
+                <select
+                  required
+                  value={selectedMinute}
+                  onChange={(e) => {
+                    setSelectedMinute(e.target.value);
+                    handleTimeChange(selectedHour, e.target.value);
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Min</option>
+                  {MINUTE_OPTIONS.map((minute) => (
+                    <option key={minute.value} value={minute.value}>
+                      {minute.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
