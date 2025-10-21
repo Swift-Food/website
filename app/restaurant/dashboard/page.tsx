@@ -111,13 +111,15 @@ const api = {
 
   // Stripe onboarding endpoints
   checkStripeStatus: async (
-    userId: string
+    userId: string,
+    accountId?: string | null
   ): Promise<StripeOnboardingStatus | null> => {
     try {
-      console.log(`${API_BASE_URL}/restaurant-user/${userId}/stripe-status`);
-      const response = await fetch(
-        `${API_BASE_URL}/restaurant-user/${userId}/stripe-status`
-      );
+      const url = accountId
+        ? `${API_BASE_URL}/restaurant-user/${userId}/stripe-status?accountId=${accountId}`
+        : `${API_BASE_URL}/restaurant-user/${userId}/stripe-status`;
+      console.log(url);
+      const response = await fetch(url);
 
       if (!response.ok) {
         console.warn("Stripe status fetch failed:", response.status);
@@ -998,7 +1000,7 @@ const WithdrawalDashboard = ({
     try {
       const [statusData, balanceData, historyData, cateringData] =
         await Promise.all([
-          api.checkStripeStatus(restaurantUserId),
+          api.checkStripeStatus(restaurantUserId, selectedAccountId),
           api.getBalance(restaurantUserId, token, selectedAccountId),
           api.getWithdrawalHistory(restaurantUserId, token, selectedAccountId),
           api.getCateringOrders(restaurantId, selectedAccountId),
