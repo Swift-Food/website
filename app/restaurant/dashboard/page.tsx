@@ -188,14 +188,6 @@ const api = {
   },
   
 
-  requestWithdrawal: async (data: {
-    userId: string;
-    userType: string;
-    amount: number;
-    notes?: string;
-    isInstantPayout: boolean;
-  }, token: string): Promise<WithdrawalRequest> => {
-
   requestWithdrawal: async (
     data: {
       userId: string;
@@ -738,7 +730,7 @@ const CateringOrdersList = ({
 
   const getPayoutAccountName = (order: CateringOrder): string | null => {
     if (!order.restaurantPayoutDetails) return null;
-    
+
     const payoutDetail = order.restaurantPayoutDetails[restaurantId];
     return payoutDetail?.accountName || null;
   };
@@ -748,7 +740,7 @@ const CateringOrdersList = ({
       setLoadingAccounts(true);
       const accounts = await api.getPaymentAccounts(restaurantUserId);
       setAvailableAccounts(accounts || {});
-      
+
       // Set default account for each order
       if (accounts && Object.keys(accounts).length > 0) {
         const defaultAccountId = Object.keys(accounts)[0];
@@ -758,12 +750,19 @@ const CateringOrdersList = ({
         });
         setSelectedAccounts(defaultSelections);
       }
-      
+
       setLoadingAccounts(false);
     };
-    
+
     fetchAccounts();
   }, [restaurantUserId, orders.length]);
+
+  // Switch tab when viewing specific branch (can't show admin_reviewed on specific branches)
+  useEffect(() => {
+    if (hasMultipleBranches && selectedAccountId !== null && activeStatusTab === 'admin_reviewed') {
+      setActiveStatusTab('restaurant_reviewed');
+    }
+  }, [hasMultipleBranches, selectedAccountId, activeStatusTab]);
   
 
   const formatDate = (date: string) =>
@@ -839,8 +838,11 @@ const CateringOrdersList = ({
     return acc;
   }, {} as Record<string, CateringOrder[]>);
 
-  // Determine if we should show only pending review
+  // Determine if we should show only pending review (All Branches view)
   const showOnlyPendingReview = hasMultipleBranches && selectedAccountId === null;
+
+  // Determine if we should hide pending review (specific branch view)
+  const hidePendingReview = hasMultipleBranches && selectedAccountId !== null;
 
   // Fix 2: Update statusTabs to prevent count inflation
   const allStatusTabs = [
@@ -873,9 +875,14 @@ const CateringOrdersList = ({
     },
   ];
 
-  // Filter tabs based on whether we're showing all branches with multiple branches
+  // Filter tabs based on context:
+  // - All Branches view: show only Pending Review
+  // - Specific branch view: show all EXCEPT Pending Review
+  // - No branches (legacy): show all tabs
   const statusTabs = showOnlyPendingReview
     ? allStatusTabs.filter(tab => tab.key === "admin_reviewed")
+    : hidePendingReview
+    ? allStatusTabs.filter(tab => tab.key !== "admin_reviewed")
     : allStatusTabs;
 
   // Fix 1: Update getActiveOrders function to prevent duplicate orders
@@ -1208,8 +1215,23 @@ const WithdrawalDashboard = ({
       if (statusData) setStripeStatus(statusData);
       if (balanceData) setBalance(balanceData);
       setHistory(historyData || []);
-      setCateringOrders(cateringData || []);
-      console.log("Catering data is", cateringData, restaurantId);
+
+      // Filter catering orders based on selected account
+      let filteredOrders = cateringData || [];
+      if (selectedAccountId) {
+        // When a specific branch is selected, filter orders that have the selectedAccountId in their payout details
+        filteredOrders = filteredOrders.filter((order: CateringOrder) => {
+          if (!order.restaurantPayoutDetails) return false;
+
+          // Check if any of the payout details have the matching selectedAccountId
+          return Object.values(order.restaurantPayoutDetails).some(
+            (details: any) => details.selectedAccountId === selectedAccountId
+          );
+        });
+      }
+
+      setCateringOrders(filteredOrders);
+      console.log("Catering data is", cateringData, "Filtered:", filteredOrders, "Selected Account:", selectedAccountId);
     } catch (err: any) {
       console.error("Fetch error:", err);
       setError(err.message || "Failed to load data");
