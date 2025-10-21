@@ -122,9 +122,12 @@ const api = {
   },
 
   // Withdrawal endpoints
-  getBalance: async (userId: string, token: string): Promise<BalanceInfo | null> => {
+  getBalance: async (userId: string, token: string, accountId?: string | null): Promise<BalanceInfo | null> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/withdrawals/balance/${userId}/restaurant`, {
+      const url = accountId
+        ? `${API_BASE_URL}/withdrawals/balance/${userId}/restaurant?accountId=${accountId}`
+        : `${API_BASE_URL}/withdrawals/balance/${userId}/restaurant`;
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {
@@ -158,23 +161,28 @@ const api = {
     return response.json();
   },
 
-  getWithdrawalHistory: async (userId: string, token: string): Promise<WithdrawalRequest[]> => {
-    const response = await fetch(`${API_BASE_URL}/withdrawals/history/${userId}/restaurant`, {
+  getWithdrawalHistory: async (userId: string, token: string, accountId?: string | null): Promise<WithdrawalRequest[]> => {
+    const url = accountId
+      ? `${API_BASE_URL}/withdrawals/history/${userId}/restaurant?accountId=${accountId}`
+      : `${API_BASE_URL}/withdrawals/history/${userId}/restaurant`;
+    const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     if (!response.ok) throw new Error('Failed to fetch withdrawal history');
     return response.json();
   },
 
-  getCateringOrders: async (restaurantId: string) => {
- 
-    console.log("catering order rq", `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}` )
-    const response = await fetch(`${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`);
-    
+  getCateringOrders: async (restaurantId: string, accountId?: string | null) => {
+    const url = accountId
+      ? `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}?accountId=${accountId}`
+      : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;
+    console.log("catering order rq", url)
+    const response = await fetch(url);
+
 
     const data = await response.json();
 
-    
+
     return data;
   },
 
@@ -478,6 +486,58 @@ const WithdrawalHistory = ({ history }: { history: WithdrawalRequest[] }) => {
   );
 };
 
+// Payment Account Selector Component
+const PaymentAccountSelector = ({
+  paymentAccounts,
+  selectedAccountId,
+  onSelectAccount
+}: {
+  paymentAccounts: { [accountId: string]: { name: string; stripeAccountId: string } } | null;
+  selectedAccountId: string | null;
+  onSelectAccount: (accountId: string | null) => void;
+}) => {
+  if (!paymentAccounts || Object.keys(paymentAccounts).length === 0) {
+    return null;
+  }
+
+  const accounts = Object.entries(paymentAccounts);
+
+  return (
+    <div className="mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Select Branch
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => onSelectAccount(null)}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+              selectedAccountId === null
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            All Branches
+          </button>
+          {accounts.map(([accountId, account]) => (
+            <button
+              key={accountId}
+              onClick={() => onSelectAccount(accountId)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                selectedAccountId === accountId
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {account.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Add new component before WithdrawalDashboard
 const CateringOrdersList = ({ 
   orders, 
@@ -756,19 +816,19 @@ const CateringOrdersList = ({
 };
 
 // Main Withdrawal Dashboard
-const WithdrawalDashboard = ({ 
-  userId, 
+const WithdrawalDashboard = ({
+  userId,
   restaurantUserId,
   restaurantId,
   restaurant,
-  token, 
-  onLogout 
-}: { 
-  userId: string; 
+  token,
+  onLogout
+}: {
+  userId: string;
   restaurantUserId: string;
   restaurantId: string;
   restaurant: any;
-  token: string; 
+  token: string;
   onLogout: () => void;
 }) => {
   const [loading, setLoading] = useState(true);
@@ -782,6 +842,7 @@ const WithdrawalDashboard = ({
   const [success, setSuccess] = useState('');
   const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
   const [activeTab, setActiveTab] = useState<'withdrawals' | 'catering'>('withdrawals');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   // Update fetchData function to include catering orders
   const fetchData = async () => {
@@ -790,11 +851,11 @@ const WithdrawalDashboard = ({
     try {
       const [statusData, balanceData, historyData, cateringData] = await Promise.all([
         api.checkStripeStatus(restaurantUserId),
-        api.getBalance(restaurantUserId, token),
-        api.getWithdrawalHistory(restaurantUserId, token),
-        api.getCateringOrders(restaurantId),
+        api.getBalance(restaurantUserId, token, selectedAccountId),
+        api.getWithdrawalHistory(restaurantUserId, token, selectedAccountId),
+        api.getCateringOrders(restaurantId, selectedAccountId),
       ]);
-      
+
       if (statusData) setStripeStatus(statusData);
       if (balanceData) setBalance(balanceData);
       setHistory(historyData || []);
@@ -810,7 +871,7 @@ const WithdrawalDashboard = ({
 
   useEffect(() => {
     fetchData();
-  }, [userId, token]);
+  }, [userId, token, selectedAccountId]);
 
   const handleWithdrawalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -903,6 +964,13 @@ const WithdrawalDashboard = ({
             Logout
           </button>
         </div>
+
+        {/* Payment Account Selector */}
+        <PaymentAccountSelector
+          paymentAccounts={restaurant?.paymentAccounts}
+          selectedAccountId={selectedAccountId}
+          onSelectAccount={setSelectedAccountId}
+        />
 
         {/* Balance Card */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
