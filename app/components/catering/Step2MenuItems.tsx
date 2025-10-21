@@ -454,7 +454,7 @@ export default function Step2MenuItems() {
     <div className="min-h-screen bg-base-100">
       {/* Main Content */}
       <div className="mx-auto px-4 py-6">
-        <form onSubmit={handleSearch} className="mb-6">
+        <form onSubmit={handleSearch} className="mb-4">
           <div className="flex gap-2 md:gap-4">
             <div className="relative flex-1">
               <input
@@ -915,6 +915,18 @@ export default function Step2MenuItems() {
           {/* Cart Sidebar - Desktop */}
           <div className="hidden lg:block lg:w-96 sticky top-32 h-fit items-center justify-center">
             <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
+              {selectedRestaurantId && (
+                <button
+                  className="w-full mb-4 px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setSelectedRestaurantId(null);
+                    setSearchQuery("");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                >
+                  ← Back to All Restaurants
+                </button>
+              )}
               <h3 className="text-xl font-bold text-base-content mb-6">
                 Your List
               </h3>
@@ -1143,21 +1155,6 @@ export default function Step2MenuItems() {
                 </>
               )}
             </div>
-            {/* Remove the back button section and replace with: */}
-            {selectedRestaurantId && (
-              <div className="flex justify-center w-full my-6">
-                <button
-                  className="bg-base-300 text-base-content px-4 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
-                  onClick={() => {
-                    setSelectedRestaurantId(null);
-                    setSearchQuery("");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  ← Back to Restaurants
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
