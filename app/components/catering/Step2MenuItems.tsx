@@ -113,6 +113,11 @@ export default function Step2MenuItems() {
     });
   };
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   // Fetch all restaurants on mount
   useEffect(() => {
     fetchRestaurants();
