@@ -782,8 +782,8 @@ export default function Step2MenuItems() {
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${selectedRestaurantId === restaurant.id
-                        ? "border-primary shadow-lg"
-                        : "border-base-300 hover:border-primary/50"
+                          ? "border-primary shadow-lg"
+                          : "border-base-300 hover:border-primary/50"
                         }`}
                     >
                       <img
@@ -959,8 +959,8 @@ export default function Step2MenuItems() {
                         <div
                           key={index}
                           className={`flex gap-3 pb-4${index !== selectedItems.length - 1
-                            ? " border-b border-base-300"
-                            : ""
+                              ? " border-b border-base-300"
+                              : ""
                             }`}
                         >
                           {item.image && (
@@ -1443,7 +1443,7 @@ export default function Step2MenuItems() {
                     }}
                     disabled={getMinimumOrderWarnings().length > 0}
                   >
-                    Continue to Event Details
+                    Continue to Contact Info
                   </button>
                 </>
               )}
