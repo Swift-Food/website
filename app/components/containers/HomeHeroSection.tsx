@@ -22,9 +22,9 @@ export default function HomeHeroSection() {
       lg:basis-[60%] lg:flex-none
       max-lg:w-full max-lg:flex-none max-lg:max-w-md max-lg:mx-auto py-[5%] px-[5%] sm:py-[3%] sm:px-[3%]
       transition-all duration-1000 ease-out
-      ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+      ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
     `}
-      style={{ transitionDelay: '200ms' }}
+      style={{ transitionDelay: "200ms" }}
     >
       <div className="relative w-full aspect-[4/3]">
         <Image
@@ -53,17 +53,20 @@ export default function HomeHeroSection() {
 flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:text-center
     lg:basis-[35%] lg:flex-none
     transition-all duration-1000 ease-out
-    ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+    ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
   `}
     >
-      <div className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl ${styles.montFont}`}>
+      <div
+        className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl ${styles.montFont}`}
+      >
         <style jsx>{`
           @keyframes wave {
-            0%, 100% {
+            0%,
+            100% {
               transform: translateY(0);
             }
             50% {
-              transform: translateY(-15px);
+              transform: translateY(-8px);
             }
           }
           .wave-1 {
@@ -79,16 +82,10 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
             animation-delay: 0.4s;
           }
         `}</style>
-        <span className="inline-block wave-1">
-          REAL,
-        </span>
+        <span className="inline-block wave-1">REAL,</span>
         <br />
-        <span className="inline-block wave-2">
-          LOCAL
-        </span>{' '}
-        <span className="inline-block wave-3">
-          & FAST
-        </span>
+        <span className="inline-block wave-2">LOCAL</span>{" "}
+        <span className="inline-block wave-3">& FAST</span>
       </div>
       {/* <p
         className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
