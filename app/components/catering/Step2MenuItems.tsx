@@ -1341,9 +1341,9 @@ export default function Step2MenuItems() {
                                 >
                                   −
                                 </button> */}
-                                <span className="text-sm font-medium text-base-content">
-                                  {numUnits}
-                                </span>
+                                <p className="text-xs text-base-content/60 mt-1">
+                                  {displayQuantity} portion
+                                </p>
                                 {/* <button
                                   onClick={() =>
                                     updateItemQuantity(
@@ -1374,9 +1374,6 @@ export default function Step2MenuItems() {
                                 </button>
                               </div>
                             </div>
-                            <p className="text-xs text-base-content/60 mt-1">
-                              {displayQuantity} portion
-                            </p>
                           </div>
                         </div>
                       );
