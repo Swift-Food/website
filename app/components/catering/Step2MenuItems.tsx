@@ -1267,7 +1267,10 @@ export default function Step2MenuItems() {
                       return (
                         <div
                           key={index}
-                          className="flex gap-3 pb-4 border-b border-base-300"
+                          className={`flex gap-3 pb-4${index !== selectedItems.length - 1
+                            ? " border-b border-base-300"
+                            : ""
+                            }`}
                         >
                           {item.image && (
                             <img
