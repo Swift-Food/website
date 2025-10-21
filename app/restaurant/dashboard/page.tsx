@@ -556,24 +556,27 @@ const CateringOrdersList = ({
     acc[status].push(order);
     return acc;
   }, {} as Record<string, CateringOrder[]>);
+  // Fix 2: Update statusTabs to prevent count inflation
   const statusTabs = [
     { key: 'admin_reviewed', label: 'Pending Review', count: ordersByStatus['admin_reviewed']?.length || 0 },
     { key: 'restaurant_reviewed', label: 'Awaiting Payment', count: ordersByStatus['restaurant_reviewed']?.length || 0 },
-    { key: 'confirmed', label: 'Confirmed', count: (ordersByStatus['paid']?.length || 0) + (ordersByStatus['confirmed']?.length || 0) },
+    { 
+      key: 'confirmed', 
+      label: 'Confirmed', 
+      count: [...new Set([...(ordersByStatus['paid'] || []), ...(ordersByStatus['confirmed'] || [])])].length 
+    },
     { key: 'completed', label: 'Completed', count: ordersByStatus['completed']?.length || 0 },
   ];
 
+  // Fix 1: Update getActiveOrders function to prevent duplicate orders
   const getActiveOrders = () => {
     if (activeStatusTab === 'confirmed') {
       return [...(ordersByStatus['paid'] || []), ...(ordersByStatus['confirmed'] || [])];
     }
     
     if (activeStatusTab === 'restaurant_reviewed') {
-      // Show orders that are either status restaurant_reviewed OR have this restaurant's ID in restaurantReviews
-      return orders.filter(order => 
-        order.status === 'restaurant_reviewed' || 
-        (order.restaurantReviews && order.restaurantReviews.includes(restaurantId))
-      );
+      // Only show orders with exact status match - remove the restaurantReviews check
+      return ordersByStatus['restaurant_reviewed'] || [];
     }
     
     return ordersByStatus[activeStatusTab] || [];
@@ -600,13 +603,14 @@ const CateringOrdersList = ({
       )}
   
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
+
+      <div className="border-b border-gray-200 overflow-x-auto">
+        <nav className="flex space-x-4 sm:space-x-8 min-w-max px-4 sm:px-0">
           {statusTabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveStatusTab(tab.key)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+              className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                 activeStatusTab === tab.key
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -614,7 +618,7 @@ const CateringOrdersList = ({
             >
               {tab.label}
               {tab.count > 0 && (
-                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                <span className={`ml-1 sm:ml-2 py-0.5 px-1.5 sm:px-2 rounded-full text-xs ${
                   activeStatusTab === tab.key
                     ? 'bg-blue-100 text-blue-600'
                     : 'bg-gray-100 text-gray-600'
@@ -635,26 +639,26 @@ const CateringOrdersList = ({
       ) : (
         <div className="space-y-4">
           {activeOrders.map((order) => (
-            <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-shadow">
+            // Fix 3: Mobile optimization - Update the order card styling
+            <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 hover:shadow-lg transition-shadow">
               {/* Header */}
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                 <div>
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>
+                  <span className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border inline-block ${getStatusColor(order.status)}`}>
                     {getStatusLabel(order.status)}
                   </span>
-                  {/* <p className="text-xs text-gray-500 mt-2">Order: {order.id.substring(0, 8).toUpperCase()}</p> */}
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
+                <div className="sm:text-right">
+                  <p className="font-bold text-xl sm:text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
                   <p className="text-xs text-gray-500">Reference: {order.id.slice(-4).toUpperCase()}</p>
                   <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
                 </div>
               </div>
-  
+
               {/* Event Details */}
               <div className="mb-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Event Information</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Event Information</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
                   <p className="text-gray-600">Collection Time: <span className="text-gray-900 font-medium">{formatEventTime(order.eventTime)}</span></p>
                   <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
@@ -664,18 +668,18 @@ const CateringOrdersList = ({
                   Delivery: <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>
                 </p>
               </div>
-  
-              {/* Order Items - SCROLLABLE */}
+
+              {/* Order Items - Mobile optimized scrolling */}
               <div className="border-t border-gray-200 pt-4">
-                <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
-                <div className="max-h-64 overflow-y-auto pr-2">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm sm:text-base">Order Items</h4>
+                <div className="max-h-48 sm:max-h-64 overflow-y-auto pr-2">
                   {order.orderItems.map((restaurant, idx) => (
                     <div key={idx} className="mb-3">
                       <div className="space-y-2">
                         {restaurant.menuItems.map((item, itemIdx) => (
-                          <div key={itemIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded">
-                            <div>
-                              <p className="font-medium text-gray-900">{item.name}</p>
+                          <div key={itemIdx} className="flex justify-between items-center bg-gray-50 p-2 sm:p-3 rounded">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-sm truncate">{item.name}</p>
                               <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                             </div>
                           </div>
@@ -685,26 +689,26 @@ const CateringOrdersList = ({
                   ))}
                 </div>
               </div>
-  
-              {/* Special Requirements */}
+
+              {/* Special Requirements - Mobile optimized */}
               {order.specialRequirements && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="mt-4 p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-xs font-semibold text-yellow-900 mb-1">Special Requirements:</p>
-                  <p className="text-sm text-yellow-800">{order.specialRequirements}</p>
+                  <p className="text-xs sm:text-sm text-yellow-800 break-words">{order.specialRequirements}</p>
                 </div>
               )}
-  
-              {/* Review Buttons */}
+
+              {/* Review Buttons - Mobile optimized */}
               {order.status === 'admin_reviewed' && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm font-medium text-gray-900 mb-3">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 mb-3">
                     Please review this order and confirm your availability
                   </p>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
                       onClick={() => handleReview(order.id, true)}
                       disabled={reviewing === order.id}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-green-300 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-green-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
                     >
                       {reviewing === order.id ? (
                         <>
@@ -721,7 +725,7 @@ const CateringOrdersList = ({
                     <button
                       onClick={() => handleReview(order.id, false)}
                       disabled={reviewing === order.id}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
                     >
                       {reviewing === order.id ? (
                         <>
