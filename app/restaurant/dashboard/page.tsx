@@ -646,6 +646,7 @@ const CateringOrdersList = ({
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-2xl text-gray-900">{formatCurrency(order.restaurantTotalCost)}</p>
+                  <p className="text-xs text-gray-500">Reference: {order.id.slice(-4).toUpperCase()}</p>
                   <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
                 </div>
               </div>
