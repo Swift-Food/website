@@ -22,6 +22,7 @@ export interface CateringOrderItem {
     eventTime: string;
     guestCount: number;
     eventType: string;
+    collectionTime?: string;
     deliveryAddress: string;
     specialRequirements?: string;
     orderItems: CateringOrderItem[];
