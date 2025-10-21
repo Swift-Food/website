@@ -31,17 +31,16 @@ export default function MenuItemCard({
   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
 
-  const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-  const displayQuantity = numUnits;
+  // Convert backend quantity to portions for display
+  const portionQuantity = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 0;
 
-  const [quantityInput, setQuantityInput] = useState(
-    displayQuantity.toString()
-  );
+  // Use simple quantity state
+  const [quantityInput, setQuantityInput] = useState(portionQuantity.toString());
 
   // Sync input with external quantity changes
   useEffect(() => {
-    setQuantityInput(displayQuantity.toString());
-  }, [displayQuantity]);
+    setQuantityInput(portionQuantity.toString());
+  }, [portionQuantity]);
 
   const hasAddons = item.addons && item.addons.length > 0;
 
@@ -116,20 +115,14 @@ export default function MenuItemCard({
             {quantity > 0 ? (
               <div className="bg-[#F5F1E8] p-2 rounded-lg mb-3 border border-[#F0ECE3] flex items-center justify-between">
                 <span className="text-sm text-base-content/80 ml-1">
-                  Feeds people
+                  Quantity
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      const newQty = Math.max(
-                        0,
-                        quantity - BACKEND_QUANTITY_UNIT
-                      );
-                      onUpdateQuantity(item.id, newQty);
-                      const newDisplayQty =
-                        (newQty / BACKEND_QUANTITY_UNIT) *
-                        DISPLAY_FEEDS_PER_UNIT;
-                      setQuantityInput(newDisplayQty.toString());
+                      const newPortionQty = Math.max(0, portionQuantity - 1);
+                      const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
+                      onUpdateQuantity(item.id, newBackendQty);
                     }}
                     className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
                   >
@@ -144,11 +137,9 @@ export default function MenuItemCard({
                       if (val === "" || /^\d+$/.test(val)) {
                         setQuantityInput(val);
                         if (val !== "" && !isNaN(parseInt(val))) {
-                          const portions = parseInt(val);
-                          const backendQty =
-                            Math.ceil(portions / DISPLAY_FEEDS_PER_UNIT) *
-                            BACKEND_QUANTITY_UNIT;
-                          onUpdateQuantity(item.id, Math.max(0, backendQty));
+                          const newPortionQty = parseInt(val);
+                          const newBackendQty = Math.max(0, newPortionQty) * BACKEND_QUANTITY_UNIT;
+                          onUpdateQuantity(item.id, newBackendQty);
                         }
                       }
                     }}
@@ -163,14 +154,12 @@ export default function MenuItemCard({
                     }}
                     className="w-12 text-center font-medium text-xs md:text-sm text-base-content bg-base-100 border border-base-300 rounded px-1 py-1"
                   />
+
                   <button
                     onClick={() => {
-                      const newQty = quantity + BACKEND_QUANTITY_UNIT;
-                      onUpdateQuantity(item.id, newQty);
-                      const newDisplayQty =
-                        (newQty / BACKEND_QUANTITY_UNIT) *
-                        DISPLAY_FEEDS_PER_UNIT;
-                      setQuantityInput(newDisplayQty.toString());
+                      const newPortionQty = portionQuantity + 1;
+                      const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
+                      onUpdateQuantity(item.id, newBackendQty);
                     }}
                     className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
                   >

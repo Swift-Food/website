@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import Image from "next/image";
 import { useCatering } from "@/context/CateringContext";
 import { EventDetails } from "@/types/catering.types";
@@ -63,6 +63,11 @@ const MINUTE_OPTIONS = [
 
 export default function Step1EventDetails() {
   const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants } = useCatering();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   // Calculate min and max dates
   // const getMinDate = () => {

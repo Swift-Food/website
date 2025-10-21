@@ -56,12 +56,40 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
     ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
   `}
     >
-      <p
-        className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
-      >
-        REAL,
-        <br /> LOCAL & FAST
-      </p>
+      <div className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl ${styles.montFont}`}>
+        <style jsx>{`
+          @keyframes wave {
+            0%, 100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-15px);
+            }
+          }
+          .wave-1 {
+            animation: wave 2s ease-in-out infinite;
+            animation-delay: 0s;
+          }
+          .wave-2 {
+            animation: wave 2s ease-in-out infinite;
+            animation-delay: 0.2s;
+          }
+          .wave-3 {
+            animation: wave 2s ease-in-out infinite;
+            animation-delay: 0.4s;
+          }
+        `}</style>
+        <span className="inline-block wave-1">
+          REAL,
+        </span>
+        <br />
+        <span className="inline-block wave-2">
+          LOCAL
+        </span>{' '}
+        <span className="inline-block wave-3">
+          & FAST
+        </span>
+      </div>
       {/* <p
         className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
       >
