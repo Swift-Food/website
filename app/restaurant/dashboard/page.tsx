@@ -1244,8 +1244,37 @@ const WithdrawalDashboard = ({
           onSelectAccount={setSelectedAccountId}
         />
 
-        {/* Balance Card */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* Determine if showing all branches */}
+        {(() => {
+          const hasMultipleBranches = !!restaurantUser?.paymentAccounts && Object.keys(restaurantUser.paymentAccounts).length > 0;
+          const showAllBranches = hasMultipleBranches && selectedAccountId === null;
+
+          // If showing all branches, only show Event Orders (pending review)
+          if (showAllBranches) {
+            return (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">
+                  Event Orders - Pending Review
+                </h2>
+                <div className="max-h-[800px] overflow-y-auto">
+                  <CateringOrdersList
+                    orders={cateringOrders}
+                    restaurantId={restaurantId}
+                    token={token}
+                    onRefresh={fetchData}
+                    hasMultipleBranches={hasMultipleBranches}
+                    selectedAccountId={selectedAccountId}
+                  />
+                </div>
+              </div>
+            );
+          }
+
+          // Otherwise show normal dashboard with balance and tabs
+          return (
+            <>
+              {/* Balance Card */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
             <div className="flex items-center mb-2">
               <DollarSign size={24} />
@@ -1469,6 +1498,9 @@ const WithdrawalDashboard = ({
             </div>
           </div>
         )}
+            </>
+          );
+        })()}
       </div>
     </div>
   );
