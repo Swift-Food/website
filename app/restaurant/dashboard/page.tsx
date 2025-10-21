@@ -655,7 +655,7 @@ const CateringOrdersList = ({
                 <h4 className="font-semibold text-gray-900 mb-2">Event Information</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
-                  <p className="text-gray-600">Complete By: <span className="text-gray-900 font-medium">{formatEventTime(order.eventTime)}</span></p>
+                  <p className="text-gray-600">Collection Time: <span className="text-gray-900 font-medium">{formatEventTime(order.eventTime)}</span></p>
                   <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
                   <p className="text-gray-600">Type: <span className="text-gray-900 font-medium">{order.eventType}</span></p>
                 </div>
