@@ -134,13 +134,18 @@ const api = {
 
   refreshOnboardingLink: async (
     userId: string,
-    token: string
+    token: string,
+    accountId?: string
   ): Promise<{ onboardingUrl: string }> => {
     const response = await fetch(
       `${API_BASE_URL}/restaurant-user/${userId}/stripe-refresh`,
       {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: accountId ? JSON.stringify({ accountId }) : undefined,
       }
     );
     if (!response.ok) throw new Error("Failed to refresh onboarding link");
@@ -387,20 +392,27 @@ const StripeOnboardingRequired = ({
   userId,
   token,
   onRefresh,
+  paymentAccounts,
+  selectedAccountId,
 }: {
   userId: string;
   token: string;
   onRefresh: () => void;
+  paymentAccounts: { [accountId: string]: { name: string; stripeAccountId: string; stripeOnboardingComplete?: boolean } } | null;
+  selectedAccountId: string | null;
 }) => {
   console.log("user is", userId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleRefreshLink = async () => {
+  const hasMultipleBranches = paymentAccounts && Object.keys(paymentAccounts).length > 0;
+  const showAllBranches = hasMultipleBranches && selectedAccountId === null;
+
+  const handleRefreshLink = async (accountId?: string) => {
     setLoading(true);
     setError("");
     try {
-      const { onboardingUrl } = await api.refreshOnboardingLink(userId, token);
+      const { onboardingUrl } = await api.refreshOnboardingLink(userId, token, accountId);
       window.location.href = onboardingUrl;
     } catch (err: any) {
       setError(err.message || "Failed to get onboarding link");
@@ -408,6 +420,71 @@ const StripeOnboardingRequired = ({
       setLoading(false);
     }
   };
+
+  // Show status of all branches when "All Branches" is selected
+  if (showAllBranches) {
+    const accounts = Object.entries(paymentAccounts!);
+    const incompleteAccounts = accounts.filter(([_, account]) => !account.stripeOnboardingComplete);
+
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-8">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+              <AlertCircle size={32} className="text-yellow-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Stripe Onboarding Status
+            </h2>
+            <p className="text-gray-700">
+              Select a branch from the navigation above to complete its Stripe onboarding.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="font-semibold text-gray-900 mb-3">Branch Status:</h3>
+            {accounts.map(([accountId, account]) => (
+              <div
+                key={accountId}
+                className={`p-4 rounded-lg border-2 ${
+                  account.stripeOnboardingComplete
+                    ? 'bg-green-50 border-green-300'
+                    : 'bg-red-50 border-red-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {account.stripeOnboardingComplete ? (
+                      <CheckCircle size={20} className="text-green-600 mr-2" />
+                    ) : (
+                      <AlertCircle size={20} className="text-red-600 mr-2" />
+                    )}
+                    <span className="font-medium text-gray-900">{account.name}</span>
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    account.stripeOnboardingComplete ? 'text-green-700' : 'text-red-700'
+                  }`}>
+                    {account.stripeOnboardingComplete ? 'Complete' : 'Incomplete'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {incompleteAccounts.length > 0 && (
+            <p className="text-sm text-gray-600 mt-4 text-center">
+              {incompleteAccounts.length} branch{incompleteAccounts.length > 1 ? 'es' : ''} require{incompleteAccounts.length === 1 ? 's' : ''} onboarding
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show onboarding for specific branch
+  const accountName = selectedAccountId && paymentAccounts?.[selectedAccountId]
+    ? paymentAccounts[selectedAccountId].name
+    : 'Main Account';
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -418,9 +495,13 @@ const StripeOnboardingRequired = ({
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Complete Stripe Onboarding
         </h2>
-        <p className="text-gray-700 mb-6">
-          Before you can request withdrawals, you need to complete your Stripe
-          account setup. This is required to securely receive payments.
+        <p className="text-gray-700 mb-2">
+          {hasMultipleBranches && selectedAccountId
+            ? `Complete Stripe onboarding for ${accountName}`
+            : 'Complete your Stripe account setup'}
+        </p>
+        <p className="text-gray-600 text-sm mb-6">
+          This is required to securely receive payments.
         </p>
 
         {error && (
@@ -430,7 +511,7 @@ const StripeOnboardingRequired = ({
         )}
 
         <button
-          onClick={handleRefreshLink}
+          onClick={() => handleRefreshLink(selectedAccountId || undefined)}
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed inline-flex items-center"
         >
@@ -564,7 +645,9 @@ const PaymentAccountSelector = ({
   selectedAccountId: string | null;
   onSelectAccount: (accountId: string | null) => void;
 }) => {
-  if (!paymentAccounts || Object.keys(paymentAccounts).length === 0) {
+  // Only hide if paymentAccounts is null (not defined)
+  // Show even if there's just 1 branch
+  if (!paymentAccounts) {
     return null;
   }
 
@@ -612,11 +695,15 @@ const CateringOrdersList = ({
   restaurantId,
   token,
   onRefresh,
+  hasMultipleBranches,
+  selectedAccountId,
 }: {
   orders: CateringOrder[];
   restaurantId: string;
   token: string;
   onRefresh: () => void;
+  hasMultipleBranches: boolean;
+  selectedAccountId: string | null;
 }) => {
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -687,8 +774,12 @@ const CateringOrdersList = ({
     acc[status].push(order);
     return acc;
   }, {} as Record<string, CateringOrder[]>);
+
+  // Determine if we should show only pending review
+  const showOnlyPendingReview = hasMultipleBranches && selectedAccountId === null;
+
   // Fix 2: Update statusTabs to prevent count inflation
-  const statusTabs = [
+  const allStatusTabs = [
     {
       key: "admin_reviewed",
       label: "Pending Review",
@@ -717,6 +808,11 @@ const CateringOrdersList = ({
       count: ordersByStatus["completed"]?.length || 0,
     },
   ];
+
+  // Filter tabs based on whether we're showing all branches with multiple branches
+  const statusTabs = showOnlyPendingReview
+    ? allStatusTabs.filter(tab => tab.key === "admin_reviewed")
+    : allStatusTabs;
 
   // Fix 1: Update getActiveOrders function to prevent duplicate orders
   const getActiveOrders = () => {
@@ -965,6 +1061,7 @@ const WithdrawalDashboard = ({
   restaurantUserId,
   restaurantId,
   restaurant,
+  restaurantUser,
   token,
   onLogout,
 }: {
@@ -972,6 +1069,7 @@ const WithdrawalDashboard = ({
   restaurantUserId: string;
   restaurantId: string;
   restaurant: any;
+  restaurantUser: any;
   token: string;
   onLogout: () => void;
 }) => {
@@ -1091,7 +1189,7 @@ const WithdrawalDashboard = ({
         <div className="max-w-6xl mx-auto py-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
-              Withdrawal Dashboard
+              {restaurant.restaurant_name} Dashboard
             </h1>
             <button
               onClick={onLogout}
@@ -1101,10 +1199,20 @@ const WithdrawalDashboard = ({
               Logout
             </button>
           </div>
+
+          {/* Payment Account Selector */}
+          <PaymentAccountSelector
+            paymentAccounts={restaurantUser?.paymentAccounts}
+            selectedAccountId={selectedAccountId}
+            onSelectAccount={setSelectedAccountId}
+          />
+
           <StripeOnboardingRequired
             userId={restaurantUserId}
             token={token}
             onRefresh={fetchData}
+            paymentAccounts={restaurantUser?.paymentAccounts}
+            selectedAccountId={selectedAccountId}
           />
         </div>
       </div>
@@ -1131,7 +1239,7 @@ const WithdrawalDashboard = ({
 
         {/* Payment Account Selector */}
         <PaymentAccountSelector
-          paymentAccounts={restaurant?.paymentAccounts}
+          paymentAccounts={restaurantUser?.paymentAccounts}
           selectedAccountId={selectedAccountId}
           onSelectAccount={setSelectedAccountId}
         />
@@ -1355,6 +1463,8 @@ const WithdrawalDashboard = ({
                 restaurantId={restaurantId}
                 token={token}
                 onRefresh={fetchData}
+                hasMultipleBranches={!!restaurantUser?.paymentAccounts && Object.keys(restaurantUser.paymentAccounts).length > 0}
+                selectedAccountId={selectedAccountId}
               />
             </div>
           </div>
@@ -1380,6 +1490,7 @@ const RestaurantWithdrawalApp = () => {
       restaurantUserId={user.restaurantUser.id}
       restaurantId={user.restaurantUser.restaurant?.id}
       restaurant={user.restaurantUser?.restaurant}
+      restaurantUser={user.restaurantUser}
       token={token}
       onLogout={logout}
     />
