@@ -438,7 +438,7 @@ const StripeOnboardingRequired = ({
   // Show status of all branches when "All Branches" is selected
   if (showAllBranches) {
     const accounts = Object.entries(paymentAccounts!);
-    const incompleteAccounts = accounts.filter(([_, account]) => !account.stripeOnboardingComplete);
+    const incompleteAccounts = accounts.filter(([, account]) => !account.stripeOnboardingComplete);
 
     return (
       <div className="max-w-4xl mx-auto">
