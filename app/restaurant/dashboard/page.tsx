@@ -1077,12 +1077,12 @@ const CateringOrdersList = ({
               {/* Review Buttons - Mobile optimized */}
               {order.status === "admin_reviewed" && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  
-                  {/* Account Selector - Show only if multiple accounts */}
-                  {!loadingAccounts && availableAccounts && Object.keys(availableAccounts).length > 1 && (
+
+                  {/* Account Selector - Show if restaurant has branches */}
+                  {!loadingAccounts && availableAccounts && Object.keys(availableAccounts).length > 0 && (
                     <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <label className="block text-sm font-semibold text-blue-900 mb-2">
-                        💳 Select Payment Account:
+                        💳 Select Branch/Payment Account:
                       </label>
                       <select
                         value={selectedAccounts[order.id] || ''}
@@ -1100,15 +1100,6 @@ const CateringOrdersList = ({
                       </select>
                       <p className="text-xs text-blue-700 mt-2">
                         💰 Payment will be sent to: <strong>{availableAccounts[selectedAccounts[order.id]]?.name || 'Selected Account'}</strong>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Show selected account info even if only one account */}
-                  {!loadingAccounts && availableAccounts && Object.keys(availableAccounts).length === 1 && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-900">
-                        💰 Payment will be sent to: <strong>{Object.values(availableAccounts)[0]?.name}</strong>
                       </p>
                     </div>
                   )}
@@ -1383,6 +1374,7 @@ const WithdrawalDashboard = ({
                   <CateringOrdersList
                     orders={cateringOrders}
                     restaurantId={restaurantId}
+                    restaurantUserId={restaurantUserId}
                     token={token}
                     onRefresh={fetchData}
                     hasMultipleBranches={hasMultipleBranches}
