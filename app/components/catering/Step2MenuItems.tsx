@@ -1210,8 +1210,8 @@ export default function Step2MenuItems() {
       {/* Mobile Cart Modal */}
       {showCartMobile && (
         <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] overflow-y-auto">
-            <div className="sticky top-0 bg-base-100 border-b border-base-300 p-4 flex justify-between items-center">
+          <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] flex flex-col">
+            <div className="bg-base-100 border-b border-base-300 p-4 flex justify-between items-center flex-shrink-0">
               <h3 className="text-xl font-bold text-base-content">Your List</h3>
               <button
                 onClick={() => setShowCartMobile(false)}
@@ -1221,7 +1221,7 @@ export default function Step2MenuItems() {
               </button>
             </div>
 
-            <div className="p-4">
+            <div className="flex-1 overflow-y-auto p-4">
               {(() => {
                 const warnings = getMinimumOrderWarnings();
                 return warnings.length > 0 ? (
@@ -1242,8 +1242,7 @@ export default function Step2MenuItems() {
                   No items selected yet
                 </p>
               ) : (
-                <>
-                  <div className="space-y-4 mb-6">
+                <div className="space-y-4">
                     {selectedItems.map(({ item, quantity }, index) => {
                       const price = parseFloat(item.price?.toString() || "0");
                       const discountPrice = parseFloat(
@@ -1381,73 +1380,76 @@ export default function Step2MenuItems() {
                         </div>
                       );
                     })}
-                  </div>
-
-                  <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
-                    <div className="flex justify-between text-sm text-base-content/70">
-                      <span>Items ({selectedItems.length})</span>
-                      <span>
-                        Feeds up to{" "}
-                        {selectedItems.reduce((sum, { item, quantity }) => {
-                          const BACKEND_QUANTITY_UNIT =
-                            item.cateringQuantityUnit || 7;
-                          const DISPLAY_FEEDS_PER_UNIT =
-                            item.feedsPerUnit || 10;
-                          return (
-                            sum +
-                            (quantity / BACKEND_QUANTITY_UNIT) *
-                            DISPLAY_FEEDS_PER_UNIT
-                          );
-                        }, 0)}{" "}
-                        people
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold text-base-content">
-                      <span>Total:</span>
-                      <span>
-                        £{totalPrice.toFixed(2)}
-                        {/* {selectedItems
-                          .reduce((sum, { item, quantity }) => {
-                            const price = parseFloat(
-                              item.price?.toString() || "0"
-                            );
-                            const discountPrice = parseFloat(
-                              item.discountPrice?.toString() || "0"
-                            );
-                            const itemPrice =
-                              item.isDiscount && discountPrice > 0
-                                ? discountPrice
-                                : price;
-                            const addonPrice = item.addonPrice || 0;
-                            return sum + itemPrice * quantity + addonPrice;
-                          }, 0)
-                          .toFixed(2)} */}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
-                    onClick={() => {
-                      const warnings = getMinimumOrderWarnings();
-                      if (warnings.length > 0) {
-                        alert(
-                          `Please meet minimum order requirements:\n\n${warnings.join(
-                            "\n"
-                          )}`
-                        );
-                        return;
-                      }
-                      setShowCartMobile(false);
-                      setCurrentStep(2);
-                    }}
-                    disabled={getMinimumOrderWarnings().length > 0}
-                  >
-                    Continue to Event Details
-                  </button>
-                </>
+                </div>
               )}
             </div>
+
+            {selectedItems.length > 0 && (
+              <div className="border-t border-base-300 bg-base-100 p-4 flex-shrink-0">
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm text-base-content/70">
+                    <span>Items ({selectedItems.length})</span>
+                    <span>
+                      Feeds up to{" "}
+                      {selectedItems.reduce((sum, { item, quantity }) => {
+                        const BACKEND_QUANTITY_UNIT =
+                          item.cateringQuantityUnit || 7;
+                        const DISPLAY_FEEDS_PER_UNIT =
+                          item.feedsPerUnit || 10;
+                        return (
+                          sum +
+                          (quantity / BACKEND_QUANTITY_UNIT) *
+                          DISPLAY_FEEDS_PER_UNIT
+                        );
+                      }, 0)}{" "}
+                      people
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold text-base-content">
+                    <span>Total:</span>
+                    <span>
+                      £{totalPrice.toFixed(2)}
+                      {/* {selectedItems
+                        .reduce((sum, { item, quantity }) => {
+                          const price = parseFloat(
+                            item.price?.toString() || "0"
+                          );
+                          const discountPrice = parseFloat(
+                            item.discountPrice?.toString() || "0"
+                          );
+                          const itemPrice =
+                            item.isDiscount && discountPrice > 0
+                              ? discountPrice
+                              : price;
+                          const addonPrice = item.addonPrice || 0;
+                          return sum + itemPrice * quantity + addonPrice;
+                        }, 0)
+                        .toFixed(2)} */}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                  onClick={() => {
+                    const warnings = getMinimumOrderWarnings();
+                    if (warnings.length > 0) {
+                      alert(
+                        `Please meet minimum order requirements:\n\n${warnings.join(
+                          "\n"
+                        )}`
+                      );
+                      return;
+                    }
+                    setShowCartMobile(false);
+                    setCurrentStep(2);
+                  }}
+                  disabled={getMinimumOrderWarnings().length > 0}
+                >
+                  Continue to Event Details
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
