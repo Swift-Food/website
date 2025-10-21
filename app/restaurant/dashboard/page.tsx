@@ -515,6 +515,13 @@ const CateringOrdersList = ({
   const [availableAccounts, setAvailableAccounts] = useState<Record<string, any>>({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
 
+  const getPayoutAccountName = (order: CateringOrder): string | null => {
+    if (!order.restaurantPayoutDetails) return null;
+    
+    const payoutDetail = order.restaurantPayoutDetails[restaurantId];
+    return payoutDetail?.accountName || null;
+  };
+
   useEffect(() => {
     const fetchAccounts = async () => {
       setLoadingAccounts(true);
@@ -591,7 +598,7 @@ const CateringOrdersList = ({
         token,
         selectedAccountId // Pass selected account
       );
-
+      await onRefresh()
     } catch (err: any) {
       setError(err.message || 'Failed to review order');
     } finally {
@@ -717,7 +724,7 @@ const CateringOrdersList = ({
                   <p className="text-gray-600">Date: <span className="text-gray-900 font-medium">{formatDate(order.eventDate)}</span></p>
                   <p className="text-gray-600">Collection Time: <span className="text-gray-900 font-medium">{formatEventTime(order.eventTime)}</span></p>
                   <p className="text-gray-600">Guests: <span className="text-gray-900 font-medium">{order.guestCount} people</span></p>
-                  <p className="text-gray-600">Type: <span className="text-gray-900 font-medium">{order.eventType}</span></p>
+                  <p className="text-gray-600">Account: <span className="text-gray-900 font-medium">{getPayoutAccountName(order)}</span></p>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
                   Delivery: <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>

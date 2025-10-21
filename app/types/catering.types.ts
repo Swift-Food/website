@@ -35,4 +35,5 @@ export interface CateringOrderItem {
     status: string;
     createdAt: string;
     restaurantReviews: string[];
+    restaurantPayoutDetails: any
   }
