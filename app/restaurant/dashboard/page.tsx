@@ -176,6 +176,26 @@ const api = {
     }
   },
 
+  getPaymentAccounts: async (restaurantUserId: string): Promise<Record<string, { name: string; stripeAccountId: string }> | null> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/restaurant-user/${restaurantUserId}/payment-accounts`);
+      if (!response.ok) return null;
+      return response.json();
+    } catch (error) {
+      console.error('Failed to fetch payment accounts:', error);
+      return null;
+    }
+  },
+  
+
+  requestWithdrawal: async (data: {
+    userId: string;
+    userType: string;
+    amount: number;
+    notes?: string;
+    isInstantPayout: boolean;
+  }, token: string): Promise<WithdrawalRequest> => {
+
   requestWithdrawal: async (
     data: {
       userId: string;
@@ -232,20 +252,22 @@ const api = {
     orderId: string,
     restaurantId: string,
     accepted: boolean,
-    token: string
+    token: string,
+    selectedAccountId?: string, // NEW
   ): Promise<CateringOrder> => {
-    const response = await fetch(
-      `${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ restaurantId, accepted }),
-      }
-    );
-    if (!response.ok) throw new Error("Failed to review catering order");
+    const response = await fetch(`${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        restaurantId, 
+        accepted,
+        selectedAccountId, // NEW
+      }),
+    });
+    if (!response.ok) throw new Error('Failed to review catering order');
     return response.json();
   },
 };
@@ -693,6 +715,7 @@ const PaymentAccountSelector = ({
 const CateringOrdersList = ({
   orders,
   restaurantId,
+  restaurantUserId,
   token,
   onRefresh,
   hasMultipleBranches,
@@ -700,15 +723,48 @@ const CateringOrdersList = ({
 }: {
   orders: CateringOrder[];
   restaurantId: string;
+  restaurantUserId: string;
   token: string;
   onRefresh: () => void;
   hasMultipleBranches: boolean;
   selectedAccountId: string | null;
 }) => {
   const [reviewing, setReviewing] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [activeStatusTab, setActiveStatusTab] =
-    useState<string>("admin_reviewed");
+  const [error, setError] = useState('');
+  const [activeStatusTab, setActiveStatusTab] = useState<string>('admin_reviewed');
+  const [selectedAccounts, setSelectedAccounts] = useState<Record<string, string>>({}); // orderId -> accountId
+  const [availableAccounts, setAvailableAccounts] = useState<Record<string, any>>({});
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
+
+  const getPayoutAccountName = (order: CateringOrder): string | null => {
+    if (!order.restaurantPayoutDetails) return null;
+    
+    const payoutDetail = order.restaurantPayoutDetails[restaurantId];
+    return payoutDetail?.accountName || null;
+  };
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      setLoadingAccounts(true);
+      const accounts = await api.getPaymentAccounts(restaurantUserId);
+      setAvailableAccounts(accounts || {});
+      
+      // Set default account for each order
+      if (accounts && Object.keys(accounts).length > 0) {
+        const defaultAccountId = Object.keys(accounts)[0];
+        const defaultSelections: Record<string, string> = {};
+        orders.forEach(order => {
+          defaultSelections[order.id] = defaultAccountId;
+        });
+        setSelectedAccounts(defaultSelections);
+      }
+      
+      setLoadingAccounts(false);
+    };
+    
+    fetchAccounts();
+  }, [restaurantUserId, orders.length]);
+  
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-GB", {
@@ -758,8 +814,16 @@ const CateringOrdersList = ({
     setError("");
 
     try {
-      await api.reviewCateringOrder(orderId, restaurantId, accepted, token);
-      await onRefresh();
+      const selectedAccountId = selectedAccounts[orderId];
+      
+      await api.reviewCateringOrder(
+        orderId, 
+        restaurantId, 
+        accepted, 
+        token,
+        selectedAccountId // Pass selected account
+      );
+      await onRefresh()
     } catch (err: any) {
       setError(err.message || "Failed to review order");
     } finally {
@@ -947,9 +1011,9 @@ const CateringOrdersList = ({
                     </span>
                   </p>
                   <p className="text-gray-600">
-                    Type:{" "}
+                    Account:{" "}
                     <span className="text-gray-900 font-medium">
-                      {order.eventType}
+                      {getPayoutAccountName(order)}
                     </span>
                   </p>
                 </div>
@@ -1006,13 +1070,50 @@ const CateringOrdersList = ({
               {/* Review Buttons - Mobile optimized */}
               {order.status === "admin_reviewed" && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
+                  
+                  {/* Account Selector - Show only if multiple accounts */}
+                  {!loadingAccounts && availableAccounts && Object.keys(availableAccounts).length > 1 && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <label className="block text-sm font-semibold text-blue-900 mb-2">
+                        💳 Select Payment Account:
+                      </label>
+                      <select
+                        value={selectedAccounts[order.id] || ''}
+                        onChange={(e) => setSelectedAccounts(prev => ({
+                          ...prev,
+                          [order.id]: e.target.value
+                        }))}
+                        className="w-full px-3 py-2 border border-blue-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
+                      >
+                        {Object.entries(availableAccounts).map(([id, account]: [string, any]) => (
+                          <option key={id} value={id}>
+                            {account.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-blue-700 mt-2">
+                        💰 Payment will be sent to: <strong>{availableAccounts[selectedAccounts[order.id]]?.name || 'Selected Account'}</strong>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Show selected account info even if only one account */}
+                  {!loadingAccounts && availableAccounts && Object.keys(availableAccounts).length === 1 && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-900">
+                        💰 Payment will be sent to: <strong>{Object.values(availableAccounts)[0]?.name}</strong>
+                      </p>
+                    </div>
+                  )}
+                  
                   <p className="text-xs sm:text-sm font-medium text-gray-900 mb-3">
                     Please review this order and confirm your availability
                   </p>
+                  
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
                       onClick={() => handleReview(order.id, true)}
-                      disabled={reviewing === order.id}
+                      disabled={reviewing === order.id || loadingAccounts}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-green-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
                     >
                       {reviewing === order.id ? (
@@ -1029,7 +1130,7 @@ const CateringOrdersList = ({
                     </button>
                     <button
                       onClick={() => handleReview(order.id, false)}
-                      disabled={reviewing === order.id}
+                      disabled={reviewing === order.id || loadingAccounts}
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
                     >
                       {reviewing === order.id ? (
@@ -1490,6 +1591,7 @@ const WithdrawalDashboard = ({
               <CateringOrdersList
                 orders={cateringOrders}
                 restaurantId={restaurantId}
+                restaurantUserId={restaurantUserId}
                 token={token}
                 onRefresh={fetchData}
                 hasMultipleBranches={!!restaurantUser?.paymentAccounts && Object.keys(restaurantUser.paymentAccounts).length > 0}
