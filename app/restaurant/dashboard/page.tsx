@@ -419,13 +419,13 @@ const WithdrawalHistory = ({ history }: { history: WithdrawalRequest[] }) => {
     const colors: Record<string, string> = {
       'admin_reviewed': 'bg-yellow-100 text-yellow-800 border-yellow-300',
       'restaurant_reviewed': 'bg-blue-100 text-blue-800 border-blue-300',
+      'payment_link_sent': 'bg-blue-100 text-blue-800 border-blue-300',
       'paid': 'bg-green-100 text-green-800 border-green-300',
       'confirmed': 'bg-green-100 text-green-800 border-green-300',
+      'completed': 'bg-gray-100 text-gray-800 border-gray-300',
     };
     return colors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
   };
-  
-  
 
   if (history.length === 0) {
     return (
@@ -559,7 +559,11 @@ const CateringOrdersList = ({
   // Fix 2: Update statusTabs to prevent count inflation
   const statusTabs = [
     { key: 'admin_reviewed', label: 'Pending Review', count: ordersByStatus['admin_reviewed']?.length || 0 },
-    { key: 'restaurant_reviewed', label: 'Awaiting Payment', count: ordersByStatus['restaurant_reviewed']?.length || 0 },
+    { 
+      key: 'restaurant_reviewed', 
+      label: 'Awaiting Payment', 
+      count: (ordersByStatus['restaurant_reviewed']?.length || 0) + (ordersByStatus['payment_link_sent']?.length || 0)
+    },
     { 
       key: 'confirmed', 
       label: 'Confirmed', 
@@ -573,12 +577,13 @@ const CateringOrdersList = ({
     if (activeStatusTab === 'confirmed') {
       return [...(ordersByStatus['paid'] || []), ...(ordersByStatus['confirmed'] || [])];
     }
-    
     if (activeStatusTab === 'restaurant_reviewed') {
-      // Only show orders with exact status match - remove the restaurantReviews check
-      return ordersByStatus['restaurant_reviewed'] || [];
+      // Include both restaurant_reviewed and payment_link_sent statuses
+      return [
+        ...(ordersByStatus['restaurant_reviewed'] || []),
+        ...(ordersByStatus['payment_link_sent'] || [])
+      ];
     }
-    
     return ordersByStatus[activeStatusTab] || [];
   };
   
