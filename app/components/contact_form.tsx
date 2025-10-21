@@ -229,7 +229,7 @@ const ContactForm = () => {
         </div>
       </div>
       {/* Submit Button */}
-      <div className="flex justify-center mt-8">
+      <div className="flex justify-center my-8">
         <button
           type="submit"
           disabled={isSubmitting}

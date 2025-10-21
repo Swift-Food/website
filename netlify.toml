@@ -1,9 +1,13 @@
 [build]
-  command = "rm -rf node_modules package-lock.json && npm install && npm run build"
+  command = "npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
+
+# ADD THIS - Critical for Next.js on Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [[headers]]
   for = "/.well-known/apple-developer-merchantid-domain-association"

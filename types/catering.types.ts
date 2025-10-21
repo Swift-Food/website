@@ -2,27 +2,48 @@
 
 import { MenuItem } from "@/app/components/catering/Step2MenuItems";
 
+export interface SelectedAddon {
+  name: string;
+  price: number;
+  quantity: number; // For single-selection: portions with this addon; For multiple: always matches total portions
+  groupTitle: string;
+}
+
 export interface SearchResult {
   type: 'restaurant' | 'menu_item';
   id: string;
   name: string;
   description?: string;
   image?: string;
-  price?: string | number;
-  isDiscount?: boolean;
-  discountPrice?: string | number;
+  price: string;
+  isDiscount: boolean;
+  discountPrice?: string;
+  groupTitle?: string;
   cateringQuantityUnit?: number;
-  feedsPerUnit?: number; 
+  feedsPerUnit?: number;
   rating?: number;
   reviews?: number;
   isOpen?: boolean;
   openHours?: string;
   openingHours?: any[];
   marketId?: string;
-  restaurantId?: string;
+  restaurantId: string;
   fsa?: number;
   fsaLink?: string;
-  
+  minimumDeliveryNoticeHours?: number;
+  addonPrice?: number;
+  itemDisplayOrder: number;
+  addons: any[];
+  allergens?: string[];
+  averageRating?: string;
+  status?: string;
+  portionQuantity?: number;
+  selectedAddons?: {
+    name: string;
+    price: number;
+    quantity: number;
+    groupTitle: string;
+  }[];
   restaurant?: {
     id: string;
     name: string;
@@ -34,6 +55,7 @@ export interface SearchResult {
     isOpen: boolean;
     openHours: string;
     openingHours: any[];
+    minimumDeliveryNoticeHours?: number;
     marketId: string;
     restaurantId: string;
     fsa?: number;
@@ -102,6 +124,8 @@ export interface OrderItemDto {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    selectedAddons?: SelectedAddon[];
+    addonPrice?: number;
   }[];
   status: string;
   restaurantCost: number;
@@ -114,6 +138,7 @@ export interface CreateCateringOrderDto {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  ccEmails: string[],
   eventDate: string;
   eventTime: string;
   guestCount: number;
@@ -134,7 +159,7 @@ export interface CateringPricingData {
 export interface CateringPricingResult {
   isValid: boolean;
   subtotal: number;
-  serviceCharge: number;
+  // serviceCharge: number;
   deliveryFee: number;
   promoDiscount?: number;
   total: number;
