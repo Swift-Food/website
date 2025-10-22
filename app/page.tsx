@@ -29,7 +29,11 @@ function OurStorySection() {
   }, []);
 
   return (
-    <section ref={sectionRef} id="aboutus" className="relative w-full flex flex-col">
+    <section
+      ref={sectionRef}
+      id="aboutus"
+      className="relative w-full flex flex-col"
+    >
       <div className="relative w-full aspect-[16/9]">
         <Image
           src="/pink-blurred-market-with-bird2.png"
@@ -40,7 +44,13 @@ function OurStorySection() {
         />
         <div className="absolute inset-0 bg-pink-500/30" />
         <div className="absolute inset-0 max-lg:hidden flex items-center justify-end py-8 px-4 sm:px-8">
-          <div className={`relative z-10 max-w-2xl w-full bg-white rounded-[2.5rem] p-8 sm:p-12 flex flex-col items-center shadow-lg transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}>
+          <div
+            className={`relative z-10 max-w-2xl w-full bg-white rounded-[2.5rem] p-8 sm:p-12 flex flex-col items-center shadow-lg transition-all duration-1000 ease-out delay-300 ${
+              isVisible
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-12"
+            }`}
+          >
             <h2
               className="text-pink-500 text-4xl sm:text-5xl font-bold mb-6 tracking-widest text-center"
               style={{ letterSpacing: "0.1em" }}
@@ -64,7 +74,11 @@ function OurStorySection() {
         </div>
       </div>
       <div className="lg:hidden w-full px-4 py-8 bg-base-100">
-        <div className={`max-w-2xl mx-auto bg-white rounded-[2.5rem] p-8 flex flex-col items-center shadow-lg transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+        <div
+          className={`max-w-2xl mx-auto bg-white rounded-[2.5rem] p-8 flex flex-col items-center shadow-lg transition-all duration-1000 ease-out delay-300 ${
+            isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          }`}
+        >
           <h2
             className="text-pink-500 text-3xl font-bold mb-6 tracking-widest text-center"
             style={{ letterSpacing: "0.1em" }}
@@ -123,13 +137,22 @@ function WhoWeWorkWithSection() {
     <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <h2
-          className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}
-          style={{ fontFamily: "IBM Plex Mono, monospace", letterSpacing: "0.1em" }}
+          className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"
+          }`}
+          style={{
+            fontFamily: "IBM Plex Mono, monospace",
+            letterSpacing: "0.1em",
+          }}
         >
           WHO WE WORK WITH
         </h2>
         <div className="flex flex-col sm:flex-row gap-8 sm:gap-16 justify-center items-center">
-          <div className={`text-center transition-all duration-1000 ease-out delay-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <div
+            className={`text-center transition-all duration-1000 ease-out delay-200 ${
+              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            }`}
+          >
             <h3
               className="text-primary text-5xl sm:text-6xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -137,7 +160,11 @@ function WhoWeWorkWithSection() {
               10+ Restaurants
             </h3>
           </div>
-          <div className={`text-center transition-all duration-1000 ease-out delay-400 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <div
+            className={`text-center transition-all duration-1000 ease-out delay-400 ${
+              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            }`}
+          >
             <h3
               className="text-primary text-5xl sm:text-6xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -181,13 +208,22 @@ function WhatWeCreatedSection() {
     <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <h2
-          className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}
-          style={{ fontFamily: "IBM Plex Mono, monospace", letterSpacing: "0.1em" }}
+          className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"
+          }`}
+          style={{
+            fontFamily: "IBM Plex Mono, monospace",
+            letterSpacing: "0.1em",
+          }}
         >
           WHAT WE&apos;VE CREATED TOGETHER
         </h2>
         <div className="flex flex-col sm:flex-row gap-8 sm:gap-12 justify-center items-center mb-12">
-          <div className={`text-center transition-all duration-1000 ease-out delay-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <div
+            className={`text-center transition-all duration-1000 ease-out delay-200 ${
+              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            }`}
+          >
             <h3
               className="text-primary text-5xl sm:text-6xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -195,7 +231,11 @@ function WhatWeCreatedSection() {
               30+ Societies
             </h3>
           </div>
-          <div className={`text-center transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <div
+            className={`text-center transition-all duration-1000 ease-out delay-300 ${
+              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            }`}
+          >
             <h3
               className="text-primary text-5xl sm:text-6xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -203,7 +243,11 @@ function WhatWeCreatedSection() {
               80+ Universities
             </h3>
           </div>
-          <div className={`text-center transition-all duration-1000 ease-out delay-400 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <div
+            className={`text-center transition-all duration-1000 ease-out delay-400 ${
+              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            }`}
+          >
             <h3
               className="text-primary text-5xl sm:text-6xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -214,7 +258,11 @@ function WhatWeCreatedSection() {
         </div>
 
         {/* Image Grid */}
-        <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-1000 ease-out delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div
+          className={`grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-1000 ease-out delay-600 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
           <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
             <Image
               src="/event-images/event1.jpg"
@@ -284,17 +332,31 @@ export default function Home() {
       <div className="bg-primary h-10 w-full" />
       <WhoWeWorkWithSection />
       <WhatWeCreatedSection />
+      <div className="bg-secondary h-10 w-full" />
       <OurStorySection />
-      <section ref={differentSectionRef} className="w-full bg-base-100 py-10 px-4">
+      <section
+        ref={differentSectionRef}
+        className="w-full bg-base-100 py-10 px-4"
+      >
         <div>
           <h2
-            className={`text-center text-primary text-4xl font-bold tracking-wide mb-10 transition-all duration-1000 ease-out ${isDifferentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}
+            className={`text-center text-primary text-4xl font-bold tracking-wide mb-10 transition-all duration-1000 ease-out ${
+              isDifferentVisible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 -translate-y-8"
+            }`}
             style={{ fontFamily: "IBM Plex Mono, monospace" }}
           >
             WHAT MAKES US DIFFERENT?
           </h2>
           <div className="flex flex-col md:flex-row gap-8 justify-center items-center md:items-stretch">
-            <div className={`w-full md:w-80 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-200 ${isDifferentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <div
+              className={`w-full md:w-80 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-200 ${
+                isDifferentVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-12"
+              }`}
+            >
               <h3
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -314,7 +376,13 @@ export default function Home() {
                 IN ONE GO.
               </p>
             </div>
-            <div className={`w-full md:w-80 bg-accent rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-400 ${isDifferentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <div
+              className={`w-full md:w-80 bg-accent rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-400 ${
+                isDifferentVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-12"
+              }`}
+            >
               <h3
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
@@ -332,7 +400,13 @@ export default function Home() {
                 NO HIDDEN COSTS.
               </p>
             </div>
-            <div className={`w-full md:w-80 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-600 ${isDifferentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <div
+              className={`w-full md:w-80 bg-beige rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-600 ${
+                isDifferentVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-12"
+              }`}
+            >
               <h3
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
