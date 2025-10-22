@@ -15,41 +15,41 @@ function AnimatedCounter({
   isVisible: boolean;
 }) {
   const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    if (!isVisible || hasAnimated) return;
+    if (!isVisible) return;
 
-    setHasAnimated(true);
+    let startTime: number | null = null;
+    let animationFrame: number;
 
-    // Small delay to ensure component is fully mounted
-    const initDelay = setTimeout(() => {
-      const startTime = Date.now();
-      const endTime = startTime + duration;
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
 
-      const updateCount = () => {
-        const now = Date.now();
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+      // Easing function
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const current = Math.floor(easeOutQuart * target);
 
-        // Easing function for smooth animation
-        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-        const current = Math.floor(easeOutQuart * target);
+      setCount(current);
 
-        setCount(current);
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
 
-        if (now < endTime) {
-          requestAnimationFrame(updateCount);
-        } else {
-          setCount(target);
-        }
-      };
+    // Start animation after a short delay
+    const timeout = setTimeout(() => {
+      animationFrame = requestAnimationFrame(animate);
+    }, 200);
 
-      requestAnimationFrame(updateCount);
-    }, 300);
-
-    return () => clearTimeout(initDelay);
-  }, [isVisible, target, duration, hasAnimated]);
+    return () => {
+      clearTimeout(timeout);
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [isVisible, target, duration]);
 
   return (
     <span>
