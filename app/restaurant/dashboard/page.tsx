@@ -822,7 +822,7 @@ const CateringOrdersList = ({
       restaurant_reviewed: "bg-blue-100 text-blue-800 border-blue-300",
       paid: "bg-green-100 text-green-800 border-green-300",
       confirmed: "bg-green-100 text-green-800 border-green-300",
-      completed: "bg-gray-100 text-gray-800 border-gray-300",
+      completed: "bg-blue-100 text-blue-800 border-blue-300",
     };
     return colors[status] || "bg-gray-100 text-gray-800 border-gray-300";
   };
