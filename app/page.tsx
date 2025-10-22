@@ -247,7 +247,11 @@ function WhoWeWorkWithSection() {
 function WhatWeCreatedSection() {
   const [isVisible, setIsVisible] = useState(false);
   const [offset, setOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   const images = [
     {
@@ -300,8 +304,10 @@ function WhatWeCreatedSection() {
     };
   }, []);
 
-  // Auto-scroll carousel smoothly
+  // Auto-scroll carousel smoothly - pause when dragging
   useEffect(() => {
+    if (isDragging) return;
+
     const interval = setInterval(() => {
       setOffset((prev) => {
         const newOffset = prev - 1;
@@ -316,7 +322,48 @@ function WhatWeCreatedSection() {
     }, 30); // Smooth animation, 30ms per frame
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, isDragging]);
+
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX);
+    setScrollLeft(offset);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX;
+    const walk = (x - startX) * 2; // Multiply for faster scroll
+    setOffset(scrollLeft + walk);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX);
+    setScrollLeft(offset);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX;
+    const walk = (x - startX) * 2;
+    setOffset(scrollLeft + walk);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
 
   return (
     <section ref={sectionRef} className="w-full bg-base-100 py-8 sm:py-16 px-4">
@@ -400,11 +447,19 @@ function WhatWeCreatedSection() {
 
             {/* Scrolling Images */}
             <div
-              className="flex gap-4 h-full"
+              ref={carouselRef}
+              className="flex gap-4 h-full cursor-grab active:cursor-grabbing select-none"
               style={{
                 transform: `translateX(${offset}px)`,
                 willChange: "transform",
               }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
               {allImages.map((image, index) => (
                 <div
@@ -416,7 +471,8 @@ function WhatWeCreatedSection() {
                     alt={image.alt}
                     width={384}
                     height={384}
-                    className="h-full w-auto object-cover"
+                    className="h-full w-auto object-cover pointer-events-none"
+                    draggable={false}
                   />
 
                   {/* Event Type - Top Right */}
