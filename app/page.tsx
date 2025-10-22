@@ -147,30 +147,30 @@ function WhoWeWorkWithSection() {
         >
           WHO WE WORK WITH
         </h2>
-        <div className="flex flex-col sm:flex-row gap-8 sm:gap-16 justify-center items-center">
+        <div className="flex flex-row gap-8 sm:gap-16 justify-center items-center">
           <div
             className={`text-center transition-all duration-1000 ease-out delay-200 ${
               isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
             }`}
           >
-            <h3
-              className="text-primary text-5xl sm:text-6xl font-bold mb-2"
+            <p
+              className="text-primary text-xl sm:text-4xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               10+ Restaurants
-            </h3>
+            </p>
           </div>
           <div
             className={`text-center transition-all duration-1000 ease-out delay-400 ${
               isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
             }`}
           >
-            <h3
-              className="text-primary text-5xl sm:text-6xl font-bold mb-2"
+            <p
+              className="text-primary text-xl sm:text-4xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               15+ Stalls
-            </h3>
+            </p>
           </div>
         </div>
       </div>
@@ -185,10 +185,10 @@ function WhatWeCreatedSection() {
   const sectionRef = useRef<HTMLElement>(null);
 
   const images = [
-    { src: "/blurred-market.png", alt: "Student event" },
+    { src: "/problem-solve.jpg", alt: "Student event" },
     { src: "/restaurant-delivery.jpg", alt: "Student event" },
-    { src: "/blurred-market.png", alt: "Student event" },
-    { src: "/blurred-market.png", alt: "Student event" },
+    { src: "/problem-solve.jpg", alt: "Student event" },
+    { src: "/restaurant-delivery.jpg", alt: "Student event" },
   ];
 
   // Duplicate images for infinite scroll effect
@@ -235,7 +235,7 @@ function WhatWeCreatedSection() {
 
   return (
     <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
-      <div className="max-w-6xl mx-auto">
+      <div className=" mx-auto">
         <h2
           className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"
@@ -254,7 +254,7 @@ function WhatWeCreatedSection() {
             }`}
           >
             <h3
-              className="text-primary text-5xl sm:text-6xl font-bold"
+              className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               30+ Societies
@@ -266,7 +266,7 @@ function WhatWeCreatedSection() {
             }`}
           >
             <h3
-              className="text-primary text-5xl sm:text-6xl font-bold"
+              className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               80+ Universities
@@ -278,7 +278,7 @@ function WhatWeCreatedSection() {
             }`}
           >
             <h3
-              className="text-primary text-5xl sm:text-6xl font-bold"
+              className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
               80+ Events
