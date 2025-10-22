@@ -231,7 +231,7 @@ class CateringService {
     }
 
     const data = await response.json();
-    return data.id;
+    return data.user.id;
   }
 
   async createAddress(
