@@ -181,7 +181,18 @@ function WhoWeWorkWithSection() {
 // WHAT WE'VE CREATED TOGETHER SECTION
 function WhatWeCreatedSection() {
   const [isVisible, setIsVisible] = useState(false);
+  const [offset, setOffset] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
+
+  const images = [
+    { src: "/blurred-market.png", alt: "Student event" },
+    { src: "/restaurant-delivery.jpg", alt: "Student event" },
+    { src: "/blurred-market.png", alt: "Student event" },
+    { src: "/blurred-market.png", alt: "Student event" },
+  ];
+
+  // Duplicate images for infinite scroll effect
+  const allImages = [...images, ...images, ...images];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -203,6 +214,24 @@ function WhatWeCreatedSection() {
       }
     };
   }, []);
+
+  // Auto-scroll carousel smoothly
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOffset((prev) => {
+        const newOffset = prev - 1;
+        // Reset when we've scrolled through one full set of images
+        const imageWidth = 400; // approximate width + gap
+        const resetPoint = -(images.length * imageWidth);
+        if (newOffset <= resetPoint) {
+          return 0;
+        }
+        return newOffset;
+      });
+    }, 30); // Smooth animation, 30ms per frame
+
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   return (
     <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
@@ -257,43 +286,40 @@ function WhatWeCreatedSection() {
           </div>
         </div>
 
-        {/* Image Grid */}
+        {/* Image Carousel - Horizontal Scrolling */}
         <div
-          className={`grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-1000 ease-out delay-600 ${
+          className={`relative w-full transition-all duration-1000 ease-out delay-600 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-            <Image
-              src="/event-images/event1.jpg"
-              alt="Student event"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-            <Image
-              src="/event-images/event2.jpg"
-              alt="Social gathering"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-            <Image
-              src="/event-images/event3.jpg"
-              alt="University event"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-            <Image
-              src="/event-images/event4.jpg"
-              alt="Society gathering"
-              fill
-              className="object-cover"
-            />
+          {/* Carousel Container with blur edges */}
+          <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
+            {/* Blur edges */}
+            <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-base-100 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-base-100 to-transparent z-10 pointer-events-none" />
+
+            {/* Scrolling Images */}
+            <div
+              className="flex gap-4 h-full"
+              style={{
+                transform: `translateX(${offset}px)`,
+                willChange: "transform",
+              }}
+            >
+              {allImages.map((image, index) => (
+                <div
+                  key={index}
+                  className="relative flex-shrink-0 w-64 sm:w-80 md:w-96 h-full rounded-2xl overflow-hidden"
+                >
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
