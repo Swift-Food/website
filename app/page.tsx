@@ -214,7 +214,11 @@ function WhoWeWorkWithSection() {
               className="text-primary text-xl sm:text-4xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={5} suffix="+ Restaurants" isVisible={isVisible} />
+              <AnimatedCounter
+                target={5}
+                suffix="+ Restaurants"
+                isVisible={isVisible}
+              />
             </p>
           </div>
           <div
@@ -226,7 +230,11 @@ function WhoWeWorkWithSection() {
               className="text-primary text-xl sm:text-4xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={15} suffix="+ Stalls" isVisible={isVisible} />
+              <AnimatedCounter
+                target={15}
+                suffix="+ Stalls"
+                isVisible={isVisible}
+              />
             </p>
           </div>
         </div>
@@ -242,10 +250,30 @@ function WhatWeCreatedSection() {
   const sectionRef = useRef<HTMLElement>(null);
 
   const images = [
-    { src: "/problem-solve.jpg", alt: "Student event" },
-    { src: "/restaurant-delivery.jpg", alt: "Student event" },
-    { src: "/problem-solve.jpg", alt: "Student event" },
-    { src: "/restaurant-delivery.jpg", alt: "Student event" },
+    {
+      src: "/problem-solve.jpg",
+      alt: "Student event",
+      eventName: "Women in Finance",
+      eventType: "Panel Talk",
+    },
+    {
+      src: "/restaurant-delivery.jpg",
+      alt: "Student event",
+      eventName: "Data Science",
+      eventType: "Gala",
+    },
+    {
+      src: "/problem-solve.jpg",
+      alt: "Student event",
+      eventName: "Women in Finance",
+      eventType: "Gala",
+    },
+    {
+      src: "/restaurant-delivery.jpg",
+      alt: "Student event",
+      eventName: "Women in Finance",
+      eventType: "Gala",
+    },
   ];
 
   // Duplicate images for infinite scroll effect
@@ -314,7 +342,12 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={150} suffix="+ Societies" isVisible={isVisible} duration={2500} />
+              <AnimatedCounter
+                target={150}
+                suffix="+ Societies"
+                isVisible={isVisible}
+                duration={2500}
+              />
             </h3>
           </div>
           <div
@@ -326,7 +359,12 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={5} suffix="+ Universities" isVisible={isVisible} duration={2500} />
+              <AnimatedCounter
+                target={5}
+                suffix="+ Universities"
+                isVisible={isVisible}
+                duration={2500}
+              />
             </h3>
           </div>
           <div
@@ -338,7 +376,12 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={80} suffix="+ Events" isVisible={isVisible} duration={2500} />
+              <AnimatedCounter
+                target={80}
+                suffix="+ Events"
+                isVisible={isVisible}
+                duration={2500}
+              />
             </h3>
           </div>
         </div>
@@ -366,7 +409,7 @@ function WhatWeCreatedSection() {
               {allImages.map((image, index) => (
                 <div
                   key={index}
-                  className="relative flex-shrink-0 h-full rounded-2xl overflow-hidden"
+                  className="relative flex-shrink-0 h-full rounded-2xl overflow-hidden group"
                 >
                   <Image
                     src={image.src}
@@ -375,6 +418,20 @@ function WhatWeCreatedSection() {
                     height={384}
                     className="h-full w-auto object-cover"
                   />
+
+                  {/* Event Type - Top Right */}
+                  <div className="absolute top-3 right-3 bg-hot-pink px-3 py-1.5 rounded-full">
+                    <span className="text-black text-2xl font-bold">
+                      {image.eventType}
+                    </span>
+                  </div>
+
+                  {/* Event Name - Bottom Left */}
+                  <div className="absolute bottom-3 left-3 backdrop-blur-sm px-4 py-2 rounded-lg">
+                    <span className="text-white text-2xl font-bold">
+                      {image.eventName}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
