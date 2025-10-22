@@ -471,19 +471,19 @@ function WhatWeCreatedSection() {
                     alt={image.alt}
                     width={384}
                     height={384}
-                    className="h-full w-auto object-cover pointer-events-none"
+                    className="h-full w-auto object-cover pointer-events-none transition-transform duration-500 ease-out md:group-hover:scale-110"
                     draggable={false}
                   />
 
                   {/* Event Type - Top Right */}
-                  <div className="absolute top-3 right-3 bg-hot-pink px-3 py-1.5 rounded-full">
+                  <div className="absolute top-3 right-3 bg-hot-pink px-3 py-1.5 rounded-full md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 ease-out">
                     <span className="text-black text-2xl font-bold">
                       {image.eventType}
                     </span>
                   </div>
 
                   {/* Event Name - Bottom Left */}
-                  <div className="absolute bottom-3 left-3 backdrop-blur-sm px-4 py-2 rounded-lg">
+                  <div className="absolute bottom-3 left-3 backdrop-blur-sm px-4 py-2 rounded-lg md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 ease-out delay-75">
                     <span className="text-white text-2xl font-bold">
                       {image.eventName}
                     </span>
