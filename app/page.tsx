@@ -93,6 +93,166 @@ function OurStorySection() {
 // import SectionDivider from "./components/sectionDivider";
 import HomeHeroSection from "./components/containers/HomeHeroSection";
 
+// WHO WE WORK WITH SECTION
+function WhoWeWorkWithSection() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h2
+          className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}
+          style={{ fontFamily: "IBM Plex Mono, monospace", letterSpacing: "0.1em" }}
+        >
+          WHO WE WORK WITH
+        </h2>
+        <div className="flex flex-col sm:flex-row gap-8 sm:gap-16 justify-center items-center">
+          <div className={`text-center transition-all duration-1000 ease-out delay-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+            <h3
+              className="text-primary text-5xl sm:text-6xl font-bold mb-2"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              10+ Restaurants
+            </h3>
+          </div>
+          <div className={`text-center transition-all duration-1000 ease-out delay-400 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+            <h3
+              className="text-primary text-5xl sm:text-6xl font-bold mb-2"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              15+ Stalls
+            </h3>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// WHAT WE'VE CREATED TOGETHER SECTION
+function WhatWeCreatedSection() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h2
+          className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}
+          style={{ fontFamily: "IBM Plex Mono, monospace", letterSpacing: "0.1em" }}
+        >
+          WHAT WE&apos;VE CREATED TOGETHER
+        </h2>
+        <div className="flex flex-col sm:flex-row gap-8 sm:gap-12 justify-center items-center mb-12">
+          <div className={`text-center transition-all duration-1000 ease-out delay-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+            <h3
+              className="text-primary text-5xl sm:text-6xl font-bold"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              30+ Societies
+            </h3>
+          </div>
+          <div className={`text-center transition-all duration-1000 ease-out delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+            <h3
+              className="text-primary text-5xl sm:text-6xl font-bold"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              80+ Universities
+            </h3>
+          </div>
+          <div className={`text-center transition-all duration-1000 ease-out delay-400 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+            <h3
+              className="text-primary text-5xl sm:text-6xl font-bold"
+              style={{ fontFamily: "IBM Plex Mono, monospace" }}
+            >
+              80+ Events
+            </h3>
+          </div>
+        </div>
+
+        {/* Image Grid */}
+        <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-1000 ease-out delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+            <Image
+              src="/event-images/event1.jpg"
+              alt="Student event"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+            <Image
+              src="/event-images/event2.jpg"
+              alt="Social gathering"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+            <Image
+              src="/event-images/event3.jpg"
+              alt="University event"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+            <Image
+              src="/event-images/event4.jpg"
+              alt="Society gathering"
+              fill
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [isDifferentVisible, setIsDifferentVisible] = useState(false);
   const differentSectionRef = useRef<HTMLElement>(null);
@@ -122,6 +282,8 @@ export default function Home() {
     <div>
       <HomeHeroSection />
       <div className="bg-primary h-10 w-full" />
+      <WhoWeWorkWithSection />
+      <WhatWeCreatedSection />
       <OurStorySection />
       <section ref={differentSectionRef} className="w-full bg-base-100 py-10 px-4">
         <div>
