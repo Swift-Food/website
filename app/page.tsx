@@ -2,6 +2,63 @@
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 
+// ANIMATED COUNTER COMPONENT
+function AnimatedCounter({
+  target,
+  suffix = "",
+  duration = 2000,
+  isVisible,
+}: {
+  target: number;
+  suffix?: string;
+  duration?: number;
+  isVisible: boolean;
+}) {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (!isVisible || hasAnimated) return;
+
+    setHasAnimated(true);
+
+    // Small delay to ensure component is fully mounted
+    const initDelay = setTimeout(() => {
+      const startTime = Date.now();
+      const endTime = startTime + duration;
+
+      const updateCount = () => {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing function for smooth animation
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+        const current = Math.floor(easeOutQuart * target);
+
+        setCount(current);
+
+        if (now < endTime) {
+          requestAnimationFrame(updateCount);
+        } else {
+          setCount(target);
+        }
+      };
+
+      requestAnimationFrame(updateCount);
+    }, 300);
+
+    return () => clearTimeout(initDelay);
+  }, [isVisible, target, duration, hasAnimated]);
+
+  return (
+    <span>
+      {count}
+      {suffix}
+    </span>
+  );
+}
+
 // OUR STORY SECTION
 function OurStorySection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -157,7 +214,7 @@ function WhoWeWorkWithSection() {
               className="text-primary text-xl sm:text-4xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              10+ Restaurants
+              <AnimatedCounter target={10} suffix="+ Restaurants" isVisible={isVisible} />
             </p>
           </div>
           <div
@@ -169,7 +226,7 @@ function WhoWeWorkWithSection() {
               className="text-primary text-xl sm:text-4xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              15+ Stalls
+              <AnimatedCounter target={15} suffix="+ Stalls" isVisible={isVisible} />
             </p>
           </div>
         </div>
@@ -257,7 +314,7 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              30+ Societies
+              <AnimatedCounter target={30} suffix="+ Societies" isVisible={isVisible} duration={2500} />
             </h3>
           </div>
           <div
@@ -269,7 +326,7 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              80+ Universities
+              <AnimatedCounter target={80} suffix="+ Universities" isVisible={isVisible} duration={2500} />
             </h3>
           </div>
           <div
@@ -281,7 +338,7 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              80+ Events
+              <AnimatedCounter target={80} suffix="+ Events" isVisible={isVisible} duration={2500} />
             </h3>
           </div>
         </div>
@@ -309,13 +366,14 @@ function WhatWeCreatedSection() {
               {allImages.map((image, index) => (
                 <div
                   key={index}
-                  className="relative flex-shrink-0 w-64 sm:w-80 md:w-96 h-full rounded-2xl overflow-hidden"
+                  className="relative flex-shrink-0 h-full rounded-2xl overflow-hidden"
                 >
                   <Image
                     src={image.src}
                     alt={image.alt}
-                    fill
-                    className="object-cover"
+                    width={384}
+                    height={384}
+                    className="h-full w-auto object-cover"
                   />
                 </div>
               ))}
