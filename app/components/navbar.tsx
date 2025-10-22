@@ -47,8 +47,11 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 left-0 right-0 flex flex-col z-50">
       <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start bg-secondary gap-5 flex-nowrap">
-        <div className="hidden md:block w-full max-w-xs">
-          {/* <SearchBar /> */}
+        {/* <div className="hidden md:block w-full max-w-xs"> */}
+        {/* <SearchBar /> */}
+        {/* </div> */}
+        <div className="invisible max-xl:hidden whitespace-nowrap">
+          <NavbarAction />
         </div>
         <Link href={"/"} className="cursor-pointer">
           <div className="flex items-center gap-4 cursor-pointer h-full whitespace-nowrap">

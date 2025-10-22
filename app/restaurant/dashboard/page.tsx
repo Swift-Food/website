@@ -755,6 +755,7 @@ const CateringOrdersList = ({
   hasMultipleBranches: boolean;
   selectedAccountId: string | null;
 }) => {
+  console.log("Orders: ", orders);
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [activeStatusTab, setActiveStatusTab] =
