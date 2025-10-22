@@ -214,7 +214,7 @@ function WhoWeWorkWithSection() {
               className="text-primary text-xl sm:text-4xl font-bold mb-2"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={10} suffix="+ Restaurants" isVisible={isVisible} />
+              <AnimatedCounter target={5} suffix="+ Restaurants" isVisible={isVisible} />
             </p>
           </div>
           <div
@@ -314,7 +314,7 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={30} suffix="+ Societies" isVisible={isVisible} duration={2500} />
+              <AnimatedCounter target={150} suffix="+ Societies" isVisible={isVisible} duration={2500} />
             </h3>
           </div>
           <div
@@ -326,7 +326,7 @@ function WhatWeCreatedSection() {
               className="text-primary text-xl sm:text-4xl font-bold"
               style={{ fontFamily: "IBM Plex Mono, monospace" }}
             >
-              <AnimatedCounter target={80} suffix="+ Universities" isVisible={isVisible} duration={2500} />
+              <AnimatedCounter target={5} suffix="+ Universities" isVisible={isVisible} duration={2500} />
             </h3>
           </div>
           <div
