@@ -1012,11 +1012,21 @@ const CateringOrdersList = ({
               key={order.id}
               className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 hover:shadow-lg transition-shadow"
             >
+              <div className="w-full flex justify-center mb-3">
+                <span className="text-xl text-gray-500 text-center">
+                  <b className="text-primary">
+                    Reference: {order.id.slice(0, 4).toUpperCase()}
+                  </b>
+                </span>
+              </div>
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
-                <div>
+                <div className="flex flex-row gap-5 justify-center items-center">
+                  {/* <span className="text-lg text-gray-500">
+                    <b>Reference: {order.id.slice(0, 4).toUpperCase()}</b>
+                  </span> */}
                   <span
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border inline-block ${getStatusColor(
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border inline-block text-center ${getStatusColor(
                       order.status
                     )}`}
                   >
@@ -1027,9 +1037,9 @@ const CateringOrdersList = ({
                   <p className="font-bold text-xl sm:text-2xl text-gray-900">
                     {formatCurrency(order.restaurantTotalCost)}
                   </p>
-                    <p className="text-xs text-gray-500">
+                  {/* <p className="text-xs text-gray-500">
                     Reference: {order.id.slice(0, 4).toUpperCase()}
-                    </p>
+                    </p> */}
                   <p className="text-xs text-gray-500">
                     Event: {formatDate(order.eventDate)}
                   </p>
@@ -1051,7 +1061,9 @@ const CateringOrdersList = ({
                   <p className="text-gray-600">
                     Collection Time:{" "}
                     <span className="text-gray-900 font-medium">
-                      {order.collectionTime ? order.collectionTime : formatEventTime(order.eventTime)}
+                      {order.collectionTime
+                        ? order.collectionTime
+                        : formatEventTime(order.eventTime)}
                     </span>
                   </p>
                   <p className="text-gray-600">
