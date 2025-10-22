@@ -63,12 +63,13 @@ const MINUTE_OPTIONS = [
 
 export default function Step1EventDetails() {
   const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants } = useCatering();
+  const [dateTimeError, setDateTimeError] = useState<string | null>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
-
+  
   // Calculate min and max dates
   // const getMinDate = () => {
   //   const date = new Date();
@@ -80,6 +81,49 @@ export default function Step1EventDetails() {
     const date = new Date();
     date.setMonth(date.getMonth() + 2);
     return date.toISOString().split("T")[0];
+  };
+  const validateEventDateTime = (date: string, time: string): string | null => {
+    if (!date || !time || !selectedRestaurants || selectedRestaurants.length === 0) {
+      return null;
+    }
+
+    const eventDate = new Date(date);
+    const dayOfWeek = eventDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    
+    for (const restaurant of selectedRestaurants) {
+      // Skip if no catering hours configured
+      if (!restaurant.cateringOperatingHours) {
+        continue;
+      }
+
+      const daySchedule = restaurant.cateringOperatingHours.find(
+        (schedule) => schedule.day.toLowerCase() === dayOfWeek
+      );
+
+      if (!daySchedule || !daySchedule.enabled) {
+        return `${restaurant.restaurant_name} does not accept catering orders on ${dayOfWeek}s`;
+      }
+
+      if (!daySchedule.open || !daySchedule.close) {
+        return `${restaurant.restaurant_name} is closed for catering on ${dayOfWeek}s`;
+      }
+
+      // Convert times to minutes for comparison
+      const [eventHour, eventMinute] = time.split(':').map(Number);
+      const eventTimeMinutes = eventHour * 60 + eventMinute;
+      
+      const [openHour, openMinute] = daySchedule.open.split(':').map(Number);
+      const openMinutes = openHour * 60 + openMinute;
+      
+      const [closeHour, closeMinute] = daySchedule.close.split(':').map(Number);
+      const closeMinutes = closeHour * 60 + closeMinute;
+
+      if (eventTimeMinutes < openMinutes || eventTimeMinutes > closeMinutes) {
+        return `${restaurant.restaurant_name} only accepts catering orders between ${daySchedule.open} and ${daySchedule.close} on ${dayOfWeek}s`;
+      }
+    }
+
+    return null;
   };
   const getMaxNoticeHours = () => {
     if (!selectedRestaurants || selectedRestaurants.length === 0) {
@@ -101,6 +145,14 @@ export default function Step1EventDetails() {
       specialRequests: "",
     }
   );
+  useEffect(() => {
+    if (formData.eventDate && formData.eventTime) {
+      const error = validateEventDateTime(formData.eventDate, formData.eventTime);
+      setDateTimeError(error);
+    } else {
+      setDateTimeError(null);
+    }
+  }, [formData.eventDate, formData.eventTime, selectedRestaurants]);
 
   // Separate state for hour and minute
   const [selectedHour, setSelectedHour] = useState(() => {
@@ -148,6 +200,12 @@ export default function Step1EventDetails() {
         errors.push(
           `Please select a date/time at least ${requiredNoticeHours} hours in advance. Your selected restaurants require this notice for your event orders.`
         );
+      }
+  
+      // Validate operating hours
+      const operatingHoursError = validateEventDateTime(formData.eventDate, formData.eventTime);
+      if (operatingHoursError) {
+        errors.push(operatingHoursError);
       }
     }
   
@@ -211,6 +269,11 @@ export default function Step1EventDetails() {
                   className="w-full"
                 />
               </div>
+              {dateTimeError && (
+                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{dateTimeError}</p>
+                </div>
+              )}
             </div>
             <div className="w-full">
               <label className="block text-sm font-medium mb-2">
