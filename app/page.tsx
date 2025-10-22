@@ -191,7 +191,7 @@ function WhoWeWorkWithSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
+    <section ref={sectionRef} className="w-full bg-base-100 py-8 sm:py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <h2
           className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${
@@ -204,7 +204,7 @@ function WhoWeWorkWithSection() {
         >
           WHO WE WORK WITH
         </h2>
-        <div className="flex flex-row gap-8 sm:gap-16 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-8 sm:gap-16 justify-center items-center">
           <div
             className={`text-center transition-all duration-1000 ease-out delay-200 ${
               isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
@@ -319,7 +319,7 @@ function WhatWeCreatedSection() {
   }, [images.length]);
 
   return (
-    <section ref={sectionRef} className="w-full bg-base-100 py-16 px-4">
+    <section ref={sectionRef} className="w-full bg-base-100 py-8 sm:py-16 px-4">
       <div className=" mx-auto">
         <h2
           className={`text-center text-hot-pink text-4xl sm:text-5xl font-bold tracking-widest mb-12 transition-all duration-1000 ease-out ${
