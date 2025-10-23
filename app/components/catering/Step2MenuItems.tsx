@@ -376,67 +376,6 @@ export default function Step2MenuItems() {
     }
   };
 
-  // useEffect(() => {
-  //   // Handle multi-restaurant search results by deriving groups from items
-  //   const menuGroupSettings = displayItems[0]?.restaurant?.menuGroupSettings;
-  //   const hasSettings =
-  //     menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
-
-  //   // Check if all items are from the same restaurant
-  //   const restaurantIds = new Set(
-  //     displayItems.map((item) => item.restaurantId)
-  //   );
-  //   const singleRestaurant = restaurantIds.size === 1;
-
-  //   let groups: string[] = [];
-
-  //   // Only use menuGroupSettings if all items are from the same restaurant
-  //   if (hasSettings && singleRestaurant) {
-  //     groups = Object.keys(menuGroupSettings!)
-  //       .filter((g) => {
-  //         const lower = g.toLowerCase();
-  //         return lower !== "drink" && lower !== "drinks";
-  //       })
-  //       .sort((a, b) => {
-  //         const orderA = menuGroupSettings![a]?.displayOrder ?? 999;
-  //         const orderB = menuGroupSettings![b]?.displayOrder ?? 999;
-  //         return orderA - orderB;
-  //       });
-  //   } else {
-  //     // Multi-restaurant or no settings: derive groups from items
-  //     groups = Array.from(
-  //       new Set(
-  //         displayItems
-  //           .map((i) => i.groupTitle || "Other")
-  //           .filter((g) => {
-  //             const lower = g.toLowerCase();
-  //             return lower !== "drink" && lower !== "drinks";
-  //           })
-  //       )
-  //     );
-  //     groups.sort((a, b) => a.localeCompare(b));
-  //   }
-
-  //   const groupItems: Record<string, MenuItem[]> = {};
-  //   groups.forEach((g) => (groupItems[g] = []));
-
-  //   displayItems.forEach((item) => {
-  //     const group = item.groupTitle || "Other";
-  //     const lower = group.toLowerCase();
-  //     if (lower === "drink" || lower === "drinks") return;
-  //     if (!groupItems[group]) groupItems[group] = [];
-  //     groupItems[group].push(item);
-  //   });
-  //   Object.keys(groupItems).forEach((groupName) => {
-  //     groupItems[groupName].sort(
-  //       (a, b) => (a.itemDisplayOrder ?? 999) - (b.itemDisplayOrder ?? 999)
-  //     );
-  //   });
-
-  //   // setGroupedItems(groupItems);
-  //   // setSortedGroups(groups);
-  // }, [displayItems]);
-
   const clearSearch = () => {
     setSearchQuery("");
     setIsSearching(false);
@@ -860,7 +799,7 @@ export default function Step2MenuItems() {
                       />
                       <div className="p-2 md:p-3 bg-base-100">
                         <div className="flex items-center justify-between gap-2">
-                          <h4 className="font-semibold text-xs md:text-sm text-base-content truncate">
+                          <h4 className="font-semibold text-md md:text-sm text-base-content truncate">
                             {restaurant.restaurant_name}
                           </h4>
                           {(restaurant.contactEmail ||
@@ -932,10 +871,10 @@ export default function Step2MenuItems() {
                             )}
                         </div>
                         <div className="flex items-center gap-1 mt-1">
-                          <span className="text-yellow-500 text-xs md:text-sm">
+                          <span className="text-yellow-500 text-sm md:text-sm">
                             ★
                           </span>
-                          <span className="text-xs md:text-sm text-base-content/70">
+                          <span className="text-sm md:text-sm text-base-content/70">
                             {restaurant.averageRating}
                           </span>
                         </div>
@@ -948,7 +887,7 @@ export default function Step2MenuItems() {
                           )}
                           
                         {restaurant.minimumDeliveryNoticeHours && (
-                          <div className="mt-2 text-xs text-base-content/70 bg-info/10 px-2 py-1 rounded">
+                          <div className="mt-2 text-xs text-base-content/70 bg-base-300 px-2 py-1 rounded-md">
                             {restaurant.minimumDeliveryNoticeHours >= 24 ? (
                               <>
                                 <span className="font-bold">
@@ -1020,6 +959,7 @@ export default function Step2MenuItems() {
                 <p className="text-base-content/50 text-center py-8">
                   No items selected yet
                 </p>
+                // <></>
               ) : (
                 <>
                   <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
@@ -1229,52 +1169,55 @@ export default function Step2MenuItems() {
         </div>
       </div>
 
-      {/* Mobile Cart Button - Fixed at bottom - Only show if items in cart OR back button needed */}
-      {(selectedItems.length > 0 || selectedRestaurantId) && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-2 z-20">
-          <div className="flex gap-2">
-            {selectedRestaurantId && (
-              <button
-                className={`bg-base-300 text-base-content py-2.5 rounded-lg font-medium hover:bg-base-content/10 transition-colors ${
-                  selectedItems.length > 0 ? 'px-3 text-sm flex-shrink-0' : 'flex-1 text-base'
-                }`}
-                onClick={() => {
-                  setSelectedRestaurantId(null);
-                  setSearchQuery("");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              >
-                ← Back
-              </button>
-            )}
-            {selectedItems.length > 0 && (
-              <button
-                onClick={() => setShowCartMobile(true)}
-                className="flex-1 bg-primary hover:opacity-90 text-white py-2.5 rounded-lg font-bold text-base transition-all shadow-lg flex items-center justify-between px-4"
-              >
-                <span>View Cart ({selectedItems.length})</span>
-                <span>
-                  £
-                  {selectedItems
-                    .reduce((sum, { item, quantity }) => {
-                      const price = parseFloat(item.price?.toString() || "0");
-                      const discountPrice = parseFloat(
-                        item.discountPrice?.toString() || "0"
-                      );
-                      const itemPrice =
-                        item.isDiscount && discountPrice > 0
-                          ? discountPrice
-                          : price;
-                      const addonPrice = item.addonPrice || 0;
-                      return sum + itemPrice * quantity + addonPrice;
-                    }, 0)
-                    .toFixed(2)}
-                </span>
-              </button>
-            )}
-          </div>
+      {/* Mobile Cart Button - Fixed at bottom */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-4 z-20">
+        <div className="flex gap-2">
+          {selectedRestaurantId && (
+            <button
+              className="bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm flex-shrink-0"
+              onClick={() => {
+                setSelectedRestaurantId(null);
+                setSearchQuery("");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              ← Back
+            </button>
+          )}
+          {selectedItems.length > 0 ? (
+            <button
+              onClick={() => setShowCartMobile(true)}
+              className="flex-1 bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg flex items-center justify-between px-6"
+            >
+              <span>View Cart ({selectedItems.length})</span>
+              <span>
+                £
+                {selectedItems
+                  .reduce((sum, { item, quantity }) => {
+                    const price = parseFloat(item.price?.toString() || "0");
+                    const discountPrice = parseFloat(
+                      item.discountPrice?.toString() || "0"
+                    );
+                    const itemPrice =
+                      item.isDiscount && discountPrice > 0
+                        ? discountPrice
+                        : price;
+                    const addonPrice = item.addonPrice || 0;
+                    return sum + itemPrice * quantity + addonPrice;
+                  }, 0)
+                  .toFixed(2)}
+              </span>
+            </button>
+          ) : selectedRestaurantId ? (
+            <button
+              disabled
+              className="flex-1 bg-base-300 text-base-content/50 py-4 rounded-lg font-bold text-lg cursor-not-allowed"
+            >
+              No items selected
+            </button>
+          ) : null}
         </div>
-      )}
+      </div>
 
       {/* Mobile Cart Modal */}
       {showCartMobile && (
