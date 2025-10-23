@@ -44,28 +44,54 @@ const EVENT_TYPE_OPTIONS = [
 const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => {
   const hour24 = i + 6; // Start from 6 AM
   const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-  const ampm = hour24 >= 12 ? 'PM' : 'AM';
+  const ampm = hour24 >= 12 ? "PM" : "AM";
   return {
     label: `${hour12} ${ampm}`,
-    value: String(hour24).padStart(2, '0')
+    value: String(hour24).padStart(2, "0"),
   };
 });
 
 const MINUTE_OPTIONS = [
-  { label: '00', value: '00' },
-  { label: '15', value: '15' },
-  { label: '30', value: '30' },
-  { label: '45', value: '45' },
+  { label: "00", value: "00" },
+  { label: "15", value: "15" },
+  { label: "30", value: "30" },
+  { label: "45", value: "45" },
 ];
 
 export default function Step1EventDetails() {
-  const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants, contactInfo, setContactInfo } = useCatering();
+  const {
+    eventDetails,
+    setEventDetails,
+    setCurrentStep,
+    selectedRestaurants,
+    contactInfo,
+    setContactInfo,
+  } = useCatering();
   const [dateTimeError, setDateTimeError] = useState<string | null>(null);
-  
+
+  // Validation errors state
+  const [validationErrors, setValidationErrors] = useState<{
+    eventDate?: string;
+    eventTime?: string;
+    eventType?: string;
+    addressLine1?: string;
+    city?: string;
+    zipcode?: string;
+    noticeHours?: string;
+  }>({});
+
   // Google Places Autocomplete refs
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
+  // Refs for scrolling to error fields
+  const dateRef = useRef<HTMLDivElement>(null);
+  const timeRef = useRef<HTMLDivElement>(null);
+  const eventTypeRef = useRef<HTMLDivElement>(null);
+  const addressLine1Ref = useRef<HTMLDivElement>(null);
+  const cityRef = useRef<HTMLDivElement>(null);
+  const zipcodeRef = useRef<HTMLDivElement>(null);
+
   const [formData, setFormData] = useState<EventDetails>(
     eventDetails || {
       eventType: "",
@@ -97,14 +123,21 @@ export default function Step1EventDetails() {
   // Save form data to local storage whenever it changes
   useEffect(() => {
     if (formData.eventDate || formData.eventTime || formData.eventType) {
-      localStorage.setItem('catering_event_details', JSON.stringify(formData));
+      localStorage.setItem("catering_event_details", JSON.stringify(formData));
     }
   }, [formData]);
 
   // Save address form data to local storage whenever it changes
   useEffect(() => {
-    if (addressFormData.addressLine1 || addressFormData.city || addressFormData.zipcode) {
-      localStorage.setItem('catering_contact_info', JSON.stringify(addressFormData));
+    if (
+      addressFormData.addressLine1 ||
+      addressFormData.city ||
+      addressFormData.zipcode
+    ) {
+      localStorage.setItem(
+        "catering_contact_info",
+        JSON.stringify(addressFormData)
+      );
     }
   }, [addressFormData]);
 
@@ -178,7 +211,7 @@ export default function Step1EventDetails() {
       city: city,
       zipcode: zipcode,
     }));
-  
+
     setFormData((prev) => ({
       ...prev,
       address: place.formatted_address || "",
@@ -196,13 +229,20 @@ export default function Step1EventDetails() {
   }
 
   const validateEventDateTime = (date: string, time: string): string | null => {
-    if (!date || !time || !selectedRestaurants || selectedRestaurants.length === 0) {
+    if (
+      !date ||
+      !time ||
+      !selectedRestaurants ||
+      selectedRestaurants.length === 0
+    ) {
       return null;
     }
 
     const eventDate = new Date(date);
-    const dayOfWeek = eventDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    
+    const dayOfWeek = eventDate
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+
     for (const restaurant of selectedRestaurants) {
       // Skip if no catering hours configured
       if (!restaurant.cateringOperatingHours) {
@@ -222,13 +262,13 @@ export default function Step1EventDetails() {
       }
 
       // Convert times to minutes for comparison
-      const [eventHour, eventMinute] = time.split(':').map(Number);
+      const [eventHour, eventMinute] = time.split(":").map(Number);
       const eventTimeMinutes = eventHour * 60 + eventMinute;
-      
-      const [openHour, openMinute] = daySchedule.open.split(':').map(Number);
+
+      const [openHour, openMinute] = daySchedule.open.split(":").map(Number);
       const openMinutes = openHour * 60 + openMinute;
-      
-      const [closeHour, closeMinute] = daySchedule.close.split(':').map(Number);
+
+      const [closeHour, closeMinute] = daySchedule.close.split(":").map(Number);
       const closeMinutes = closeHour * 60 + closeMinute;
 
       if (eventTimeMinutes < openMinutes || eventTimeMinutes > closeMinutes) {
@@ -243,15 +283,18 @@ export default function Step1EventDetails() {
     if (!selectedRestaurants || selectedRestaurants.length === 0) {
       return 48; // Default 48 hours
     }
-    
+
     return Math.max(
-      ...selectedRestaurants.map(r => r.minimumDeliveryNoticeHours || 48)
+      ...selectedRestaurants.map((r) => r.minimumDeliveryNoticeHours || 48)
     );
   };
 
   useEffect(() => {
     if (formData.eventDate && formData.eventTime) {
-      const error = validateEventDateTime(formData.eventDate, formData.eventTime);
+      const error = validateEventDateTime(
+        formData.eventDate,
+        formData.eventTime
+      );
       setDateTimeError(error);
     } else {
       setDateTimeError(null);
@@ -261,16 +304,16 @@ export default function Step1EventDetails() {
   // Separate state for hour and minute
   const [selectedHour, setSelectedHour] = useState(() => {
     if (eventDetails?.eventTime) {
-      return eventDetails.eventTime.split(':')[0];
+      return eventDetails.eventTime.split(":")[0];
     }
-    return '';
+    return "";
   });
 
   const [selectedMinute, setSelectedMinute] = useState(() => {
     if (eventDetails?.eventTime) {
-      return eventDetails.eventTime.split(':')[1];
+      return eventDetails.eventTime.split(":")[1];
     }
-    return '';
+    return "";
   });
 
   // Update eventTime when hour or minute changes
@@ -279,51 +322,92 @@ export default function Step1EventDetails() {
       const timeValue = `${hour}:${minute}`;
       setFormData({ ...formData, eventTime: timeValue });
     } else {
-      setFormData({ ...formData, eventTime: '' });
+      setFormData({ ...formData, eventTime: "" });
     }
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const errors: string[] = [];
-  
-    if (!formData.eventDate) errors.push("Event date is required.");
-    if (!formData.eventTime) errors.push("Event time is required.");
-    if (!formData.eventType) errors.push("Event type is required.");
-    
+    const newErrors: typeof validationErrors = {};
+    let firstErrorRef: React.RefObject<HTMLDivElement> | null = null;
+
+    // Validate all fields
+    if (!formData.eventDate) {
+      newErrors.eventDate = "Event date is required.";
+      if (!firstErrorRef) firstErrorRef = dateRef;
+    }
+
+    if (!formData.eventTime) {
+      newErrors.eventTime = "Event time is required.";
+      if (!firstErrorRef) firstErrorRef = timeRef;
+    }
+
+    if (!formData.eventType) {
+      newErrors.eventType = "Event type is required.";
+      if (!firstErrorRef) firstErrorRef = eventTypeRef;
+    }
+
     // Validate address fields
-    if (!addressFormData.addressLine1.trim()) errors.push("Address Line 1 is required.");
-    if (!addressFormData.city.trim()) errors.push("City is required.");
-    if (!addressFormData.zipcode.trim()) errors.push("Postcode is required.");
-  
+    if (!addressFormData.addressLine1.trim()) {
+      newErrors.addressLine1 = "Address Line 1 is required.";
+      if (!firstErrorRef) firstErrorRef = addressLine1Ref;
+    }
+
+    if (!addressFormData.city.trim()) {
+      newErrors.city = "City is required.";
+      if (!firstErrorRef) firstErrorRef = cityRef;
+    }
+
+    if (!addressFormData.zipcode.trim()) {
+      newErrors.zipcode = "Postcode is required.";
+      if (!firstErrorRef) firstErrorRef = zipcodeRef;
+    }
+
     // Validate delivery notice
     if (formData.eventDate && formData.eventTime) {
-      const eventDateTime = new Date(`${formData.eventDate}T${formData.eventTime}`);
+      const eventDateTime = new Date(
+        `${formData.eventDate}T${formData.eventTime}`
+      );
       const now = new Date();
-      const hoursUntilEvent = (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      const hoursUntilEvent =
+        (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
       const requiredNoticeHours = getMaxNoticeHours();
-      
+
       if (hoursUntilEvent < requiredNoticeHours) {
-        errors.push(
-          `Please select a date/time at least ${requiredNoticeHours} hours in advance. Your selected restaurants require this notice for your event orders.`
-        );
+        newErrors.noticeHours = `Please select a date/time at least ${requiredNoticeHours} hours in advance.`;
+        if (!firstErrorRef) firstErrorRef = dateRef;
       }
-  
+
       // Validate operating hours
-      const operatingHoursError = validateEventDateTime(formData.eventDate, formData.eventTime);
+      const operatingHoursError = validateEventDateTime(
+        formData.eventDate,
+        formData.eventTime
+      );
       if (operatingHoursError) {
-        errors.push(operatingHoursError);
+        newErrors.eventTime = operatingHoursError;
+        if (!firstErrorRef) firstErrorRef = timeRef;
       }
     }
-  
-    if (errors.length > 0) {
-      alert(errors.join("\n"));
+
+    // Update validation errors state
+    setValidationErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      // Scroll to first error field
+      if (firstErrorRef?.current) {
+        firstErrorRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }
       return;
     }
 
     // Construct full address
-    const fullAddress = `${addressFormData.addressLine1}${addressFormData.addressLine2 ? ', ' + addressFormData.addressLine2 : ''}, ${addressFormData.city}, ${addressFormData.zipcode}`;
-    
+    const fullAddress = `${addressFormData.addressLine1}${
+      addressFormData.addressLine2 ? ", " + addressFormData.addressLine2 : ""
+    }, ${addressFormData.city}, ${addressFormData.zipcode}`;
+
     // Save both event details and address info
     setEventDetails({ ...formData, address: fullAddress });
     setContactInfo(addressFormData);
@@ -331,25 +415,23 @@ export default function Step1EventDetails() {
   };
 
   return (
-      <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
+    <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
       <div className="flex justify-between items-start mb-4">
-            <div>
-              {/* <p className="text-sm text-base-content/60 mb-2">
+        <div>
+          {/* <p className="text-sm text-base-content/60 mb-2">
                 Step 3 of 3 - Contact & Confirmation
               </p> */}
-              <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
-                Your Event Details
-              </h2>
-
-            </div>
-            <button
-              onClick={() => setCurrentStep(1)}
-              className="text-primary hover:opacity-80 font-medium flex items-center gap-1 mt-1"
-            >
-              ← Back
-            </button>
-          </div>
-        
+          <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
+            Your Event Details
+          </h2>
+        </div>
+        <button
+          onClick={() => setCurrentStep(1)}
+          className="text-primary hover:opacity-80 font-medium flex items-center gap-1 mt-1"
+        >
+          ← Back
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-10">
         {/* Delivery Date & Time Section */}
@@ -362,31 +444,40 @@ export default function Step1EventDetails() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="w-full">
+            <div className="w-full" ref={dateRef}>
               <label className="block text-sm font-medium mb-2">
                 Event Date
               </label>
 
-              <div className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <div className={`w-full px-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent ${
+                validationErrors.eventDate || validationErrors.noticeHours ? 'border-red-500' : 'border-gray-300'
+              }`}>
                 <input
                   type="date"
                   required
                   value={formData.eventDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, eventDate: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, eventDate: e.target.value });
+                    setValidationErrors({ ...validationErrors, eventDate: undefined, noticeHours: undefined });
+                  }}
                   max={getMaxDate()}
                   min={getMinDate()}
                   className="w-full"
                 />
               </div>
-              {dateTimeError && (
+              {validationErrors.eventDate && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.eventDate}</p>
+              )}
+              {validationErrors.noticeHours && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.noticeHours}</p>
+              )}
+              {dateTimeError && !validationErrors.eventDate && !validationErrors.noticeHours && (
                 <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-sm text-red-600">{dateTimeError}</p>
                 </div>
               )}
             </div>
-            <div className="w-full">
+            <div className="w-full" ref={timeRef}>
               <label className="block text-sm font-medium mb-2">
                 Event Time
               </label>
@@ -397,8 +488,11 @@ export default function Step1EventDetails() {
                   onChange={(e) => {
                     setSelectedHour(e.target.value);
                     handleTimeChange(e.target.value, selectedMinute);
+                    setValidationErrors({ ...validationErrors, eventTime: undefined });
                   }}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="">Hour</option>
                   {HOUR_OPTIONS.map((hour) => (
@@ -407,15 +501,20 @@ export default function Step1EventDetails() {
                     </option>
                   ))}
                 </select>
-                <span className="flex items-center text-2xl font-bold text-gray-400">:</span>
+                <span className="flex items-center text-2xl font-bold text-gray-400">
+                  :
+                </span>
                 <select
                   required
                   value={selectedMinute}
                   onChange={(e) => {
                     setSelectedMinute(e.target.value);
                     handleTimeChange(selectedHour, e.target.value);
+                    setValidationErrors({ ...validationErrors, eventTime: undefined });
                   }}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="">Min</option>
                   {MINUTE_OPTIONS.map((minute) => (
@@ -425,12 +524,15 @@ export default function Step1EventDetails() {
                   ))}
                 </select>
               </div>
+              {validationErrors.eventTime && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.eventTime}</p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Type of Event Section */}
-        <div>
+        <div ref={eventTypeRef}>
           <h3 className="text-2xl font-semibold mb-4 text-gray-800">
             Type of Event
           </h3>
@@ -441,14 +543,17 @@ export default function Step1EventDetails() {
               return (
                 <div
                   key={option.value}
-                  onClick={() =>
-                    setFormData({ ...formData, eventType: option.value })
-                  }
+                  onClick={() => {
+                    setFormData({ ...formData, eventType: option.value });
+                    setValidationErrors({ ...validationErrors, eventType: undefined });
+                  }}
                   className={`
                     cursor-pointer transition-all duration-200 text-center border-2 rounded-lg overflow-hidden
                     ${
                       isSelected
                         ? "border-dark-pink bg-base-300"
+                        : validationErrors.eventType
+                        ? "border-red-500"
                         : "border-base-300 hover:border-gray-400"
                     }
                   `}
@@ -470,6 +575,9 @@ export default function Step1EventDetails() {
               );
             })}
           </div>
+          {validationErrors.eventType && (
+            <p className="mt-2 text-sm text-red-600">{validationErrors.eventType}</p>
+          )}
         </div>
 
         {/* Delivery Address Section */}
@@ -498,7 +606,7 @@ export default function Step1EventDetails() {
           </div>
 
           {/* Address Line 1 */}
-          <div className="mb-4">
+          <div className="mb-4" ref={addressLine1Ref}>
             <label className="block text-sm font-semibold mb-2 text-base-content">
               Address Line 1*
             </label>
@@ -506,12 +614,21 @@ export default function Step1EventDetails() {
               type="text"
               required
               value={addressFormData.addressLine1}
-              onChange={(e) =>
-                setAddressFormData({ ...addressFormData, addressLine1: e.target.value })
-              }
+              onChange={(e) => {
+                setAddressFormData({
+                  ...addressFormData,
+                  addressLine1: e.target.value,
+                });
+                setValidationErrors({ ...validationErrors, addressLine1: undefined });
+              }}
               placeholder="Street address"
-              className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                validationErrors.addressLine1 ? 'border-red-500' : 'border-base-300'
+              }`}
             />
+            {validationErrors.addressLine1 && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.addressLine1}</p>
+            )}
           </div>
 
           {/* Address Line 2 */}
@@ -523,7 +640,10 @@ export default function Step1EventDetails() {
               type="text"
               value={addressFormData.addressLine2 || ""}
               onChange={(e) =>
-                setAddressFormData({ ...addressFormData, addressLine2: e.target.value })
+                setAddressFormData({
+                  ...addressFormData,
+                  addressLine2: e.target.value,
+                })
               }
               placeholder="Apartment, suite, unit, etc."
               className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
@@ -532,7 +652,7 @@ export default function Step1EventDetails() {
 
           {/* City and Zipcode */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div ref={cityRef}>
               <label className="block text-sm font-semibold mb-2 text-base-content">
                 City*
               </label>
@@ -540,14 +660,23 @@ export default function Step1EventDetails() {
                 type="text"
                 required
                 value={addressFormData.city}
-                onChange={(e) =>
-                  setAddressFormData({ ...addressFormData, city: e.target.value })
-                }
+                onChange={(e) => {
+                  setAddressFormData({
+                    ...addressFormData,
+                    city: e.target.value,
+                  });
+                  setValidationErrors({ ...validationErrors, city: undefined });
+                }}
                 placeholder="City"
-                className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                  validationErrors.city ? 'border-red-500' : 'border-base-300'
+                }`}
               />
+              {validationErrors.city && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.city}</p>
+              )}
             </div>
-            <div>
+            <div ref={zipcodeRef}>
               <label className="block text-sm font-semibold mb-2 text-base-content">
                 Postcode*
               </label>
@@ -555,19 +684,28 @@ export default function Step1EventDetails() {
                 type="text"
                 required
                 value={addressFormData.zipcode}
-                onChange={(e) =>
-                  setAddressFormData({ ...addressFormData, zipcode: e.target.value })
-                }
+                onChange={(e) => {
+                  setAddressFormData({
+                    ...addressFormData,
+                    zipcode: e.target.value,
+                  });
+                  setValidationErrors({ ...validationErrors, zipcode: undefined });
+                }}
                 placeholder="Postcode"
-                className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                  validationErrors.zipcode ? 'border-red-500' : 'border-base-300'
+                }`}
               />
+              {validationErrors.zipcode && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.zipcode}</p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="text-center pt-4">
           <div className="flex items-stretch justify-center gap-4 max-w-2xl mx-auto">
-            <button
+            {/* <button
               type="button"
               onClick={() => setCurrentStep(1)}
               className="flex-[3] bg-white text-dark-pink border-2 border-dark-pink py-2 px-4 rounded-full font-bold text-base sm:text-lg hover:bg-gray-50 transition-colors min-h-[60px] flex items-center justify-center"
@@ -586,10 +724,10 @@ export default function Step1EventDetails() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18" 
                 />
               </svg>
-            </button>
+            </button> */}
             <button
               type="submit"
-              className="flex-[7] bg-dark-pink text-white py-2 px-6 rounded-full font-bold text-base sm:text-lg hover:bg-pink-700 transition-colors shadow-lg shadow-dark-pink/30 min-h-[60px]"
+              className="flex-[7] bg-primary text-white py-2 px-6 rounded-xl font-bold text-base sm:text-lg transition-colors shadow-lg shadow-dark-pink/30 min-h-[60px] hover:bg-hot-pink cursor-pointer"
             >
               Continue to contact details
             </button>

@@ -884,8 +884,8 @@ export default function MenuItemModal({
                                 +£
                                 {(
                                   parseFloat(addon.price) *
-                                    DISPLAY_FEEDS_PER_UNIT *
-                                    itemQuantity
+                                  DISPLAY_FEEDS_PER_UNIT *
+                                  itemQuantity
                                 ).toFixed(2)}
                               </span>
                             )}
@@ -897,7 +897,16 @@ export default function MenuItemModal({
                 ))}
               </div>
             )}
-
+            <div className="pt-2 border-t border-base-300">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-base-content/70">
+                  Total {itemQuantity > 1 ? `(${itemQuantity} portions)` : ""}:
+                </span>
+                <span className="text-lg font-bold text-primary">
+                  £{totalPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
             {isEditMode ? (
               <div className="space-y-2">
                 <button
@@ -952,41 +961,6 @@ export default function MenuItemModal({
               </button>
             )}
             {/* Show total with customizations - always show if quantity > 1 or addons selected */}
-            {(itemQuantity > 1 ||
-              Object.values(selectedAddons).some((group) =>
-                Object.values(group).some((selected) => selected)
-              )) && (
-              <div className="pt-2 border-t border-base-300">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-base-content/70">
-                    Total {itemQuantity > 1 ? `(${itemQuantity} portions)` : ""}
-                    :
-                  </span>
-                  <span className="text-lg font-bold text-primary">
-                    £{totalPrice.toFixed(2)}
-                    {/* {(
-                      (displayPrice +
-                        Object.entries(addonGroups).reduce(
-                          (sum, [groupTitle, group]) => {
-                            return (
-                              sum +
-                              group.items.reduce((addonSum, addon) => {
-                                if (selectedAddons[groupTitle]?.[addon.name]) {
-                                  return addonSum + parseFloat(addon.price);
-                                }
-                                return addonSum;
-                              }, 0)
-                            );
-                          },
-                          0
-                        )) *
-                      BACKEND_QUANTITY_UNIT *
-                      itemQuantity
-                    ).toFixed(2)} */}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
