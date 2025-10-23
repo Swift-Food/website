@@ -70,114 +70,124 @@ export default function MenuItemCard({
           />
         )}
         <div className="p-3 md:p-4 flex-1 flex flex-col">
-          <h3 className="font-bold text-base md:text-lg text-base-content mb-2">
-            {item.name}
-          </h3>
-          {item.description && (
-            <p className="text-base-content/70 text-xs md:text-sm mb-3 line-clamp-2">
-              {item.description}
-            </p>
-          )}
+          {/* Top section - grows to fill space */}
+          <div className="flex-1">
+            <h3 className="font-bold text-base md:text-lg text-base-content mb-1">
+              {item.name}
+            </h3>
+            {item.description && (
+              <p className="text-base-content/70 text-xs md:text-sm mb-3 line-clamp-2">
+                {item.description}
+              </p>
+            )}
 
-          {/* Show restaurant name in search results */}
-          {isSearching && item.restaurant && (
-            <p className="text-xs md:text-sm text-base-content/50 mb-2">
-              From: {item.restaurant.name}
-            </p>
-          )}
+            {/* Show restaurant name in search results */}
+            {isSearching && item.restaurant && (
+              <p className="text-xs md:text-sm text-base-content/50 mb-2">
+                From: {item.restaurant.name}
+              </p>
+            )}
+          </div>
 
-          <div className="flex flex-column items-center gap-1 mb-3">
-            {item.isDiscount && discountPrice > 0 ? (
-              <span>
-                <span className="text-xl md:text-2xl font-bold text-primary mr-2">
-                  £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
+          {/* Bottom section - fixed at bottom */}
+          <div className="mt-auto">
+            {/* Price */}
+            <div className="flex flex-column items-center mb-1">
+              {item.isDiscount && discountPrice > 0 ? (
+                <span>
+                  <span className="text-xl md:text-2xl font-bold text-primary mr-2">
+                    £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
+                  </span>
+                  <span className="text-lg md:text-xl text-base-content/50 line-through">
+                    £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
+                  </span>
                 </span>
-                <span className="text-lg md:text-xl text-base-content/50 line-through">
+              ) : (
+                <span className="text-xl md:text-2xl font-bold text-primary">
                   £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                 </span>
-              </span>
-            ) : (
-              <span className="text-xl md:text-2xl font-bold text-primary">
-                £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
-              </span>
-            )}
-            {/* end price block */}
-          </div>
-          {DISPLAY_FEEDS_PER_UNIT > 1 && (
-              <div className="flex flex-column items-center gap-1 mb-3">
+              )}
+            </div>
+
+            {/* Feeds per unit */}
+            {DISPLAY_FEEDS_PER_UNIT > 1 && (
+              <div className="flex flex-column items-center gap-1 mb-2">
                 <span className="text-xs text-base-content/60">
                   Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
                 </span>
               </div>
             )}
-          <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
-            {quantity > 0 ? (
-              <div className="bg-[#F5F1E8] p-2 rounded-lg mb-3 border border-[#F0ECE3] flex items-center justify-between">
-                <span className="text-sm text-base-content/80 ml-1">
-                  Quantity
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      const newPortionQty = Math.max(0, portionQuantity - 1);
-                      const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
-                      onUpdateQuantity(item.id, newBackendQty);
-                    }}
-                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={quantityInput}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "" || /^\d+$/.test(val)) {
-                        setQuantityInput(val);
-                        if (val !== "" && !isNaN(parseInt(val))) {
-                          const newPortionQty = parseInt(val);
-                          const newBackendQty = Math.max(0, newPortionQty) * BACKEND_QUANTITY_UNIT;
-                          onUpdateQuantity(item.id, newBackendQty);
+
+            {/* Add to order button / quantity controls */}
+            <div onClick={(e) => e.stopPropagation()}>
+              {quantity > 0 ? (
+                <div className="bg-[#F5F1E8] p-2 rounded-lg mb-3 border border-[#F0ECE3] flex items-center justify-between">
+                  <span className="text-sm text-base-content/80 ml-1">
+                    Quantity
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const newPortionQty = Math.max(0, portionQuantity - 1);
+                        const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
+                        onUpdateQuantity(item.id, newBackendQty);
+                      }}
+                      className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={quantityInput}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "" || /^\d+$/.test(val)) {
+                          setQuantityInput(val);
+                          if (val !== "" && !isNaN(parseInt(val))) {
+                            const newPortionQty = parseInt(val);
+                            const newBackendQty = Math.max(0, newPortionQty) * BACKEND_QUANTITY_UNIT;
+                            onUpdateQuantity(item.id, newBackendQty);
+                          }
                         }
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (
-                        e.target.value === "" ||
-                        parseInt(e.target.value) < 1
-                      ) {
-                        onUpdateQuantity(item.id, 0);
-                        setQuantityInput("0");
-                      }
-                    }}
-                    className="w-12 text-center font-medium text-xs md:text-sm text-base-content bg-base-100 border border-base-300 rounded px-1 py-1"
-                  />
+                      }}
+                      onBlur={(e) => {
+                        if (
+                          e.target.value === "" ||
+                          parseInt(e.target.value) < 1
+                        ) {
+                          onUpdateQuantity(item.id, 0);
+                          setQuantityInput("0");
+                        }
+                      }}
+                      className="w-12 text-center font-medium text-xs md:text-sm text-base-content bg-base-100 border border-base-300 rounded px-1 py-1"
+                    />
 
-                  <button
-                    onClick={() => {
-                      const newPortionQty = portionQuantity + 1;
-                      const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
-                      onUpdateQuantity(item.id, newBackendQty);
-                    }}
-                    className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                  >
-                    +
-                  </button>
+                    <button
+                      onClick={() => {
+                        const newPortionQty = portionQuantity + 1;
+                        const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
+                        onUpdateQuantity(item.id, newBackendQty);
+                      }}
+                      className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <button
-                onClick={handleAddToOrder}
-                className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
-              >
-                Add to Order
-              </button>
-            )}
+              ) : (
+                <button
+                  onClick={handleAddToOrder}
+                  className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+                >
+                  Add to Order
+                </button>
+              )}
 
-            <p className="text-xs text-center text-base-content/40 mt-2">
-              Click card to view details & allergens
-            </p>
+              <p className="text-xs text-center text-base-content/40 mt-2">
+                Click card to view details & allergens
+              </p>
+            </div>
           </div>
         </div>
       </div>

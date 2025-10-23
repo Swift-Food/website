@@ -1159,8 +1159,8 @@ export default function Step2MenuItems() {
                   </div>
 
                   <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
-                    <div className="flex justify-between text-sm text-base-content/70">
-                      <span>Items ({selectedItems.length})</span>
+                    <div className="flex justify-end text-sm text-base-content/70">
+                      {/* <span>Items ({selectedItems.length})</span> */}
                       <span>
                         Feeds up to{" "}
                         {selectedItems.reduce((sum, { item, quantity }) => {
@@ -1459,8 +1459,8 @@ export default function Step2MenuItems() {
             {selectedItems.length > 0 && (
               <div className="border-t border-base-300 bg-base-100 p-4 flex-shrink-0">
                 <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm text-base-content/70">
-                    <span>Items ({selectedItems.length})</span>
+                  <div className="flex justify-end text-sm text-base-content/70">
+                    {/* <span>Items ({selectedItems.length})</span> */}
                     <span>
                       Feeds up to{" "}
                       {selectedItems.reduce((sum, { item, quantity }) => {

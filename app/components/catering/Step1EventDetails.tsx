@@ -335,11 +335,11 @@ export default function Step1EventDetails() {
         <h1 className="text-4xl font-bold mb-3 text-base-content">
           Event Details
         </h1>
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <p className="text-base-content/70">
             We just need a few details before we start building your event order menu.
           </p>
-        </div>
+        </div> */}
         <button
           onClick={() => setCurrentStep(1)}
           className="text-dark-pink hover:opacity-80 font-medium flex items-center gap-1 mt-1"
@@ -472,7 +472,7 @@ export default function Step1EventDetails() {
             Delivery Address
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            Enter the delivery address for your event. Start typing to use address autocomplete.
+            Enter the delivery address for your event.
           </p>
 
           {/* Google Places Autocomplete Search */}
@@ -486,9 +486,9 @@ export default function Step1EventDetails() {
               placeholder="Start typing to autofill address fields..."
               className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
             />
-            <p className="text-xs text-base-content/60 mt-2">
+            {/* <p className="text-xs text-base-content/60 mt-2">
               Select from dropdown to autofill, or enter manually below
-            </p>
+            </p> */}
           </div>
 
           {/* Address Line 1 */}
@@ -566,9 +566,9 @@ export default function Step1EventDetails() {
           >
             Continue to contact details
           </button>
-          <p className="text-sm text-gray-500 mt-3">
+          {/* <p className="text-sm text-gray-500 mt-3">
             You can edit your event details later before submission.
-          </p>
+          </p> */}
         </div>
       </form>
     </div>
