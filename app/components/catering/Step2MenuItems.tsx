@@ -17,12 +17,14 @@ export interface Restaurant {
     minQuantity: number;
     applicableSections: string[];
   } | null;
-  cateringOperatingHours?: {
-    day: string;
-    open: string | null;
-    close: string | null;
-    enabled: boolean;
-  }[] | null;
+  cateringOperatingHours?:
+    | {
+        day: string;
+        open: string | null;
+        close: string | null;
+        enabled: boolean;
+      }[]
+    | null;
 }
 
 export interface Addon {
@@ -68,32 +70,38 @@ export interface MenuItem {
 }
 
 const formatCateringHours = (
-  cateringOperatingHours: {
-    day: string;
-    open: string | null;
-    close: string | null;
-    enabled: boolean;
-  }[] | null
+  cateringOperatingHours:
+    | {
+        day: string;
+        open: string | null;
+        close: string | null;
+        enabled: boolean;
+      }[]
+    | null
 ): string => {
   if (!cateringOperatingHours) {
     return "Available anytime";
   }
 
-  const enabledDays = cateringOperatingHours.filter(schedule => schedule.enabled);
-  
+  const enabledDays = cateringOperatingHours.filter(
+    (schedule) => schedule.enabled
+  );
+
   if (enabledDays.length === 0) {
     return "No catering hours set";
   }
 
   // Group consecutive days with same hours
-  const grouped: { days: string[], hours: string }[] = [];
-  
-  enabledDays.forEach(schedule => {
-    const dayName = schedule.day.charAt(0).toUpperCase() + schedule.day.slice(1, 3);
-    const hours = schedule.open && schedule.close 
-      ? `${formatTime(schedule.open)} - ${formatTime(schedule.close)}`
-      : "Closed";
-    
+  const grouped: { days: string[]; hours: string }[] = [];
+
+  enabledDays.forEach((schedule) => {
+    const dayName =
+      schedule.day.charAt(0).toUpperCase() + schedule.day.slice(1, 3);
+    const hours =
+      schedule.open && schedule.close
+        ? `${formatTime(schedule.open)} - ${formatTime(schedule.close)}`
+        : "Closed";
+
     const lastGroup = grouped[grouped.length - 1];
     if (lastGroup && lastGroup.hours === hours) {
       lastGroup.days.push(dayName);
@@ -102,19 +110,22 @@ const formatCateringHours = (
     }
   });
 
-  return grouped.map(group => {
-    const dayRange = group.days.length > 1 
-      ? `${group.days[0]} - ${group.days[group.days.length - 1]}`
-      : group.days[0];
-    return `${dayRange}: ${group.hours}`;
-  }).join('\n');
+  return grouped
+    .map((group) => {
+      const dayRange =
+        group.days.length > 1
+          ? `${group.days[0]} - ${group.days[group.days.length - 1]}`
+          : group.days[0];
+      return `${dayRange}: ${group.hours}`;
+    })
+    .join("\n");
 };
 
 const formatTime = (time: string): string => {
-  const [hours, minutes] = time.split(':').map(Number);
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const [hours, minutes] = time.split(":").map(Number);
+  const ampm = hours >= 12 ? "PM" : "AM";
   const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  return `${displayHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 };
 
 export default function Step2MenuItems() {
@@ -340,7 +351,8 @@ export default function Step2MenuItems() {
             ? ` from sections: ${data.applicableSections.join(", ")}`
             : "";
         warnings.push(
-          `${data.name}: Add ${data.minRequired - data.count
+          `${data.name}: Add ${
+            data.minRequired - data.count
           } more item(s)${sectionInfo}`
         );
       }
@@ -602,7 +614,8 @@ export default function Step2MenuItems() {
                               );
                               return (
                                 (restaurant?.contactEmail ||
-                                  restaurant?.contactNumber || restaurant?.cateringOperatingHours) && (
+                                  restaurant?.contactNumber ||
+                                  restaurant?.cateringOperatingHours) && (
                                   <div className="group relative">
                                     <button
                                       type="button"
@@ -662,9 +675,14 @@ export default function Step2MenuItems() {
                                           </p>
                                         )}
                                         <div className="mv-2 text-xs">
-                                          <p className="opacity-70 pt-2">Catering Hours:</p>
+                                          <p className="opacity-70 pt-2">
+                                            Catering Hours:
+                                          </p>
                                           <div className="whitespace-pre-line text-xs mt-1">
-                                            {formatCateringHours(restaurant.cateringOperatingHours ?? null)}
+                                            {formatCateringHours(
+                                              restaurant.cateringOperatingHours ??
+                                                null
+                                            )}
                                           </div>
                                         </div>
                                       </div>
@@ -787,10 +805,11 @@ export default function Step2MenuItems() {
                         );
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${selectedRestaurantId === restaurant.id
-                        ? "border-primary shadow-lg"
-                        : "border-base-300 hover:border-primary/50"
-                        }`}
+                      className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
+                        selectedRestaurantId === restaurant.id
+                          ? "border-primary shadow-lg"
+                          : "border-base-300 hover:border-primary/50"
+                      }`}
                     >
                       <img
                         src={restaurant.images[0] || "/placeholder.jpg"}
@@ -803,72 +822,78 @@ export default function Step2MenuItems() {
                             {restaurant.restaurant_name}
                           </h4>
                           {(restaurant.contactEmail ||
-                            restaurant.contactNumber || restaurant.cateringOperatingHours) && (
-                              <div className="group relative flex-shrink-0">
-                                <button
-                                  type="button"
-                                  className="text-base-content/60 hover:text-base-content cursor-pointer touch-manipulation active:scale-95"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.currentTarget.nextElementSibling?.classList.toggle(
-                                      "hidden"
-                                    );
-                                  }}
+                            restaurant.contactNumber ||
+                            restaurant.cateringOperatingHours) && (
+                            <div className="group relative flex-shrink-0">
+                              <button
+                                type="button"
+                                className="text-base-content/60 hover:text-base-content cursor-pointer touch-manipulation active:scale-95"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.currentTarget.nextElementSibling?.classList.toggle(
+                                    "hidden"
+                                  );
+                                }}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  className="w-5 h-5 md:w-4 md:h-4"
                                 >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={1.5}
-                                    stroke="currentColor"
-                                    className="w-5 h-5 md:w-4 md:h-4"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
-                                    />
-                                  </svg>
-                                </button>
-                                <div className="absolute bottom-full right-0 mb-2 hidden md:group-hover:block z-10 w-48">
-                                  <div className="bg-base-content text-base-100 text-xs rounded-lg p-3 shadow-lg">
-                                    <p className="font-semibold mb-2">
-                                      Contact Info:
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+                                  />
+                                </svg>
+                              </button>
+                              <div className="absolute bottom-full right-0 mb-2 hidden md:group-hover:block z-10 w-48">
+                                <div className="bg-base-content text-base-100 text-xs rounded-lg p-3 shadow-lg">
+                                  <p className="font-semibold mb-2">
+                                    Contact Info:
+                                  </p>
+                                  {restaurant.contactEmail && (
+                                    <p className="mb-1 break-words">
+                                      <span className="opacity-70">Email:</span>
+                                      <br />
+                                      <a
+                                        href={`mailto:${restaurant.contactEmail}`}
+                                        className="underline"
+                                      >
+                                        {restaurant.contactEmail}
+                                      </a>
                                     </p>
-                                    {restaurant.contactEmail && (
-                                      <p className="mb-1 break-words">
-                                        <span className="opacity-70">Email:</span>
-                                        <br />
-                                        <a
-                                          href={`mailto:${restaurant.contactEmail}`}
-                                          className="underline"
-                                        >
-                                          {restaurant.contactEmail}
-                                        </a>
-                                      </p>
-                                    )}
-                                    {restaurant.contactNumber && (
-                                      <p className="break-words">
-                                        <span className="opacity-70">Phone:</span>
-                                        <br />
-                                        <a
-                                          href={`tel:${restaurant.contactNumber}`}
-                                          className="underline"
-                                        >
-                                          {restaurant.contactNumber}
-                                        </a>
-                                      </p>
-                                    )}
-                                    <div className="mb-2">
-                                      <p className="opacity-70 pt-2">Catering Hours:</p>
-                                      <div className="whitespace-pre-line text-xs mt-1">
-                                        {formatCateringHours(restaurant.cateringOperatingHours ?? null)}
-                                      </div>
+                                  )}
+                                  {restaurant.contactNumber && (
+                                    <p className="break-words">
+                                      <span className="opacity-70">Phone:</span>
+                                      <br />
+                                      <a
+                                        href={`tel:${restaurant.contactNumber}`}
+                                        className="underline"
+                                      >
+                                        {restaurant.contactNumber}
+                                      </a>
+                                    </p>
+                                  )}
+                                  <div className="mb-2">
+                                    <p className="opacity-70 pt-2">
+                                      Catering Hours:
+                                    </p>
+                                    <div className="whitespace-pre-line text-xs mt-1">
+                                      {formatCateringHours(
+                                        restaurant.cateringOperatingHours ??
+                                          null
+                                      )}
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                            )}
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 mt-1">
                           <span className="text-yellow-500 text-sm md:text-sm">
@@ -878,14 +903,14 @@ export default function Step2MenuItems() {
                             {restaurant.averageRating}
                           </span>
                         </div>
-                        
+
                         {restaurant.minCateringOrderQuantity &&
                           restaurant.minCateringOrderQuantity > 1 && (
                             <div className="mt-2 text-xs text-black bg-warning/10 px-2 py-1 rounded">
                               Min. {restaurant.minCateringOrderQuantity} items
                             </div>
                           )}
-                          
+
                         {restaurant.minimumDeliveryNoticeHours && (
                           <div className="mt-2 text-xs text-base-content/70 bg-base-300 px-2 py-1 rounded-md">
                             {restaurant.minimumDeliveryNoticeHours >= 24 ? (
@@ -922,8 +947,11 @@ export default function Step2MenuItems() {
           )}
 
           {/* Cart Sidebar - Desktop */}
-          <div className="hidden lg:block lg:w-[25%] sticky top-32 h-fit items-center justify-center">
-            <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300">
+          <div
+            className="hidden lg:block lg:w-[25%] sticky top-32 items-center justify-center"
+            style={{ maxHeight: "calc(100vh - 10rem)" }}
+          >
+            <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300 flex flex-col h-full">
               {selectedRestaurantId && (
                 <button
                   className="w-full mb-4 px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
@@ -959,10 +987,10 @@ export default function Step2MenuItems() {
                 <p className="text-base-content/50 text-center py-8">
                   No items selected yet
                 </p>
-                // <></>
               ) : (
+                // <></>
                 <>
-                  <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 mb-6 flex-1 overflow-y-auto">
                     {selectedItems.map(({ item, quantity }, index) => {
                       const BACKEND_QUANTITY_UNIT =
                         item.cateringQuantityUnit || 7;
@@ -985,10 +1013,11 @@ export default function Step2MenuItems() {
                       return (
                         <div
                           key={index}
-                          className={`flex gap-3 pb-4${index !== selectedItems.length - 1
-                            ? " border-b border-base-300"
-                            : ""
-                            }`}
+                          className={`flex gap-3 pb-4${
+                            index !== selectedItems.length - 1
+                              ? " border-b border-base-300"
+                              : ""
+                          }`}
                         >
                           {item.image && (
                             <img
@@ -1098,7 +1127,7 @@ export default function Step2MenuItems() {
                     })}
                   </div>
 
-                  <div className="space-y-2 border-t border-base-300 pt-4 mb-6">
+                  <div className="space-y-2 border-t border-base-300 pt-4 mb-6 flex-shrink-0">
                     <div className="flex justify-end text-sm text-base-content/70">
                       {/* <span>Items ({selectedItems.length})</span> */}
                       <span>
@@ -1111,7 +1140,7 @@ export default function Step2MenuItems() {
                           return (
                             sum +
                             (quantity / BACKEND_QUANTITY_UNIT) *
-                            DISPLAY_FEEDS_PER_UNIT
+                              DISPLAY_FEEDS_PER_UNIT
                           );
                         }, 0)}{" "}
                         people
@@ -1142,7 +1171,7 @@ export default function Step2MenuItems() {
                   </div>
 
                   <button
-                    className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-md transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                    className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-md transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed flex-shrink-0"
                     onClick={() => {
                       const warnings = getMinimumOrderWarnings();
                       if (warnings.length > 0) {
@@ -1255,93 +1284,94 @@ export default function Step2MenuItems() {
                 </p>
               ) : (
                 <div className="space-y-4">
-                    {selectedItems.map(({ item, quantity }, index) => {
-                      const price = parseFloat(item.price?.toString() || "0");
-                      const discountPrice = parseFloat(
-                        item.discountPrice?.toString() || "0"
-                      );
-                      const itemPrice =
-                        item.isDiscount && discountPrice > 0
-                          ? discountPrice
-                          : price;
-                      const addonPrice = item.addonPrice || 0;
-                      const subtotal = itemPrice * quantity + addonPrice;
+                  {selectedItems.map(({ item, quantity }, index) => {
+                    const price = parseFloat(item.price?.toString() || "0");
+                    const discountPrice = parseFloat(
+                      item.discountPrice?.toString() || "0"
+                    );
+                    const itemPrice =
+                      item.isDiscount && discountPrice > 0
+                        ? discountPrice
+                        : price;
+                    const addonPrice = item.addonPrice || 0;
+                    const subtotal = itemPrice * quantity + addonPrice;
 
-                      // USE ITEM'S OWN VALUES:
-                      const BACKEND_QUANTITY_UNIT =
-                        item.cateringQuantityUnit || 7;
+                    // USE ITEM'S OWN VALUES:
+                    const BACKEND_QUANTITY_UNIT =
+                      item.cateringQuantityUnit || 7;
 
-                      const numUnits = quantity / BACKEND_QUANTITY_UNIT;
+                    const numUnits = quantity / BACKEND_QUANTITY_UNIT;
 
-                      const displayQuantity = numUnits;
+                    const displayQuantity = numUnits;
 
-                      return (
-                        <div
-                          key={index}
-                          className={`flex gap-3 pb-4${index !== selectedItems.length - 1
+                    return (
+                      <div
+                        key={index}
+                        className={`flex gap-3 pb-4${
+                          index !== selectedItems.length - 1
                             ? " border-b border-base-300"
                             : ""
-                            }`}
-                        >
-                          {item.image && (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-16 h-16 object-cover rounded-lg"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-sm text-base-content mb-1">
-                              {item.name}
-                            </h4>
-                            {item.selectedAddons &&
-                              item.selectedAddons.length > 0 && (
-                                <div className="text-xs text-base-content/60 mb-1 flex flex-col gap-1">
-                                  {/* Group addons by groupTitle */}
-                                  {(() => {
-                                    const grouped = item.selectedAddons.reduce(
-                                      (acc, addon) => {
-                                        if (!acc[addon.groupTitle])
-                                          acc[addon.groupTitle] = [];
-                                        acc[addon.groupTitle].push(addon);
-                                        return acc;
-                                      },
-                                      {} as Record<
-                                        string,
-                                        typeof item.selectedAddons
-                                      >
-                                    );
-                                    return Object.entries(grouped).map(
-                                      ([groupTitle, addons]) => (
-                                        <div key={groupTitle} className="mb-1">
-                                          <span className="font-semibold text-base-content/80 block mb-0.5">
-                                            {groupTitle}
-                                          </span>
-                                          <span>
-                                            {addons.map((addon, idx) => (
-                                              <span key={idx}>
-                                                + {addon.name}
-                                                {addon.quantity > 1 &&
-                                                  ` (×${addon.quantity})`}
-                                                {idx < addons.length - 1
-                                                  ? ", "
-                                                  : ""}
-                                              </span>
-                                            ))}
-                                          </span>
-                                        </div>
-                                      )
-                                    );
-                                  })()}
-                                </div>
-                              )}
-                            <p className="text-lg font-bold text-primary mb-2">
-                              £{subtotal.toFixed(2)}
-                            </p>
+                        }`}
+                      >
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm text-base-content mb-1">
+                            {item.name}
+                          </h4>
+                          {item.selectedAddons &&
+                            item.selectedAddons.length > 0 && (
+                              <div className="text-xs text-base-content/60 mb-1 flex flex-col gap-1">
+                                {/* Group addons by groupTitle */}
+                                {(() => {
+                                  const grouped = item.selectedAddons.reduce(
+                                    (acc, addon) => {
+                                      if (!acc[addon.groupTitle])
+                                        acc[addon.groupTitle] = [];
+                                      acc[addon.groupTitle].push(addon);
+                                      return acc;
+                                    },
+                                    {} as Record<
+                                      string,
+                                      typeof item.selectedAddons
+                                    >
+                                  );
+                                  return Object.entries(grouped).map(
+                                    ([groupTitle, addons]) => (
+                                      <div key={groupTitle} className="mb-1">
+                                        <span className="font-semibold text-base-content/80 block mb-0.5">
+                                          {groupTitle}
+                                        </span>
+                                        <span>
+                                          {addons.map((addon, idx) => (
+                                            <span key={idx}>
+                                              + {addon.name}
+                                              {addon.quantity > 1 &&
+                                                ` (×${addon.quantity})`}
+                                              {idx < addons.length - 1
+                                                ? ", "
+                                                : ""}
+                                            </span>
+                                          ))}
+                                        </span>
+                                      </div>
+                                    )
+                                  );
+                                })()}
+                              </div>
+                            )}
+                          <p className="text-lg font-bold text-primary mb-2">
+                            £{subtotal.toFixed(2)}
+                          </p>
 
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {/* <button
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {/* <button
                                   onClick={() =>
                                     updateItemQuantity(
                                       item.id,
@@ -1355,10 +1385,10 @@ export default function Step2MenuItems() {
                                 >
                                   −
                                 </button> */}
-                                <p className="text-xs text-base-content/60 mt-1">
-                                  {displayQuantity} portion
-                                </p>
-                                {/* <button
+                              <p className="text-xs text-base-content/60 mt-1">
+                                {displayQuantity} portion
+                              </p>
+                              {/* <button
                                   onClick={() =>
                                     updateItemQuantity(
                                       item.id,
@@ -1369,29 +1399,29 @@ export default function Step2MenuItems() {
                                 >
                                   +
                                 </button> */}
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <button
-                                  onClick={() => {
-                                    handleEditItem(index);
-                                    setShowCartMobile(false);
-                                  }}
-                                  className="text-primary hover:opacity-80 text-sm"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => removeMenuItemByIndex(index)}
-                                  className="text-error hover:opacity-80 text-sm"
-                                >
-                                  Remove
-                                </button>
-                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => {
+                                  handleEditItem(index);
+                                  setShowCartMobile(false);
+                                }}
+                                className="text-primary hover:opacity-80 text-sm"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => removeMenuItemByIndex(index)}
+                                className="text-error hover:opacity-80 text-sm"
+                              >
+                                Remove
+                              </button>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1406,12 +1436,11 @@ export default function Step2MenuItems() {
                       {selectedItems.reduce((sum, { item, quantity }) => {
                         const BACKEND_QUANTITY_UNIT =
                           item.cateringQuantityUnit || 7;
-                        const DISPLAY_FEEDS_PER_UNIT =
-                          item.feedsPerUnit || 10;
+                        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                         return (
                           sum +
                           (quantity / BACKEND_QUANTITY_UNIT) *
-                          DISPLAY_FEEDS_PER_UNIT
+                            DISPLAY_FEEDS_PER_UNIT
                         );
                       }, 0)}{" "}
                       people
