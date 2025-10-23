@@ -7,6 +7,20 @@ import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 
+interface ValidationErrors {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  zipcode?: string;
+  ccEmail?: string;
+  latitude?: number;
+  longitude?: number;
+
+}
+
 export default function Step3ContactInfo() {
   // const BACKEND_QUANTITY_UNIT = 7;
   // const DISPLAY_FEEDS_PER_UNIT = 10;
@@ -48,9 +62,90 @@ export default function Step3ContactInfo() {
   );
   const [ccEmails, setCcEmails] = useState<string[]>([]);
   const [ccEmailInput, setCcEmailInput] = useState("");
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [ccEmailError, setCcEmailError] = useState("");
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) {
+      return "Email is required";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return undefined;
+  };
+
+  const validatePhone = (phone: string): string | undefined => {
+    if (!phone.trim()) {
+      return "Phone number is required";
+    }
+    // UK phone number validation (accepts various formats)
+    const phoneRegex = /^(?:(?:\+44\s?|0)(?:\d\s?){9,10})$/;
+    const cleanPhone = phone.replace(/[\s()-]/g, '');
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      return "Please enter a valid UK phone number";
+    }
+    return undefined;
+  };
+  const validateFullName = (name: string): string | undefined => {
+    if (!name.trim()) {
+      return "Full name is required";
+    }
+    if (name.trim().length < 2) {
+      return "Name must be at least 2 characters";
+    }
+    return undefined;
+  };
+
+  const handleBlur = (field: keyof ContactInfo) => {
+    let error: string | undefined;
+    
+    switch (field) {
+      case 'fullName':
+        error = validateFullName(formData.fullName);
+        break;
+      case 'email':
+        error = validateEmail(formData.email);
+        break;
+      case 'phone':
+        error = validatePhone(formData.phone);
+        break;
+     
+    }
+    
+    setErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+  };
+
+  // Clear error when user starts typing
+  const handleChange = (field: keyof ContactInfo, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  // Validate all fields
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {
+      fullName: validateFullName(formData.fullName),
+      email: validateEmail(formData.email),
+      phone: validatePhone(formData.phone),
+
+    };
+
+    setErrors(newErrors);
+    
+    // Return true if no errors
+    return !Object.values(newErrors).some(error => error !== undefined);
+  };
+
 
   const handleAddCcEmail = () => {
     const trimmedEmail = ccEmailInput.trim();
@@ -82,6 +177,37 @@ export default function Step3ContactInfo() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) {
+      // Scroll to first error - improved version
+      setTimeout(() => {
+        const firstErrorField = Object.keys(errors).find(
+          key => errors[key as keyof ValidationErrors]
+        );
+        
+        if (firstErrorField) {
+          // Try multiple selectors
+          const element = 
+            document.querySelector(`[name="${firstErrorField}"]`) ||
+            document.getElementById(firstErrorField) ||
+            document.querySelector(`input[name="${firstErrorField}"]`);
+          
+          if (element) {
+            element.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            // Focus the input to draw attention
+            (element as HTMLInputElement).focus();
+          } else {
+            // Fallback: scroll to top of form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      }, 100); // Small delay to ensure errors are rendered
+      
+      return;
+    }
+  
     setSubmitting(true);
 
     try {
@@ -605,7 +731,7 @@ export default function Step3ContactInfo() {
                   <span>£{pricing.serviceCharge.toFixed(2)}</span>
                 </div> */}
                 <div className="flex justify-between text-base-content/70">
-                  <span>Estimated Delivery Cost</span>
+                  <span> Delivery Cost</span>
                   <span>£{pricing.deliveryFee.toFixed(2)}</span>
                 </div>
 
@@ -697,14 +823,19 @@ export default function Step3ContactInfo() {
                 </label>
                 <input
                   type="text"
+                  name="fullName"
                   required
                   value={formData.fullName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fullName: e.target.value })
-                  }
+                  onChange={(e) => handleChange('fullName', e.target.value)}
+                  onBlur={() => handleBlur('fullName')}
                   placeholder="Your Name"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                  className={`w-full px-4 py-3 bg-base-200/50 border ${
+                    errors.fullName ? 'border-error' : 'border-base-300'
+                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
+                {errors.fullName && (
+                  <p className="mt-1 text-sm text-error">✗ {errors.fullName}</p>
+                )}
               </div>
 
               {/* Telephone */}
@@ -714,15 +845,19 @@ export default function Step3ContactInfo() {
                 </label>
                 <input
                   type="tel"
+                  name="phone"
                   required
                   value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder="Your Phone Number"
-                  pattern="^(\+?[1-9]\d{1,14}|0\d{10})$"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  onBlur={() => handleBlur('phone')}
+                  placeholder="Your Number"
+                  className={`w-full px-4 py-3 bg-base-200/50 border ${
+                    errors.phone ? 'border-error' : 'border-base-300'
+                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-error">✗ {errors.phone}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -732,14 +867,19 @@ export default function Step3ContactInfo() {
                 </label>
                 <input
                   type="email"
+                  name="email"
                   required
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder="Email"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  onBlur={() => handleBlur('email')}
+                  placeholder="Your Email"
+                  className={`w-full px-4 py-3 bg-base-200/50 border ${
+                    errors.email ? 'border-error' : 'border-base-300'
+                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-error">✗ {errors.email}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
@@ -1142,7 +1282,7 @@ export default function Step3ContactInfo() {
                     <span>£{pricing.serviceCharge.toFixed(2)}</span>
                   </div> */}
                   <div className="flex justify-between text-sm text-base-content/70">
-                    <span>Estimated Delivery Cost</span>
+                    <span>Delivery Cost</span>
                     <span>£{pricing.deliveryFee.toFixed(2)}</span>
                   </div>
                   {(pricing.promoDiscount ?? 0) > 0 && (
