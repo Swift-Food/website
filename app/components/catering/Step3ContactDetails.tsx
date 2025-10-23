@@ -996,8 +996,11 @@ export default function Step3ContactInfo() {
                 </p>
                 <p className="text-xs text-base-content/80 leading-relaxed">
                   For accurate allergen information, please contact stalls or
-                  restaurants directly. For any last-minute changes, please
-                  contact us at least two days before your event.
+                  restaurants directly. 
+                </p>
+                <p className="text-xs text-base-content/80 leading-relaxed">
+                  For any last-minute changes, please
+                    contact us at least two days before your event.
                 </p>
               </div>
 
