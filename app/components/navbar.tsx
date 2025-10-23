@@ -68,7 +68,9 @@ export default function Navbar() {
                 <span className={styles.logoTicker}>
                   <span className={styles.logoTrack}>
                     <span>SWIFT FOOD</span>
-                    <span>REAL, LOCAL & FAST</span>
+                    <span className="text-3xl text-center">
+                      REAL, LOCAL & FAST
+                    </span>
                   </span>
                 </span>
                 <span className="sr-only">Swift Food — Real, Local & Fast</span>
