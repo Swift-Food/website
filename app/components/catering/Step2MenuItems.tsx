@@ -1235,7 +1235,9 @@ export default function Step2MenuItems() {
           <div className="flex gap-2">
             {selectedRestaurantId && (
               <button
-                className="bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm flex-shrink-0"
+                className={`bg-base-300 text-base-content py-4 rounded-lg font-medium hover:bg-base-content/10 transition-colors ${
+                  selectedItems.length > 0 ? 'px-3 text-sm flex-shrink-0' : 'flex-1 text-lg'
+                }`}
                 onClick={() => {
                   setSelectedRestaurantId(null);
                   setSearchQuery("");
