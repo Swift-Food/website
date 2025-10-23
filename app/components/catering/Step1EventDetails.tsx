@@ -130,7 +130,7 @@ export default function Step1EventDetails() {
       autocompleteRef.current = new google.maps.places.Autocomplete(
         inputRef.current,
         {
-          types: ["address"],
+          types: ["geocode"],
           componentRestrictions: { country: "gb" },
         }
       );
@@ -172,18 +172,17 @@ export default function Step1EventDetails() {
       }
     });
 
-    setAddressFormData({
-      ...addressFormData,
+    setAddressFormData((prev) => ({
+      ...prev,
       addressLine1: street.trim(),
       city: city,
       zipcode: zipcode,
-    });
-
-    // Also update the main address field
-    setFormData({
-      ...formData,
+    }));
+  
+    setFormData((prev) => ({
+      ...prev,
       address: place.formatted_address || "",
-    });
+    }));
   };
 
   const getMaxDate = () => {
