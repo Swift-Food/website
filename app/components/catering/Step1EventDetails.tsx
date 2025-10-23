@@ -440,7 +440,7 @@ export default function Step1EventDetails() {
                     setFormData({ ...formData, eventType: option.value })
                   }
                   className={`
-                    cursor-pointer transition-all duration-200 text-center
+                    cursor-pointer transition-all duration-200 text-center border-2 rounded-lg overflow-hidden
                     ${
                       isSelected
                         ? "border-dark-pink bg-base-300"
@@ -449,12 +449,14 @@ export default function Step1EventDetails() {
                   `}
                 >
                   {/* Placeholder for the image */}
-                  <Image
-                    src={option.imgSrc}
-                    alt="sample dish"
-                    width={170}
-                    height={170}
-                  />
+                  <div className="w-full aspect-square relative">
+                    <Image
+                      src={option.imgSrc}
+                      alt={option.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
 
                   <p className="text-xs pt-2 pb-2 font-medium text-gray-800">
                     {option.name}
