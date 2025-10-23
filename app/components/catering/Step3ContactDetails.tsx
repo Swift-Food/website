@@ -973,8 +973,8 @@ export default function Step3ContactInfo() {
                 </p>
                 <p className="text-xs text-base-content/80 leading-relaxed">
                   For accurate allergen information, please contact stalls or
-                  restaurants directly. For any last-minute times, please
-                  contact us immediately — at least two days before your event.
+                  restaurants directly. For any last-minute changes, please
+                  contact us at least two days before your event.
                 </p>
               </div>
 
@@ -997,7 +997,7 @@ export default function Step3ContactInfo() {
                       }
                     }}
                     placeholder="Add discount code or voucher"
-                    className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-xs"
                   />
                   <button
                     type="button"
