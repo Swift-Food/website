@@ -12,8 +12,41 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  title: "Swift Food - Bringing London's streetfood to you",
+  description: "We provide event ordering and delivery of the best street food in London",
+  keywords: ["event", "food delivery", "events", "UK", "event-order", "streetfood", "delivery"],
+  authors: [{ name: "Swift Food Services ltd" }],
+  
   icons: {
-    icon: "/favicon.png",
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  
+  openGraph: {
+    type: "website",
+    locale: "en_GB",
+    url: "https://swiftfood.uk",
+    siteName: "Swift Food",
+    title: "Swift Food - Bringing London's streetfood to you",
+    description: "We provide event ordering and delivery of the best street food in London",
+    
+  },
+  
+  
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  
+  verification: {
+    google: "bu1_vFJg_q2u8Syf9Cith5Q6G_Zld7hqwqLw8gDdtSM", // Add this from Google Search Console
   },
 };
 
