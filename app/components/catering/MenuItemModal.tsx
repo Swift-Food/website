@@ -664,9 +664,9 @@ export default function MenuItemModal({
                       }}
                       className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
                     />
-                    <p className="text-xs text-base-content/60">
+                    {/* <p className="text-xs text-base-content/60">
                       Feeds {itemQuantity * DISPLAY_FEEDS_PER_UNIT} people
-                    </p>
+                    </p> */}
                   </div>
                   <button
                     onClick={() => {
