@@ -20,6 +20,8 @@ export default function Step3ContactInfo() {
     resetOrder,
     markOrderAsSubmitted,
   } = useCatering();
+  console.log("contact info", JSON.stringify(contactInfo))
+  console.log("event info", JSON.stringify(eventDetails))
 
   const [formData, setFormData] = useState<ContactInfo>(
     contactInfo || {
@@ -445,6 +447,7 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
+    console.log("pricing", JSON.stringify(pricing))
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
         <div className="max-w-2xl mx-auto text-center">
@@ -498,13 +501,13 @@ export default function Step3ContactInfo() {
                   {eventDetails?.eventType}
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
+              {/* <div> */}
+                {/* <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
                 <p className="font-semibold text-base-content">
                   {(eventDetails?.guestCount || 10) - 10} -{" "}
                   {(eventDetails?.guestCount || 10) + 10}{" "}
                 </p>
-              </div>
+              </div> */}
             </div>
 
             <h4 className="font-bold mb-4 text-base-content">
@@ -616,9 +619,9 @@ export default function Step3ContactInfo() {
                   <span>Total</span>
                   <div className="text-right">
                     <p className="">£{pricing.total.toFixed(2)}</p>
-                    {pricing.promoDiscount && pricing.promoDiscount > 0 && (
+                    {(pricing.promoDiscount ?? 0) > 0 && (
                       <p className="text-sm line-through text-base-content/50">
-                        £{(pricing.total + pricing.promoDiscount).toFixed(2)}
+                        £{(pricing.total + (pricing.promoDiscount ?? 0)).toFixed(2)}
                       </p>
                     )}
                   </div>
@@ -824,9 +827,9 @@ export default function Step3ContactInfo() {
               </div>
 
               {/* Address Search */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Search Address
+                  Search the Event Address
                 </label>
                 <input
                   ref={inputRef}
@@ -837,10 +840,10 @@ export default function Step3ContactInfo() {
                 <p className="text-xs text-base-content/60 mt-2">
                   Select from dropdown to autofill, or enter manually below
                 </p>
-              </div>
+              </div> */}
 
               {/* Address Line 1 */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
                   Address Line 1*
                 </label>
@@ -854,10 +857,10 @@ export default function Step3ContactInfo() {
                   placeholder="Street address"
                   className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                 />
-              </div>
+              </div> */}
 
               {/* Address Line 2 */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
                   Address Line 2 (Optional)
                 </label>
@@ -870,10 +873,10 @@ export default function Step3ContactInfo() {
                   placeholder="Apartment, suite, unit, etc."
                   className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                 />
-              </div>
+              </div> */}
 
               {/* City and Zipcode */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-base-content">
                     City*
@@ -904,7 +907,7 @@ export default function Step3ContactInfo() {
                     className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Submit Button - Desktop */}
               <div className="hidden lg:block pt-4">
@@ -949,13 +952,13 @@ export default function Step3ContactInfo() {
                     {eventDetails?.eventType}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                {/* <div className="flex justify-between text-sm">
                   <span className="text-base-content/70">Guest Count</span>
                   <p className="font-semibold text-base-content">
                     {(eventDetails?.guestCount || 10) - 10} -{" "}
                     {(eventDetails?.guestCount || 10) + 10}{" "}
                   </p>
-                </div>
+                </div> */}
               </div>
 
               {/* Catering List */}
@@ -969,7 +972,7 @@ export default function Step3ContactInfo() {
                   Important Notes
                 </p>
                 <p className="text-xs text-base-content/80 leading-relaxed">
-                  For accurate delivery information, please contact stalls or
+                  For accurate allergen information, please contact stalls or
                   restaurants directly. For any last-minute times, please
                   contact us immediately — at least two days before your event.
                 </p>

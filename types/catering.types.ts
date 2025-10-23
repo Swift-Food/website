@@ -90,6 +90,7 @@ export interface EventDetails {
   eventTime: string;
   guestCount: number;
   specialRequests?: string;
+  address: string;
 }
 
 export interface SelectedMenuItem {
