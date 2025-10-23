@@ -478,7 +478,7 @@ export default function Step1EventDetails() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-10">
+      <form onSubmit={handleSubmit} noValidate className="space-y-10">
         {/* Delivery Date & Time Section */}
         <div>
           <h3 className="text-2xl font-semibold mb-4 text-gray-800">
