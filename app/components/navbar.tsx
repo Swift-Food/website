@@ -46,7 +46,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 left-0 right-0 flex flex-col z-50">
-      <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 max-lg:items-start bg-secondary gap-5 flex-nowrap">
+      <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 bg-secondary gap-5 flex-nowrap">
         {/* <div className="hidden md:block w-full max-w-xs"> */}
         {/* <SearchBar /> */}
         {/* </div> */}
@@ -61,11 +61,11 @@ export default function Navbar() {
             height={40}
             alt="swift foods logo"
           /> */}
-            <label
-              className={`font-bold text-primary text-5xl cursor-pointer ${styles.montFont} whitespace-nowrap`}
+            <p
+              className={`font-bold text-primary text-3xl md:text-5xl cursor-pointer ${styles.montFont} whitespace-nowrap leading-none`}
             >
               SWIFT FOOD
-            </label>
+            </p>
           </div>
         </Link>
         <div className="visible max-md:hidden whitespace-nowrap">
@@ -74,8 +74,11 @@ export default function Navbar() {
         <div className="drawer w-fit hidden max-md:block">
           <input id="my-drawer" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content">
-            <label className="btn btn-square drawer-button" htmlFor="my-drawer">
-              <Menu size={24} color="var(--color-primary)" />
+            <label
+              className="btn btn-ghost btn-square drawer-button hover:bg-primary/10 border-0"
+              htmlFor="my-drawer"
+            >
+              <Menu size={28} color="var(--color-primary)" />
             </label>
           </div>
           <div className="drawer-side">
