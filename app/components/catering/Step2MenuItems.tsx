@@ -1229,55 +1229,52 @@ export default function Step2MenuItems() {
         </div>
       </div>
 
-      {/* Mobile Cart Button - Fixed at bottom */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-4 z-20">
-        <div className="flex gap-2">
-          {selectedRestaurantId && (
-            <button
-              className="bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm flex-shrink-0"
-              onClick={() => {
-                setSelectedRestaurantId(null);
-                setSearchQuery("");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            >
-              ← Back
-            </button>
-          )}
-          {selectedItems.length > 0 ? (
-            <button
-              onClick={() => setShowCartMobile(true)}
-              className="flex-1 bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg flex items-center justify-between px-6"
-            >
-              <span>View Cart ({selectedItems.length})</span>
-              <span>
-                £
-                {selectedItems
-                  .reduce((sum, { item, quantity }) => {
-                    const price = parseFloat(item.price?.toString() || "0");
-                    const discountPrice = parseFloat(
-                      item.discountPrice?.toString() || "0"
-                    );
-                    const itemPrice =
-                      item.isDiscount && discountPrice > 0
-                        ? discountPrice
-                        : price;
-                    const addonPrice = item.addonPrice || 0;
-                    return sum + itemPrice * quantity + addonPrice;
-                  }, 0)
-                  .toFixed(2)}
-              </span>
-            </button>
-          ) : (
-            <button
-              disabled
-              className="flex-1 bg-base-300 text-base-content/50 py-4 rounded-lg font-bold text-lg cursor-not-allowed"
-            >
-              No items selected
-            </button>
-          )}
+      {/* Mobile Cart Button - Fixed at bottom - Only show if items in cart OR back button needed */}
+      {(selectedItems.length > 0 || selectedRestaurantId) && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-2 z-20">
+          <div className="flex gap-2">
+            {selectedRestaurantId && (
+              <button
+                className={`bg-base-300 text-base-content py-2.5 rounded-lg font-medium hover:bg-base-content/10 transition-colors ${
+                  selectedItems.length > 0 ? 'px-3 text-sm flex-shrink-0' : 'flex-1 text-base'
+                }`}
+                onClick={() => {
+                  setSelectedRestaurantId(null);
+                  setSearchQuery("");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              >
+                ← Back
+              </button>
+            )}
+            {selectedItems.length > 0 && (
+              <button
+                onClick={() => setShowCartMobile(true)}
+                className="flex-1 bg-primary hover:opacity-90 text-white py-2.5 rounded-lg font-bold text-base transition-all shadow-lg flex items-center justify-between px-4"
+              >
+                <span>View Cart ({selectedItems.length})</span>
+                <span>
+                  £
+                  {selectedItems
+                    .reduce((sum, { item, quantity }) => {
+                      const price = parseFloat(item.price?.toString() || "0");
+                      const discountPrice = parseFloat(
+                        item.discountPrice?.toString() || "0"
+                      );
+                      const itemPrice =
+                        item.isDiscount && discountPrice > 0
+                          ? discountPrice
+                          : price;
+                      const addonPrice = item.addonPrice || 0;
+                      return sum + itemPrice * quantity + addonPrice;
+                    }, 0)
+                    .toFixed(2)}
+                </span>
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Cart Modal */}
       {showCartMobile && (
