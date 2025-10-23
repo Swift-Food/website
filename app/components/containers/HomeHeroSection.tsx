@@ -104,7 +104,7 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
       <div className="max-lg:flex max-lg:justify-center mt-5">
         <button
           onClick={handleButtonClick}
-          className="btn btn-primary rounded-full btn-sm text-white w-fit px-12 py-8 text-2xl font-bold tracking-wider border-primary hover:bg-hot-pink shadow-none transform-gpu transition-transform duration-200 ease-out hover:scale-105 active:scale-100"
+          className="btn btn-primary rounded-full btn-sm text-white w-fit px-12 py-8 text-2xl font-bold tracking-wider border-primary shadow-none transform-gpu transition-transform duration-200 ease-out hover:scale-105 active:scale-100 hover:bg-primary hover:text-white hover:border-primary hover:shadow-none"
         >
           ORDER NOW
         </button>
