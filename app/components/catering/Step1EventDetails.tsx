@@ -562,7 +562,7 @@ export default function Step1EventDetails() {
 
         <div className="text-center pt-4">
           <div className="flex items-stretch justify-center gap-4 max-w-2xl mx-auto">
-            <button
+            {/* <button
               type="button"
               onClick={() => setCurrentStep(1)}
               className="flex-[3] bg-white text-dark-pink border-2 border-dark-pink py-2 px-4 rounded-full font-bold text-base sm:text-lg hover:bg-gray-50 transition-colors min-h-[60px] flex items-center justify-center"
@@ -581,7 +581,7 @@ export default function Step1EventDetails() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18" 
                 />
               </svg>
-            </button>
+            </button> */}
             <button
               type="submit"
               className="flex-[7] bg-dark-pink text-white py-2 px-6 rounded-full font-bold text-base sm:text-lg hover:bg-pink-700 transition-colors shadow-lg shadow-dark-pink/30 min-h-[60px]"
