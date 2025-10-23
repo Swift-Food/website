@@ -54,7 +54,7 @@ function CateringSteps() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm sm:p-8 max-w-none">
+        <div className="bg-base-100 rounded-lg shadow-sm max-w-none">
           {currentStep === 1 && <Step2MenuItems />}
           {currentStep === 2 && <Step1EventDetails />}
           {currentStep === 3 && <Step3ContactInfo />}
