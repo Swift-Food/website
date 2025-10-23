@@ -912,7 +912,7 @@ export default function Step2MenuItems() {
                           )}
 
                         {restaurant.minimumDeliveryNoticeHours && (
-                          <div className="mt-2 text-xs text-base-content/70 bg-base-300 px-2 py-1 rounded-md">
+                          <div className="mt-2 text-xs text-white  bg-primary px-2 py-1 rounded-md">
                             {restaurant.minimumDeliveryNoticeHours >= 24 ? (
                               <>
                                 <span className="font-bold">
