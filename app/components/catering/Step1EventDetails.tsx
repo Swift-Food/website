@@ -325,38 +325,38 @@ export default function Step1EventDetails() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const newErrors: typeof validationErrors = {};
-    let firstErrorRef: React.RefObject<HTMLDivElement> | null = null;
+    let firstErrorElement: HTMLDivElement | null = null;
 
     // Validate all fields
     if (!formData.eventDate) {
       newErrors.eventDate = "Event date is required.";
-      if (!firstErrorRef) firstErrorRef = dateRef;
+      if (!firstErrorElement) firstErrorElement = dateRef.current;
     }
 
     if (!formData.eventTime) {
       newErrors.eventTime = "Event time is required.";
-      if (!firstErrorRef) firstErrorRef = timeRef;
+      if (!firstErrorElement) firstErrorElement = timeRef.current;
     }
 
     if (!formData.eventType) {
       newErrors.eventType = "Event type is required.";
-      if (!firstErrorRef) firstErrorRef = eventTypeRef;
+      if (!firstErrorElement) firstErrorElement = eventTypeRef.current;
     }
 
     // Validate address fields
     if (!addressFormData.addressLine1.trim()) {
       newErrors.addressLine1 = "Address Line 1 is required.";
-      if (!firstErrorRef) firstErrorRef = addressLine1Ref;
+      if (!firstErrorElement) firstErrorElement = addressLine1Ref.current;
     }
 
     if (!addressFormData.city.trim()) {
       newErrors.city = "City is required.";
-      if (!firstErrorRef) firstErrorRef = cityRef;
+      if (!firstErrorElement) firstErrorElement = cityRef.current;
     }
 
     if (!addressFormData.zipcode.trim()) {
       newErrors.zipcode = "Postcode is required.";
-      if (!firstErrorRef) firstErrorRef = zipcodeRef;
+      if (!firstErrorElement) firstErrorElement = zipcodeRef.current;
     }
 
     // Validate delivery notice
@@ -371,7 +371,7 @@ export default function Step1EventDetails() {
 
       if (hoursUntilEvent < requiredNoticeHours) {
         newErrors.noticeHours = `Please select a date/time at least ${requiredNoticeHours} hours in advance.`;
-        if (!firstErrorRef) firstErrorRef = dateRef;
+        if (!firstErrorElement) firstErrorElement = dateRef.current;
       }
 
       // Validate operating hours
@@ -381,7 +381,7 @@ export default function Step1EventDetails() {
       );
       if (operatingHoursError) {
         newErrors.eventTime = operatingHoursError;
-        if (!firstErrorRef) firstErrorRef = timeRef;
+        if (!firstErrorElement) firstErrorElement = timeRef.current;
       }
     }
 
@@ -390,8 +390,8 @@ export default function Step1EventDetails() {
 
     if (Object.keys(newErrors).length > 0) {
       // Scroll to first error field
-      if (firstErrorRef?.current) {
-        firstErrorRef.current.scrollIntoView({
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({
           behavior: "smooth",
           block: "center"
         });
