@@ -662,7 +662,7 @@ export default function Step2MenuItems() {
                                           </p>
                                         )}
                                         <div className="mv-2 text-xs">
-                                          <p>Catering Hours:</p>
+                                          <p className="opacity-70 pt-2">Catering Hours:</p>
                                           <div className="whitespace-pre-line text-xs mt-1">
                                             {formatCateringHours(restaurant.cateringOperatingHours ?? null)}
                                           </div>
@@ -860,7 +860,7 @@ export default function Step2MenuItems() {
                                       </p>
                                     )}
                                     <div className="mb-2">
-                                      <p>Catering Hours:</p>
+                                      <p className="opacity-70 pt-2">Catering Hours:</p>
                                       <div className="whitespace-pre-line text-xs mt-1">
                                         {formatCateringHours(restaurant.cateringOperatingHours ?? null)}
                                       </div>
@@ -1142,7 +1142,7 @@ export default function Step2MenuItems() {
                   </div>
 
                   <button
-                    className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                    className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-md transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
                     onClick={() => {
                       const warnings = getMinimumOrderWarnings();
                       if (warnings.length > 0) {
@@ -1442,7 +1442,7 @@ export default function Step2MenuItems() {
                 </div>
 
                 <button
-                  className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
                   onClick={() => {
                     const warnings = getMinimumOrderWarnings();
                     if (warnings.length > 0) {
