@@ -328,30 +328,24 @@ export default function Step1EventDetails() {
 
   return (
       <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
-      <div className="text-center mb-12 ">
-        {/* Back button and Step indicator in same row */}
-        <div className="flex justify-between mb-4">
-          <h1 className="text-4xl font-bold mb-3 text-base-content">
-            Event Details
-          </h1>
-          <button
-            onClick={() => setCurrentStep(1)}
-            className="text-dark-pink hover:opacity-80 font-medium flex items-center gap-1"
-          >
-            ← Back
-          </button>
+      <div className="flex justify-between items-start mb-4">
+            <div>
+              {/* <p className="text-sm text-base-content/60 mb-2">
+                Step 3 of 3 - Contact & Confirmation
+              </p> */}
+              <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
+                Your Event Details
+              </h2>
 
-          {/* Empty div for spacing balance */}
-          <div className="w-20"></div>
-        </div>
-    
+            </div>
+            <button
+              onClick={() => setCurrentStep(1)}
+              className="text-primary hover:opacity-80 font-medium flex items-center gap-1 mt-1"
+            >
+              ← Back
+            </button>
+          </div>
         
-        {/* <div className="mb-4">
-          <p className="text-base-content/70">
-            We just need a few details before we start building your event order menu.
-          </p>
-        </div> */}
-      </div>
 
       <form onSubmit={handleSubmit} className="space-y-10">
         {/* Delivery Date & Time Section */}
@@ -360,7 +354,7 @@ export default function Step1EventDetails() {
             Delivery Date & Time
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            Select your preferred delivery date and time. Most catering orders require advance notice.
+            Most catering orders require advance notice.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
