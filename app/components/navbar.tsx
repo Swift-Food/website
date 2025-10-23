@@ -62,16 +62,17 @@ export default function Navbar() {
             alt="swift foods logo"
           /> */}
             <div className="relative">
-              <p
-                className={`font-bold text-primary text-3xl md:text-5xl cursor-pointer ${styles.montFont} whitespace-nowrap leading-none transition-opacity duration-200 group-hover:opacity-0`}
+              <div
+                className={`font-bold text-primary text-3xl md:text-5xl cursor-pointer ${styles.montFont} leading-none whitespace-nowrap`}
               >
-                SWIFT FOOD
-              </p>
-              <p
-                className={`font-bold text-primary text-3xl md:text-5xl cursor-pointer ${styles.montFont} whitespace-nowrap leading-none absolute top-0 left-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100`}
-              >
-                Real, Local & Fast
-              </p>
+                <span className={styles.logoTicker}>
+                  <span className={styles.logoTrack}>
+                    <span>SWIFT FOOD</span>
+                    <span>REAL, LOCAL & FAST</span>
+                  </span>
+                </span>
+                <span className="sr-only">Swift Food — Real, Local & Fast</span>
+              </div>
             </div>
           </div>
         </Link>
