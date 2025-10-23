@@ -527,9 +527,9 @@ export default function Home() {
     <div>
       <HomeHeroSection />
       <div className="bg-primary h-10 w-full" />
-      <WhoWeWorkWithSection />
+      {/* <WhoWeWorkWithSection />
       <WhatWeCreatedSection />
-      <div className="bg-secondary h-10 w-full" />
+      <div className="bg-secondary h-10 w-full" /> */}
       <OurStorySection />
       <section
         ref={differentSectionRef}
