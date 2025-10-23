@@ -223,6 +223,10 @@ export default function Step1EventDetails() {
     date.setMonth(date.getMonth() + 2);
     return date.toISOString().split("T")[0];
   };
+  const getMinDate = () => {
+    const date = new Date();
+    return date.toISOString().split("T")[0];
+  }
 
   const validateEventDateTime = (date: string, time: string): string | null => {
     if (
@@ -457,6 +461,7 @@ export default function Step1EventDetails() {
                     setValidationErrors({ ...validationErrors, eventDate: undefined, noticeHours: undefined });
                   }}
                   max={getMaxDate()}
+                  min={getMinDate()}
                   className="w-full"
                 />
               </div>
