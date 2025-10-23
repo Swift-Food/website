@@ -19,14 +19,14 @@ const EVENT_TYPE_OPTIONS = [
     imgSrc: "/event-detail-img/corporate lunch.JPG",
   },
   {
-    name: "Student Event",
-    value: "student",
-    imgSrc: "/event-detail-img/student events.JPG",
-  },
-  {
     name: "Birthday/Private Party",
     value: "birthday",
     imgSrc: "/event-detail-img/birthdays_private party.JPG",
+  },
+  {
+    name: "Student Event",
+    value: "student",
+    imgSrc: "/event-detail-img/student events.JPG",
   },
   {
     name: "Wedding/Celebration",
@@ -58,6 +58,15 @@ const MINUTE_OPTIONS = [
   { label: "45", value: "45" },
 ];
 
+// UK Postcode validation regex
+// Matches formats like: SW1A 1AA, M1 1AE, B33 8TH, CR2 6XH, DN55 1PT
+const UK_POSTCODE_REGEX = /^([A-Z]{1,2}\d{1,2}[A-Z]?)\s?(\d[A-Z]{2})$/i;
+
+const validateUKPostcode = (postcode: string): boolean => {
+  if (!postcode) return false;
+  return UK_POSTCODE_REGEX.test(postcode.trim());
+};
+
 export default function Step1EventDetails() {
   const {
     eventDetails,
@@ -78,7 +87,11 @@ export default function Step1EventDetails() {
     city?: string;
     zipcode?: string;
     noticeHours?: string;
+    addressValidation?: string;
   }>({});
+
+  // State for address validation
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
   // Google Places Autocomplete refs
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -184,9 +197,15 @@ export default function Step1EventDetails() {
     const place = autocompleteRef.current?.getPlace();
     if (!place?.address_components) return;
 
+    // Store place_id for validation
+    if (place.place_id) {
+      setSelectedPlaceId(place.place_id);
+    }
+
     let street = "";
     let city = "";
     let zipcode = "";
+    let country = "";
 
     place.address_components.forEach((component) => {
       const types = component.types;
@@ -203,7 +222,24 @@ export default function Step1EventDetails() {
       if (types.includes("postal_code")) {
         zipcode = component.long_name;
       }
+      if (types.includes("country")) {
+        country = component.short_name;
+      }
     });
+
+    // Validate if address is in UK
+    if (country && country !== "GB") {
+      setValidationErrors((prev) => ({
+        ...prev,
+        addressValidation:
+          "Sorry, we only deliver to addresses within the United Kingdom.",
+      }));
+    } else {
+      setValidationErrors((prev) => ({
+        ...prev,
+        addressValidation: undefined,
+      }));
+    }
 
     setAddressFormData((prev) => ({
       ...prev,
@@ -226,7 +262,7 @@ export default function Step1EventDetails() {
   const getMinDate = () => {
     const date = new Date();
     return date.toISOString().split("T")[0];
-  }
+  };
 
   const validateEventDateTime = (date: string, time: string): string | null => {
     if (
@@ -361,6 +397,15 @@ export default function Step1EventDetails() {
     if (!addressFormData.zipcode.trim()) {
       newErrors.zipcode = "Postcode is required.";
       if (!firstErrorElement) firstErrorElement = zipcodeRef.current;
+    } else if (!validateUKPostcode(addressFormData.zipcode)) {
+      newErrors.zipcode = "Please enter a valid UK postcode (e.g., SW1A 1AA).";
+      if (!firstErrorElement) firstErrorElement = zipcodeRef.current;
+    }
+
+    // Check if there's an existing address validation error
+    if (validationErrors.addressValidation) {
+      newErrors.addressValidation = validationErrors.addressValidation;
+      if (!firstErrorElement) firstErrorElement = addressLine1Ref.current;
     }
 
     // Validate delivery notice
@@ -397,7 +442,7 @@ export default function Step1EventDetails() {
       if (firstErrorElement) {
         firstErrorElement.scrollIntoView({
           behavior: "smooth",
-          block: "center"
+          block: "center",
         });
       }
       return;
@@ -449,16 +494,24 @@ export default function Step1EventDetails() {
                 Event Date
               </label>
 
-              <div className={`w-full px-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent ${
-                validationErrors.eventDate || validationErrors.noticeHours ? 'border-red-500' : 'border-gray-300'
-              }`}>
+              <div
+                className={`w-full px-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent ${
+                  validationErrors.eventDate || validationErrors.noticeHours
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
+              >
                 <input
                   type="date"
                   required
                   value={formData.eventDate}
                   onChange={(e) => {
                     setFormData({ ...formData, eventDate: e.target.value });
-                    setValidationErrors({ ...validationErrors, eventDate: undefined, noticeHours: undefined });
+                    setValidationErrors({
+                      ...validationErrors,
+                      eventDate: undefined,
+                      noticeHours: undefined,
+                    });
                   }}
                   max={getMaxDate()}
                   min={getMinDate()}
@@ -466,16 +519,22 @@ export default function Step1EventDetails() {
                 />
               </div>
               {validationErrors.eventDate && (
-                <p className="mt-1 text-sm text-red-600">{validationErrors.eventDate}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {validationErrors.eventDate}
+                </p>
               )}
               {validationErrors.noticeHours && (
-                <p className="mt-1 text-sm text-red-600">{validationErrors.noticeHours}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {validationErrors.noticeHours}
+                </p>
               )}
-              {dateTimeError && !validationErrors.eventDate && !validationErrors.noticeHours && (
-                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{dateTimeError}</p>
-                </div>
-              )}
+              {dateTimeError &&
+                !validationErrors.eventDate &&
+                !validationErrors.noticeHours && (
+                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{dateTimeError}</p>
+                  </div>
+                )}
             </div>
             <div className="w-full" ref={timeRef}>
               <label className="block text-sm font-medium mb-2">
@@ -488,10 +547,15 @@ export default function Step1EventDetails() {
                   onChange={(e) => {
                     setSelectedHour(e.target.value);
                     handleTimeChange(e.target.value, selectedMinute);
-                    setValidationErrors({ ...validationErrors, eventTime: undefined });
+                    setValidationErrors({
+                      ...validationErrors,
+                      eventTime: undefined,
+                    });
                   }}
                   className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'
+                    validationErrors.eventTime
+                      ? "border-red-500"
+                      : "border-gray-300"
                   }`}
                 >
                   <option value="">Hour</option>
@@ -510,10 +574,15 @@ export default function Step1EventDetails() {
                   onChange={(e) => {
                     setSelectedMinute(e.target.value);
                     handleTimeChange(selectedHour, e.target.value);
-                    setValidationErrors({ ...validationErrors, eventTime: undefined });
+                    setValidationErrors({
+                      ...validationErrors,
+                      eventTime: undefined,
+                    });
                   }}
                   className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'
+                    validationErrors.eventTime
+                      ? "border-red-500"
+                      : "border-gray-300"
                   }`}
                 >
                   <option value="">Min</option>
@@ -525,7 +594,9 @@ export default function Step1EventDetails() {
                 </select>
               </div>
               {validationErrors.eventTime && (
-                <p className="mt-1 text-sm text-red-600">{validationErrors.eventTime}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {validationErrors.eventTime}
+                </p>
               )}
             </div>
           </div>
@@ -545,7 +616,10 @@ export default function Step1EventDetails() {
                   key={option.value}
                   onClick={() => {
                     setFormData({ ...formData, eventType: option.value });
-                    setValidationErrors({ ...validationErrors, eventType: undefined });
+                    setValidationErrors({
+                      ...validationErrors,
+                      eventType: undefined,
+                    });
                   }}
                   className={`
                     cursor-pointer transition-all duration-200 text-center border-2 rounded-lg overflow-hidden
@@ -576,7 +650,9 @@ export default function Step1EventDetails() {
             })}
           </div>
           {validationErrors.eventType && (
-            <p className="mt-2 text-sm text-red-600">{validationErrors.eventType}</p>
+            <p className="mt-2 text-sm text-red-600">
+              {validationErrors.eventType}
+            </p>
           )}
         </div>
 
@@ -598,8 +674,28 @@ export default function Step1EventDetails() {
               ref={inputRef}
               type="text"
               placeholder="Start typing to autofill address fields..."
-              className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                validationErrors.addressValidation
+                  ? "border-red-500"
+                  : "border-base-300"
+              }`}
             />
+            {validationErrors.addressValidation && (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">
+                  {validationErrors.addressValidation}
+                </p>
+              </div>
+            )}
+            {!validationErrors.addressValidation &&
+              selectedPlaceId &&
+              formData.address && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-600">
+                    ✓ Address validated successfully
+                  </p>
+                </div>
+              )}
             {/* <p className="text-xs text-base-content/60 mt-2">
               Select from dropdown to autofill, or enter manually below
             </p> */}
@@ -619,15 +715,22 @@ export default function Step1EventDetails() {
                   ...addressFormData,
                   addressLine1: e.target.value,
                 });
-                setValidationErrors({ ...validationErrors, addressLine1: undefined });
+                setValidationErrors({
+                  ...validationErrors,
+                  addressLine1: undefined,
+                });
               }}
               placeholder="Street address"
               className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-                validationErrors.addressLine1 ? 'border-red-500' : 'border-base-300'
+                validationErrors.addressLine1
+                  ? "border-red-500"
+                  : "border-base-300"
               }`}
             />
             {validationErrors.addressLine1 && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.addressLine1}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {validationErrors.addressLine1}
+              </p>
             )}
           </div>
 
@@ -669,11 +772,13 @@ export default function Step1EventDetails() {
                 }}
                 placeholder="City"
                 className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-                  validationErrors.city ? 'border-red-500' : 'border-base-300'
+                  validationErrors.city ? "border-red-500" : "border-base-300"
                 }`}
               />
               {validationErrors.city && (
-                <p className="mt-1 text-sm text-red-600">{validationErrors.city}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {validationErrors.city}
+                </p>
               )}
             </div>
             <div ref={zipcodeRef}>
@@ -685,19 +790,40 @@ export default function Step1EventDetails() {
                 required
                 value={addressFormData.zipcode}
                 onChange={(e) => {
+                  const newPostcode = e.target.value.toUpperCase();
                   setAddressFormData({
                     ...addressFormData,
-                    zipcode: e.target.value,
+                    zipcode: newPostcode,
                   });
-                  setValidationErrors({ ...validationErrors, zipcode: undefined });
+                  setValidationErrors({
+                    ...validationErrors,
+                    zipcode: undefined,
+                  });
                 }}
-                placeholder="Postcode"
+                onBlur={(e) => {
+                  // Validate on blur
+                  const postcode = e.target.value.trim();
+                  if (postcode && !validateUKPostcode(postcode)) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      zipcode: "Please enter a valid UK postcode (e.g., SW1A 1AA).",
+                    });
+                  }
+                }}
+                placeholder="e.g., SW1A 1AA"
                 className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-                  validationErrors.zipcode ? 'border-red-500' : 'border-base-300'
+                  validationErrors.zipcode
+                    ? "border-red-500"
+                    : "border-base-300"
                 }`}
               />
               {validationErrors.zipcode && (
-                <p className="mt-1 text-sm text-red-600">{validationErrors.zipcode}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {validationErrors.zipcode}
+                </p>
+              )}
+              {!validationErrors.zipcode && addressFormData.zipcode && validateUKPostcode(addressFormData.zipcode) && (
+                <p className="mt-1 text-sm text-green-600">✓ Valid UK postcode</p>
               )}
             </div>
           </div>

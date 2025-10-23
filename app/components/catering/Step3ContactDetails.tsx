@@ -63,7 +63,6 @@ export default function Step3ContactInfo() {
   const [ccEmails, setCcEmails] = useState<string[]>([]);
   const [ccEmailInput, setCcEmailInput] = useState("");
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [ccEmailError, setCcEmailError] = useState("");
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +83,6 @@ export default function Step3ContactInfo() {
       return "Phone number is required";
     }
     // UK phone number validation (accepts various formats)
-    const phoneRegex = /^(?:(?:\+44\s?|0)(?:\d\s?){9,10})$/;
     const cleanPhone = phone.replace(/[\s()-]/g, '');
     if (cleanPhone.length < 10 || cleanPhone.length > 11) {
       return "Please enter a valid UK phone number";
