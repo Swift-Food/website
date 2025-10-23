@@ -94,6 +94,20 @@ export default function Step1EventDetails() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  // Save form data to local storage whenever it changes
+  useEffect(() => {
+    if (formData.eventDate || formData.eventTime || formData.eventType) {
+      localStorage.setItem('catering_event_details', JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  // Save address form data to local storage whenever it changes
+  useEffect(() => {
+    if (addressFormData.addressLine1 || addressFormData.city || addressFormData.zipcode) {
+      localStorage.setItem('catering_contact_info', JSON.stringify(addressFormData));
+    }
+  }, [addressFormData]);
+
   // Initialize Google Places Autocomplete
   useEffect(() => {
     const loadGoogleMapsScript = () => {
