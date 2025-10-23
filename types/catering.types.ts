@@ -90,6 +90,7 @@ export interface EventDetails {
   eventTime: string;
   guestCount: number;
   specialRequests?: string;
+  address: string;
 }
 
 export interface SelectedMenuItem {
@@ -141,6 +142,7 @@ export interface CreateCateringOrderDto {
   ccEmails: string[],
   eventDate: string;
   eventTime: string;
+  collectionTime?: string;
   guestCount: number;
   eventType?: string;
   deliveryAddress: string;

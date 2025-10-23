@@ -17,6 +17,12 @@ export interface Restaurant {
     minQuantity: number;
     applicableSections: string[];
   } | null;
+  cateringOperatingHours?: {
+    day: string;
+    open: string | null;
+    close: string | null;
+    enabled: boolean;
+  }[] | null;
 }
 
 export interface Addon {
@@ -60,6 +66,56 @@ export interface MenuItem {
     menuGroupSettings?: Record<string, any>;
   };
 }
+
+const formatCateringHours = (
+  cateringOperatingHours: {
+    day: string;
+    open: string | null;
+    close: string | null;
+    enabled: boolean;
+  }[] | null
+): string => {
+  if (!cateringOperatingHours) {
+    return "Available anytime";
+  }
+
+  const enabledDays = cateringOperatingHours.filter(schedule => schedule.enabled);
+  
+  if (enabledDays.length === 0) {
+    return "No catering hours set";
+  }
+
+  // Group consecutive days with same hours
+  const grouped: { days: string[], hours: string }[] = [];
+  
+  enabledDays.forEach(schedule => {
+    const dayName = schedule.day.charAt(0).toUpperCase() + schedule.day.slice(1, 3);
+    const hours = schedule.open && schedule.close 
+      ? `${formatTime(schedule.open)} - ${formatTime(schedule.close)}`
+      : "Closed";
+    
+    const lastGroup = grouped[grouped.length - 1];
+    if (lastGroup && lastGroup.hours === hours) {
+      lastGroup.days.push(dayName);
+    } else {
+      grouped.push({ days: [dayName], hours });
+    }
+  });
+
+  return grouped.map(group => {
+    const dayRange = group.days.length > 1 
+      ? `${group.days[0]} - ${group.days[group.days.length - 1]}`
+      : group.days[0];
+    return `${dayRange}: ${group.hours}`;
+  }).join('\n');
+};
+
+const formatTime = (time: string): string => {
+  const [hours, minutes] = time.split(':').map(Number);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+};
 
 export default function Step2MenuItems() {
   // const [sortedGroups, setSortedGroups] = useState<string[]>([]);
@@ -607,7 +663,7 @@ export default function Step2MenuItems() {
                               );
                               return (
                                 (restaurant?.contactEmail ||
-                                  restaurant?.contactNumber) && (
+                                  restaurant?.contactNumber || restaurant?.cateringOperatingHours) && (
                                   <div className="group relative">
                                     <button
                                       type="button"
@@ -666,6 +722,12 @@ export default function Step2MenuItems() {
                                             </a>
                                           </p>
                                         )}
+                                        <div className="mv-2 text-xs">
+                                          <p>Catering Hours:</p>
+                                          <div className="whitespace-pre-line text-xs mt-1">
+                                            {formatCateringHours(restaurant.cateringOperatingHours ?? null)}
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -802,7 +864,7 @@ export default function Step2MenuItems() {
                             {restaurant.restaurant_name}
                           </h4>
                           {(restaurant.contactEmail ||
-                            restaurant.contactNumber) && (
+                            restaurant.contactNumber || restaurant.cateringOperatingHours) && (
                               <div className="group relative flex-shrink-0">
                                 <button
                                   type="button"
@@ -858,6 +920,12 @@ export default function Step2MenuItems() {
                                         </a>
                                       </p>
                                     )}
+                                    <div className="mb-2">
+                                      <p>Catering Hours:</p>
+                                      <div className="whitespace-pre-line text-xs mt-1">
+                                        {formatCateringHours(restaurant.cateringOperatingHours ?? null)}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -871,12 +939,14 @@ export default function Step2MenuItems() {
                             {restaurant.averageRating}
                           </span>
                         </div>
+                        
                         {restaurant.minCateringOrderQuantity &&
                           restaurant.minCateringOrderQuantity > 1 && (
                             <div className="mt-2 text-xs text-black bg-warning/10 px-2 py-1 rounded">
                               Min. {restaurant.minCateringOrderQuantity} items
                             </div>
                           )}
+                          
                         {restaurant.minimumDeliveryNoticeHours && (
                           <div className="mt-2 text-xs text-base-content/70 bg-info/10 px-2 py-1 rounded">
                             {restaurant.minimumDeliveryNoticeHours >= 24 ? (

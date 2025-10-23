@@ -1,26 +1,23 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useCatering } from "@/context/CateringContext";
-import { EventDetails } from "@/types/catering.types";
+import { ContactInfo, EventDetails } from "@/types/catering.types";
 
-// Define the options for Guest Count and Event Type to map to the UI
-// REPLACE the GUEST_COUNT_OPTIONS with:
-const GUEST_COUNT_OPTIONS = [
-  { label: "10-30 (Small)", value: 20 },
-  { label: "30-50 (Medium)", value: 40 },
-  { label: "50-70 (Large)", value: 60 },
-  { label: "70-90 (XL)", value: 80 },
-  { label: "90+ (XXL)", value: 100 },
-];
+// Load Google Maps script
+declare global {
+  interface Window {
+    initAutocomplete?: () => void;
+  }
+}
 
 const EVENT_TYPE_OPTIONS = [
   {
     name: "Corporate Lunch",
     value: "corporate",
     imgSrc: "/event-detail-img/corporate lunch.JPG",
-  }, // Placeholder paths
+  },
   {
     name: "Student Event",
     value: "student",
@@ -62,25 +59,182 @@ const MINUTE_OPTIONS = [
 ];
 
 export default function Step1EventDetails() {
-  const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants } = useCatering();
+  const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants, contactInfo, setContactInfo } = useCatering();
+  const [dateTimeError, setDateTimeError] = useState<string | null>(null);
+  
+  // Google Places Autocomplete refs
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  const [formData, setFormData] = useState<EventDetails>(
+    eventDetails || {
+      eventType: "",
+      eventDate: "",
+      eventTime: "",
+      guestCount: 0,
+      specialRequests: "",
+      address: "",
+    }
+  );
+
+  const [addressFormData, setAddressFormData] = useState<ContactInfo>(
+    contactInfo || {
+      fullName: "",
+      email: "",
+      phone: "",
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      zipcode: "",
+    }
+  );
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Calculate min and max dates
-  // const getMinDate = () => {
-  //   const date = new Date();
-  //   date.setDate(date.getDate() + 3);
-  //   return date.toISOString().split("T")[0];
-  // };
+  // Save form data to local storage whenever it changes
+  useEffect(() => {
+    if (formData.eventDate || formData.eventTime || formData.eventType) {
+      localStorage.setItem('catering_event_details', JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  // Save address form data to local storage whenever it changes
+  useEffect(() => {
+    if (addressFormData.addressLine1 || addressFormData.city || addressFormData.zipcode) {
+      localStorage.setItem('catering_contact_info', JSON.stringify(addressFormData));
+    }
+  }, [addressFormData]);
+
+  // Initialize Google Places Autocomplete
+  useEffect(() => {
+    const loadGoogleMapsScript = () => {
+      if (window.google?.maps?.places) {
+        initializeAutocomplete();
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeAutocomplete;
+      document.head.appendChild(script);
+    };
+
+    const initializeAutocomplete = () => {
+      if (!inputRef.current || !window.google?.maps?.places) return;
+
+      autocompleteRef.current = new google.maps.places.Autocomplete(
+        inputRef.current,
+        {
+          types: ["geocode"],
+          componentRestrictions: { country: "gb" },
+        }
+      );
+
+      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
+    };
+
+    loadGoogleMapsScript();
+
+    return () => {
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, []);
+
+  const handlePlaceSelect = () => {
+    const place = autocompleteRef.current?.getPlace();
+    if (!place?.address_components) return;
+
+    let street = "";
+    let city = "";
+    let zipcode = "";
+
+    place.address_components.forEach((component) => {
+      const types = component.types;
+
+      if (types.includes("street_number")) {
+        street = component.long_name + " ";
+      }
+      if (types.includes("route")) {
+        street += component.long_name;
+      }
+      if (types.includes("locality") || types.includes("postal_town")) {
+        city = component.long_name;
+      }
+      if (types.includes("postal_code")) {
+        zipcode = component.long_name;
+      }
+    });
+
+    setAddressFormData((prev) => ({
+      ...prev,
+      addressLine1: street.trim(),
+      city: city,
+      zipcode: zipcode,
+    }));
+  
+    setFormData((prev) => ({
+      ...prev,
+      address: place.formatted_address || "",
+    }));
+  };
 
   const getMaxDate = () => {
     const date = new Date();
     date.setMonth(date.getMonth() + 2);
     return date.toISOString().split("T")[0];
   };
+
+  const validateEventDateTime = (date: string, time: string): string | null => {
+    if (!date || !time || !selectedRestaurants || selectedRestaurants.length === 0) {
+      return null;
+    }
+
+    const eventDate = new Date(date);
+    const dayOfWeek = eventDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    
+    for (const restaurant of selectedRestaurants) {
+      // Skip if no catering hours configured
+      if (!restaurant.cateringOperatingHours) {
+        continue;
+      }
+
+      const daySchedule = restaurant.cateringOperatingHours.find(
+        (schedule) => schedule.day.toLowerCase() === dayOfWeek
+      );
+
+      if (!daySchedule || !daySchedule.enabled) {
+        return `${restaurant.restaurant_name} does not accept catering orders on ${dayOfWeek}s`;
+      }
+
+      if (!daySchedule.open || !daySchedule.close) {
+        return `${restaurant.restaurant_name} is closed for catering on ${dayOfWeek}s`;
+      }
+
+      // Convert times to minutes for comparison
+      const [eventHour, eventMinute] = time.split(':').map(Number);
+      const eventTimeMinutes = eventHour * 60 + eventMinute;
+      
+      const [openHour, openMinute] = daySchedule.open.split(':').map(Number);
+      const openMinutes = openHour * 60 + openMinute;
+      
+      const [closeHour, closeMinute] = daySchedule.close.split(':').map(Number);
+      const closeMinutes = closeHour * 60 + closeMinute;
+
+      if (eventTimeMinutes < openMinutes || eventTimeMinutes > closeMinutes) {
+        return `${restaurant.restaurant_name} only accepts catering orders between ${daySchedule.open} and ${daySchedule.close} on ${dayOfWeek}s`;
+      }
+    }
+
+    return null;
+  };
+
   const getMaxNoticeHours = () => {
     if (!selectedRestaurants || selectedRestaurants.length === 0) {
       return 48; // Default 48 hours
@@ -91,16 +245,14 @@ export default function Step1EventDetails() {
     );
   };
 
-  // REPLACE with:
-  const [formData, setFormData] = useState<EventDetails>(
-    eventDetails || {
-      eventType: "",
-      eventDate: "",
-      eventTime: "",
-      guestCount: 0, // No default selection
-      specialRequests: "",
+  useEffect(() => {
+    if (formData.eventDate && formData.eventTime) {
+      const error = validateEventDateTime(formData.eventDate, formData.eventTime);
+      setDateTimeError(error);
+    } else {
+      setDateTimeError(null);
     }
-  );
+  }, [formData.eventDate, formData.eventTime, selectedRestaurants]);
 
   // Separate state for hour and minute
   const [selectedHour, setSelectedHour] = useState(() => {
@@ -134,8 +286,11 @@ export default function Step1EventDetails() {
     if (!formData.eventDate) errors.push("Event date is required.");
     if (!formData.eventTime) errors.push("Event time is required.");
     if (!formData.eventType) errors.push("Event type is required.");
-    if (formData.guestCount === 0)
-      errors.push("Please select an estimated guest count.");
+    
+    // Validate address fields
+    if (!addressFormData.addressLine1.trim()) errors.push("Address Line 1 is required.");
+    if (!addressFormData.city.trim()) errors.push("City is required.");
+    if (!addressFormData.zipcode.trim()) errors.push("Postcode is required.");
   
     // Validate delivery notice
     if (formData.eventDate && formData.eventTime) {
@@ -149,28 +304,39 @@ export default function Step1EventDetails() {
           `Please select a date/time at least ${requiredNoticeHours} hours in advance. Your selected restaurants require this notice for your event orders.`
         );
       }
+  
+      // Validate operating hours
+      const operatingHoursError = validateEventDateTime(formData.eventDate, formData.eventTime);
+      if (operatingHoursError) {
+        errors.push(operatingHoursError);
+      }
     }
   
     if (errors.length > 0) {
       alert(errors.join("\n"));
       return;
     }
-  
-    setEventDetails(formData);
+
+    // Construct full address
+    const fullAddress = `${addressFormData.addressLine1}${addressFormData.addressLine2 ? ', ' + addressFormData.addressLine2 : ''}, ${addressFormData.city}, ${addressFormData.zipcode}`;
+    
+    // Save both event details and address info
+    setEventDetails({ ...formData, address: fullAddress });
+    setContactInfo(addressFormData);
     setCurrentStep(3);
   };
 
-  const handleGuestCountSelect = (optionValue: number) => {
-    setFormData({ ...formData, guestCount: optionValue });
-  };
-
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8">
-      {/* Event Details Header */}
-      <div className="flex justify-between items-start mb-10">
-        <div>
-          <h2 className="text-4xl font-bold mb-2">Event Details</h2>
-          <p className="text-lg text-gray-600">
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="text-center mb-12">
+        <div className="inline-block bg-dark-pink text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
+          Step 2 of 3
+        </div>
+        <h1 className="text-4xl font-bold mb-3 text-base-content">
+          Event Details
+        </h1>
+        <div className="mb-4">
+          <p className="text-base-content/70">
             We just need a few details before we start building your event order menu.
           </p>
         </div>
@@ -206,11 +372,15 @@ export default function Step1EventDetails() {
                   onChange={(e) =>
                     setFormData({ ...formData, eventDate: e.target.value })
                   }
-                  // min={getMinDate()}
                   max={getMaxDate()}
                   className="w-full"
                 />
               </div>
+              {dateTimeError && (
+                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{dateTimeError}</p>
+                </div>
+              )}
             </div>
             <div className="w-full">
               <label className="block text-sm font-medium mb-2">
@@ -255,39 +425,6 @@ export default function Step1EventDetails() {
           </div>
         </div>
 
-        {/* Portion Size (Guest Count) Section */}
-        <div>
-          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
-            Portion Size (Guest Count)
-          </h3>
-
-          <div className="flex flex-wrap gap-3 mb-3">
-            {GUEST_COUNT_OPTIONS.map((option) => {
-              const isActive = formData.guestCount === option.value;
-
-              return (
-                <button
-                  key={option.label}
-                  type="button"
-                  onClick={() => handleGuestCountSelect(option.value)}
-                  className={`
-                      px-5 py-2 rounded-full text-base font-medium transition-all duration-200  cursor-pointer
-                      ${
-                        isActive
-                          ? "bg-dark-pink text-white shadow-lg"
-                          : "bg-base-200 text-gray-600 hover:bg-base-300"
-                      }
-                    `}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Custom guest count input for 90+ */}
-        </div>
-
         {/* Type of Event Section */}
         <div>
           <h3 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -326,6 +463,99 @@ export default function Step1EventDetails() {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Delivery Address Section */}
+        <div>
+          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+            Delivery Address
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Enter the delivery address for your event. Start typing to use address autocomplete.
+          </p>
+
+          {/* Google Places Autocomplete Search */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-2 text-base-content">
+              Search the Event Address
+            </label>
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Start typing to autofill address fields..."
+              className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+            />
+            <p className="text-xs text-base-content/60 mt-2">
+              Select from dropdown to autofill, or enter manually below
+            </p>
+          </div>
+
+          {/* Address Line 1 */}
+          <div className="mb-4">
+            <label className="block text-sm font-semibold mb-2 text-base-content">
+              Address Line 1*
+            </label>
+            <input
+              type="text"
+              required
+              value={addressFormData.addressLine1}
+              onChange={(e) =>
+                setAddressFormData({ ...addressFormData, addressLine1: e.target.value })
+              }
+              placeholder="Street address"
+              className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+            />
+          </div>
+
+          {/* Address Line 2 */}
+          <div className="mb-4">
+            <label className="block text-sm font-semibold mb-2 text-base-content">
+              Address Line 2 (Optional)
+            </label>
+            <input
+              type="text"
+              value={addressFormData.addressLine2 || ""}
+              onChange={(e) =>
+                setAddressFormData({ ...addressFormData, addressLine2: e.target.value })
+              }
+              placeholder="Apartment, suite, unit, etc."
+              className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+            />
+          </div>
+
+          {/* City and Zipcode */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-base-content">
+                City*
+              </label>
+              <input
+                type="text"
+                required
+                value={addressFormData.city}
+                onChange={(e) =>
+                  setAddressFormData({ ...addressFormData, city: e.target.value })
+                }
+                placeholder="City"
+                className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-base-content">
+                Postcode*
+              </label>
+              <input
+                type="text"
+                required
+                value={addressFormData.zipcode}
+                onChange={(e) =>
+                  setAddressFormData({ ...addressFormData, zipcode: e.target.value })
+                }
+                placeholder="Postcode"
+                className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              />
+            </div>
           </div>
         </div>
 

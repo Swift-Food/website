@@ -143,7 +143,7 @@ const api = {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: accountId ? JSON.stringify({ accountId }) : undefined,
       }
@@ -176,17 +176,23 @@ const api = {
     }
   },
 
-  getPaymentAccounts: async (restaurantUserId: string): Promise<Record<string, { name: string; stripeAccountId: string }> | null> => {
+  getPaymentAccounts: async (
+    restaurantUserId: string
+  ): Promise<Record<
+    string,
+    { name: string; stripeAccountId: string }
+  > | null> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/restaurant-user/${restaurantUserId}/payment-accounts`);
+      const response = await fetch(
+        `${API_BASE_URL}/restaurant-user/${restaurantUserId}/payment-accounts`
+      );
       if (!response.ok) return null;
       return response.json();
     } catch (error) {
-      console.error('Failed to fetch payment accounts:', error);
+      console.error("Failed to fetch payment accounts:", error);
       return null;
     }
   },
-  
 
   requestWithdrawal: async (
     data: {
@@ -245,21 +251,24 @@ const api = {
     restaurantId: string,
     accepted: boolean,
     token: string,
-    selectedAccountId?: string, // NEW
+    selectedAccountId?: string // NEW
   ): Promise<CateringOrder> => {
-    const response = await fetch(`${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        restaurantId, 
-        accepted,
-        selectedAccountId, // NEW
-      }),
-    });
-    if (!response.ok) throw new Error('Failed to review catering order');
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          restaurantId,
+          accepted,
+          selectedAccountId, // NEW
+        }),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to review catering order");
     return response.json();
   },
 };
@@ -412,21 +421,32 @@ const StripeOnboardingRequired = ({
   userId: string;
   token: string;
   onRefresh: () => void;
-  paymentAccounts: { [accountId: string]: { name: string; stripeAccountId: string; stripeOnboardingComplete?: boolean } } | null;
+  paymentAccounts: {
+    [accountId: string]: {
+      name: string;
+      stripeAccountId: string;
+      stripeOnboardingComplete?: boolean;
+    };
+  } | null;
   selectedAccountId: string | null;
 }) => {
   console.log("user is", userId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const hasMultipleBranches = paymentAccounts && Object.keys(paymentAccounts).length > 0;
+  const hasMultipleBranches =
+    paymentAccounts && Object.keys(paymentAccounts).length > 0;
   const showAllBranches = hasMultipleBranches && selectedAccountId === null;
 
   const handleRefreshLink = async (accountId?: string) => {
     setLoading(true);
     setError("");
     try {
-      const { onboardingUrl } = await api.refreshOnboardingLink(userId, token, accountId);
+      const { onboardingUrl } = await api.refreshOnboardingLink(
+        userId,
+        token,
+        accountId
+      );
       window.location.href = onboardingUrl;
     } catch (err: any) {
       setError(err.message || "Failed to get onboarding link");
@@ -438,7 +458,9 @@ const StripeOnboardingRequired = ({
   // Show status of all branches when "All Branches" is selected
   if (showAllBranches) {
     const accounts = Object.entries(paymentAccounts!);
-    const incompleteAccounts = accounts.filter(([, account]) => !account.stripeOnboardingComplete);
+    const incompleteAccounts = accounts.filter(
+      ([, account]) => !account.stripeOnboardingComplete
+    );
 
     return (
       <div className="max-w-4xl mx-auto">
@@ -451,7 +473,8 @@ const StripeOnboardingRequired = ({
               Stripe Onboarding Status
             </h2>
             <p className="text-gray-700">
-              Select a branch from the navigation above to complete its Stripe onboarding.
+              Select a branch from the navigation above to complete its Stripe
+              onboarding.
             </p>
           </div>
 
@@ -462,8 +485,8 @@ const StripeOnboardingRequired = ({
                 key={accountId}
                 className={`p-4 rounded-lg border-2 ${
                   account.stripeOnboardingComplete
-                    ? 'bg-green-50 border-green-300'
-                    : 'bg-red-50 border-red-300'
+                    ? "bg-green-50 border-green-300"
+                    : "bg-red-50 border-red-300"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -473,12 +496,20 @@ const StripeOnboardingRequired = ({
                     ) : (
                       <AlertCircle size={20} className="text-red-600 mr-2" />
                     )}
-                    <span className="font-medium text-gray-900">{account.name}</span>
+                    <span className="font-medium text-gray-900">
+                      {account.name}
+                    </span>
                   </div>
-                  <span className={`text-sm font-medium ${
-                    account.stripeOnboardingComplete ? 'text-green-700' : 'text-red-700'
-                  }`}>
-                    {account.stripeOnboardingComplete ? 'Complete' : 'Incomplete'}
+                  <span
+                    className={`text-sm font-medium ${
+                      account.stripeOnboardingComplete
+                        ? "text-green-700"
+                        : "text-red-700"
+                    }`}
+                  >
+                    {account.stripeOnboardingComplete
+                      ? "Complete"
+                      : "Incomplete"}
                   </span>
                 </div>
               </div>
@@ -487,7 +518,9 @@ const StripeOnboardingRequired = ({
 
           {incompleteAccounts.length > 0 && (
             <p className="text-sm text-gray-600 mt-4 text-center">
-              {incompleteAccounts.length} branch{incompleteAccounts.length > 1 ? 'es' : ''} require{incompleteAccounts.length === 1 ? 's' : ''} onboarding
+              {incompleteAccounts.length} branch
+              {incompleteAccounts.length > 1 ? "es" : ""} require
+              {incompleteAccounts.length === 1 ? "s" : ""} onboarding
             </p>
           )}
         </div>
@@ -496,9 +529,10 @@ const StripeOnboardingRequired = ({
   }
 
   // Show onboarding for specific branch
-  const accountName = selectedAccountId && paymentAccounts?.[selectedAccountId]
-    ? paymentAccounts[selectedAccountId].name
-    : 'Main Account';
+  const accountName =
+    selectedAccountId && paymentAccounts?.[selectedAccountId]
+      ? paymentAccounts[selectedAccountId].name
+      : "Main Account";
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -512,7 +546,7 @@ const StripeOnboardingRequired = ({
         <p className="text-gray-700 mb-2">
           {hasMultipleBranches && selectedAccountId
             ? `Complete Stripe onboarding for ${accountName}`
-            : 'Complete your Stripe account setup'}
+            : "Complete your Stripe account setup"}
         </p>
         <p className="text-gray-600 text-sm mb-6">
           This is required to securely receive payments.
@@ -721,11 +755,17 @@ const CateringOrdersList = ({
   hasMultipleBranches: boolean;
   selectedAccountId: string | null;
 }) => {
+  console.log("Orders: ", orders);
   const [reviewing, setReviewing] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [activeStatusTab, setActiveStatusTab] = useState<string>('admin_reviewed');
-  const [selectedAccounts, setSelectedAccounts] = useState<Record<string, string>>({}); // orderId -> accountId
-  const [availableAccounts, setAvailableAccounts] = useState<Record<string, any>>({});
+  const [error, setError] = useState("");
+  const [activeStatusTab, setActiveStatusTab] =
+    useState<string>("admin_reviewed");
+  const [selectedAccounts, setSelectedAccounts] = useState<
+    Record<string, string>
+  >({}); // orderId -> accountId
+  const [availableAccounts, setAvailableAccounts] = useState<
+    Record<string, any>
+  >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
 
   const getPayoutAccountName = (order: CateringOrder): string | null => {
@@ -745,7 +785,7 @@ const CateringOrdersList = ({
       if (accounts && Object.keys(accounts).length > 0) {
         const defaultAccountId = Object.keys(accounts)[0];
         const defaultSelections: Record<string, string> = {};
-        orders.forEach(order => {
+        orders.forEach((order) => {
           defaultSelections[order.id] = defaultAccountId;
         });
         setSelectedAccounts(defaultSelections);
@@ -759,11 +799,14 @@ const CateringOrdersList = ({
 
   // Switch tab when viewing specific branch (can't show admin_reviewed on specific branches)
   useEffect(() => {
-    if (hasMultipleBranches && selectedAccountId !== null && activeStatusTab === 'admin_reviewed') {
-      setActiveStatusTab('restaurant_reviewed');
+    if (
+      hasMultipleBranches &&
+      selectedAccountId !== null &&
+      activeStatusTab === "admin_reviewed"
+    ) {
+      setActiveStatusTab("restaurant_reviewed");
     }
   }, [hasMultipleBranches, selectedAccountId, activeStatusTab]);
-  
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-GB", {
@@ -780,7 +823,7 @@ const CateringOrdersList = ({
       restaurant_reviewed: "bg-blue-100 text-blue-800 border-blue-300",
       paid: "bg-green-100 text-green-800 border-green-300",
       confirmed: "bg-green-100 text-green-800 border-green-300",
-      completed: "bg-gray-100 text-gray-800 border-gray-300",
+      completed: "bg-blue-100 text-blue-800 border-blue-300",
     };
     return colors[status] || "bg-gray-100 text-gray-800 border-gray-300";
   };
@@ -797,11 +840,11 @@ const CateringOrdersList = ({
   };
 
   const formatEventTime = (eventTime: string) => {
-    // Parse the time and subtract 1.5 hours
+    // Parse the time and subtract 15 minutes (show collection time earlier)
     const [hours, minutes] = eventTime.split(":").map(Number);
-    const totalMinutes = hours * 60 + minutes - 30;
-    const newHours = Math.floor(totalMinutes / 60);
-    const newMinutes = totalMinutes % 60;
+    const totalMinutes = hours * 60 + minutes - 15;
+    const newHours = Math.floor(((totalMinutes + 24 * 60) % (24 * 60)) / 60);
+    const newMinutes = ((totalMinutes % 60) + 60) % 60;
     return `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(
       2,
       "0"
@@ -814,15 +857,15 @@ const CateringOrdersList = ({
 
     try {
       const selectedAccountId = selectedAccounts[orderId];
-      
+
       await api.reviewCateringOrder(
-        orderId, 
-        restaurantId, 
-        accepted, 
+        orderId,
+        restaurantId,
+        accepted,
         token,
         selectedAccountId // Pass selected account
       );
-      await onRefresh()
+      await onRefresh();
     } catch (err: any) {
       setError(err.message || "Failed to review order");
     } finally {
@@ -839,7 +882,8 @@ const CateringOrdersList = ({
   }, {} as Record<string, CateringOrder[]>);
 
   // Determine if we should show only pending review (All Branches view)
-  const showOnlyPendingReview = hasMultipleBranches && selectedAccountId === null;
+  const showOnlyPendingReview =
+    hasMultipleBranches && selectedAccountId === null;
 
   // Determine if we should hide pending review (specific branch view)
   const hidePendingReview = hasMultipleBranches && selectedAccountId !== null;
@@ -880,9 +924,9 @@ const CateringOrdersList = ({
   // - Specific branch view: show all EXCEPT Pending Review
   // - No branches (legacy): show all tabs
   const statusTabs = showOnlyPendingReview
-    ? allStatusTabs.filter(tab => tab.key === "admin_reviewed")
+    ? allStatusTabs.filter((tab) => tab.key === "admin_reviewed")
     : hidePendingReview
-    ? allStatusTabs.filter(tab => tab.key !== "admin_reviewed")
+    ? allStatusTabs.filter((tab) => tab.key !== "admin_reviewed")
     : allStatusTabs;
 
   // Fix 1: Update getActiveOrders function to prevent duplicate orders
@@ -969,11 +1013,21 @@ const CateringOrdersList = ({
               key={order.id}
               className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 hover:shadow-lg transition-shadow"
             >
+              <div className="w-full flex justify-center mb-3">
+                <span className="text-xl text-gray-500 text-center">
+                  <b className="text-primary">
+                    Reference: {order.id.slice(0, 4).toUpperCase()}
+                  </b>
+                </span>
+              </div>
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
-                <div>
+                <div className="flex flex-row gap-5 justify-center items-center">
+                  {/* <span className="text-lg text-gray-500">
+                    <b>Reference: {order.id.slice(0, 4).toUpperCase()}</b>
+                  </span> */}
                   <span
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border inline-block ${getStatusColor(
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border inline-block text-center ${getStatusColor(
                       order.status
                     )}`}
                   >
@@ -984,9 +1038,9 @@ const CateringOrdersList = ({
                   <p className="font-bold text-xl sm:text-2xl text-gray-900">
                     {formatCurrency(order.restaurantTotalCost)}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    Reference: {order.id.slice(-4).toUpperCase()}
-                  </p>
+                  {/* <p className="text-xs text-gray-500">
+                    Reference: {order.id.slice(0, 4).toUpperCase()}
+                    </p> */}
                   <p className="text-xs text-gray-500">
                     Event: {formatDate(order.eventDate)}
                   </p>
@@ -1008,15 +1062,17 @@ const CateringOrdersList = ({
                   <p className="text-gray-600">
                     Collection Time:{" "}
                     <span className="text-gray-900 font-medium">
-                      {formatEventTime(order.eventTime)}
+                      {order.collectionTime
+                        ? order.collectionTime
+                        : formatEventTime(order.eventTime)}
                     </span>
                   </p>
-                  <p className="text-gray-600">
+                  {/* <p className="text-gray-600">
                     Guests:{" "}
                     <span className="text-gray-900 font-medium">
                       {order.guestCount} people
                     </span>
-                  </p>
+                  </p> */}
                   <p className="text-gray-600">
                     Account:{" "}
                     <span className="text-gray-900 font-medium">
@@ -1077,37 +1133,46 @@ const CateringOrdersList = ({
               {/* Review Buttons - Mobile optimized */}
               {order.status === "admin_reviewed" && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-
                   {/* Account Selector - Show if restaurant has branches */}
-                  {!loadingAccounts && availableAccounts && Object.keys(availableAccounts).length > 0 && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <label className="block text-sm font-semibold text-blue-900 mb-2">
-                        💳 Select Branch/Payment Account:
-                      </label>
-                      <select
-                        value={selectedAccounts[order.id] || ''}
-                        onChange={(e) => setSelectedAccounts(prev => ({
-                          ...prev,
-                          [order.id]: e.target.value
-                        }))}
-                        className="w-full px-3 py-2 border border-blue-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
-                      >
-                        {Object.entries(availableAccounts).map(([id, account]: [string, any]) => (
-                          <option key={id} value={id}>
-                            {account.name}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-blue-700 mt-2">
-                        💰 Payment will be sent to: <strong>{availableAccounts[selectedAccounts[order.id]]?.name || 'Selected Account'}</strong>
-                      </p>
-                    </div>
-                  )}
-                  
+                  {!loadingAccounts &&
+                    availableAccounts &&
+                    Object.keys(availableAccounts).length > 0 && (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <label className="block text-sm font-semibold text-blue-900 mb-2">
+                          💳 Select Branch/Payment Account:
+                        </label>
+                        <select
+                          value={selectedAccounts[order.id] || ""}
+                          onChange={(e) =>
+                            setSelectedAccounts((prev) => ({
+                              ...prev,
+                              [order.id]: e.target.value,
+                            }))
+                          }
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
+                        >
+                          {Object.entries(availableAccounts).map(
+                            ([id, account]: [string, any]) => (
+                              <option key={id} value={id}>
+                                {account.name}
+                              </option>
+                            )
+                          )}
+                        </select>
+                        <p className="text-xs text-blue-700 mt-2">
+                          💰 Payment will be sent to:{" "}
+                          <strong>
+                            {availableAccounts[selectedAccounts[order.id]]
+                              ?.name || "Selected Account"}
+                          </strong>
+                        </p>
+                      </div>
+                    )}
+
                   <p className="text-xs sm:text-sm font-medium text-gray-900 mb-3">
                     Please review this order and confirm your availability
                   </p>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
                       onClick={() => handleReview(order.id, true)}
@@ -1222,7 +1287,14 @@ const WithdrawalDashboard = ({
       }
 
       setCateringOrders(filteredOrders);
-      console.log("Catering data is", cateringData, "Filtered:", filteredOrders, "Selected Account:", selectedAccountId);
+      console.log(
+        "Catering data is",
+        cateringData,
+        "Filtered:",
+        filteredOrders,
+        "Selected Account:",
+        selectedAccountId
+      );
     } catch (err: any) {
       console.error("Fetch error:", err);
       setError(err.message || "Failed to load data");
@@ -1360,8 +1432,11 @@ const WithdrawalDashboard = ({
 
         {/* Determine if showing all branches */}
         {(() => {
-          const hasMultipleBranches = !!restaurantUser?.paymentAccounts && Object.keys(restaurantUser.paymentAccounts).length > 0;
-          const showAllBranches = hasMultipleBranches && selectedAccountId === null;
+          const hasMultipleBranches =
+            !!restaurantUser?.paymentAccounts &&
+            Object.keys(restaurantUser.paymentAccounts).length > 0;
+          const showAllBranches =
+            hasMultipleBranches && selectedAccountId === null;
 
           // If showing all branches, only show Event Orders (pending review)
           if (showAllBranches) {
@@ -1390,29 +1465,31 @@ const WithdrawalDashboard = ({
             <>
               {/* Balance Card */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
-            <div className="flex items-center mb-2">
-              <DollarSign size={24} />
-              <span className="ml-2 text-sm font-medium">
-                Available Balance
-              </span>
-            </div>
-            <p className="text-4xl font-bold">
-              £{balance?.available.toFixed(2) || "0.00"}
-            </p>
-          </div>
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
+                  <div className="flex items-center mb-2">
+                    <DollarSign size={24} />
+                    <span className="ml-2 text-sm font-medium">
+                      Available Balance
+                    </span>
+                  </div>
+                  <p className="text-4xl font-bold">
+                    £{balance?.available.toFixed(2) || "0.00"}
+                  </p>
+                </div>
 
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-            <div className="flex items-center mb-2">
-              <Clock size={24} />
-              <span className="ml-2 text-sm font-medium">Pending Balance</span>
-            </div>
-            <p className="text-4xl font-bold">
-              £{balance?.pending.toFixed(2) || "0.00"}
-            </p>
-          </div>
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                  <div className="flex items-center mb-2">
+                    <Clock size={24} />
+                    <span className="ml-2 text-sm font-medium">
+                      Pending Balance
+                    </span>
+                  </div>
+                  <p className="text-4xl font-bold">
+                    £{balance?.pending.toFixed(2) || "0.00"}
+                  </p>
+                </div>
 
-          {/* <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+                {/* <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white">
             <div className="flex items-center mb-2">
               <CheckCircle size={24} />
               <span className="ml-2 text-sm font-medium">Last Withdrawal</span>
@@ -1423,197 +1500,207 @@ const WithdrawalDashboard = ({
                 : 'Never'}
             </p>
           </div> */}
-        </div>
+              </div>
 
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab("withdrawals")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === "withdrawals"
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                Withdrawals
-              </button>
-              <button
-                onClick={() => setActiveTab("catering")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === "catering"
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                Event Orders
-                {cateringOrders.length > 0 && (
-                  <span className="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2 rounded-full text-xs">
-                    {cateringOrders.length}
-                  </span>
-                )}
-              </button>
-            </nav>
-          </div>
-        </div>
+              <div className="mb-8">
+                <div className="border-b border-gray-200">
+                  <nav className="flex space-x-8">
+                    <button
+                      onClick={() => setActiveTab("withdrawals")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                        activeTab === "withdrawals"
+                          ? "border-blue-600 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      Withdrawals
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("catering")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                        activeTab === "catering"
+                          ? "border-blue-600 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      Event Orders
+                      {cateringOrders.length > 0 && (
+                        <span className="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2 rounded-full text-xs">
+                          {cateringOrders.length}
+                        </span>
+                      )}
+                    </button>
+                  </nav>
+                </div>
+              </div>
 
-        {/* Early Withdrawal Fee Warning */}
-        {balance && !balance.canWithdrawWithoutFee && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start">
-            <AlertCircle
-              size={20}
-              className="text-yellow-600 mr-3 flex-shrink-0 mt-0.5"
-            />
-            <div>
-              <p className="font-medium text-yellow-900">
-                Early Withdrawal Fee
-              </p>
-              <p className="text-sm text-yellow-800">
-                You withdrew within the last 7 days. A £0.50 fee will be charged
-                for this withdrawal.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "withdrawals" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Withdrawal Form */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Request Withdrawal
-              </h2>
-
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
+              {/* Early Withdrawal Fee Warning */}
+              {balance && !balance.canWithdrawWithoutFee && (
+                <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start">
                   <AlertCircle
-                    size={18}
-                    className="mr-2 flex-shrink-0 mt-0.5"
+                    size={20}
+                    className="text-yellow-600 mr-3 flex-shrink-0 mt-0.5"
                   />
-                  <span className="text-sm">{error}</span>
-                </div>
-              )}
-
-              {success && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start text-green-700">
-                  <CheckCircle
-                    size={18}
-                    className="mr-2 flex-shrink-0 mt-0.5"
-                  />
-                  <span className="text-sm">{success}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleWithdrawalSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Withdrawal Amount (£)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    max={balance?.available}
-                    value={withdrawalAmount}
-                    onChange={(e) => setWithdrawalAmount(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    placeholder="0.00"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Available: £{balance?.available.toFixed(2) || "0.00"}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes (Optional)
-                  </label>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    placeholder="Add any notes about this withdrawal..."
-                  />
-                </div>
-
-                {/* Fee Preview */}
-                {withdrawalAmount && parseFloat(withdrawalAmount) > 0 && (
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                    <div className="flex justify-between text-gray-700">
-                      <span>Requested Amount:</span>
-                      <span className="font-medium">
-                        £{parseFloat(withdrawalAmount).toFixed(2)}
-                      </span>
-                    </div>
-                    {balance && !balance.canWithdrawWithoutFee && (
-                      <div className="flex justify-between text-red-600">
-                        <span>Early Withdrawal Fee:</span>
-                        <span className="font-medium">-£0.50</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-gray-200">
-                      <span>You'll Receive:</span>
-                      <span>
-                        £
-                        {(
-                          parseFloat(withdrawalAmount) -
-                          (balance && !balance.canWithdrawWithoutFee ? 0.5 : 0)
-                        ).toFixed(2)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 pt-2">
-                      Expected arrival: 1-3 business days after approval
+                  <div>
+                    <p className="font-medium text-yellow-900">
+                      Early Withdrawal Fee
+                    </p>
+                    <p className="text-sm text-yellow-800">
+                      You withdrew within the last 7 days. A £0.50 fee will be
+                      charged for this withdrawal.
                     </p>
                   </div>
-                )}
+                </div>
+              )}
 
-                <button
-                  type="submit"
-                  disabled={submitting || !balance || balance.available <= 0}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader size={18} className="mr-2 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    "Request Withdrawal"
-                  )}
-                </button>
-              </form>
-            </div>
+              {activeTab === "withdrawals" ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Withdrawal Form */}
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">
+                      Request Withdrawal
+                    </h2>
 
-            {/* Withdrawal History */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Withdrawal History
-              </h2>
-              <div className="max-h-[600px] overflow-y-auto">
-                <WithdrawalHistory history={history} />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              Event Orders
-            </h2>
-            <div className="max-h-[800px] overflow-y-auto">
-              <CateringOrdersList
-                orders={cateringOrders}
-                restaurantId={restaurantId}
-                restaurantUserId={restaurantUserId}
-                token={token}
-                onRefresh={fetchData}
-                hasMultipleBranches={!!restaurantUser?.paymentAccounts && Object.keys(restaurantUser.paymentAccounts).length > 0}
-                selectedAccountId={selectedAccountId}
-              />
-            </div>
-          </div>
-        )}
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
+                        <AlertCircle
+                          size={18}
+                          className="mr-2 flex-shrink-0 mt-0.5"
+                        />
+                        <span className="text-sm">{error}</span>
+                      </div>
+                    )}
+
+                    {success && (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start text-green-700">
+                        <CheckCircle
+                          size={18}
+                          className="mr-2 flex-shrink-0 mt-0.5"
+                        />
+                        <span className="text-sm">{success}</span>
+                      </div>
+                    )}
+
+                    <form
+                      onSubmit={handleWithdrawalSubmit}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Withdrawal Amount (£)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          max={balance?.available}
+                          value={withdrawalAmount}
+                          onChange={(e) => setWithdrawalAmount(e.target.value)}
+                          required
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                          placeholder="0.00"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Available: £{balance?.available.toFixed(2) || "0.00"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Notes (Optional)
+                        </label>
+                        <textarea
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                          placeholder="Add any notes about this withdrawal..."
+                        />
+                      </div>
+
+                      {/* Fee Preview */}
+                      {withdrawalAmount && parseFloat(withdrawalAmount) > 0 && (
+                        <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                          <div className="flex justify-between text-gray-700">
+                            <span>Requested Amount:</span>
+                            <span className="font-medium">
+                              £{parseFloat(withdrawalAmount).toFixed(2)}
+                            </span>
+                          </div>
+                          {balance && !balance.canWithdrawWithoutFee && (
+                            <div className="flex justify-between text-red-600">
+                              <span>Early Withdrawal Fee:</span>
+                              <span className="font-medium">-£0.50</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-gray-200">
+                            <span>You'll Receive:</span>
+                            <span>
+                              £
+                              {(
+                                parseFloat(withdrawalAmount) -
+                                (balance && !balance.canWithdrawWithoutFee
+                                  ? 0.5
+                                  : 0)
+                              ).toFixed(2)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 pt-2">
+                            Expected arrival: 1-3 business days after approval
+                          </p>
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={
+                          submitting || !balance || balance.available <= 0
+                        }
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        {submitting ? (
+                          <>
+                            <Loader size={18} className="mr-2 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          "Request Withdrawal"
+                        )}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Withdrawal History */}
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">
+                      Withdrawal History
+                    </h2>
+                    <div className="max-h-[600px] overflow-y-auto">
+                      <WithdrawalHistory history={history} />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-6">
+                    Event Orders
+                  </h2>
+                  <div className="max-h-[800px] overflow-y-auto">
+                    <CateringOrdersList
+                      orders={cateringOrders}
+                      restaurantId={restaurantId}
+                      restaurantUserId={restaurantUserId}
+                      token={token}
+                      onRefresh={fetchData}
+                      hasMultipleBranches={
+                        !!restaurantUser?.paymentAccounts &&
+                        Object.keys(restaurantUser.paymentAccounts).length > 0
+                      }
+                      selectedAccountId={selectedAccountId}
+                    />
+                  </div>
+                </div>
+              )}
             </>
           );
         })()}

@@ -61,7 +61,7 @@ class CateringService {
     contactInfo: ContactInfo,
     promoCodes: string[],
     ccEmails?: string[]
-  ): Promise<{ success: boolean; orderId: string }> {
+  ) {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
 
     // Step 2: Create address
@@ -231,7 +231,7 @@ class CateringService {
     }
 
     const data = await response.json();
-    return data.id;
+    return data.user.id;
   }
 
   async createAddress(
