@@ -327,25 +327,30 @@ export default function Step1EventDetails() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <div className="inline-block bg-dark-pink text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
-          Step 2 of 3
+      <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
+      <div className="text-center mb-12 ">
+        {/* Back button and Step indicator in same row */}
+        <div className="flex justify-between mb-4">
+          <h1 className="text-4xl font-bold mb-3 text-base-content">
+            Event Details
+          </h1>
+          <button
+            onClick={() => setCurrentStep(1)}
+            className="text-dark-pink hover:opacity-80 font-medium flex items-center gap-1"
+          >
+            ← Back
+          </button>
+
+          {/* Empty div for spacing balance */}
+          <div className="w-20"></div>
         </div>
-        <h1 className="text-4xl font-bold mb-3 text-base-content">
-          Event Details
-        </h1>
+    
+        
         {/* <div className="mb-4">
           <p className="text-base-content/70">
             We just need a few details before we start building your event order menu.
           </p>
         </div> */}
-        <button
-          onClick={() => setCurrentStep(1)}
-          className="text-dark-pink hover:opacity-80 font-medium flex items-center gap-1 mt-1"
-        >
-          ← Back
-        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-10">
@@ -560,15 +565,34 @@ export default function Step1EventDetails() {
         </div>
 
         <div className="text-center pt-4">
-          <button
-            type="submit"
-            className="bg-dark-pink text-white py-4 px-12 rounded-full font-bold text-lg hover:bg-pink-700 transition-colors shadow-lg shadow-dark-pink/30"
-          >
-            Continue to contact details
-          </button>
-          {/* <p className="text-sm text-gray-500 mt-3">
-            You can edit your event details later before submission.
-          </p> */}
+          <div className="flex items-stretch justify-center gap-4 max-w-2xl mx-auto">
+            <button
+              type="button"
+              onClick={() => setCurrentStep(1)}
+              className="flex-[3] bg-white text-dark-pink border-2 border-dark-pink py-2 px-4 rounded-full font-bold text-base sm:text-lg hover:bg-gray-50 transition-colors min-h-[60px] flex items-center justify-center"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-6 w-6" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+                />
+              </svg>
+            </button>
+            <button
+              type="submit"
+              className="flex-[7] bg-dark-pink text-white py-2 px-6 rounded-full font-bold text-base sm:text-lg hover:bg-pink-700 transition-colors shadow-lg shadow-dark-pink/30 min-h-[60px]"
+            >
+              Continue to contact details
+            </button>
+          </div>
         </div>
       </form>
     </div>

@@ -666,9 +666,9 @@ export default function Step3ContactInfo() {
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-sm text-base-content/60 mb-2">
+              {/* <p className="text-sm text-base-content/60 mb-2">
                 Step 3 of 3 - Contact & Confirmation
-              </p>
+              </p> */}
               <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
                 Your Contact Details
               </h2>
