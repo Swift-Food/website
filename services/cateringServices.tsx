@@ -61,7 +61,7 @@ class CateringService {
     contactInfo: ContactInfo,
     promoCodes: string[],
     ccEmails?: string[]
-  ): Promise<{ success: boolean; orderId: string }> {
+  ) {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
 
     // Step 2: Create address
@@ -171,19 +171,19 @@ class CateringService {
     };
     console.log("catering req", JSON.stringify(createDto));
 
-    const response = await fetch(`${API_BASE_URL}/catering-orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(createDto),
-    });
+    // const response = await fetch(`${API_BASE_URL}/catering-orders`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(createDto),
+    // });
 
-    if (!response.ok) {
-      throw new Error("Failed to submit catering order");
-    }
+    // if (!response.ok) {
+    //   throw new Error("Failed to submit catering order");
+    // }
 
-    return response.json();
+    // return response.json();
   }
 
   async findOrCreateConsumerAccount(contactInfo: ContactInfo): Promise<string> {
