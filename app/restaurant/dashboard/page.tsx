@@ -1067,12 +1067,12 @@ const CateringOrdersList = ({
                         : formatEventTime(order.eventTime)}
                     </span>
                   </p>
-                  <p className="text-gray-600">
+                  {/* <p className="text-gray-600">
                     Guests:{" "}
                     <span className="text-gray-900 font-medium">
                       {order.guestCount} people
                     </span>
-                  </p>
+                  </p> */}
                   <p className="text-gray-600">
                     Account:{" "}
                     <span className="text-gray-900 font-medium">
