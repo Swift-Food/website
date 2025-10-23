@@ -57,13 +57,11 @@ export default function Step3ContactInfo() {
   const [promoSuccess, setPromoSuccess] = useState("");
   const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
   const [calculatingPricing, setCalculatingPricing] = useState(false);
-  const [preferredContact, setPreferredContact] = useState<"email" | "phone">(
-    "email"
-  );
+
   const [ccEmails, setCcEmails] = useState<string[]>([]);
   const [ccEmailInput, setCcEmailInput] = useState("");
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [ccEmailError, setCcEmailError] = useState("");
+
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,8 +81,7 @@ export default function Step3ContactInfo() {
     if (!phone.trim()) {
       return "Phone number is required";
     }
-    // UK phone number validation (accepts various formats)
-    const phoneRegex = /^(?:(?:\+44\s?|0)(?:\d\s?){9,10})$/;
+
     const cleanPhone = phone.replace(/[\s()-]/g, '');
     if (cleanPhone.length < 10 || cleanPhone.length > 11) {
       return "Please enter a valid UK phone number";
@@ -934,120 +931,6 @@ export default function Step3ContactInfo() {
                   </div>
                 )}
               </div>
-
-              {/* Preferred Contact Method */}
-              <div>
-                <label className="block text-sm font-semibold mb-3 text-base-content">
-                  How would you prefer to be contacted?
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="contact"
-                      value="email"
-                      checked={preferredContact === "email"}
-                      onChange={() => setPreferredContact("email")}
-                      className="radio radio-primary"
-                    />
-                    <span className="text-base-content">Email</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="contact"
-                      value="phone"
-                      checked={preferredContact === "phone"}
-                      onChange={() => setPreferredContact("phone")}
-                      className="radio radio-primary"
-                    />
-                    <span className="text-base-content">Phone</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Address Search */}
-              {/* <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Search the Event Address
-                </label>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Start typing to autofill address fields..."
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                />
-                <p className="text-xs text-base-content/60 mt-2">
-                  Select from dropdown to autofill, or enter manually below
-                </p>
-              </div> */}
-
-              {/* Address Line 1 */}
-              {/* <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Address Line 1*
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.addressLine1}
-                  onChange={(e) =>
-                    setFormData({ ...formData, addressLine1: e.target.value })
-                  }
-                  placeholder="Street address"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                />
-              </div> */}
-
-              {/* Address Line 2 */}
-              {/* <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Address Line 2 (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.addressLine2 || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, addressLine2: e.target.value })
-                  }
-                  placeholder="Apartment, suite, unit, etc."
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                />
-              </div> */}
-
-              {/* City and Zipcode */}
-              {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    City*
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    placeholder="City"
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    Postcode*
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.zipcode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, zipcode: e.target.value })
-                    }
-                    placeholder="Postcode"
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                  />
-                </div>
-              </div> */}
 
               {/* Submit Button - Desktop */}
               <div className="hidden lg:block pt-4">
