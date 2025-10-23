@@ -44,28 +44,35 @@ const EVENT_TYPE_OPTIONS = [
 const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => {
   const hour24 = i + 6; // Start from 6 AM
   const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-  const ampm = hour24 >= 12 ? 'PM' : 'AM';
+  const ampm = hour24 >= 12 ? "PM" : "AM";
   return {
     label: `${hour12} ${ampm}`,
-    value: String(hour24).padStart(2, '0')
+    value: String(hour24).padStart(2, "0"),
   };
 });
 
 const MINUTE_OPTIONS = [
-  { label: '00', value: '00' },
-  { label: '15', value: '15' },
-  { label: '30', value: '30' },
-  { label: '45', value: '45' },
+  { label: "00", value: "00" },
+  { label: "15", value: "15" },
+  { label: "30", value: "30" },
+  { label: "45", value: "45" },
 ];
 
 export default function Step1EventDetails() {
-  const { eventDetails, setEventDetails, setCurrentStep, selectedRestaurants, contactInfo, setContactInfo } = useCatering();
+  const {
+    eventDetails,
+    setEventDetails,
+    setCurrentStep,
+    selectedRestaurants,
+    contactInfo,
+    setContactInfo,
+  } = useCatering();
   const [dateTimeError, setDateTimeError] = useState<string | null>(null);
-  
+
   // Google Places Autocomplete refs
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const [formData, setFormData] = useState<EventDetails>(
     eventDetails || {
       eventType: "",
@@ -97,14 +104,21 @@ export default function Step1EventDetails() {
   // Save form data to local storage whenever it changes
   useEffect(() => {
     if (formData.eventDate || formData.eventTime || formData.eventType) {
-      localStorage.setItem('catering_event_details', JSON.stringify(formData));
+      localStorage.setItem("catering_event_details", JSON.stringify(formData));
     }
   }, [formData]);
 
   // Save address form data to local storage whenever it changes
   useEffect(() => {
-    if (addressFormData.addressLine1 || addressFormData.city || addressFormData.zipcode) {
-      localStorage.setItem('catering_contact_info', JSON.stringify(addressFormData));
+    if (
+      addressFormData.addressLine1 ||
+      addressFormData.city ||
+      addressFormData.zipcode
+    ) {
+      localStorage.setItem(
+        "catering_contact_info",
+        JSON.stringify(addressFormData)
+      );
     }
   }, [addressFormData]);
 
@@ -178,7 +192,7 @@ export default function Step1EventDetails() {
       city: city,
       zipcode: zipcode,
     }));
-  
+
     setFormData((prev) => ({
       ...prev,
       address: place.formatted_address || "",
@@ -192,13 +206,20 @@ export default function Step1EventDetails() {
   };
 
   const validateEventDateTime = (date: string, time: string): string | null => {
-    if (!date || !time || !selectedRestaurants || selectedRestaurants.length === 0) {
+    if (
+      !date ||
+      !time ||
+      !selectedRestaurants ||
+      selectedRestaurants.length === 0
+    ) {
       return null;
     }
 
     const eventDate = new Date(date);
-    const dayOfWeek = eventDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    
+    const dayOfWeek = eventDate
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+
     for (const restaurant of selectedRestaurants) {
       // Skip if no catering hours configured
       if (!restaurant.cateringOperatingHours) {
@@ -218,13 +239,13 @@ export default function Step1EventDetails() {
       }
 
       // Convert times to minutes for comparison
-      const [eventHour, eventMinute] = time.split(':').map(Number);
+      const [eventHour, eventMinute] = time.split(":").map(Number);
       const eventTimeMinutes = eventHour * 60 + eventMinute;
-      
-      const [openHour, openMinute] = daySchedule.open.split(':').map(Number);
+
+      const [openHour, openMinute] = daySchedule.open.split(":").map(Number);
       const openMinutes = openHour * 60 + openMinute;
-      
-      const [closeHour, closeMinute] = daySchedule.close.split(':').map(Number);
+
+      const [closeHour, closeMinute] = daySchedule.close.split(":").map(Number);
       const closeMinutes = closeHour * 60 + closeMinute;
 
       if (eventTimeMinutes < openMinutes || eventTimeMinutes > closeMinutes) {
@@ -239,15 +260,18 @@ export default function Step1EventDetails() {
     if (!selectedRestaurants || selectedRestaurants.length === 0) {
       return 48; // Default 48 hours
     }
-    
+
     return Math.max(
-      ...selectedRestaurants.map(r => r.minimumDeliveryNoticeHours || 48)
+      ...selectedRestaurants.map((r) => r.minimumDeliveryNoticeHours || 48)
     );
   };
 
   useEffect(() => {
     if (formData.eventDate && formData.eventTime) {
-      const error = validateEventDateTime(formData.eventDate, formData.eventTime);
+      const error = validateEventDateTime(
+        formData.eventDate,
+        formData.eventTime
+      );
       setDateTimeError(error);
     } else {
       setDateTimeError(null);
@@ -257,16 +281,16 @@ export default function Step1EventDetails() {
   // Separate state for hour and minute
   const [selectedHour, setSelectedHour] = useState(() => {
     if (eventDetails?.eventTime) {
-      return eventDetails.eventTime.split(':')[0];
+      return eventDetails.eventTime.split(":")[0];
     }
-    return '';
+    return "";
   });
 
   const [selectedMinute, setSelectedMinute] = useState(() => {
     if (eventDetails?.eventTime) {
-      return eventDetails.eventTime.split(':')[1];
+      return eventDetails.eventTime.split(":")[1];
     }
-    return '';
+    return "";
   });
 
   // Update eventTime when hour or minute changes
@@ -275,51 +299,60 @@ export default function Step1EventDetails() {
       const timeValue = `${hour}:${minute}`;
       setFormData({ ...formData, eventTime: timeValue });
     } else {
-      setFormData({ ...formData, eventTime: '' });
+      setFormData({ ...formData, eventTime: "" });
     }
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const errors: string[] = [];
-  
+
     if (!formData.eventDate) errors.push("Event date is required.");
     if (!formData.eventTime) errors.push("Event time is required.");
     if (!formData.eventType) errors.push("Event type is required.");
-    
+
     // Validate address fields
-    if (!addressFormData.addressLine1.trim()) errors.push("Address Line 1 is required.");
+    if (!addressFormData.addressLine1.trim())
+      errors.push("Address Line 1 is required.");
     if (!addressFormData.city.trim()) errors.push("City is required.");
     if (!addressFormData.zipcode.trim()) errors.push("Postcode is required.");
-  
+
     // Validate delivery notice
     if (formData.eventDate && formData.eventTime) {
-      const eventDateTime = new Date(`${formData.eventDate}T${formData.eventTime}`);
+      const eventDateTime = new Date(
+        `${formData.eventDate}T${formData.eventTime}`
+      );
       const now = new Date();
-      const hoursUntilEvent = (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      const hoursUntilEvent =
+        (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
       const requiredNoticeHours = getMaxNoticeHours();
-      
+
       if (hoursUntilEvent < requiredNoticeHours) {
         errors.push(
           `Please select a date/time at least ${requiredNoticeHours} hours in advance. Your selected restaurants require this notice for your event orders.`
         );
       }
-  
+
       // Validate operating hours
-      const operatingHoursError = validateEventDateTime(formData.eventDate, formData.eventTime);
+      const operatingHoursError = validateEventDateTime(
+        formData.eventDate,
+        formData.eventTime
+      );
       if (operatingHoursError) {
         errors.push(operatingHoursError);
       }
     }
-  
+
     if (errors.length > 0) {
       alert(errors.join("\n"));
       return;
     }
 
     // Construct full address
-    const fullAddress = `${addressFormData.addressLine1}${addressFormData.addressLine2 ? ', ' + addressFormData.addressLine2 : ''}, ${addressFormData.city}, ${addressFormData.zipcode}`;
-    
+    const fullAddress = `${addressFormData.addressLine1}${
+      addressFormData.addressLine2 ? ", " + addressFormData.addressLine2 : ""
+    }, ${addressFormData.city}, ${addressFormData.zipcode}`;
+
     // Save both event details and address info
     setEventDetails({ ...formData, address: fullAddress });
     setContactInfo(addressFormData);
@@ -327,25 +360,23 @@ export default function Step1EventDetails() {
   };
 
   return (
-      <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
+    <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
       <div className="flex justify-between items-start mb-4">
-            <div>
-              {/* <p className="text-sm text-base-content/60 mb-2">
+        <div>
+          {/* <p className="text-sm text-base-content/60 mb-2">
                 Step 3 of 3 - Contact & Confirmation
               </p> */}
-              <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
-                Your Event Details
-              </h2>
-
-            </div>
-            <button
-              onClick={() => setCurrentStep(1)}
-              className="text-primary hover:opacity-80 font-medium flex items-center gap-1 mt-1"
-            >
-              ← Back
-            </button>
-          </div>
-        
+          <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
+            Your Event Details
+          </h2>
+        </div>
+        <button
+          onClick={() => setCurrentStep(1)}
+          className="text-primary hover:opacity-80 font-medium flex items-center gap-1 mt-1"
+        >
+          ← Back
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-10">
         {/* Delivery Date & Time Section */}
@@ -402,7 +433,9 @@ export default function Step1EventDetails() {
                     </option>
                   ))}
                 </select>
-                <span className="flex items-center text-2xl font-bold text-gray-400">:</span>
+                <span className="flex items-center text-2xl font-bold text-gray-400">
+                  :
+                </span>
                 <select
                   required
                   value={selectedMinute}
@@ -502,7 +535,10 @@ export default function Step1EventDetails() {
               required
               value={addressFormData.addressLine1}
               onChange={(e) =>
-                setAddressFormData({ ...addressFormData, addressLine1: e.target.value })
+                setAddressFormData({
+                  ...addressFormData,
+                  addressLine1: e.target.value,
+                })
               }
               placeholder="Street address"
               className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
@@ -518,7 +554,10 @@ export default function Step1EventDetails() {
               type="text"
               value={addressFormData.addressLine2 || ""}
               onChange={(e) =>
-                setAddressFormData({ ...addressFormData, addressLine2: e.target.value })
+                setAddressFormData({
+                  ...addressFormData,
+                  addressLine2: e.target.value,
+                })
               }
               placeholder="Apartment, suite, unit, etc."
               className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
@@ -536,7 +575,10 @@ export default function Step1EventDetails() {
                 required
                 value={addressFormData.city}
                 onChange={(e) =>
-                  setAddressFormData({ ...addressFormData, city: e.target.value })
+                  setAddressFormData({
+                    ...addressFormData,
+                    city: e.target.value,
+                  })
                 }
                 placeholder="City"
                 className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
@@ -551,7 +593,10 @@ export default function Step1EventDetails() {
                 required
                 value={addressFormData.zipcode}
                 onChange={(e) =>
-                  setAddressFormData({ ...addressFormData, zipcode: e.target.value })
+                  setAddressFormData({
+                    ...addressFormData,
+                    zipcode: e.target.value,
+                  })
                 }
                 placeholder="Postcode"
                 className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
@@ -584,7 +629,7 @@ export default function Step1EventDetails() {
             </button> */}
             <button
               type="submit"
-              className="flex-[7] bg-dark-pink text-white py-2 px-6 rounded-full font-bold text-base sm:text-lg hover:bg-pink-700 transition-colors shadow-lg shadow-dark-pink/30 min-h-[60px]"
+              className="flex-[7] bg-primary text-white py-2 px-6 rounded-xl font-bold text-base sm:text-lg transition-colors shadow-lg shadow-dark-pink/30 min-h-[60px] hover:bg-hot-pink cursor-pointer"
             >
               Continue to contact details
             </button>
