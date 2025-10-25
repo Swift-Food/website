@@ -472,7 +472,28 @@ export default function Step2MenuItems() {
                 className="w-full pl-10 md:pl-12 pr-4 py-2 md:py-3 bg-white border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
               />
               <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-base-content/40">
-                🔍
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-4 h-4 md:w-5 md:h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="11"
+                    cy="11"
+                    r="6.25"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M20 20L16.65 16.65"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </div>
             </div>
             <button
