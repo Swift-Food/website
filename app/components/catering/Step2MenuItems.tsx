@@ -88,7 +88,7 @@ const formatCateringHours = (
   );
 
   if (enabledDays.length === 0) {
-    return "No catering hours set";
+    return "No Event Ordering hours set";
   }
 
   // Group consecutive days with same hours
@@ -676,7 +676,7 @@ export default function Step2MenuItems() {
                                         )}
                                         <div className="mv-2 text-xs">
                                           <p className="opacity-70 pt-2">
-                                            Catering Hours:
+                                            Event Ordering Hours:
                                           </p>
                                           <div className="whitespace-pre-line text-xs mt-1">
                                             {formatCateringHours(
@@ -881,7 +881,7 @@ export default function Step2MenuItems() {
                                   )}
                                   <div className="mb-2">
                                     <p className="opacity-70 pt-2">
-                                      Catering Hours:
+                                      Event Ordering Hours:
                                     </p>
                                     <div className="whitespace-pre-line text-xs mt-1">
                                       {formatCateringHours(
@@ -1205,7 +1205,7 @@ export default function Step2MenuItems() {
             {selectedRestaurantId && (
               <button
                 className={`bg-base-300 text-base-content px-3 py-2 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm ${
-                  selectedItems.length === 0 ? 'flex-1' : 'flex-shrink-0'
+                  selectedItems.length === 0 ? "flex-1" : "flex-shrink-0"
                 }`}
                 onClick={() => {
                   setSelectedRestaurantId(null);
