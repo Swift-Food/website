@@ -13,7 +13,7 @@ type PartnerCard = {
 
 export default function PatnerCard(props: PartnerCard) {
   return (
-    <div className="card w-96 max-sm:w-full shadow-sm border-2 border-primary">
+    <div className="card w-96 max-sm:w-full border-2 border-primary">
       <figure>
         <Image
           src={props.image}

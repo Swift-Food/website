@@ -642,7 +642,7 @@ export default function Step2MenuItems() {
                                       </svg>
                                     </button>
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden md:group-hover:block z-10 w-56">
-                                      <div className="bg-base-content text-base-100 text-sm rounded-lg p-3 shadow-lg">
+                                      <div className="bg-base-content text-base-100 text-sm rounded-lg p-3">
                                         <p className="font-semibold mb-2">
                                           Contact Restaurant:
                                         </p>
@@ -807,7 +807,7 @@ export default function Step2MenuItems() {
                       }}
                       className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
                         selectedRestaurantId === restaurant.id
-                          ? "border-primary shadow-lg"
+                          ? "border-primary"
                           : "border-base-300 hover:border-primary/50"
                       }`}
                     >
@@ -851,7 +851,7 @@ export default function Step2MenuItems() {
                                 </svg>
                               </button>
                               <div className="absolute bottom-full right-0 mb-2 hidden md:group-hover:block z-10 w-48">
-                                <div className="bg-base-content text-base-100 text-xs rounded-lg p-3 shadow-lg">
+                                <div className="bg-base-content text-base-100 text-xs rounded-lg p-3">
                                   <p className="font-semibold mb-2">
                                     Contact Info:
                                   </p>
@@ -951,7 +951,7 @@ export default function Step2MenuItems() {
             className="hidden lg:block lg:w-[25%] sticky top-32 items-center justify-center"
             style={{ maxHeight: "calc(100vh - 10rem)" }}
           >
-            <div className="bg-base-100 rounded-xl shadow-xl p-6 border border-base-300 flex flex-col h-full">
+            <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
               {selectedRestaurantId && (
                 <button
                   className="w-full mb-4 px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
@@ -1171,7 +1171,7 @@ export default function Step2MenuItems() {
                   </div>
 
                   <button
-                    className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-md transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed flex-shrink-0"
+                    className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-md transition-all disabled:bg-base-300 disabled:cursor-not-allowed flex-shrink-0"
                     onClick={() => {
                       const warnings = getMinimumOrderWarnings();
                       if (warnings.length > 0) {
@@ -1219,7 +1219,7 @@ export default function Step2MenuItems() {
             {selectedItems.length > 0 && (
               <button
                 onClick={() => setShowCartMobile(true)}
-                className="flex-1 bg-primary hover:opacity-90 text-white py-3 rounded-lg font-bold text-base transition-all shadow-lg flex items-center justify-between px-4"
+                className="flex-1 bg-primary hover:opacity-90 text-white py-3 rounded-lg font-bold text-base transition-all flex items-center justify-between px-4"
               >
                 <span>View Cart ({selectedItems.length})</span>
                 <span>
@@ -1468,7 +1468,7 @@ export default function Step2MenuItems() {
                 </div>
 
                 <button
-                  className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                   onClick={() => {
                     const warnings = getMinimumOrderWarnings();
                     if (warnings.length > 0) {

@@ -145,7 +145,7 @@ export default function FAQ() {
           {faqData.map((category, categoryIndex) => (
             <div
               key={categoryIndex}
-              className="rounded-xl shadow-sm border border-primary p-6"
+              className="rounded-xl border border-primary p-6"
             >
               {/* Category Title */}
               <h2 className="text-2xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">

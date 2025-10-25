@@ -131,7 +131,7 @@ export default function CateringForm({ searchParams }: { searchParams: Promise<{
   return (
     <div className="flex flex-col justify-between items-center">
       <StepperButtonGroup steps={stepperConfig} activeItemIds={activeSteps} />
-      <div className="bg-base-100 min-w-96 shadow-sm mt-8 rounded-xl max-w-[600px]">
+      <div className="bg-base-100 min-w-96 mt-8 rounded-xl max-w-[600px]">
         <div className="flex flex-col justify-center items-center gap-2 p-6">
           {Object.keys(errors).length > 0 && (
             <div role="alert" className="alert alert-error">

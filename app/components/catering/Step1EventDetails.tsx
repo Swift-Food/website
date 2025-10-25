@@ -858,7 +858,7 @@ export default function Step1EventDetails() {
             </button> */}
             <button
               type="submit"
-              className="flex-[7] bg-primary text-white py-2 px-6 rounded-xl font-bold text-base sm:text-lg transition-colors shadow-lg shadow-dark-pink/30 min-h-[60px] hover:bg-hot-pink cursor-pointer"
+              className="flex-[7] bg-primary text-white py-2 px-6 rounded-xl font-bold text-base sm:text-lg transition-colors min-h-[60px] hover:bg-hot-pink cursor-pointer"
             >
               Continue to contact details
             </button>

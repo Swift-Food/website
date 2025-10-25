@@ -52,7 +52,7 @@ export default function MarketCard(props: MarketCard) {
   const bubblePositions = bubbleLayouts[bubbleLayout];
 
   return (
-    <div className={`relative ${width} max-sm:w-full ${height} rounded-2xl overflow-hidden shadow-lg`}>
+    <div className={`relative ${width} max-sm:w-full ${height} rounded-2xl overflow-hidden`}>
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -90,7 +90,7 @@ export default function MarketCard(props: MarketCard) {
             return (
               <div
                 key={cuisine}
-                className={`absolute ${bubbleSize} rounded-full flex items-center justify-center border-4 border-primary shadow-lg ${position.top || ''} ${position.left || ''} ${position.right || ''}`}
+                className={`absolute ${bubbleSize} rounded-full flex items-center justify-center border-4 border-primary ${position.top || ''} ${position.left || ''} ${position.right || ''}`}
                 style={{ backgroundColor: '#F6F5F3B3' }}
               >
                 <span className="text-primary font-bold text-base text-center px-2 max-sm:text-sm">

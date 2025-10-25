@@ -756,7 +756,7 @@ export default function Step3ContactInfo() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={resetOrder}
-              className="bg-dark-pink hover:opacity-90 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-lg"
+              className="bg-dark-pink hover:opacity-90 text-white px-8 py-4 rounded-full font-bold text-lg transition-all"
             >
               Back to Home
             </button>
@@ -937,7 +937,7 @@ export default function Step3ContactInfo() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>
@@ -1208,7 +1208,7 @@ export default function Step3ContactInfo() {
                   type="submit"
                   disabled={submitting}
                   onClick={handleSubmit}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>
@@ -1223,7 +1223,7 @@ export default function Step3ContactInfo() {
             type="submit"
             disabled={submitting}
             onClick={handleSubmit}
-            className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+            className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
           >
             {submitting ? 'Submitting...' : 'Submit'}
           </button>

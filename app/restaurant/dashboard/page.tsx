@@ -342,7 +342,7 @@ const LoginPage = ({
   console.log("user is");
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+      <div className="bg-white rounded-lg p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
             <CreditCard size={32} className="text-blue-600" />
@@ -624,7 +624,7 @@ const WithdrawalHistory = ({ history }: { history: WithdrawalRequest[] }) => {
       {history.map((withdrawal) => (
         <div
           key={withdrawal.id}
-          className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+          className="bg-white border border-gray-200 rounded-lg p-4"
         >
           <div className="flex justify-between items-start mb-2">
             <div>
@@ -703,7 +703,7 @@ const PaymentAccountSelector = ({
 
   return (
     <div className="mb-6">
-      <div className="bg-white rounded-lg shadow-sm p-4">
+      <div className="bg-white rounded-lg p-4">
         <label className="block text-sm font-medium text-gray-700 mb-3">
           Select Branch
         </label>
@@ -1011,7 +1011,7 @@ const CateringOrdersList = ({
             // Fix 3: Mobile optimization - Update the order card styling
             <div
               key={order.id}
-              className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 hover:shadow-lg transition-shadow"
+              className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5"
             >
               <div className="w-full flex justify-center mb-3">
                 <span className="text-xl text-gray-500 text-center">
@@ -1441,7 +1441,7 @@ const WithdrawalDashboard = ({
           // If showing all branches, only show Event Orders (pending review)
           if (showAllBranches) {
             return (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
                   Event Orders - Pending Review
                 </h2>
@@ -1556,7 +1556,7 @@ const WithdrawalDashboard = ({
               {activeTab === "withdrawals" ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Withdrawal Form */}
-                  <div className="bg-white rounded-lg shadow-sm p-6">
+                  <div className="bg-white rounded-lg p-6">
                     <h2 className="text-xl font-bold text-gray-900 mb-4">
                       Request Withdrawal
                     </h2>
@@ -1671,7 +1671,7 @@ const WithdrawalDashboard = ({
                   </div>
 
                   {/* Withdrawal History */}
-                  <div className="bg-white rounded-lg shadow-sm p-6">
+                  <div className="bg-white rounded-lg p-6">
                     <h2 className="text-xl font-bold text-gray-900 mb-4">
                       Withdrawal History
                     </h2>
@@ -1681,7 +1681,7 @@ const WithdrawalDashboard = ({
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="bg-white rounded-lg p-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-6">
                     Event Orders
                   </h2>

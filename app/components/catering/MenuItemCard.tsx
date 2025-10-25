@@ -58,7 +58,7 @@ export default function MenuItemCard({
     <>
       <div
         key={item.id}
-        className="bg-base-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-base-300 h-full flex flex-col cursor-pointer"
+        className="bg-base-100 rounded-xl overflow-hidden transition-all border border-base-300 h-full flex flex-col cursor-pointer"
         onClick={onToggleExpand}
       >
         {/* Normal Card View with Image */}
