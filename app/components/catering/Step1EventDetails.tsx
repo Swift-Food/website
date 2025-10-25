@@ -290,11 +290,11 @@ export default function Step1EventDetails() {
       );
 
       if (!daySchedule || !daySchedule.enabled) {
-        return `${restaurant.restaurant_name} does not accept catering orders on ${dayOfWeek}s`;
+        return `${restaurant.restaurant_name} does not accept event ordering orders on ${dayOfWeek}s`;
       }
 
       if (!daySchedule.open || !daySchedule.close) {
-        return `${restaurant.restaurant_name} is closed for catering on ${dayOfWeek}s`;
+        return `${restaurant.restaurant_name} is closed for event ordering on ${dayOfWeek}s`;
       }
 
       // Convert times to minutes for comparison
@@ -308,7 +308,7 @@ export default function Step1EventDetails() {
       const closeMinutes = closeHour * 60 + closeMinute;
 
       if (eventTimeMinutes < openMinutes || eventTimeMinutes > closeMinutes) {
-        return `${restaurant.restaurant_name} only accepts catering orders between ${daySchedule.open} and ${daySchedule.close} on ${dayOfWeek}s`;
+        return `${restaurant.restaurant_name} only accepts event ordering orders between ${daySchedule.open} and ${daySchedule.close} on ${dayOfWeek}s`;
       }
     }
 
@@ -485,7 +485,7 @@ export default function Step1EventDetails() {
             Delivery Date & Time
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            Most catering orders require advance notice.
+            Most event orders require advance notice.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -806,7 +806,8 @@ export default function Step1EventDetails() {
                   if (postcode && !validateUKPostcode(postcode)) {
                     setValidationErrors({
                       ...validationErrors,
-                      zipcode: "Please enter a valid UK postcode (e.g., SW1A 1AA).",
+                      zipcode:
+                        "Please enter a valid UK postcode (e.g., SW1A 1AA).",
                     });
                   }
                 }}
@@ -822,9 +823,13 @@ export default function Step1EventDetails() {
                   {validationErrors.zipcode}
                 </p>
               )}
-              {!validationErrors.zipcode && addressFormData.zipcode && validateUKPostcode(addressFormData.zipcode) && (
-                <p className="mt-1 text-sm text-green-600">✓ Valid UK postcode</p>
-              )}
+              {!validationErrors.zipcode &&
+                addressFormData.zipcode &&
+                validateUKPostcode(addressFormData.zipcode) && (
+                  <p className="mt-1 text-sm text-green-600">
+                    ✓ Valid UK postcode
+                  </p>
+                )}
             </div>
           </div>
         </div>
