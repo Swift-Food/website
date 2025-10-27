@@ -118,6 +118,7 @@ export default function Step1EventDetails() {
 
   const [addressFormData, setAddressFormData] = useState<ContactInfo>(
     contactInfo || {
+      organization: "",
       fullName: "",
       email: "",
       phone: "",
