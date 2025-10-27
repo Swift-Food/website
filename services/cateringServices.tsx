@@ -153,6 +153,7 @@ class CateringService {
 
     const createDto: CreateCateringOrderDto = {
       userId,
+      organization: contactInfo.organization,
       customerName: contactInfo.fullName,
       customerEmail: contactInfo.email,
       customerPhone: contactInfo.phone,

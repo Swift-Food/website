@@ -8,6 +8,7 @@ import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 
 interface ValidationErrors {
+  organization?: string;
   fullName?: string;
   email?: string;
   phone?: string;
@@ -18,7 +19,6 @@ interface ValidationErrors {
   ccEmail?: string;
   latitude?: number;
   longitude?: number;
-
 }
 
 export default function Step3ContactInfo() {
@@ -34,11 +34,12 @@ export default function Step3ContactInfo() {
     resetOrder,
     markOrderAsSubmitted,
   } = useCatering();
-  console.log("contact info", JSON.stringify(contactInfo))
-  console.log("event info", JSON.stringify(eventDetails))
+  console.log("contact info", JSON.stringify(contactInfo));
+  console.log("event info", JSON.stringify(eventDetails));
 
   const [formData, setFormData] = useState<ContactInfo>(
     contactInfo || {
+      organization: "",
       fullName: "",
       email: "",
       phone: "",
@@ -62,7 +63,6 @@ export default function Step3ContactInfo() {
   const [ccEmailInput, setCcEmailInput] = useState("");
   const [errors, setErrors] = useState<ValidationErrors>({});
 
-
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -82,7 +82,7 @@ export default function Step3ContactInfo() {
       return "Phone number is required";
     }
     // UK phone number validation (accepts various formats)
-    const cleanPhone = phone.replace(/[\s()-]/g, '');
+    const cleanPhone = phone.replace(/[\s()-]/g, "");
     if (cleanPhone.length < 10 || cleanPhone.length > 11) {
       return "Please enter a valid UK phone number";
     }
@@ -100,31 +100,30 @@ export default function Step3ContactInfo() {
 
   const handleBlur = (field: keyof ContactInfo) => {
     let error: string | undefined;
-    
+
     switch (field) {
-      case 'fullName':
+      case "fullName":
         error = validateFullName(formData.fullName);
         break;
-      case 'email':
+      case "email":
         error = validateEmail(formData.email);
         break;
-      case 'phone':
+      case "phone":
         error = validatePhone(formData.phone);
         break;
-     
     }
-    
-    setErrors(prev => ({
+
+    setErrors((prev) => ({
       ...prev,
-      [field]: error
+      [field]: error,
     }));
   };
 
   // Clear error when user starts typing
   const handleChange = (field: keyof ContactInfo, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -134,15 +133,13 @@ export default function Step3ContactInfo() {
       fullName: validateFullName(formData.fullName),
       email: validateEmail(formData.email),
       phone: validatePhone(formData.phone),
-
     };
 
     setErrors(newErrors);
-    
-    // Return true if no errors
-    return !Object.values(newErrors).some(error => error !== undefined);
-  };
 
+    // Return true if no errors
+    return !Object.values(newErrors).some((error) => error !== undefined);
+  };
 
   const handleAddCcEmail = () => {
     const trimmedEmail = ccEmailInput.trim();
@@ -178,33 +175,33 @@ export default function Step3ContactInfo() {
       // Scroll to first error - improved version
       setTimeout(() => {
         const firstErrorField = Object.keys(errors).find(
-          key => errors[key as keyof ValidationErrors]
+          (key) => errors[key as keyof ValidationErrors]
         );
-        
+
         if (firstErrorField) {
           // Try multiple selectors
-          const element = 
+          const element =
             document.querySelector(`[name="${firstErrorField}"]`) ||
             document.getElementById(firstErrorField) ||
             document.querySelector(`input[name="${firstErrorField}"]`);
-          
+
           if (element) {
-            element.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center' 
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
             });
             // Focus the input to draw attention
             (element as HTMLInputElement).focus();
           } else {
             // Fallback: scroll to top of form
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }
         }
       }, 100); // Small delay to ensure errors are rendered
-      
+
       return;
     }
-  
+
     setSubmitting(true);
 
     try {
@@ -275,10 +272,12 @@ export default function Step3ContactInfo() {
           const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
           // Transform addon quantities for backend
-          const transformedAddons = (item.selectedAddons || []).map(addon => ({
-            ...addon,
-            quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-          }));
+          const transformedAddons = (item.selectedAddons || []).map(
+            (addon) => ({
+              ...addon,
+              quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
+            })
+          );
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
@@ -408,10 +407,12 @@ export default function Step3ContactInfo() {
           const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
           // Transform addon quantities for backend
-          const transformedAddons = (item.selectedAddons || []).map(addon => ({
-            ...addon,
-            quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-          }));
+          const transformedAddons = (item.selectedAddons || []).map(
+            (addon) => ({
+              ...addon,
+              quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
+            })
+          );
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
@@ -570,7 +571,7 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
-    console.log("pricing", JSON.stringify(pricing))
+    console.log("pricing", JSON.stringify(pricing));
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
         <div className="max-w-2xl mx-auto text-center">
@@ -625,7 +626,7 @@ export default function Step3ContactInfo() {
                 </p>
               </div>
               {/* <div> */}
-                {/* <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
+              {/* <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
                 <p className="font-semibold text-base-content">
                   {(eventDetails?.guestCount || 10) - 10} -{" "}
                   {(eventDetails?.guestCount || 10) + 10}{" "}
@@ -633,9 +634,7 @@ export default function Step3ContactInfo() {
               </div> */}
             </div>
 
-            <h4 className="font-bold mb-4 text-base-content">
-              Your List
-            </h4>
+            <h4 className="font-bold mb-4 text-base-content">Your List</h4>
 
             {promoCodes.length > 0 && (
               <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-xl">
@@ -657,8 +656,7 @@ export default function Step3ContactInfo() {
                 // USE ITEM'S OWN VALUES:
                 const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
                 const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                const displayFeeds =
-                  (quantity / BACKEND_QUANTITY_UNIT);
+                const displayFeeds = quantity / BACKEND_QUANTITY_UNIT;
 
                 // Calculate addon price
                 const addonPrice = (item.selectedAddons || []).reduce(
@@ -744,7 +742,10 @@ export default function Step3ContactInfo() {
                     <p className="">£{pricing.total.toFixed(2)}</p>
                     {(pricing.promoDiscount ?? 0) > 0 && (
                       <p className="text-sm line-through text-base-content/50">
-                        £{(pricing.total + (pricing.promoDiscount ?? 0)).toFixed(2)}
+                        £
+                        {(pricing.total + (pricing.promoDiscount ?? 0)).toFixed(
+                          2
+                        )}
                       </p>
                     )}
                   </div>
@@ -756,7 +757,7 @@ export default function Step3ContactInfo() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={resetOrder}
-              className="bg-dark-pink hover:opacity-90 text-white px-8 py-4 rounded-full font-bold text-lg transition-all"
+              className="bg-base-300 hover:opacity-90 text-base-content px-8 py-4 rounded-xl font-bold text-lg transition-all"
             >
               Back to Home
             </button>
@@ -764,7 +765,7 @@ export default function Step3ContactInfo() {
               href="https://www.instagram.com/swiftfood_uk?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-base-300 hover:bg-base-content/10 text-base-content px-8 py-4 rounded-full font-bold text-lg transition-all inline-block text-center"
+              className="bg-dark-pink hover:bg-base-content/10 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all inline-block text-center"
             >
               Follow us on Instagram
             </a>
@@ -796,8 +797,8 @@ export default function Step3ContactInfo() {
                 Your Contact Details
               </h2>
               <p className="text-base-content/70">
-                Please provide your contact details so we can confirm your
-                event order request.
+                Please provide your contact details so we can confirm your event
+                order request.
               </p>
             </div>
             <button
@@ -813,6 +814,21 @@ export default function Step3ContactInfo() {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Organization */}
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-base-content">
+                  Organization (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="organization"
+                  value={formData.organization}
+                  onChange={(e) => handleChange("organization", e.target.value)}
+                  onBlur={() => handleBlur("organization")}
+                  placeholder="Your Organization Name"
+                  className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+                />
+              </div>
               {/* Name */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
@@ -823,11 +839,11 @@ export default function Step3ContactInfo() {
                   name="fullName"
                   required
                   value={formData.fullName}
-                  onChange={(e) => handleChange('fullName', e.target.value)}
-                  onBlur={() => handleBlur('fullName')}
+                  onChange={(e) => handleChange("fullName", e.target.value)}
+                  onBlur={() => handleBlur("fullName")}
                   placeholder="Your Name"
                   className={`w-full px-4 py-3 bg-base-200/50 border ${
-                    errors.fullName ? 'border-error' : 'border-base-300'
+                    errors.fullName ? "border-error" : "border-base-300"
                   } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
                 {errors.fullName && (
@@ -845,11 +861,11 @@ export default function Step3ContactInfo() {
                   name="phone"
                   required
                   value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
-                  onBlur={() => handleBlur('phone')}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  onBlur={() => handleBlur("phone")}
                   placeholder="Your Number"
                   className={`w-full px-4 py-3 bg-base-200/50 border ${
-                    errors.phone ? 'border-error' : 'border-base-300'
+                    errors.phone ? "border-error" : "border-base-300"
                   } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
                 {errors.phone && (
@@ -867,11 +883,11 @@ export default function Step3ContactInfo() {
                   name="email"
                   required
                   value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  onBlur={() => handleBlur('email')}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  onBlur={() => handleBlur("email")}
                   placeholder="Your Email"
                   className={`w-full px-4 py-3 bg-base-200/50 border ${
-                    errors.email ? 'border-error' : 'border-base-300'
+                    errors.email ? "border-error" : "border-base-300"
                   } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
                 {errors.email && (
@@ -937,7 +953,7 @@ export default function Step3ContactInfo() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>
@@ -985,9 +1001,7 @@ export default function Step3ContactInfo() {
               </div>
 
               {/* Catering List */}
-              <h4 className="font-bold mb-4 text-base-content">
-                Your List
-              </h4>
+              <h4 className="font-bold mb-4 text-base-content">Your List</h4>
 
               {/* Important Notes */}
               <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 mb-4">
@@ -996,11 +1010,11 @@ export default function Step3ContactInfo() {
                 </p>
                 <p className="text-xs text-base-content/80 leading-relaxed">
                   For accurate allergen information, please contact stalls or
-                  restaurants directly. 
+                  restaurants directly.
                 </p>
                 <p className="text-xs text-base-content/80 leading-relaxed">
-                  For any last-minute changes, please
-                    contact us at least two days before your event.
+                  For any last-minute changes, please contact us at least two
+                  days before your event.
                 </p>
               </div>
 
@@ -1090,8 +1104,7 @@ export default function Step3ContactInfo() {
                   // USE ITEM'S OWN VALUES:
                   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
                   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                  const displayFeeds =
-                    (quantity / BACKEND_QUANTITY_UNIT);
+                  const displayFeeds = quantity / BACKEND_QUANTITY_UNIT;
 
                   // Calculate addon price
                   const addonPrice = (item.selectedAddons || []).reduce(
@@ -1208,7 +1221,7 @@ export default function Step3ContactInfo() {
                   type="submit"
                   disabled={submitting}
                   onClick={handleSubmit}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>

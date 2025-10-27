@@ -99,6 +99,7 @@ export interface SelectedMenuItem {
 }
 
 export interface ContactInfo {
+  organization: string;
   fullName: string;
   email: string;
   phone: string;
@@ -136,6 +137,7 @@ export interface OrderItemDto {
 
 export interface CreateCateringOrderDto {
   userId: string;
+  organization: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
