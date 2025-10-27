@@ -574,7 +574,7 @@ export default function MenuItemModal({
               <div className="bg-base-200 p-3 rounded">
                 <p className="text-xs text-base-content/60 italic">
                   ⚠️ Disclaimer: Allergen info not available. Please contact the
-                  restaurant or our team.
+                  restaurant directly.
                 </p>
               </div>
             )}
