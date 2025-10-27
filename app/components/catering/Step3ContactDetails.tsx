@@ -826,7 +826,7 @@ export default function Step3ContactInfo() {
                   onChange={(e) => handleChange("organization", e.target.value)}
                   onBlur={() => handleBlur("organization")}
                   placeholder="Your Organization Name"
-                  className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+                  className={`w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
               </div>
               {/* Name */}
