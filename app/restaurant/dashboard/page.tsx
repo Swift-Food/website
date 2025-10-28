@@ -1117,6 +1117,16 @@ const CateringOrdersList = ({
                                 Qty: {item.quantity}
                               </p>
                             </div>
+                            <div className="text-right ml-2">
+                              <p className="text-xs text-gray-600">You Earn:</p>
+                              <p className="text-sm font-semibold text-green-600">
+                                {formatCurrency(item.commissionPrice)}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Customer Paid:{" "}
+                                {formatCurrency(item.priceForRestaurant)}
+                              </p>
+                            </div>
                           </div>
                         ))}
                       </div>
