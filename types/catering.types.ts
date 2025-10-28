@@ -10,7 +10,7 @@ export interface SelectedAddon {
 }
 
 export interface SearchResult {
-  type: 'restaurant' | 'menu_item';
+  type: "restaurant" | "menu_item";
   id: string;
   name: string;
   description?: string;
@@ -62,7 +62,7 @@ export interface SearchResult {
     fsaLink?: string;
   };
   score: number;
-  matchType: 'exact' | 'prefix' | 'word' | 'partial' | 'description';
+  matchType: "exact" | "prefix" | "word" | "partial" | "description";
 }
 
 export interface SearchResponse {
@@ -128,6 +128,8 @@ export interface OrderItemDto {
     totalPrice: number;
     selectedAddons?: SelectedAddon[];
     addonPrice?: number;
+    commissionPrice?: number;
+    priceForRestaurant?: number;
   }[];
   status: string;
   restaurantCost: number;
@@ -141,7 +143,7 @@ export interface CreateCateringOrderDto {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
-  ccEmails: string[],
+  ccEmails: string[];
   eventDate: string;
   eventTime: string;
   collectionTime?: string;

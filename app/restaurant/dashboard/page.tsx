@@ -1113,7 +1113,15 @@ const CateringOrdersList = ({
                   onClick={() => toggleOrderItems(order.id)}
                   className="w-full flex items-center justify-between font-semibold text-gray-900 mb-3 text-sm sm:text-base hover:text-blue-600 transition-colors"
                 >
-                  <span>Order Items ({order.orderItems.reduce((total, restaurant) => total + restaurant.menuItems.length, 0)} items)</span>
+                  <span>
+                    Order Items (
+                    {order.orderItems.reduce(
+                      (total, restaurant) =>
+                        total + restaurant.menuItems.length,
+                      0
+                    )}{" "}
+                    items)
+                  </span>
                   {expandedOrders[order.id] ? (
                     <ChevronUp size={20} className="text-blue-600" />
                   ) : (
@@ -1151,10 +1159,13 @@ const CateringOrdersList = ({
                                     </div>
                                     <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
                                       <p className="text-[10px] text-gray-600 font-medium leading-tight">
-                                        CUSTOMER PAID
+                                        PRE-DISCOUNTED PRICE
                                       </p>
                                       <p className="text-sm font-semibold text-gray-700 leading-tight">
-                                        {formatCurrency(item.priceForRestaurant)}
+                                        {formatCurrency(
+                                          item.priceForRestaurant *
+                                            item.quantity
+                                        )}
                                       </p>
                                     </div>
                                   </div>

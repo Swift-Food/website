@@ -7,6 +7,8 @@ export interface CateringOrderItem {
       name: string;
       quantity: number;
       totalPrice: number;
+      commissionPrice?: number;
+      priceForRestaurant?: number;
       cateringQuantityUnit?: number;
       feedsPerUnit?: number;
     }[];
