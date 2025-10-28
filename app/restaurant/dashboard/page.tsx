@@ -1035,12 +1035,19 @@ const CateringOrdersList = ({
                   </span>
                 </div>
                 <div className="sm:text-right">
-                  <p className="font-bold text-xl sm:text-2xl text-gray-900">
-                    {formatCurrency(order.restaurantTotalCost)}
-                  </p>
-                  {/* <p className="text-xs text-gray-500">
-                    Reference: {order.id.slice(0, 4).toUpperCase()}
-                    </p> */}
+                  <div className="mb-1">
+                    <p className="text-xs text-gray-600 font-medium">
+                      Your Earnings
+                    </p>
+                    <p className="font-bold text-xl sm:text-2xl text-green-600">
+                      {formatCurrency(order.restaurantTotalCost)}
+                    </p>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-sm text-gray-600">
+                      Customer Paid: {formatCurrency(order.subtotal)}
+                    </p>
+                  </div>
                   <p className="text-xs text-gray-500">
                     Event: {formatDate(order.eventDate)}
                   </p>
