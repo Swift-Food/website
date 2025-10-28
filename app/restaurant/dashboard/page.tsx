@@ -10,6 +10,8 @@ import {
   ExternalLink,
   LogOut,
   Loader,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { CateringOrder } from "@/app/types/catering.types";
 
@@ -767,12 +769,22 @@ const CateringOrdersList = ({
     Record<string, any>
   >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const getPayoutAccountName = (order: CateringOrder): string | null => {
     if (!order.restaurantPayoutDetails) return null;
 
     const payoutDetail = order.restaurantPayoutDetails[restaurantId];
     return payoutDetail?.accountName || null;
+  };
+
+  const toggleOrderItems = (orderId: string) => {
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
   };
 
   useEffect(() => {
@@ -1095,55 +1107,65 @@ const CateringOrdersList = ({
                 </p>
               </div>
 
-              {/* Order Items - Mobile optimized scrolling */}
+              {/* Order Items - Expandable */}
               <div className="border-t border-gray-200 pt-4">
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm sm:text-base">
-                  Order Items
-                </h4>
-                <div className="max-h-48 sm:max-h-64 overflow-y-auto pr-2">
-                  {order.orderItems.map((restaurant, idx) => (
-                    <div key={idx} className="mb-3">
-                      <div className="space-y-2">
-                        {restaurant.menuItems.map((item, itemIdx) => (
-                          <div
-                            key={itemIdx}
-                            className="flex justify-between items-center bg-gray-50 p-2 sm:p-3 rounded"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 text-sm truncate">
-                                {item.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Qty: {item.quantity}
-                              </p>
+                <button
+                  onClick={() => toggleOrderItems(order.id)}
+                  className="w-full flex items-center justify-between font-semibold text-gray-900 mb-3 text-sm sm:text-base hover:text-blue-600 transition-colors"
+                >
+                  <span>Order Items ({order.orderItems.reduce((total, restaurant) => total + restaurant.menuItems.length, 0)} items)</span>
+                  {expandedOrders[order.id] ? (
+                    <ChevronUp size={20} className="text-blue-600" />
+                  ) : (
+                    <ChevronDown size={20} className="text-gray-600" />
+                  )}
+                </button>
+                {expandedOrders[order.id] && (
+                  <div>
+                    {order.orderItems.map((restaurant, idx) => (
+                      <div key={idx} className="mb-3">
+                        <div className="space-y-2">
+                          {restaurant.menuItems.map((item, itemIdx) => (
+                            <div
+                              key={itemIdx}
+                              className="flex justify-between items-center bg-gray-50 p-2 sm:p-3 rounded"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 text-sm truncate">
+                                  {item.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Qty: {item.quantity}
+                                </p>
+                              </div>
+                              {item.commissionPrice &&
+                                item.priceForRestaurant && (
+                                  <div className="flex flex-col gap-1.5 ml-2">
+                                    <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
+                                      <p className="text-[10px] text-green-700 font-medium leading-tight">
+                                        YOUR EARNINGS
+                                      </p>
+                                      <p className="text-sm font-bold text-green-800 leading-tight">
+                                        {formatCurrency(item.commissionPrice)}
+                                      </p>
+                                    </div>
+                                    <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
+                                      <p className="text-[10px] text-gray-600 font-medium leading-tight">
+                                        CUSTOMER PAID
+                                      </p>
+                                      <p className="text-sm font-semibold text-gray-700 leading-tight">
+                                        {formatCurrency(item.priceForRestaurant)}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
                             </div>
-                            {item.commissionPrice &&
-                              item.priceForRestaurant && (
-                                <div className="flex flex-col gap-1.5 ml-2">
-                                  <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
-                                    <p className="text-[10px] text-green-700 font-medium leading-tight">
-                                      YOUR EARNINGS
-                                    </p>
-                                    <p className="text-sm font-bold text-green-800 leading-tight">
-                                      {formatCurrency(item.commissionPrice)}
-                                    </p>
-                                  </div>
-                                  <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
-                                    <p className="text-[10px] text-gray-600 font-medium leading-tight">
-                                      CUSTOMER PAID
-                                    </p>
-                                    <p className="text-sm font-semibold text-gray-700 leading-tight">
-                                      {formatCurrency(item.priceForRestaurant)}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Special Requirements - Mobile optimized */}
@@ -1473,17 +1495,15 @@ const WithdrawalDashboard = ({
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
                   Event Orders - Pending Review
                 </h2>
-                <div className="max-h-[800px] overflow-y-auto">
-                  <CateringOrdersList
-                    orders={cateringOrders}
-                    restaurantId={restaurantId}
-                    restaurantUserId={restaurantUserId}
-                    token={token}
-                    onRefresh={fetchData}
-                    hasMultipleBranches={hasMultipleBranches}
-                    selectedAccountId={selectedAccountId}
-                  />
-                </div>
+                <CateringOrdersList
+                  orders={cateringOrders}
+                  restaurantId={restaurantId}
+                  restaurantUserId={restaurantUserId}
+                  token={token}
+                  onRefresh={fetchData}
+                  hasMultipleBranches={hasMultipleBranches}
+                  selectedAccountId={selectedAccountId}
+                />
               </div>
             );
           }
@@ -1703,9 +1723,7 @@ const WithdrawalDashboard = ({
                     <h2 className="text-xl font-bold text-gray-900 mb-4">
                       Withdrawal History
                     </h2>
-                    <div className="max-h-[600px] overflow-y-auto">
-                      <WithdrawalHistory history={history} />
-                    </div>
+                    <WithdrawalHistory history={history} />
                   </div>
                 </div>
               ) : (
@@ -1713,20 +1731,18 @@ const WithdrawalDashboard = ({
                   <h2 className="text-xl font-bold text-gray-900 mb-6">
                     Event Orders
                   </h2>
-                  <div className="max-h-[800px] overflow-y-auto">
-                    <CateringOrdersList
-                      orders={cateringOrders}
-                      restaurantId={restaurantId}
-                      restaurantUserId={restaurantUserId}
-                      token={token}
-                      onRefresh={fetchData}
-                      hasMultipleBranches={
-                        !!restaurantUser?.paymentAccounts &&
-                        Object.keys(restaurantUser.paymentAccounts).length > 0
-                      }
-                      selectedAccountId={selectedAccountId}
-                    />
-                  </div>
+                  <CateringOrdersList
+                    orders={cateringOrders}
+                    restaurantId={restaurantId}
+                    restaurantUserId={restaurantUserId}
+                    token={token}
+                    onRefresh={fetchData}
+                    hasMultipleBranches={
+                      !!restaurantUser?.paymentAccounts &&
+                      Object.keys(restaurantUser.paymentAccounts).length > 0
+                    }
+                    selectedAccountId={selectedAccountId}
+                  />
                 </div>
               )}
             </>
