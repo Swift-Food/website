@@ -1117,16 +1117,27 @@ const CateringOrdersList = ({
                                 Qty: {item.quantity}
                               </p>
                             </div>
-                            <div className="text-right ml-2">
-                              <p className="text-xs text-gray-600">You Earn:</p>
-                              <p className="text-sm font-semibold text-green-600">
-                                {formatCurrency(item.commissionPrice)}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Customer Paid:{" "}
-                                {formatCurrency(item.priceForRestaurant)}
-                              </p>
-                            </div>
+                            {item.commissionPrice &&
+                              item.priceForRestaurant && (
+                                <div className="flex flex-col gap-1.5 ml-2">
+                                  <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
+                                    <p className="text-[10px] text-green-700 font-medium leading-tight">
+                                      YOUR EARNINGS
+                                    </p>
+                                    <p className="text-sm font-bold text-green-800 leading-tight">
+                                      {formatCurrency(item.commissionPrice)}
+                                    </p>
+                                  </div>
+                                  <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
+                                    <p className="text-[10px] text-gray-600 font-medium leading-tight">
+                                      CUSTOMER PAID
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-700 leading-tight">
+                                      {formatCurrency(item.priceForRestaurant)}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
                           </div>
                         ))}
                       </div>
