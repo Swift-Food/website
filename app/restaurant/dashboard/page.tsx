@@ -1159,7 +1159,7 @@ const CateringOrdersList = ({
                                     </div>
                                     <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
                                       <p className="text-[10px] text-gray-600 font-medium leading-tight">
-                                        PRE-DISCOUNTED PRICE
+                                        TOTAL PRICE
                                       </p>
                                       <p className="text-sm font-semibold text-gray-700 leading-tight">
                                         {formatCurrency(
