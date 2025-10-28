@@ -1157,11 +1157,20 @@ const CateringOrdersList = ({
                                         {formatCurrency(item.commissionPrice)}
                                       </p>
                                     </div>
-                                    <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
-                                      <p className="text-[10px] text-gray-600 font-medium leading-tight">
+                                    <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
+                                      <p className="text-xs text-gray-900 font-medium leading-tight">
                                         TOTAL PRICE
                                       </p>
-                                      <p className="text-sm font-semibold text-gray-700 leading-tight">
+                                      <p className="text-[10px] text-gray-600 leading-tight">
+                                        Unit Price:{" "}
+                                        {formatCurrency(
+                                          item.priceForRestaurant
+                                        )}
+                                      </p>
+                                      <p className="text-[10px] text-gray-600 leading-tight">
+                                        Quantity: {item.quantity}
+                                      </p>
+                                      <p className="text-sm font-semibold text-gray-700 leading-tight mt-0.5">
                                         {formatCurrency(
                                           item.priceForRestaurant *
                                             item.quantity
