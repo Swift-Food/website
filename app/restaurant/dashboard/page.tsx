@@ -815,7 +815,7 @@ const CateringOrdersList = ({
       year: "numeric",
     });
 
-  const formatCurrency = (amount: any) => `£${amount}`;
+  const formatCurrency = (amount: any) => `£${Number(amount).toFixed(2)}`;
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
