@@ -1156,15 +1156,15 @@ const CateringOrdersList = ({
                                       </p>
                                       <p className="text-[10px] text-green-600 leading-tight">
                                         Unit Commission:{" "}
-                                        {formatCurrency(
-                                          item.commissionPrice / item.quantity
-                                        )}
+                                        {formatCurrency(item.commissionPrice)}
                                       </p>
                                       <p className="text-[10px] text-green-600 leading-tight">
                                         Quantity: {item.quantity}
                                       </p>
                                       <p className="text-sm font-bold text-green-800 leading-tight mt-0.5">
-                                        {formatCurrency(item.commissionPrice)}
+                                        {formatCurrency(
+                                          item.commissionPrice * item.quantity
+                                        )}
                                       </p>
                                     </div>
                                     <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
