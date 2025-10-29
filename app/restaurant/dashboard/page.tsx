@@ -1057,7 +1057,8 @@ const CateringOrdersList = ({
                   </div>
                   <div className="mb-2">
                     <p className="text-sm text-gray-600">
-                      Customer Paid: {formatCurrency(order.subtotal)}
+                      Customer Paid:{" "}
+                      {formatCurrency(order.orderItems[0].totalPrice ?? 0)}
                     </p>
                   </div>
                   <p className="text-xs text-gray-500">
