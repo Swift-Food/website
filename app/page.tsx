@@ -548,7 +548,7 @@ export default function Home() {
           </h2>
           <div className="flex flex-col md:flex-row gap-8 justify-center items-center md:items-stretch">
             <div
-              className={`w-full md:w-80 bg-hot-pink rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-200 ${
+              className={`w-full md:w-80 bg-secondary rounded-3xl p-8 flex flex-col items-center justify-center transition-all duration-1000 ease-out delay-200 ${
                 isDifferentVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-12"
