@@ -1150,11 +1150,20 @@ const CateringOrdersList = ({
                               {item.commissionPrice &&
                                 item.priceForRestaurant && (
                                   <div className="flex flex-col gap-1.5 ml-2">
-                                    <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 h-[42px] flex flex-col justify-center">
+                                    <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
                                       <p className="text-[10px] text-green-700 font-medium leading-tight">
                                         YOUR EARNINGS
                                       </p>
-                                      <p className="text-sm font-bold text-green-800 leading-tight">
+                                      <p className="text-[10px] text-green-600 leading-tight">
+                                        Unit Commission:{" "}
+                                        {formatCurrency(
+                                          item.commissionPrice / item.quantity
+                                        )}
+                                      </p>
+                                      <p className="text-[10px] text-green-600 leading-tight">
+                                        Quantity: {item.quantity}
+                                      </p>
+                                      <p className="text-sm font-bold text-green-800 leading-tight mt-0.5">
                                         {formatCurrency(item.commissionPrice)}
                                       </p>
                                     </div>
