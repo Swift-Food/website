@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CateringOrderDetails, UpdateDeliveryTimeDto, CateringOrderStatus } from '@/types/catering.types';
+import { CateringOrderDetails, UpdateDeliveryTimeDto} from '@/types/catering.types';
 import { cateringService } from '@/services/cateringServices';
 import { Clock, AlertCircle } from 'lucide-react';
 
@@ -17,10 +17,10 @@ export default function DeliveryTimeManager({ order, onUpdate }: DeliveryTimeMan
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canEditTime = [
-    CateringOrderStatus.PAID,
-    CateringOrderStatus.CONFIRMED,
-  ].includes(order.status);
+  // const canEditTime = [
+  //   CateringOrderStatus.PAID,
+  //   CateringOrderStatus.CONFIRMED,
+  // ].includes(order.status);
 
   const getHoursUntilEvent = () => {
     const eventDateTime = new Date(order.eventDate);

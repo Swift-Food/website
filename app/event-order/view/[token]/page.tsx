@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { cateringService } from '@/services/cateringServices';
-import { CateringOrderDetails, CateringOrderStatus } from '@/types/catering.types';
+import { CateringOrderDetails} from '@/types/catering.types';
 
 import OrderDetails from '@/app/components/catering/dashboard/OrderDetails';
 import OrderItems from '@/app/components/catering/dashboard/OrderItems';

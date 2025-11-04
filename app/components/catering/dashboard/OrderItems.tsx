@@ -2,7 +2,6 @@
 import React from 'react';
 import { CateringOrderDetails } from '@/types/catering.types';
 import { ChefHat, Package } from 'lucide-react';
-import OrderStatusBadge from './OrderStatusBadge';
 
 interface OrderItemsProps {
   order: CateringOrderDetails;
@@ -151,7 +150,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
 
           {order.paymentLinkUrl && !order.paidAt && (
             <div className="mt-4">
-              
+
               <a
                 href={order.paymentLinkUrl}
                 target="_blank"

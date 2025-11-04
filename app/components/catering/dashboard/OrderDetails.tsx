@@ -1,7 +1,7 @@
 // app/components/catering/dashboard/OrderDetails.tsx
 import React from 'react';
 import { CateringOrderDetails } from '@/types/catering.types';
-import { Calendar, Clock, Users, MapPin, FileText } from 'lucide-react';
+import { Calendar, Clock, MapPin, FileText } from 'lucide-react';
 
 interface OrderDetailsProps {
   order: CateringOrderDetails;
