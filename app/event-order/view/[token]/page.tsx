@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { cateringService } from '@/services/cateringServices';
-import { CateringOrderDetails, CateringOrderStatus, SharedAccessRole } from '@/types/catering.types';
+import { CateringOrderDetails, SharedAccessRole } from '@/types/catering.types';
 import OrderStatusBadge from '@/app/components/catering/dashboard/OrderStatusBadge';
 import OrderDetails from '@/app/components/catering/dashboard/OrderDetails';
 import OrderItems from '@/app/components/catering/dashboard/OrderItems';

@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { CateringOrderDetails, AddSharedAccessDto, RemoveSharedAccessDto, SharedAccessRole, UpdateSharedAccessRoleDto } from '@/types/catering.types';
 import { cateringService } from '@/services/cateringServices';
-import { Users, Mail, Trash2, Plus, X, Eye, Shield, Edit } from 'lucide-react';
+import { Users, Trash2, Plus, X, Eye, Shield, Edit } from 'lucide-react';
 
 interface SharedAccessManagerProps {
   order: CateringOrderDetails;
