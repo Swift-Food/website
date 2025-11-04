@@ -255,6 +255,7 @@ const api = {
     token: string,
     selectedAccountId?: string // NEW
   ): Promise<CateringOrder> => {
+    console.log("review log", restaurantId, accepted, selectedAccountId)
     const response = await fetch(
       `${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`,
       {

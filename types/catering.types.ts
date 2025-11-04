@@ -1,11 +1,11 @@
-// types/catering.types.ts
+// types/catering.types.ts - COMPLETE MERGED VERSION
 
 import { MenuItem } from "@/app/components/catering/Step2MenuItems";
 
 export interface SelectedAddon {
   name: string;
   price: number;
-  quantity: number; // For single-selection: portions with this addon; For multiple: always matches total portions
+  quantity: number;
   groupTitle: string;
 }
 
@@ -128,8 +128,8 @@ export interface OrderItemDto {
     totalPrice: number;
     selectedAddons?: SelectedAddon[];
     addonPrice?: number;
-    commissionPrice?: number;
-    priceForRestaurant?: number;
+    cateringQuantityUnit?: number;
+    feedsPerUnit?: number;
   }[];
   status: string;
   restaurantCost: number;
@@ -165,7 +165,6 @@ export interface CateringPricingData {
 export interface CateringPricingResult {
   isValid: boolean;
   subtotal: number;
-  // serviceCharge: number;
   deliveryFee: number;
   promoDiscount?: number;
   total: number;
@@ -176,4 +175,94 @@ export interface PromoCodeValidation {
   valid: boolean;
   reason?: string;
   discount?: number;
+}
+
+// NEW TYPES FOR DASHBOARD
+export interface SharedAccessUser {
+  email: string;
+  name: string;
+  accessToken: string;
+  addedAt: string;
+  addedBy: string;
+}
+
+export enum CateringOrderStatus {
+  PENDING_REVIEW = 'pending_review',
+  ADMIN_REVIEWED = 'admin_reviewed',
+  RESTAURANT_REVIEWED = 'restaurant_reviewed',
+  PAYMENT_LINK_SENT = 'payment_link_sent',
+  PAID = 'paid',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
+}
+
+export interface CateringOrderDetails {
+  id: string;
+  userId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  organization?: string;
+  publicNote?: string;
+  ccEmails: string[];
+  eventDate: string;
+  eventTime: string;
+  collectionTime: string;
+  guestCount: number;
+  eventType: string;
+  deliveryAddress: string;
+  specialRequirements?: string;
+  orderItems: OrderItemDto[];
+  estimatedTotal: number;
+  finalTotal: number;
+  depositAmount: number;
+  status: CateringOrderStatus;
+  paymentId?: string;
+  paymentLinkUrl?: string;
+  paymentLinkSentAt?: string;
+  paidAt?: string;
+  adminNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  promoCodes: string[];
+  promoDiscount: number;
+  subtotal: number;
+  serviceCharge: number;
+  deliveryFee: number;
+  sharedAccessUsers?: SharedAccessUser[];
+  pickupContactName?: string;
+  pickupContactPhone?: string;
+  pickupContactEmail?: string;
+  deliveryTimeChangedAt?: string;
+  deliveryTimeChangedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddSharedAccessDto {
+  orderId: string;
+  email: string;
+  name: string;
+  userId?: string;
+}
+
+export interface RemoveSharedAccessDto {
+  orderId: string;
+  email: string;
+}
+
+export interface UpdatePickupContactDto {
+  orderId: string;
+  pickupContactName: string;
+  pickupContactPhone: string;
+  pickupContactEmail: string;
+  userId?: string;
+}
+
+export interface UpdateDeliveryTimeDto {
+  orderId: string;
+  newEventTime: string;
+  newCollectionTime?: string;
+  userId?: string;
 }

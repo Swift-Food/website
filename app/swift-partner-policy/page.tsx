@@ -138,7 +138,7 @@ export default function SwiftPartnerPolicies() {
               </div>
             </div>
           </section>
-
+                    
           {/* 6. Customer Complaints and Refunds */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">6. Customer Complaints and Refunds</h2>
