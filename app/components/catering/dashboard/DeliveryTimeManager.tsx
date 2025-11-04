@@ -2,25 +2,26 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CateringOrderDetails, UpdateDeliveryTimeDto} from '@/types/catering.types';
+import { CateringOrderDetails, UpdateDeliveryTimeDto, CateringOrderStatus } from '@/types/catering.types';
 import { cateringService } from '@/services/cateringServices';
 import { Clock, AlertCircle } from 'lucide-react';
 
 interface DeliveryTimeManagerProps {
   order: CateringOrderDetails;
   onUpdate: () => void;
+  accessToken: string; // NEW: Required for permission check
 }
 
-export default function DeliveryTimeManager({ order, onUpdate }: DeliveryTimeManagerProps) {
+export default function DeliveryTimeManager({ order, onUpdate, accessToken }: DeliveryTimeManagerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newTime, setNewTime] = useState(order.eventTime);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // const canEditTime = [
-  //   CateringOrderStatus.PAID,
-  //   CateringOrderStatus.CONFIRMED,
-  // ].includes(order.status);
+  const canEditTime = [
+    CateringOrderStatus.PAID,
+    CateringOrderStatus.CONFIRMED,
+  ].includes(order.status);
 
   const getHoursUntilEvent = () => {
     const eventDateTime = new Date(order.eventDate);
@@ -49,6 +50,7 @@ export default function DeliveryTimeManager({ order, onUpdate }: DeliveryTimeMan
       const dto: UpdateDeliveryTimeDto = {
         orderId: order.id,
         newEventTime: newTime,
+        accessToken, // NEW: Include token for permission check
       };
 
       await cateringService.updateDeliveryTime(dto);
@@ -138,7 +140,11 @@ export default function DeliveryTimeManager({ order, onUpdate }: DeliveryTimeMan
       ) : (
         <div>
           <p className="text-2xl font-bold text-gray-900">{order.eventTime}</p>
-         
+          {order.collectionTime && (
+            <p className="text-sm text-gray-600 mt-1">
+              Collection: {order.collectionTime}
+            </p>
+          )}
           {order.deliveryTimeChangedAt && (
             <p className="text-xs text-gray-500 mt-2">
               Last changed: {new Date(order.deliveryTimeChangedAt).toLocaleString('en-GB')}

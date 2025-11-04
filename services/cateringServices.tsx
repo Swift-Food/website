@@ -15,6 +15,7 @@ import {
   AddSharedAccessDto,
   RemoveSharedAccessDto,
   UpdatePickupContactDto,
+  UpdateSharedAccessRoleDto,
 } from "@/types/catering.types";
 // import { create } from "domain";
 
@@ -399,6 +400,21 @@ async addSharedAccess(dto: AddSharedAccessDto): Promise<CateringOrderDetails> {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || 'Failed to add shared access');
+  }
+  
+  return response.json();
+}
+
+async updateSharedAccessRole(dto: UpdateSharedAccessRoleDto): Promise<CateringOrderDetails> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/shared-access/update-role`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update role');
   }
   
   return response.json();

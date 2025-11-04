@@ -177,6 +177,8 @@ export interface PromoCodeValidation {
   discount?: number;
 }
 
+
+
 // NEW TYPES FOR DASHBOARD
 export interface SharedAccessUser {
   email: string;
@@ -184,6 +186,7 @@ export interface SharedAccessUser {
   accessToken: string;
   addedAt: string;
   addedBy: string;
+  role: SharedAccessRole;
 }
 
 export enum CateringOrderStatus {
@@ -240,11 +243,17 @@ export interface CateringOrderDetails {
   updatedAt: string;
 }
 
+export enum SharedAccessRole {
+  VIEWER = 'viewer',
+  MANAGER = 'manager',
+}
+
 export interface AddSharedAccessDto {
   orderId: string;
   email: string;
   name: string;
   userId?: string;
+  role: SharedAccessRole;
 }
 
 export interface RemoveSharedAccessDto {
@@ -258,6 +267,12 @@ export interface UpdatePickupContactDto {
   pickupContactPhone: string;
   pickupContactEmail: string;
   userId?: string;
+  accessToken?: string;
+}
+export interface UpdateSharedAccessRoleDto {
+  orderId: string;
+  email: string;
+  newRole: SharedAccessRole;
 }
 
 export interface UpdateDeliveryTimeDto {
@@ -265,4 +280,5 @@ export interface UpdateDeliveryTimeDto {
   newEventTime: string;
   newCollectionTime?: string;
   userId?: string;
+  accessToken?: string; 
 }

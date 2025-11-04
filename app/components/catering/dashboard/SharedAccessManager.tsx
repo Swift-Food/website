@@ -2,22 +2,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CateringOrderDetails, AddSharedAccessDto, RemoveSharedAccessDto } from '@/types/catering.types';
+import { CateringOrderDetails, AddSharedAccessDto, RemoveSharedAccessDto, SharedAccessRole, UpdateSharedAccessRoleDto } from '@/types/catering.types';
 import { cateringService } from '@/services/cateringServices';
-import { Users, Trash2, Plus, X } from 'lucide-react';
+import { Users, Mail, Trash2, Plus, X, Eye, Shield, Edit } from 'lucide-react';
 
 interface SharedAccessManagerProps {
   order: CateringOrderDetails;
   onUpdate: () => void;
+  currentUserRole: SharedAccessRole | null;
 }
 
-export default function SharedAccessManager({ order, onUpdate }: SharedAccessManagerProps) {
+export default function SharedAccessManager({ order, onUpdate, currentUserRole }: SharedAccessManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    email: '', 
+    role: SharedAccessRole.VIEWER as SharedAccessRole 
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<string | null>(null);
 
   const sharedUsers = order.sharedAccessUsers || [];
+  const isManager = currentUserRole === SharedAccessRole.MANAGER;
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,11 +37,12 @@ export default function SharedAccessManager({ order, onUpdate }: SharedAccessMan
         orderId: order.id,
         name: formData.name,
         email: formData.email,
+        role: formData.role,
       };
 
       await cateringService.addSharedAccess(dto);
       setIsAdding(false);
-      setFormData({ name: '', email: '' });
+      setFormData({ name: '', email: '', role: SharedAccessRole.VIEWER });
       onUpdate();
     } catch (err: any) {
       setError(err.message || 'Failed to add shared access');
@@ -59,6 +67,22 @@ export default function SharedAccessManager({ order, onUpdate }: SharedAccessMan
     }
   };
 
+  const handleRoleChange = async (email: string, newRole: SharedAccessRole) => {
+    try {
+      const dto: UpdateSharedAccessRoleDto = {
+        orderId: order.id,
+        email,
+        newRole,
+      };
+
+      await cateringService.updateSharedAccessRole(dto);
+      setEditingUser(null);
+      onUpdate();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update role');
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md p-6">
       <div className="flex items-center justify-between mb-4">
@@ -66,7 +90,7 @@ export default function SharedAccessManager({ order, onUpdate }: SharedAccessMan
           <Users className="h-5 w-5 text-pink-500" />
           Shared Access
         </h3>
-        {!isAdding && (
+        {!isAdding && isManager && (
           <button
             onClick={() => setIsAdding(true)}
             className="text-sm text-pink-600 hover:text-pink-700 font-semibold flex items-center gap-1"
@@ -107,6 +131,26 @@ export default function SharedAccessManager({ order, onUpdate }: SharedAccessMan
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Access Level
+            </label>
+            <select
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value as SharedAccessRole })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-sm"
+            >
+              <option value={SharedAccessRole.VIEWER}>Viewer (View Only)</option>
+              <option value={SharedAccessRole.MANAGER}>Manager (Can Edit)</option>
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.role === SharedAccessRole.MANAGER 
+                ? 'Managers can update pickup contact, change delivery time, and share access'
+                : 'Viewers can only see order details'
+              }
+            </p>
+          </div>
+
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-2">
               <p className="text-xs text-red-800">{error}</p>
@@ -119,13 +163,13 @@ export default function SharedAccessManager({ order, onUpdate }: SharedAccessMan
               disabled={loading}
               className="flex-1 bg-pink-500 text-white py-2 rounded-lg font-semibold hover:bg-pink-600 disabled:opacity-50 text-sm"
             >
-              {loading ? 'Adding...' : 'Add'}
+              {loading ? 'Adding...' : 'Add User'}
             </button>
             <button
               type="button"
               onClick={() => {
                 setIsAdding(false);
-                setFormData({ name: '', email: '' });
+                setFormData({ name: '', email: '', role: SharedAccessRole.VIEWER });
                 setError(null);
               }}
               className="px-4 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 text-sm"
@@ -144,21 +188,63 @@ export default function SharedAccessManager({ order, onUpdate }: SharedAccessMan
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">{user.name}</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-medium text-gray-900 truncate">{user.name}</p>
+                  {editingUser === user.email ? (
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.email, e.target.value as SharedAccessRole)}
+                      className="text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-pink-500"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <option value={SharedAccessRole.VIEWER}>Viewer</option>
+                      <option value={SharedAccessRole.MANAGER}>Manager</option>
+                    </select>
+                  ) : (
+                    <span 
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
+                        user.role === SharedAccessRole.MANAGER
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}
+                    >
+                      {user.role === SharedAccessRole.MANAGER ? (
+                        <>
+                          <Shield className="h-3 w-3" />
+                          Manager
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-3 w-3" />
+                          Viewer
+                        </>
+                      )}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-gray-600 truncate">{user.email}</p>
-                {user.addedBy === 'system-cc' && (
-                  <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
-                    CC Recipient
-                  </span>
+                
+              </div>
+              <div className="flex items-center gap-2 ml-3">
+                {isManager && editingUser !== user.email && (
+                  <button
+                    onClick={() => setEditingUser(user.email)}
+                    className="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50"
+                    title="Change role"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                )}
+                {isManager && (
+                  <button
+                    onClick={() => handleRemove(user.email)}
+                    className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50"
+                    title="Remove access"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 )}
               </div>
-              <button
-                onClick={() => handleRemove(user.email)}
-                className="ml-3 text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50"
-                title="Remove access"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
             </div>
           ))}
         </div>
@@ -170,9 +256,16 @@ export default function SharedAccessManager({ order, onUpdate }: SharedAccessMan
       )}
 
       <div className="mt-4 pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-500">
-          💡 Shared users can view order details, update pickup contact, and change delivery time.
-        </p>
+        <div className="space-y-2 text-xs text-gray-600">
+          <p className="flex items-center gap-2">
+            <Shield className="h-3 w-3 text-green-600" />
+            <strong className="text-green-700">Managers</strong> can view, update contacts, change time, and share access
+          </p>
+          <p className="flex items-center gap-2">
+            <Eye className="h-3 w-3 text-blue-600" />
+            <strong className="text-blue-700">Viewers</strong> can only view order details
+          </p>
+        </div>
       </div>
     </div>
   );

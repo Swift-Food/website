@@ -9,9 +9,10 @@ import { User, Mail, Phone, Edit2 } from 'lucide-react';
 interface PickupContactManagerProps {
   order: CateringOrderDetails;
   onUpdate: () => void;
+  accessToken: string; // NEW: Required for permission check
 }
 
-export default function PickupContactManager({ order, onUpdate }: PickupContactManagerProps) {
+export default function PickupContactManager({ order, onUpdate, accessToken }: PickupContactManagerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: order.pickupContactName || '',
@@ -35,6 +36,7 @@ export default function PickupContactManager({ order, onUpdate }: PickupContactM
         pickupContactName: formData.name,
         pickupContactPhone: formData.phone,
         pickupContactEmail: formData.email,
+        accessToken, // NEW: Include token for permission check
       };
 
       await cateringService.updatePickupContact(dto);
