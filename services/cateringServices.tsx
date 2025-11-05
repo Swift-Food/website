@@ -16,6 +16,10 @@ import {
   RemoveSharedAccessDto,
   UpdatePickupContactDto,
   UpdateSharedAccessRoleDto,
+  CreateMenuItemDto,
+  MenuItemDetails,
+  UpdateMenuItemDto,
+  MenuCategory,
 } from "@/types/catering.types";
 // import { create } from "domain";
 
@@ -456,12 +460,108 @@ async updateDeliveryTime(dto: UpdateDeliveryTimeDto): Promise<CateringOrderDetai
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || 'Failed to update delivery time');
   }
-  
+
+  return response.json();
+}
+
+// MENU MANAGEMENT METHODS
+
+async getRestaurantMenuItems(restaurantId: string): Promise<MenuItemDetails[]> {
+  const response = await fetch(`${API_BASE_URL}/menu-item/admin/restaurant/${restaurantId}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch menu items');
+  }
+
+  return response.json();
+}
+
+async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
+  const response = await fetch(`${API_BASE_URL}/menu-item`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create menu item');
+  }
+
+  return response.json();
+}
+
+async updateMenuItem(itemId: string, dto: UpdateMenuItemDto): Promise<MenuItemDetails> {
+  const response = await fetch(`${API_BASE_URL}/menu-item/${itemId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update menu item');
+  }
+
+  return response.json();
+}
+
+async deleteMenuItem(itemId: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/menu-item/${itemId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to delete menu item');
+  }
+}
+
+async duplicateMenuItem(itemId: string, restaurantId: string): Promise<MenuItemDetails> {
+  // Fetch the original item
+  const items = await this.getRestaurantMenuItems(restaurantId);
+  const originalItem = items.find(item => item.id === itemId);
+
+  if (!originalItem) {
+    throw new Error('Menu item not found');
+  }
+
+  // Create a duplicate with modified name
+  const duplicateDto: CreateMenuItemDto = {
+    restaurantId: originalItem.restaurantId,
+    categoryIds: originalItem.categoryIds,
+    groupTitle: originalItem.groupTitle,
+    name: `${originalItem.name} (Copy)`,
+    description: originalItem.description,
+    price: originalItem.price,
+    prepTime: originalItem.prepTime,
+    discountPrice: originalItem.discountPrice,
+    isDiscount: originalItem.isDiscount,
+    image: originalItem.image,
+    isAvailable: originalItem.isAvailable,
+    allergens: originalItem.allergens,
+    addons: originalItem.addons,
+    itemDisplayOrder: originalItem.itemDisplayOrder,
+    popular: originalItem.popular,
+    style: originalItem.style,
+    status: originalItem.status,
+  };
+
+  return this.createMenuItem(duplicateDto);
+}
+
+async getCategories(): Promise<MenuCategory[]> {
+  const response = await fetch(`${API_BASE_URL}/categories`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch categories');
+  }
+
   return response.json();
 }
 }

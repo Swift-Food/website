@@ -280,5 +280,79 @@ export interface UpdateDeliveryTimeDto {
   newEventTime: string;
   newCollectionTime?: string;
   userId?: string;
-  accessToken?: string; 
+  accessToken?: string;
+}
+
+// MENU MANAGEMENT TYPES
+export interface MenuItemAddon {
+  name: string;
+  price: number;
+  allergens: string[];
+}
+
+export enum MenuItemStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  DRAFT = "DRAFT",
+  SOLD_OUT = "SOLD_OUT",
+  CATERING = "CATERING",
+}
+
+export enum MenuItemStyle {
+  CARD = "CARD",
+  HORIZONTAL = "HORIZONTAL",
+}
+
+export interface MenuCategory {
+  id: string;
+  name: string;
+  images: string | null;
+  clicks: number;
+}
+
+export interface CreateMenuItemDto {
+  restaurantId: string;
+  categoryIds: string[];
+  groupTitle: string;
+  name: string;
+  description: string;
+  price: number;
+  prepTime: number;
+  discountPrice?: number;
+  isDiscount?: boolean;
+  image: string;
+  isAvailable: boolean;
+  allergens: string[];
+  addons: MenuItemAddon[] | null;
+  itemDisplayOrder?: number;
+  popular?: boolean;
+  style?: MenuItemStyle;
+  status: MenuItemStatus;
+}
+
+export interface MenuItemDetails extends CreateMenuItemDto {
+  id: string;
+  createdAt?: string;
+  updatedAt?: string;
+  averageRating: string;
+  categories?: MenuCategory[];
+}
+
+export interface UpdateMenuItemDto {
+  categoryIds?: string[];
+  groupTitle?: string;
+  name?: string;
+  description?: string;
+  price?: number;
+  prepTime?: number;
+  discountPrice?: number;
+  isDiscount?: boolean;
+  image?: string;
+  isAvailable?: boolean;
+  allergens?: string[];
+  addons?: MenuItemAddon[] | null;
+  itemDisplayOrder?: number;
+  popular?: boolean;
+  style?: MenuItemStyle;
+  status?: MenuItemStatus;
 }
