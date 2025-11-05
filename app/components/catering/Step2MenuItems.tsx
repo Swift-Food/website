@@ -581,10 +581,10 @@ export default function Step2MenuItems() {
                       let groupsForRest: string[] = [];
                       if (hasSettings) {
                         groupsForRest = Object.keys(menuGroupSettings!)
-                          .filter((g) => {
-                            const lower = g.toLowerCase();
-                            return lower !== "drink" && lower !== "drinks";
-                          })
+                          // .filter((g) => {
+                          //   const lower = g.toLowerCase();
+                          //   return lower !== "drink" && lower !== "drinks";
+                          // })
                           .sort((a, b) => {
                             const orderA =
                               menuGroupSettings![a]?.displayOrder ?? 999;
@@ -597,10 +597,10 @@ export default function Step2MenuItems() {
                           new Set(
                             rest.items
                               .map((i) => i.groupTitle || "Other")
-                              .filter((g) => {
-                                const lower = g.toLowerCase();
-                                return lower !== "drink" && lower !== "drinks";
-                              })
+                              // .filter((g) => {
+                              //   const lower = g.toLowerCase();
+                              //   return lower !== "drink" && lower !== "drinks";
+                              // })
                           )
                         ).sort((a, b) => a.localeCompare(b));
                       }
@@ -609,8 +609,8 @@ export default function Step2MenuItems() {
                       groupsForRest.forEach((g) => (groupItemsForRest[g] = []));
                       rest.items.forEach((item) => {
                         const group = item.groupTitle || "Other";
-                        const lower = group.toLowerCase();
-                        if (lower === "drink" || lower === "drinks") return;
+                        // const lower = group.toLowerCase();
+                        // if (lower === "drink" || lower === "drinks") return;
                         if (!groupItemsForRest[group])
                           groupItemsForRest[group] = [];
                         groupItemsForRest[group].push(item);
