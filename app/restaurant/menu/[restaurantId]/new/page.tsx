@@ -138,7 +138,7 @@ const NewMenuItemPage = () => {
         discountPrice: discountPrice ? parseFloat(discountPrice) : undefined,
         isDiscount,
         prepTime,
-        image: imageUrl || "https://via.placeholder.com/400x300?text=No+Image",
+        image: imageUrl || "",
         isAvailable,
         status,
         style,
