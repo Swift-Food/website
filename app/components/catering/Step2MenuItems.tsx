@@ -242,6 +242,7 @@ export default function Step2MenuItems() {
           status: item.status,
           itemDisplayOrder: item.itemDisplayOrder,
           addons: Array.isArray(item.addons) ? item.addons : [],
+          allergens: Array.isArray(item.allergens) ? item.allergens : [],
           restaurant: {
             id: item.restaurantId,
             name: item.restaurant?.restaurant_name || "Unknown",
