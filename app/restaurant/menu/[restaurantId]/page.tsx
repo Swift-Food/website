@@ -29,7 +29,13 @@ const MenuListPage = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMenuItems();
+    console.log("Restaurant ID:", restaurantId);
+    if (restaurantId) {
+      fetchMenuItems();
+    } else {
+      setError("No restaurant ID provided");
+      setLoading(false);
+    }
   }, [restaurantId]);
 
   useEffect(() => {
@@ -40,16 +46,41 @@ const MenuListPage = () => {
     setLoading(true);
     setError("");
     try {
-      const items = await cateringService.getRestaurantMenuItems(restaurantId);
+      const response = await cateringService.getRestaurantMenuItems(restaurantId);
+      console.log("Fetched menu items:", response);
+
+      // Handle both array and object responses
+      let items: MenuItemDetails[] = [];
+
+      if (Array.isArray(response)) {
+        items = response;
+      } else if (response && typeof response === 'object' && Array.isArray(response.menuItems)) {
+        // API now returns { menuItems: [...], groupSettings: {...} }
+        items = response.menuItems;
+      } else {
+        console.error("API returned unexpected format:", response);
+        setMenuItems([]);
+        setError("Invalid response format from server");
+        return;
+      }
+
       setMenuItems(items);
     } catch (err: any) {
+      console.error("Failed to fetch menu items:", err);
       setError(err.message || "Failed to fetch menu items");
+      setMenuItems([]); // Ensure menuItems is always an array
     } finally {
       setLoading(false);
     }
   };
 
   const filterItems = () => {
+    // Ensure menuItems is an array before filtering
+    if (!Array.isArray(menuItems)) {
+      setFilteredItems([]);
+      return;
+    }
+
     let filtered = [...menuItems];
 
     if (searchQuery) {
@@ -91,11 +122,17 @@ const MenuListPage = () => {
   };
 
   const getUniqueGroups = () => {
+    if (!Array.isArray(menuItems) || menuItems.length === 0) {
+      return [];
+    }
     const groups = Array.from(new Set(menuItems.map((item) => item.groupTitle)));
     return groups.filter(Boolean);
   };
 
-  const formatPrice = (price: number) => `£${price.toFixed(2)}`;
+  const formatPrice = (price: number | string) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return `£${numPrice.toFixed(2)}`;
+  };
 
   if (loading) {
     return (

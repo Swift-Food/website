@@ -472,13 +472,22 @@ async updateDeliveryTime(dto: UpdateDeliveryTimeDto): Promise<CateringOrderDetai
 // MENU MANAGEMENT METHODS
 
 async getRestaurantMenuItems(restaurantId: string): Promise<MenuItemDetails[]> {
-  const response = await fetch(`${API_BASE_URL}/menu-item/admin/restaurant/${restaurantId}`);
+  const url = `${API_BASE_URL}/menu-item/admin/restaurant/${restaurantId}`;
+  console.log('Fetching menu items from:', url);
+
+  const response = await fetch(url);
+
+  console.log('Response status:', response.status);
 
   if (!response.ok) {
-    throw new Error('Failed to fetch menu items');
+    const errorText = await response.text();
+    console.error('API Error:', errorText);
+    throw new Error(`Failed to fetch menu items: ${response.status} ${response.statusText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('API Response data:', data);
+  return data;
 }
 
 async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
