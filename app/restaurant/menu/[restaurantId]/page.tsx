@@ -26,6 +26,7 @@ const MenuListPage = () => {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ const MenuListPage = () => {
 
   useEffect(() => {
     filterItems();
-  }, [menuItems, searchQuery, selectedGroup]);
+  }, [menuItems, searchQuery, selectedGroup, selectedStatus]);
 
   const fetchMenuItems = async () => {
     setLoading(true);
@@ -93,6 +94,10 @@ const MenuListPage = () => {
       filtered = filtered.filter((item) => item.groupTitle === selectedGroup);
     }
 
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter((item) => item.status === selectedStatus);
+    }
+
     setFilteredItems(filtered);
   };
 
@@ -127,6 +132,14 @@ const MenuListPage = () => {
     }
     const groups = Array.from(new Set(menuItems.map((item) => item.groupTitle)));
     return groups.filter(Boolean);
+  };
+
+  const getUniqueStatuses = () => {
+    if (!Array.isArray(menuItems) || menuItems.length === 0) {
+      return [];
+    }
+    const statuses = Array.from(new Set(menuItems.map((item) => item.status)));
+    return statuses.filter(Boolean);
   };
 
   const formatPrice = (price: number | string) => {
@@ -207,6 +220,20 @@ const MenuListPage = () => {
               {getUniqueGroups().map((group) => (
                 <option key={group} value={group}>
                   {group}
+                </option>
+              ))}
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+            >
+              <option value="all">All Statuses</option>
+              {getUniqueStatuses().map((status) => (
+                <option key={status} value={status}>
+                  {status}
                 </option>
               ))}
             </select>

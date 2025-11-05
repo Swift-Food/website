@@ -1872,7 +1872,14 @@ const WithdrawalDashboard = ({
 
 // Main App Component
 const RestaurantWithdrawalApp = () => {
+  const router = useRouter();
   const { user, token, login, logout, isAuthenticated } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    // Clear URL parameters by navigating to clean path
+    router.push('/restaurant/dashboard');
+  };
 
   if (!isAuthenticated || !user || !token) {
     return <LoginPage onLogin={login} />;
@@ -1888,7 +1895,7 @@ const RestaurantWithdrawalApp = () => {
       restaurant={user.restaurantUser?.restaurant}
       restaurantUser={user.restaurantUser}
       token={token}
-      onLogout={logout}
+      onLogout={handleLogout}
     />
   );
 };
