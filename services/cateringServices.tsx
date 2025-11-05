@@ -10,6 +10,12 @@ import {
   ContactInfo,
   CateringPricingResult,
   PromoCodeValidation,
+  UpdateDeliveryTimeDto,
+  CateringOrderDetails,
+  AddSharedAccessDto,
+  RemoveSharedAccessDto,
+  UpdatePickupContactDto,
+  UpdateSharedAccessRoleDto,
 } from "@/types/catering.types";
 // import { create } from "domain";
 
@@ -361,6 +367,103 @@ class CateringService {
 
     return response.json();
   }
+
+  // services/catering.service.ts - Add these methods to the CateringService class
+
+async getOrderByToken(token: string): Promise<CateringOrderDetails> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/view/${token}`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch order');
+  }
+  
+  return response.json();
+}
+
+async getOrdersByUserId(userId: string): Promise<CateringOrderDetails[]> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/user/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch orders');
+  }
+  
+  return response.json();
+}
+
+async addSharedAccess(dto: AddSharedAccessDto): Promise<CateringOrderDetails> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/shared-access/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to add shared access');
+  }
+  
+  return response.json();
+}
+
+async updateSharedAccessRole(dto: UpdateSharedAccessRoleDto): Promise<CateringOrderDetails> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/shared-access/update-role`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update role');
+  }
+  
+  return response.json();
+}
+
+async removeSharedAccess(dto: RemoveSharedAccessDto): Promise<CateringOrderDetails> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/shared-access/remove`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to remove shared access');
+  }
+  
+  return response.json();
+}
+
+async updatePickupContact(dto: UpdatePickupContactDto): Promise<CateringOrderDetails> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/pickup-contact`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update pickup contact');
+  }
+  
+  return response.json();
+}
+
+async updateDeliveryTime(dto: UpdateDeliveryTimeDto): Promise<CateringOrderDetails> {
+  const response = await fetch(`${API_BASE_URL}/catering-orders/delivery-time`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dto),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update delivery time');
+  }
+  
+  return response.json();
+}
 }
 
 export const cateringService = new CateringService();
