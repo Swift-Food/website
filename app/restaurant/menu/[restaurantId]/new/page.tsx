@@ -78,34 +78,54 @@ const NewMenuItemPage = () => {
 
   const fetchExistingGroups = async () => {
     try {
-      const response = await cateringService.getRestaurantMenuItems(
+      // Fetch restaurant data to get menuGroupSettings
+      const restaurant = await cateringService.getRestaurant(restaurantId);
+
+      let menuGroupSettings: Record<string, { displayOrder: number }> = {};
+      if (
+        restaurant.menuGroupSettings &&
+        typeof restaurant.menuGroupSettings === "object"
+      ) {
+        menuGroupSettings = restaurant.menuGroupSettings;
+      }
+
+      // Fetch menu items to get any additional groups
+      const menuItemsResponse = await cateringService.getRestaurantMenuItems(
         restaurantId
       );
 
-      // Handle both array and object responses
       let items: any[] = [];
-
-      if (Array.isArray(response)) {
-        items = response;
-      } else if (response && typeof response === "object") {
-        // Type guard to check if response has menuItems property
-        const hasMenuItems = "menuItems" in response;
-        if (hasMenuItems) {
-          const responseWithMenuItems = response as {
-            menuItems: any[];
-            groupSettings?: any;
-          };
-          if (Array.isArray(responseWithMenuItems.menuItems)) {
-            items = responseWithMenuItems.menuItems;
-          }
+      if (Array.isArray(menuItemsResponse)) {
+        items = menuItemsResponse;
+      } else if (
+        menuItemsResponse &&
+        typeof menuItemsResponse === "object" &&
+        "menuItems" in menuItemsResponse
+      ) {
+        const responseWithMenuItems = menuItemsResponse as { menuItems: any[] };
+        if (Array.isArray(responseWithMenuItems.menuItems)) {
+          items = responseWithMenuItems.menuItems;
         }
       }
 
-      // Extract unique groups from existing items
-      const groups = Array.from(
+      // Extract unique groups from items
+      const itemGroups = Array.from(
         new Set(items.map((item: any) => item.groupTitle).filter(Boolean))
       ) as string[];
-      setExistingGroups(groups);
+
+      // Get groups from menuGroupSettings (preserve order)
+      const settingsGroups = Object.keys(menuGroupSettings);
+
+      // Append any itemGroups not in menuGroupSettings
+      const allGroups = [
+        ...settingsGroups,
+        ...itemGroups.filter((g) => !settingsGroups.includes(g)),
+      ];
+
+      console.log("Menu Groups from restaurant: ", menuGroupSettings);
+      console.log("All groups (settings + items): ", allGroups);
+
+      setExistingGroups(allGroups);
     } catch (err: any) {
       console.error("Failed to load groups:", err);
     }
