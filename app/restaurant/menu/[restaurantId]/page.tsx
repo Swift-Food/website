@@ -132,8 +132,13 @@ const MenuListPage = () => {
     }
   };
 
-  const handleDelete = async (itemId: string) => {
+  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>, itemId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (deleteConfirm !== itemId) {
+      // Blur the button to prevent focus scroll behavior
+      e.currentTarget.blur();
       setDeleteConfirm(itemId);
       setTimeout(() => setDeleteConfirm(null), 3000);
       return;
@@ -424,6 +429,7 @@ const MenuListPage = () => {
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-2">
               <button
+                type="button"
                 onClick={() =>
                   router.push(`/restaurant/menu/${restaurantId}/edit/${item.id}`)
                 }
@@ -433,6 +439,7 @@ const MenuListPage = () => {
                 Edit
               </button>
               <button
+                type="button"
                 onClick={() => handleDuplicate(item.id)}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
                 title="Duplicate"
@@ -441,7 +448,8 @@ const MenuListPage = () => {
                 <span className="hidden sm:inline">Duplicate</span>
               </button>
               <button
-                onClick={() => handleDelete(item.id)}
+                type="button"
+                onClick={(e) => handleDelete(e, item.id)}
                 className={`font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
                   deleteConfirm === item.id
                     ? "bg-red-600 hover:bg-red-700 text-white"
