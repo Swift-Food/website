@@ -59,17 +59,25 @@ const MenuListPage = () => {
 
       if (Array.isArray(response)) {
         items = response;
-      } else if (
-        response &&
-        typeof response === "object" &&
-        Array.isArray(response.menuItems)
-      ) {
-        // API now returns { menuItems: [...], groupSettings: {...} }
-        items = response.menuItems;
+      } else if (response && typeof response === "object") {
+        // Type guard to check if response has menuItems property
+        const hasMenuItems = "menuItems" in response;
+        if (hasMenuItems) {
+          const responseWithMenuItems = response as { menuItems: MenuItemDetails[], groupSettings?: any };
+          if (Array.isArray(responseWithMenuItems.menuItems)) {
+            // API now returns { menuItems: [...], groupSettings: {...} }
+            items = responseWithMenuItems.menuItems;
 
-        // Store group settings if available
-        if (response.groupSettings) {
-          setRestaurantData({ menuGroupSettings: response.groupSettings });
+            // Store group settings if available
+            if (responseWithMenuItems.groupSettings) {
+              setRestaurantData({ menuGroupSettings: responseWithMenuItems.groupSettings });
+            }
+          }
+        } else {
+          console.error("API returned unexpected format:", response);
+          setMenuItems([]);
+          setError("Invalid response format from server");
+          return;
         }
       } else {
         console.error("API returned unexpected format:", response);
