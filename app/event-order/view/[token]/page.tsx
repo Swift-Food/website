@@ -46,10 +46,10 @@ export default function CateringDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-pink-500 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your event order...</p>
+          <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-pink-500 mx-auto mb-4" />
+          <p className="text-gray-600 text-sm sm:text-base">Loading your event order...</p>
         </div>
       </div>
     );
@@ -58,10 +58,10 @@ export default function CateringDashboardPage() {
   if (error || !order) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h2>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-md w-full text-center">
+          <div className="text-red-500 text-4xl sm:text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Order Not Found</h2>
+          <p className="text-gray-600 text-sm sm:text-base mb-4">
             {error || 'We couldn\'t find this order. Please check your link and try again.'}
           </p>
         </div>
@@ -72,62 +72,44 @@ export default function CateringDashboardPage() {
   const isManager = currentUserRole === SharedAccessRole.MANAGER;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-pink-500 to-pink-400 rounded-2xl shadow-lg p-8 mb-8 text-white">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="bg-gradient-to-r from-pink-500 to-pink-400 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Your Event Order</h1>
-              <p className="text-pink-100">
-                Reference: <span className="font-mono font-bold">{order.id.substring(0, 4).toUpperCase()}</span>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-1">Your Event Order</h1>
+              <p className="text-pink-100 text-sm sm:text-base">
+                Reference: <span className="font-mono font-bold">#{order.id.substring(0, 4).toUpperCase()}</span>
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col items-start sm:items-end gap-2">
               <OrderStatusBadge status={order.status} />
-              {/* Role Badge */}
-              {currentUserRole && (
-                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${
-                  isManager 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {isManager ? (
-                    <>
-                      <Shield className="h-4 w-4" />
-                      Manager Access
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4" />
-                      View Only
-                    </>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <OrderDetails order={order} />
+            {isManager && (
+              <DeliveryTimeManager 
+                order={order} 
+                onUpdate={loadOrder} 
+                accessToken={token}
+              />
+            )}
             <OrderItems order={order} />
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <DeliveryInfo order={order} />
             
             {/* Only show management components if user is a manager */}
             {isManager ? (
               <>
-                <DeliveryTimeManager 
-                  order={order} 
-                  onUpdate={loadOrder} 
-                  accessToken={token}
-                />
                 <PickupContactManager 
                   order={order} 
                   onUpdate={loadOrder}
@@ -140,12 +122,12 @@ export default function CateringDashboardPage() {
                 />
               </>
             ) : (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-3">
-                  <Eye className="h-6 w-6 text-blue-600" />
-                  <h3 className="text-lg font-bold text-blue-900">View Only Access</h3>
+                  <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                  <h3 className="text-base sm:text-lg font-bold text-blue-900">View Only Access</h3>
                 </div>
-                <p className="text-sm text-blue-800">
+                <p className="text-xs sm:text-sm text-blue-800">
                   You have view-only access to this order. Contact the order owner if you need to make changes.
                 </p>
               </div>

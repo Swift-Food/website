@@ -63,12 +63,13 @@ export default function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
   const Icon = config.icon;
 
   return (
-    <div className="inline-flex flex-col items-end gap-2">
-      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 font-semibold ${config.color}`}>
-        <Icon className="h-5 w-5" />
-        <span>{config.label}</span>
+    <div className="inline-flex flex-col items-start sm:items-end gap-1 sm:gap-2">
+      <div className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border-2 font-semibold text-xs sm:text-sm ${config.color}`}>
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+        <span className="whitespace-nowrap">{config.label}</span>
       </div>
-      <p className="text-sm text-white/90 italic">{config.description}</p>
+      <p className="text-xs sm:text-sm text-white/90 italic hidden sm:block">{config.description}</p>
+      <p className="text-xs text-white/90 italic sm:hidden">{config.description}</p>
     </div>
   );
 }

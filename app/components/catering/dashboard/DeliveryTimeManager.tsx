@@ -9,7 +9,7 @@ import { Clock, AlertCircle } from 'lucide-react';
 interface DeliveryTimeManagerProps {
   order: CateringOrderDetails;
   onUpdate: () => void;
-  accessToken: string; // NEW: Required for permission check
+  accessToken: string;
 }
 
 export default function DeliveryTimeManager({ order, onUpdate, accessToken }: DeliveryTimeManagerProps) {
@@ -17,11 +17,6 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
   const [newTime, setNewTime] = useState(order.eventTime);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // const canEditTime = [
-  //   CateringOrderStatus.PAID,
-  //   CateringOrderStatus.CONFIRMED,
-  // ].includes(order.status);
 
   const getHoursUntilEvent = () => {
     const eventDateTime = new Date(order.eventDate);
@@ -50,7 +45,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
       const dto: UpdateDeliveryTimeDto = {
         orderId: order.id,
         newEventTime: newTime,
-        accessToken, // NEW: Include token for permission check
+        accessToken,
       };
 
       await cateringService.updateDeliveryTime(dto);
@@ -64,16 +59,16 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Clock className="h-5 w-5 text-pink-500" />
+    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
           Delivery Time
         </h3>
         {canChangeTime && !isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="text-sm text-pink-600 hover:text-pink-700 font-semibold"
+            className="text-xs sm:text-sm text-pink-600 hover:text-pink-700 font-semibold"
           >
             Change Time
           </button>
@@ -81,10 +76,10 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
       </div>
 
       {!canChangeTime && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
           <div className="flex gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
-            <div className="text-sm text-yellow-800">
+            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs sm:text-sm text-yellow-800">
               {hoursUntilEvent < 48 ? (
                 <p>Delivery time cannot be changed within 48 hours of the event.</p>
               ) : (
@@ -96,31 +91,31 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
       )}
 
       {isEditing ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
               New Event Time
             </label>
             <input
               type="time"
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-sm sm:text-base"
               required
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-2 sm:p-3">
+              <p className="text-xs sm:text-sm text-red-800">{error}</p>
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-pink-500 text-white py-2 rounded-lg font-semibold hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-pink-500 text-white py-2 rounded-lg font-semibold hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
             >
               {loading ? 'Updating...' : 'Update Time'}
             </button>
@@ -131,7 +126,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
                 setNewTime(order.eventTime);
                 setError(null);
               }}
-              className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300"
+              className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 text-xs sm:text-sm"
             >
               Cancel
             </button>
@@ -139,9 +134,9 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
         </form>
       ) : (
         <div>
-          <p className="text-2xl font-bold text-gray-900">{order.eventTime}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{order.eventTime}</p>
           {order.collectionTime && (
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
               Collection: {order.collectionTime}
             </p>
           )}

@@ -84,61 +84,61 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Users className="h-5 w-5 text-pink-500" />
+    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+          <Users className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
           Shared Access
         </h3>
         {!isAdding && isManager && (
           <button
             onClick={() => setIsAdding(true)}
-            className="text-sm text-pink-600 hover:text-pink-700 font-semibold flex items-center gap-1"
+            className="text-xs sm:text-sm text-pink-600 hover:text-pink-700 font-semibold flex items-center gap-1"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
             Add User
           </button>
         )}
       </div>
 
       {isAdding && (
-        <form onSubmit={handleAdd} className="mb-4 p-4 bg-gray-50 rounded-lg space-y-3">
+        <form onSubmit={handleAdd} className="mb-3 sm:mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg space-y-2 sm:space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Name
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-sm"
+              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-xs sm:text-sm"
               placeholder="Jane Smith"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-sm"
+              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-xs sm:text-sm"
               placeholder="jane@example.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Access Level
             </label>
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as SharedAccessRole })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-sm"
+              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-xs sm:text-sm"
             >
               <option value={SharedAccessRole.VIEWER}>Viewer (View Only)</option>
               <option value={SharedAccessRole.MANAGER}>Manager (Can Edit)</option>
@@ -161,7 +161,7 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-pink-500 text-white py-2 rounded-lg font-semibold hover:bg-pink-600 disabled:opacity-50 text-sm"
+              className="flex-1 bg-pink-500 text-white py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-pink-600 disabled:opacity-50 text-xs sm:text-sm"
             >
               {loading ? 'Adding...' : 'Add User'}
             </button>
@@ -172,9 +172,9 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
                 setFormData({ name: '', email: '', role: SharedAccessRole.VIEWER });
                 setError(null);
               }}
-              className="px-4 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 text-sm"
+              className="px-3 sm:px-4 bg-gray-200 text-gray-700 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-gray-300"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4" />
             </button>
           </div>
         </form>
@@ -185,16 +185,16 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
           {sharedUsers.map((user, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-start sm:items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-2"
             >
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium text-gray-900 truncate">{user.name}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                  <p className="font-medium text-sm sm:text-base text-gray-900 truncate">{user.name}</p>
                   {editingUser === user.email ? (
                     <select
                       value={user.role}
                       onChange={(e) => handleRoleChange(user.email, e.target.value as SharedAccessRole)}
-                      className="text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-pink-500"
+                      className="text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-pink-500 w-full sm:w-auto"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <option value={SharedAccessRole.VIEWER}>Viewer</option>
@@ -202,7 +202,7 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
                     </select>
                   ) : (
                     <span 
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold w-fit ${
                         user.role === SharedAccessRole.MANAGER
                           ? 'bg-green-100 text-green-700'
                           : 'bg-blue-100 text-blue-700'
@@ -210,38 +210,37 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
                     >
                       {user.role === SharedAccessRole.MANAGER ? (
                         <>
-                          <Shield className="h-3 w-3" />
+                          <Shield className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           Manager
                         </>
                       ) : (
                         <>
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           Viewer
                         </>
                       )}
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 truncate">{user.email}</p>
-                
+                <p className="text-xs sm:text-sm text-gray-600 truncate">{user.email}</p>
               </div>
-              <div className="flex items-center gap-2 ml-3">
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 {isManager && editingUser !== user.email && (
                   <button
                     onClick={() => setEditingUser(user.email)}
-                    className="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50"
+                    className="text-blue-600 hover:text-blue-700 p-1.5 sm:p-2 rounded-lg hover:bg-blue-50"
                     title="Change role"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                   </button>
                 )}
                 {isManager && (
                   <button
                     onClick={() => handleRemove(user.email)}
-                    className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50"
+                    className="text-red-600 hover:text-red-700 p-1.5 sm:p-2 rounded-lg hover:bg-red-50"
                     title="Remove access"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                   </button>
                 )}
               </div>
@@ -249,21 +248,21 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
           ))}
         </div>
       ) : (
-        <div className="text-center py-6">
-          <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">No shared users yet</p>
+        <div className="text-center py-4 sm:py-6">
+          <Users className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-3" />
+          <p className="text-gray-500 text-xs sm:text-sm">No shared users yet</p>
         </div>
       )}
 
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="space-y-2 text-xs text-gray-600">
-          <p className="flex items-center gap-2">
-            <Shield className="h-3 w-3 text-green-600" />
-            <strong className="text-green-700">Managers</strong> can view, update contacts, change time, and share access
+      <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
+        <div className="space-y-1.5 sm:space-y-2 text-xs text-gray-600">
+          <p className="flex items-start gap-2">
+            <Shield className="h-3 w-3 text-green-600 flex-shrink-0 mt-0.5" />
+            <span><strong className="text-green-700">Managers</strong> can view, update contacts, change time, and share access</span>
           </p>
-          <p className="flex items-center gap-2">
-            <Eye className="h-3 w-3 text-blue-600" />
-            <strong className="text-blue-700">Viewers</strong> can only view order details
+          <p className="flex items-start gap-2">
+            <Eye className="h-3 w-3 text-blue-600 flex-shrink-0 mt-0.5" />
+            <span><strong className="text-blue-700">Viewers</strong> can only view order details</span>
           </p>
         </div>
       </div>
