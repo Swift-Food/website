@@ -54,8 +54,14 @@ const NewMenuItemPage = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
 
+  // Group management state
+  const [existingGroups, setExistingGroups] = useState<string[]>([]);
+  const [showNewGroupModal, setShowNewGroupModal] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+
   useEffect(() => {
     fetchCategories();
+    fetchExistingGroups();
   }, []);
 
   const fetchCategories = async () => {
@@ -67,6 +73,80 @@ const NewMenuItemPage = () => {
       setError(err.message || "Failed to load categories");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExistingGroups = async () => {
+    try {
+      const response = await cateringService.getRestaurantMenuItems(
+        restaurantId
+      );
+
+      // Handle both array and object responses
+      let items: any[] = [];
+
+      if (Array.isArray(response)) {
+        items = response;
+      } else if (response && typeof response === "object") {
+        // Type guard to check if response has menuItems property
+        const hasMenuItems = "menuItems" in response;
+        if (hasMenuItems) {
+          const responseWithMenuItems = response as {
+            menuItems: any[];
+            groupSettings?: any;
+          };
+          if (Array.isArray(responseWithMenuItems.menuItems)) {
+            items = responseWithMenuItems.menuItems;
+          }
+        }
+      }
+
+      // Extract unique groups from existing items
+      const groups = Array.from(
+        new Set(items.map((item: any) => item.groupTitle).filter(Boolean))
+      ) as string[];
+      setExistingGroups(groups);
+    } catch (err: any) {
+      console.error("Failed to load groups:", err);
+    }
+  };
+
+  const handleCreateNewGroup = async () => {
+    if (!newGroupName.trim()) return;
+
+    try {
+      // Calculate next display order from the latest backend data
+      const maxOrder = existingGroups.length;
+
+      console.log("Current Settings: ", existingGroups);
+
+      const currentSettings = existingGroups.reduce((acc, group, idx) => {
+        acc[group] = { displayOrder: idx + 1 };
+        return acc;
+      }, {} as Record<string, { displayOrder: number }>);
+      // Add the new group to existing settings
+      const newGroupSettings = {
+        ...currentSettings,
+        [newGroupName.trim()]: { displayOrder: maxOrder + 1 },
+      };
+      // Update restaurant's group settings
+      await cateringService.reorderGroups(restaurantId, newGroupSettings);
+
+      // Update local state
+      setExistingGroups((prev) => [...prev, newGroupName.trim()]);
+
+      // Set as selected group
+      setGroupTitle(newGroupName.trim());
+
+      // Close modal and reset
+      setShowNewGroupModal(false);
+      setNewGroupName("");
+
+      setSuccess("Group created successfully");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.log(err);
+      setError("Failed to create group");
     }
   };
 
@@ -152,7 +232,7 @@ const NewMenuItemPage = () => {
         groupTitle,
         categoryIds: selectedCategories || [],
         allergens: selectedAllergens || [],
-        addons: (addons && addons.length > 0) ? addons : null,
+        addons: addons && addons.length > 0 ? addons : null,
       };
 
       await cateringService.createMenuItem(createData);
@@ -171,7 +251,10 @@ const NewMenuItemPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader
+            size={48}
+            className="animate-spin text-blue-600 mx-auto mb-4"
+          />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -189,7 +272,9 @@ const NewMenuItemPage = () => {
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Add New Menu Item</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Add New Menu Item
+          </h1>
         </div>
 
         {/* Messages */}
@@ -207,7 +292,10 @@ const NewMenuItemPage = () => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg p-6 space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-lg p-6 space-y-6"
+        >
           {/* Basic Information */}
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-gray-900 border-b pb-2">
@@ -248,13 +336,28 @@ const NewMenuItemPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Group/Category Title
               </label>
-              <input
-                type="text"
-                value={groupTitle}
-                onChange={(e) => setGroupTitle(e.target.value)}
-                placeholder="e.g., Appetizers, Mains, Desserts"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-              />
+              <div className="flex gap-2">
+                <select
+                  value={groupTitle}
+                  onChange={(e) => setGroupTitle(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                >
+                  <option value="">Select a group...</option>
+                  {existingGroups.map((group) => (
+                    <option key={group} value={group}>
+                      {group}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowNewGroupModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Plus size={20} />
+                  New Group
+                </button>
+              </div>
             </div>
           </div>
 
@@ -303,7 +406,10 @@ const NewMenuItemPage = () => {
                 onChange={(e) => setIsDiscount(e.target.checked)}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <label htmlFor="isDiscount" className="ml-2 text-sm text-gray-700">
+              <label
+                htmlFor="isDiscount"
+                className="ml-2 text-sm text-gray-700"
+              >
                 Apply discount pricing
               </label>
             </div>
@@ -311,7 +417,9 @@ const NewMenuItemPage = () => {
 
           {/* Image */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900 border-b pb-2">Image</h2>
+            <h2 className="text-xl font-bold text-gray-900 border-b pb-2">
+              Image
+            </h2>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -411,7 +519,9 @@ const NewMenuItemPage = () => {
             {selectedAllergens.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {selectedAllergens.map((allergenValue) => {
-                  const allergen = ALLERGENS.find((a) => a.value === allergenValue);
+                  const allergen = ALLERGENS.find(
+                    (a) => a.value === allergenValue
+                  );
                   return (
                     <span
                       key={allergenValue}
@@ -618,6 +728,55 @@ const NewMenuItemPage = () => {
             </button>
           </div>
         </form>
+
+        {/* New Group Modal */}
+        {showNewGroupModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Create New Group
+              </h3>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Group Name
+                </label>
+                <input
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  placeholder="e.g., Appetizers, Mains, Desserts"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  autoFocus
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleCreateNewGroup();
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewGroupModal(false);
+                    setNewGroupName("");
+                  }}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateNewGroup}
+                  disabled={!newGroupName.trim()}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Create Group
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

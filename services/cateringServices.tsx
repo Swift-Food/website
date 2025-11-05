@@ -581,6 +581,25 @@ async getCategories(): Promise<MenuCategory[]> {
 
   return response.json();
 }
+
+async reorderGroups(
+  restaurantId: string,
+  groupSettings: {[groupTitle: string]: {displayOrder: number}}
+): Promise<void> {
+  console.log("groupSettings", groupSettings);
+  const response = await fetch(`${API_BASE_URL}/restaurant/menu/reorder-groups/${restaurantId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ groupSettings }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to reorder groups');
+  }
+
+  return response.json();
+}
 }
 
 export const cateringService = new CateringService();
