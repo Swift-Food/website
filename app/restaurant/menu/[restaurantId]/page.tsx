@@ -165,7 +165,7 @@ const MenuListPage = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push('/restaurant/dashboard')}
               className="text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft size={24} />

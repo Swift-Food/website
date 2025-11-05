@@ -202,7 +202,7 @@ const EditMenuItemPage = () => {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push(`/restaurant/menu/${restaurantId}`)}
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
@@ -578,7 +578,7 @@ const EditMenuItemPage = () => {
           <div className="flex gap-4 pt-6 border-t">
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => router.push(`/restaurant/menu/${restaurantId}`)}
               className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors"
             >
               Cancel
