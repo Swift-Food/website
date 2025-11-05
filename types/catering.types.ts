@@ -312,7 +312,7 @@ export interface MenuCategory {
 
 export interface CreateMenuItemDto {
   restaurantId: string;
-  categoryIds: string[];
+  categoryIds?: string[];
   groupTitle: string;
   name: string;
   description: string;
@@ -322,7 +322,7 @@ export interface CreateMenuItemDto {
   isDiscount?: boolean;
   image: string;
   isAvailable: boolean;
-  allergens: string[];
+  allergens?: string[];
   addons: MenuItemAddon[] | null;
   itemDisplayOrder?: number;
   popular?: boolean;

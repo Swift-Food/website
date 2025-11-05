@@ -90,7 +90,20 @@ const EditMenuItemPage = () => {
       setStyle(item.style || MenuItemStyle.CARD);
       setPopular(item.popular || false);
       setGroupTitle(item.groupTitle);
-      setSelectedCategories(item.categoryIds || []);
+
+      // Handle categoryIds - check both categoryIds and categories fields
+      console.log("Item data:", item);
+      console.log("Item categoryIds:", item.categoryIds);
+      console.log("Item categories:", item.categories);
+
+      const categoryIds = item.categoryIds ||
+        (item.categories && Array.isArray(item.categories)
+          ? item.categories.map((cat: any) => cat.id)
+          : []);
+
+      console.log("Processed categoryIds:", categoryIds);
+      setSelectedCategories(categoryIds);
+
       setSelectedAllergens(item.allergens || []);
       setAddons(item.addons || []);
     } catch (err: any) {
@@ -168,8 +181,8 @@ const EditMenuItemPage = () => {
         style,
         popular,
         groupTitle,
-        categoryIds: selectedCategories,
-        allergens: selectedAllergens,
+        categoryIds: selectedCategories.length > 0 ? selectedCategories : undefined,
+        allergens: selectedAllergens.length > 0 ? selectedAllergens : undefined,
         addons: addons.length > 0 ? addons : null,
       };
 
