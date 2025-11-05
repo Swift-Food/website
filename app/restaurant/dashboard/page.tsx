@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   CheckCircle,
@@ -1318,6 +1319,10 @@ const WithdrawalDashboard = ({
   token: string;
   onLogout: () => void;
 }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize state from URL params
   const [loading, setLoading] = useState(true);
   const [stripeStatus, setStripeStatus] =
     useState<StripeOnboardingStatus | null>(null);
@@ -1329,12 +1334,59 @@ const WithdrawalDashboard = ({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
-  const [activeTab, setActiveTab] = useState<"withdrawals" | "catering">(
-    "withdrawals"
+
+  // Initialize from URL params
+  const [activeTab, setActiveTabState] = useState<"withdrawals" | "catering">(
+    (searchParams.get("tab") as "withdrawals" | "catering") || "withdrawals"
   );
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
-    null
+  const [selectedAccountId, setSelectedAccountIdState] = useState<string | null>(
+    searchParams.get("account") || null
   );
+
+  // Helper function to update URL params
+  const updateURLParams = (account: string | null, tab: string) => {
+    const params = new URLSearchParams();
+    if (account) {
+      params.set("account", account);
+    }
+    params.set("tab", tab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  // Wrapper functions that update both state and URL
+  const setActiveTab = (tab: "withdrawals" | "catering") => {
+    setActiveTabState(tab);
+    updateURLParams(selectedAccountId, tab);
+  };
+
+  const setSelectedAccountId = (accountId: string | null) => {
+    setSelectedAccountIdState(accountId);
+    updateURLParams(accountId, activeTab);
+  };
+
+  // Sync state with URL params (for browser back/forward navigation)
+  useEffect(() => {
+    const account = searchParams.get("account");
+    const tab = searchParams.get("tab") as "withdrawals" | "catering";
+
+    const currentAccount = selectedAccountId;
+    const currentTab = activeTab;
+
+    if (account !== currentAccount) {
+      setSelectedAccountIdState(account);
+    }
+    if (tab && tab !== currentTab) {
+      setActiveTabState(tab || "withdrawals");
+    }
+  }, [searchParams, selectedAccountId, activeTab]);
+
+  // Set initial URL params if not present
+  useEffect(() => {
+    if (!searchParams.has("tab")) {
+      updateURLParams(selectedAccountId, activeTab);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Update fetchData function to include catering orders
   const fetchData = async () => {
@@ -1386,6 +1438,7 @@ const WithdrawalDashboard = ({
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token, selectedAccountId]);
 
   const handleWithdrawalSubmit = async (e: React.FormEvent) => {
