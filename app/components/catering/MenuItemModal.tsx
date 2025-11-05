@@ -39,7 +39,7 @@ export default function MenuItemModal({
   onRemoveItem,
   editingIndex = null,
 }: MenuItemModalProps) {
-  console.log("Item: ", item);
+  // console.log("Item: ", item);
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemQuantityInput, setItemQuantityInput] = useState("1"); // String for input field
   const [selectedAddons, setSelectedAddons] = useState<
@@ -115,11 +115,11 @@ export default function MenuItemModal({
       return;
     }
 
-    console.log("Processing addons:", item.addons);
+    // console.log("Processing addons:", item.addons);
 
     // Group addons by groupTitle
     const grouped = item.addons.reduce((acc, addon) => {
-      console.log("Processing addon:", addon);
+      // console.log("Processing addon:", addon);
       const groupTitle = addon.groupTitle || "Default";
       if (!acc[groupTitle]) {
         acc[groupTitle] = {
@@ -132,7 +132,7 @@ export default function MenuItemModal({
       return acc;
     }, {} as Record<string, AddonGroup>);
 
-    console.log("Grouped addons:", grouped);
+    // console.log("Grouped addons:", grouped);
     setAddonGroups(grouped);
 
     // Initialize selected addons state
@@ -171,8 +171,8 @@ export default function MenuItemModal({
       });
     }
 
-    console.log("Initial selections:", initialSelections);
-    console.log("Initial quantities:", initialQuantities);
+    // console.log("Initial selections:", initialSelections);
+    // console.log("Initial quantities:", initialQuantities);
     setSelectedAddons(initialSelections);
     setAddonQuantities(initialQuantities);
     setAddonQuantityInputs(initialQuantityInputs);
