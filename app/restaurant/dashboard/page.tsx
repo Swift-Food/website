@@ -1336,8 +1336,8 @@ const WithdrawalDashboard = ({
   const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
 
   // Initialize from URL params
-  const [activeTab, setActiveTabState] = useState<"withdrawals" | "catering" | "menu">(
-    (searchParams.get("tab") as "withdrawals" | "catering" | "menu") || "withdrawals"
+  const [activeTab, setActiveTabState] = useState<"withdrawals" | "catering">(
+    (searchParams.get("tab") as "withdrawals" | "catering") || "withdrawals"
   );
   const [selectedAccountId, setSelectedAccountIdState] = useState<string | null>(
     searchParams.get("account") || null
@@ -1354,7 +1354,7 @@ const WithdrawalDashboard = ({
   };
 
   // Wrapper functions that update both state and URL
-  const setActiveTab = (tab: "withdrawals" | "catering" | "menu") => {
+  const setActiveTab = (tab: "withdrawals" | "catering") => {
     setActiveTabState(tab);
     updateURLParams(selectedAccountId, tab);
   };
@@ -1367,7 +1367,7 @@ const WithdrawalDashboard = ({
   // Sync state with URL params (for browser back/forward navigation)
   useEffect(() => {
     const account = searchParams.get("account");
-    const tab = searchParams.get("tab") as "withdrawals" | "catering" | "menu";
+    const tab = searchParams.get("tab") as "withdrawals" | "catering";
 
     const currentAccount = selectedAccountId;
     const currentTab = activeTab;
@@ -1543,7 +1543,7 @@ const WithdrawalDashboard = ({
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-4">
           {/* <h1 className="text-3xl font-bold text-gray-900">Restaurant Dashboard</h1> */}
           <h1 className="text-3xl font-bold text-gray-900">
             {restaurant.restaurant_name} Dashboard
@@ -1555,6 +1555,39 @@ const WithdrawalDashboard = ({
             <LogOut size={20} className="mr-2" />
             Logout
           </button>
+        </div>
+
+        {/* Menu Management Button */}
+        <div className="mb-8">
+          <a
+            href={`/restaurant/menu/${restaurantId}`}
+            className="block bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold mb-1">Menu Management</h3>
+                <p className="text-sm text-white/90">
+                  Edit your menu items, add allergens, and manage categories
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-full p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+              </div>
+            </div>
+          </a>
         </div>
 
         {/* Payment Account Selector */}
@@ -1661,16 +1694,6 @@ const WithdrawalDashboard = ({
                           {cateringOrders.length}
                         </span>
                       )}
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("menu")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                        activeTab === "menu"
-                          ? "border-blue-600 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                      }`}
-                    >
-                      Menu Management
                     </button>
                   </nav>
                 </div>
@@ -1820,7 +1843,7 @@ const WithdrawalDashboard = ({
                     <WithdrawalHistory history={history} />
                   </div>
                 </div>
-              ) : activeTab === "catering" ? (
+              ) : (
                 <div className="bg-white rounded-lg p-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-6">
                     Event Orders
@@ -1837,18 +1860,6 @@ const WithdrawalDashboard = ({
                     }
                     selectedAccountId={selectedAccountId}
                   />
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg p-6">
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">Menu Management</p>
-                    <a
-                      href={`/restaurant/menu/${restaurantId}`}
-                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-                    >
-                      Manage Your Menu
-                    </a>
-                  </div>
                 </div>
               )}
             </>
