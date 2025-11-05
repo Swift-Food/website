@@ -55,6 +55,7 @@ export default function MenuItemModal({
     {}
   );
   const [totalPrice, setTotalPrice] = useState(0);
+  const [isAllergenExpanded, setIsAllergenExpanded] = useState(false);
 
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
@@ -80,6 +81,7 @@ export default function MenuItemModal({
       setItemQuantityInput(initialPortions.toString());
       setInitialModalQuantity(initialPortions);
       setHasModifiedQuantity(false);
+      setIsAllergenExpanded(false);
 
       // If in edit mode, pre-populate the selected addons
       if (isEditMode && item.selectedAddons && item.selectedAddons.length > 0) {
@@ -562,24 +564,43 @@ export default function MenuItemModal({
 
             {item.allergens && item.allergens.length > 0 && (
               <div className="bg-warning/5 border border-warning/20 rounded-lg p-4">
-                <h3 className="font-semibold text-sm text-base-content mb-3 flex items-center gap-2">
-                  <span className="text-warning text-base">⚠️</span>
-                  Allergens
-                </h3>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {item.allergens.map((allergen: string, index: number) => (
-                    <span
-                      key={index}
-                      className="bg-warning text-warning-content px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm"
-                    >
-                      {formatAllergen(allergen)}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsAllergenExpanded(!isAllergenExpanded);
+                  }}
+                  className="w-full text-left hover:opacity-80 transition-opacity"
+                >
+                  <h3 className="font-semibold text-sm text-base-content flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2">
+                      <span className="text-warning text-base">⚠️</span>
+                      Allergens
                     </span>
-                  ))}
-                </div>
-                <p className="text-xs text-base-content/60 italic leading-relaxed">
-                  This is approximate. For full allergen information, please
-                  contact the restaurant or our team.
-                </p>
+                    <span className="text-xs text-base-content/60 font-normal">
+                      {isAllergenExpanded ? "▲ Hide" : "▼ Show"}
+                    </span>
+                  </h3>
+                </button>
+                {isAllergenExpanded && (
+                  <>
+                    <div className="flex flex-wrap gap-2 my-3">
+                      {item.allergens.map((allergen: string, index: number) => (
+                        <span
+                          key={index}
+                          className="bg-warning text-warning-content px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm"
+                        >
+                          {formatAllergen(allergen)}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-base-content/60 italic leading-relaxed">
+                      This is approximate. For full allergen information, please
+                      contact the restaurant or our team.
+                    </p>
+                  </>
+                )}
               </div>
             )}
             {(!item.allergens || item.allergens.length === 0) && (
