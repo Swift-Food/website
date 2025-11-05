@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { MenuItem, Addon } from "./Step2MenuItems";
 
+// Utility function to format allergen enum values into human-readable labels
+const formatAllergen = (allergen: string): string => {
+  // Convert snake_case to Title Case with spaces
+  return allergen
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 interface MenuItemModalProps {
   item: MenuItem;
   isOpen: boolean;
@@ -30,6 +39,7 @@ export default function MenuItemModal({
   onRemoveItem,
   editingIndex = null,
 }: MenuItemModalProps) {
+  console.log("Item: ", item);
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemQuantityInput, setItemQuantityInput] = useState("1"); // String for input field
   const [selectedAddons, setSelectedAddons] = useState<
@@ -550,30 +560,32 @@ export default function MenuItemModal({
               </div>
             )}
 
-            {item.allergens && item.allergens.length > 0 ? (
-              <div>
-                <h3 className="font-semibold text-sm text-base-content mb-2">
+            {item.allergens && item.allergens.length > 0 && (
+              <div className="bg-warning/5 border border-warning/20 rounded-lg p-4">
+                <h3 className="font-semibold text-sm text-base-content mb-3 flex items-center gap-2">
+                  <span className="text-warning text-base">⚠️</span>
                   Allergens
                 </h3>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {item.allergens.map((allergen: string, index: number) => (
                     <span
                       key={index}
-                      className="bg-warning/20 text-warning-content px-3 py-1 rounded-full text-xs font-medium"
+                      className="bg-warning text-warning-content px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm"
                     >
-                      {allergen}
+                      {formatAllergen(allergen)}
                     </span>
                   ))}
                 </div>
-                <p className="text-xs text-base-content/50 italic bg-base-200 p-3 rounded">
-                  ⚠️ This is approximate. For full allergen info, contact the
-                  restaurant or our team.
+                <p className="text-xs text-base-content/60 italic leading-relaxed">
+                  This is approximate. For full allergen information, please
+                  contact the restaurant or our team.
                 </p>
               </div>
-            ) : (
-              <div className="bg-base-200 p-3 rounded">
+            )}
+            {(!item.allergens || item.allergens.length === 0) && (
+              <div className="bg-base-200 border border-base-300 rounded-lg p-3">
                 <p className="text-xs text-base-content/60 italic">
-                  ⚠️ Disclaimer: Allergen info not available. Please contact the
+                  ⚠️ Allergen information not available. Please contact the
                   restaurant directly.
                 </p>
               </div>
