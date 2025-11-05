@@ -5,9 +5,9 @@ import { MenuItem, Addon } from "./Step2MenuItems";
 const formatAllergen = (allergen: string): string => {
   // Convert snake_case to Title Case with spaces
   return allergen
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 };
 
 interface MenuItemModalProps {
@@ -597,7 +597,7 @@ export default function MenuItemModal({
                     </div>
                     <p className="text-xs text-base-content/60 italic leading-relaxed">
                       This is approximate. For full allergen information, please
-                      contact the restaurant or our team.
+                      contact the restaurant.
                     </p>
                   </>
                 )}

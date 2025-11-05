@@ -82,6 +82,12 @@ const NewMenuItemPage = () => {
     }
   };
 
+  const handleRemoveImage = () => {
+    setImage("");
+    setImageFile(null);
+    setImagePreview("");
+  };
+
   const handleAddAllergen = (allergenValue: string) => {
     if (!selectedAllergens.includes(allergenValue)) {
       setSelectedAllergens([...selectedAllergens, allergenValue]);
@@ -312,12 +318,19 @@ const NewMenuItemPage = () => {
                 Item Image
               </label>
               {imagePreview && (
-                <div className="mb-4">
+                <div className="mb-4 relative">
                   <img
                     src={imagePreview}
                     alt="Preview"
                     className="w-full max-w-md h-48 object-cover rounded-lg"
                   />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
               )}
               <label className="cursor-pointer inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
@@ -528,6 +541,23 @@ const NewMenuItemPage = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {Object.values(MenuItemStatus).map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Display Style *
+                </label>
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value as MenuItemStyle)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                >
+                  {Object.values(MenuItemStyle).map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
