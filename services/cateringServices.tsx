@@ -551,7 +551,7 @@ async duplicateMenuItem(itemId: string, restaurantId: string): Promise<MenuItemD
   // Create a duplicate with modified name
   const duplicateDto: CreateMenuItemDto = {
     restaurantId: originalItem.restaurantId,
-    categoryIds: originalItem.categoryIds,
+    categoryIds: originalItem.categoryIds || [],
     groupTitle: originalItem.groupTitle,
     name: `${originalItem.name} (Copy)`,
     description: originalItem.description,
@@ -561,7 +561,7 @@ async duplicateMenuItem(itemId: string, restaurantId: string): Promise<MenuItemD
     isDiscount: originalItem.isDiscount,
     image: originalItem.image,
     isAvailable: originalItem.isAvailable,
-    allergens: originalItem.allergens,
+    allergens: originalItem.allergens || [],
     addons: originalItem.addons,
     itemDisplayOrder: originalItem.itemDisplayOrder,
     popular: originalItem.popular,

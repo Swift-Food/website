@@ -127,6 +127,7 @@ const MenuListPage = () => {
       await cateringService.duplicateMenuItem(itemId, restaurantId);
       await fetchMenuItems();
     } catch (err: any) {
+      console.error("Failed to duplicate: ", err)
       setError(err.message || "Failed to duplicate item");
     }
   };
@@ -247,12 +248,12 @@ const MenuListPage = () => {
         </div>
 
         {/* Error Message */}
-        {error && (
+        {/* {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
             <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
             <span className="text-sm">{error}</span>
           </div>
-        )}
+        )} */}
 
         {/* Filters */}
         <div className="bg-white rounded-lg p-4 mb-6 space-y-4">

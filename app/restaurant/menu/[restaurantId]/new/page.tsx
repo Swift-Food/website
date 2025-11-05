@@ -144,8 +144,8 @@ const NewMenuItemPage = () => {
         style,
         popular,
         groupTitle,
-        categoryIds: selectedCategories.length > 0 ? selectedCategories : undefined,
-        allergens: selectedAllergens.length > 0 ? selectedAllergens : undefined,
+        categoryIds: selectedCategories,
+        allergens: selectedAllergens,
         addons: addons.length > 0 ? addons : null,
       };
 
