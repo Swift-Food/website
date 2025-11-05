@@ -49,7 +49,9 @@ const MenuListPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await cateringService.getRestaurantMenuItems(restaurantId);
+      const response = await cateringService.getRestaurantMenuItems(
+        restaurantId
+      );
       console.log("Fetched menu items:", response);
 
       // Handle both array and object responses
@@ -57,7 +59,11 @@ const MenuListPage = () => {
 
       if (Array.isArray(response)) {
         items = response;
-      } else if (response && typeof response === 'object' && Array.isArray(response.menuItems)) {
+      } else if (
+        response &&
+        typeof response === "object" &&
+        Array.isArray(response.menuItems)
+      ) {
         // API now returns { menuItems: [...], groupSettings: {...} }
         items = response.menuItems;
 
@@ -127,12 +133,15 @@ const MenuListPage = () => {
       await cateringService.duplicateMenuItem(itemId, restaurantId);
       await fetchMenuItems();
     } catch (err: any) {
-      console.error("Failed to duplicate: ", err)
+      console.error("Failed to duplicate: ", err);
       setError(err.message || "Failed to duplicate item");
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>, itemId: string) => {
+  const handleDelete = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+    itemId: string
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -157,7 +166,9 @@ const MenuListPage = () => {
     if (!Array.isArray(menuItems) || menuItems.length === 0) {
       return [];
     }
-    const groups = Array.from(new Set(menuItems.map((item) => item.groupTitle)));
+    const groups = Array.from(
+      new Set(menuItems.map((item) => item.groupTitle))
+    );
     return groups.filter(Boolean);
   };
 
@@ -170,7 +181,8 @@ const MenuListPage = () => {
   };
 
   const getGroupedItems = () => {
-    const isFiltered = searchQuery || selectedGroup !== "all" || selectedStatus !== "all";
+    const isFiltered =
+      searchQuery || selectedGroup !== "all" || selectedStatus !== "all";
 
     // If filtered, return flat list
     if (isFiltered) {
@@ -211,7 +223,7 @@ const MenuListPage = () => {
   };
 
   const formatPrice = (price: number | string) => {
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    const numPrice = typeof price === "string" ? parseFloat(price) : price;
     return `£${numPrice.toFixed(2)}`;
   };
 
@@ -219,7 +231,10 @@ const MenuListPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader
+            size={48}
+            className="animate-spin text-blue-600 mx-auto mb-4"
+          />
           <p className="text-gray-600">Loading menu items...</p>
         </div>
       </div>
@@ -233,13 +248,15 @@ const MenuListPage = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push('/restaurant/dashboard')}
+              onClick={() => router.push("/restaurant/dashboard")}
               className="text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft size={24} />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Menu Management</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Menu Management
+              </h1>
               <p className="text-gray-600 mt-1">{menuItems.length} items</p>
             </div>
           </div>
@@ -253,12 +270,12 @@ const MenuListPage = () => {
         </div>
 
         {/* Error Message */}
-        {/* {error && (
+        {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
             <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
             <span className="text-sm">{error}</span>
           </div>
-        )} */}
+        )}
 
         {/* Filters */}
         <div className="bg-white rounded-lg p-4 mb-6 space-y-4">
@@ -313,43 +330,49 @@ const MenuListPage = () => {
           <div className="bg-white rounded-lg p-12 text-center">
             <p className="text-gray-500 text-lg">No menu items found</p>
             <button
-              onClick={() => router.push(`/restaurant/menu/${restaurantId}/new`)}
+              onClick={() =>
+                router.push(`/restaurant/menu/${restaurantId}/new`)
+              }
               className="mt-4 inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
             >
               <Plus size={20} />
               Add your first menu item
             </button>
           </div>
-        ) : (() => {
-          const groupedItems = getGroupedItems();
+        ) : (
+          (() => {
+            const groupedItems = getGroupedItems();
 
-          // Render grouped view when not filtered
-          if (groupedItems) {
-            return (
-              <div className="space-y-8">
-                {groupedItems.map(({ groupName, items }) => (
-                  <div key={groupName}>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">{groupName}</h2>
-                    <div className="space-y-4">
-                      {items.map((item) => (
-                        <MenuItemCard key={item.id} item={item} />
-                      ))}
+            // Render grouped view when not filtered
+            if (groupedItems) {
+              return (
+                <div className="space-y-8">
+                  {groupedItems.map(({ groupName, items }) => (
+                    <div key={groupName}>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                        {groupName}
+                      </h2>
+                      <div className="space-y-4">
+                        {items.map((item) => (
+                          <MenuItemCard key={item.id} item={item} />
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ))}
+                </div>
+              );
+            }
+
+            // Render flat view when filtered
+            return (
+              <div className="space-y-4">
+                {filteredItems.map((item) => (
+                  <MenuItemCard key={item.id} item={item} />
                 ))}
               </div>
             );
-          }
-
-          // Render flat view when filtered
-          return (
-            <div className="space-y-4">
-              {filteredItems.map((item) => (
-                <MenuItemCard key={item.id} item={item} />
-              ))}
-            </div>
-          );
-        })()}
+          })()
+        )}
       </div>
     </div>
   );
@@ -431,7 +454,9 @@ const MenuListPage = () => {
               <button
                 type="button"
                 onClick={() =>
-                  router.push(`/restaurant/menu/${restaurantId}/edit/${item.id}`)
+                  router.push(
+                    `/restaurant/menu/${restaurantId}/edit/${item.id}`
+                  )
                 }
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
@@ -456,7 +481,9 @@ const MenuListPage = () => {
                     : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                 }`}
                 title={
-                  deleteConfirm === item.id ? "Click again to confirm" : "Delete"
+                  deleteConfirm === item.id
+                    ? "Click again to confirm"
+                    : "Delete"
                 }
               >
                 <Trash2 size={16} />

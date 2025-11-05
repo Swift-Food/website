@@ -124,7 +124,7 @@ const NewMenuItemPage = () => {
 
     try {
       // Validate required fields
-      if (!name || !price || selectedCategories.length === 0) {
+      if (!name || !price) {
         throw new Error("Please fill in all required fields");
       }
 
@@ -349,7 +349,7 @@ const NewMenuItemPage = () => {
           {/* Categories */}
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-gray-900 border-b pb-2">
-              Categories *
+              Categories
             </h2>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -376,9 +376,6 @@ const NewMenuItemPage = () => {
                 </label>
               ))}
             </div>
-            {selectedCategories.length === 0 && (
-              <p className="text-xs text-red-600">Please select at least one category</p>
-            )}
           </div>
 
           {/* Allergens */}
