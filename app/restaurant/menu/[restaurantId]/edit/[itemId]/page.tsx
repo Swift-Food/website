@@ -77,19 +77,19 @@ const EditMenuItemPage = () => {
       setCategories(cats);
 
       // Populate form with item data
-      setName(item.name);
-      setDescription(item.description);
+      setName(item.name || "");
+      setDescription(item.description || "");
       setPrice(item.price.toString());
       setDiscountPrice(item.discountPrice?.toString() || "");
       setIsDiscount(item.isDiscount || false);
       setPrepTime(item.prepTime);
-      setImage(item.image);
-      setImagePreview(item.image);
+      setImage(item.image || "");
+      setImagePreview(item.image || "");
       setIsAvailable(item.isAvailable);
       setStatus(item.status);
       setStyle(item.style || MenuItemStyle.CARD);
       setPopular(item.popular || false);
-      setGroupTitle(item.groupTitle);
+      setGroupTitle(item.groupTitle || "");
 
       // Handle categoryIds - check both categoryIds and categories fields
       console.log("Item data:", item);
@@ -126,21 +126,22 @@ const EditMenuItemPage = () => {
   };
 
   const handleAddAllergen = (allergenValue: string) => {
-    if (!selectedAllergens.includes(allergenValue)) {
-      setSelectedAllergens([...selectedAllergens, allergenValue]);
+    const current = selectedAllergens || [];
+    if (!current.includes(allergenValue)) {
+      setSelectedAllergens([...current, allergenValue]);
     }
   };
 
   const handleRemoveAllergen = (allergenValue: string) => {
-    setSelectedAllergens(selectedAllergens.filter((a) => a !== allergenValue));
+    setSelectedAllergens((selectedAllergens || []).filter((a) => a !== allergenValue));
   };
 
   const handleAddAddon = () => {
-    setAddons([...addons, { name: "", price: 0, allergens: [] }]);
+    setAddons([...(addons || []), { name: "", price: 0, allergens: [] }]);
   };
 
   const handleRemoveAddon = (index: number) => {
-    setAddons(addons.filter((_, i) => i !== index));
+    setAddons((addons || []).filter((_, i) => i !== index));
   };
 
   const handleAddonChange = (
@@ -148,7 +149,7 @@ const EditMenuItemPage = () => {
     field: keyof MenuItemAddon,
     value: any
   ) => {
-    const updated = [...addons];
+    const updated = [...(addons || [])];
     updated[index] = { ...updated[index], [field]: value };
     setAddons(updated);
   };
@@ -181,9 +182,9 @@ const EditMenuItemPage = () => {
         style,
         popular,
         groupTitle,
-        categoryIds: selectedCategories,
-        allergens: selectedAllergens,
-        addons: addons.length > 0 ? addons : null,
+        categoryIds: selectedCategories || [],
+        allergens: selectedAllergens || [],
+        addons: (addons && addons.length > 0) ? addons : null,
       };
 
       await cateringService.updateMenuItem(itemId, updateData);
@@ -271,7 +272,7 @@ const EditMenuItemPage = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
               />
               <p className="text-xs text-gray-500 mt-1">
-                {description.length}/200 characters
+                {(description || "").length}/200 characters
               </p>
             </div>
 
@@ -384,13 +385,13 @@ const EditMenuItemPage = () => {
                 >
                   <input
                     type="checkbox"
-                    checked={selectedCategories.includes(cat.id)}
+                    checked={selectedCategories?.includes(cat.id) || false}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelectedCategories([...selectedCategories, cat.id]);
+                        setSelectedCategories([...(selectedCategories || []), cat.id]);
                       } else {
                         setSelectedCategories(
-                          selectedCategories.filter((id) => id !== cat.id)
+                          (selectedCategories || []).filter((id) => id !== cat.id)
                         );
                       }
                     }}
@@ -432,7 +433,7 @@ const EditMenuItemPage = () => {
               </select>
             </div>
 
-            {selectedAllergens.length > 0 && (
+            {selectedAllergens && selectedAllergens.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {selectedAllergens.map((allergenValue) => {
                   const allergen = ALLERGENS.find((a) => a.value === allergenValue);

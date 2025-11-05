@@ -144,9 +144,9 @@ const NewMenuItemPage = () => {
         style,
         popular,
         groupTitle,
-        categoryIds: selectedCategories,
-        allergens: selectedAllergens,
-        addons: addons.length > 0 ? addons : null,
+        categoryIds: selectedCategories || [],
+        allergens: selectedAllergens || [],
+        addons: (addons && addons.length > 0) ? addons : null,
       };
 
       await cateringService.createMenuItem(createData);
