@@ -253,116 +253,128 @@ const MenuListPage = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow"
+                className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden"
               >
-                {/* Item Image */}
-                {item.image && (
-                  <div className="h-48 bg-gray-200 overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-
-                {/* Item Details */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-bold text-lg text-gray-900 flex-1">
-                      {item.name}
-                    </h3>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ml-2 ${
-                        item.status === "ACTIVE"
-                          ? "bg-green-100 text-green-800"
-                          : item.status === "DRAFT"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {item.description}
-                  </p>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-primary font-bold text-xl">
-                        {formatPrice(item.price)}
-                      </p>
-                      {item.isDiscount && item.discountPrice && (
-                        <p className="text-gray-500 text-sm line-through">
-                          {formatPrice(item.discountPrice)}
-                        </p>
-                      )}
+                <div className="flex flex-col sm:flex-row">
+                  {/* Left Side - Content */}
+                  <div className="flex-1 p-4 sm:p-6">
+                    {/* Header - Name and Status */}
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-bold text-xl text-gray-900 flex-1">
+                        {item.name}
+                      </h3>
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full ml-2 font-medium ${
+                          item.status === "ACTIVE"
+                            ? "bg-green-100 text-green-800"
+                            : item.status === "DRAFT"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : item.status === "CATERING"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {item.status}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      {item.groupTitle}
-                    </span>
-                  </div>
 
-                  {/* Allergens */}
-                  {item.allergens && item.allergens.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs text-gray-500 mb-1">Allergens:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {item.allergens.slice(0, 3).map((allergen, idx) => (
-                          <span
-                            key={idx}
-                            className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded"
-                          >
-                            {allergen.replace(/_/g, " ")}
-                          </span>
-                        ))}
-                        {item.allergens.length > 3 && (
-                          <span className="text-xs text-gray-500">
-                            +{item.allergens.length - 3} more
-                          </span>
+                    {/* Description - 2 lines */}
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      {item.description || "No description available"}
+                    </p>
+
+                    {/* Price and Group */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div>
+                        <p className="text-primary font-bold text-2xl">
+                          {formatPrice(item.price)}
+                        </p>
+                        {item.isDiscount && item.discountPrice && (
+                          <p className="text-gray-500 text-sm line-through">
+                            {formatPrice(item.discountPrice)}
+                          </p>
                         )}
                       </div>
+                      {item.groupTitle && (
+                        <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full font-medium">
+                          {item.groupTitle}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Allergens */}
+                    {item.allergens && item.allergens.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {item.allergens.slice(0, 4).map((allergen, idx) => (
+                            <span
+                              key={idx}
+                              className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full"
+                            >
+                              {allergen.replace(/_/g, " ")}
+                            </span>
+                          ))}
+                          {item.allergens.length > 4 && (
+                            <span className="text-xs text-gray-500 px-2 py-1">
+                              +{item.allergens.length - 4} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() =>
+                          router.push(`/restaurant/menu/${restaurantId}/edit/${item.id}`)
+                        }
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit2 size={16} />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDuplicate(item.id)}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                        title="Duplicate"
+                      >
+                        <Copy size={16} />
+                        <span className="hidden sm:inline">Duplicate</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className={`font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
+                          deleteConfirm === item.id
+                            ? "bg-red-600 hover:bg-red-700 text-white"
+                            : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                        }`}
+                        title={
+                          deleteConfirm === item.id ? "Click again to confirm" : "Delete"
+                        }
+                      >
+                        <Trash2 size={16} />
+                        <span className="hidden sm:inline">
+                          {deleteConfirm === item.id ? "Confirm" : "Delete"}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right Side - Image */}
+                  {item.image && (
+                    <div className="w-full sm:w-64 h-48 sm:h-auto bg-gray-200 flex-shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   )}
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 pt-3 border-t border-gray-200">
-                    <button
-                      onClick={() =>
-                        router.push(`/restaurant/menu/${restaurantId}/edit/${item.id}`)
-                      }
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Edit2 size={16} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDuplicate(item.id)}
-                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors"
-                      title="Duplicate"
-                    >
-                      <Copy size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className={`font-medium py-2 px-4 rounded-lg transition-colors ${
-                        deleteConfirm === item.id
-                          ? "bg-red-600 hover:bg-red-700 text-white"
-                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                      }`}
-                      title={
-                        deleteConfirm === item.id ? "Click again to confirm" : "Delete"
-                      }
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
                 </div>
               </div>
             ))}
