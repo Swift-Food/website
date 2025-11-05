@@ -28,11 +28,13 @@ const MenuListPage = () => {
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [restaurantData, setRestaurantData] = useState<any>(null);
 
   useEffect(() => {
     console.log("Restaurant ID:", restaurantId);
     if (restaurantId) {
       fetchMenuItems();
+      fetchRestaurantData();
     } else {
       setError("No restaurant ID provided");
       setLoading(false);
@@ -58,6 +60,11 @@ const MenuListPage = () => {
       } else if (response && typeof response === 'object' && Array.isArray(response.menuItems)) {
         // API now returns { menuItems: [...], groupSettings: {...} }
         items = response.menuItems;
+
+        // Store group settings if available
+        if (response.groupSettings) {
+          setRestaurantData({ menuGroupSettings: response.groupSettings });
+        }
       } else {
         console.error("API returned unexpected format:", response);
         setMenuItems([]);
@@ -72,6 +79,20 @@ const MenuListPage = () => {
       setMenuItems([]); // Ensure menuItems is always an array
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRestaurantData = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/restaurant/${restaurantId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setRestaurantData(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch restaurant data:", err);
     }
   };
 
@@ -140,6 +161,47 @@ const MenuListPage = () => {
     }
     const statuses = Array.from(new Set(menuItems.map((item) => item.status)));
     return statuses.filter(Boolean);
+  };
+
+  const getGroupedItems = () => {
+    const isFiltered = searchQuery || selectedGroup !== "all" || selectedStatus !== "all";
+
+    // If filtered, return flat list
+    if (isFiltered) {
+      return null;
+    }
+
+    // Group items by groupTitle
+    const grouped: Record<string, MenuItemDetails[]> = {};
+    filteredItems.forEach((item) => {
+      const group = item.groupTitle || "Other";
+      if (!grouped[group]) {
+        grouped[group] = [];
+      }
+      grouped[group].push(item);
+    });
+
+    // Get group order from restaurant data
+    const menuGroupSettings = restaurantData?.menuGroupSettings || {};
+    const groupNames = Object.keys(grouped);
+
+    // Sort groups by displayOrder
+    const sortedGroupNames = groupNames.sort((a, b) => {
+      const orderA = menuGroupSettings[a]?.displayOrder ?? 999;
+      const orderB = menuGroupSettings[b]?.displayOrder ?? 999;
+      return orderA - orderB;
+    });
+
+    // Sort items within each group by itemDisplayOrder
+    const result: Array<{ groupName: string; items: MenuItemDetails[] }> = [];
+    sortedGroupNames.forEach((groupName) => {
+      const items = grouped[groupName].sort(
+        (a, b) => (a.itemDisplayOrder ?? 999) - (b.itemDisplayOrder ?? 999)
+      );
+      result.push({ groupName, items });
+    });
+
+    return result;
   };
 
   const formatPrice = (price: number | string) => {
@@ -252,137 +314,164 @@ const MenuListPage = () => {
               Add your first menu item
             </button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden"
-              >
-                <div className="flex flex-col sm:flex-row">
-                  {/* Left Side - Content */}
-                  <div className="flex-1 p-4 sm:p-6">
-                    {/* Header - Name and Status */}
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-bold text-xl text-gray-900 flex-1">
-                        {item.name}
-                      </h3>
-                      <span
-                        className={`text-xs px-3 py-1 rounded-full ml-2 font-medium ${
-                          item.status === "ACTIVE"
-                            ? "bg-green-100 text-green-800"
-                            : item.status === "DRAFT"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : item.status === "CATERING"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </div>
+        ) : (() => {
+          const groupedItems = getGroupedItems();
 
-                    {/* Description - 2 lines */}
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {item.description || "No description available"}
-                    </p>
-
-                    {/* Price and Group */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div>
-                        <p className="text-primary font-bold text-2xl">
-                          {formatPrice(item.price)}
-                        </p>
-                        {item.isDiscount && item.discountPrice && (
-                          <p className="text-gray-500 text-sm line-through">
-                            {formatPrice(item.discountPrice)}
-                          </p>
-                        )}
-                      </div>
-                      {item.groupTitle && (
-                        <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full font-medium">
-                          {item.groupTitle}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Allergens */}
-                    {item.allergens && item.allergens.length > 0 && (
-                      <div className="mb-4">
-                        <div className="flex flex-wrap gap-1">
-                          {item.allergens.slice(0, 4).map((allergen, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full"
-                            >
-                              {allergen.replace(/_/g, " ")}
-                            </span>
-                          ))}
-                          {item.allergens.length > 4 && (
-                            <span className="text-xs text-gray-500 px-2 py-1">
-                              +{item.allergens.length - 4} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() =>
-                          router.push(`/restaurant/menu/${restaurantId}/edit/${item.id}`)
-                        }
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Edit2 size={16} />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDuplicate(item.id)}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                        title="Duplicate"
-                      >
-                        <Copy size={16} />
-                        <span className="hidden sm:inline">Duplicate</span>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className={`font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
-                          deleteConfirm === item.id
-                            ? "bg-red-600 hover:bg-red-700 text-white"
-                            : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                        }`}
-                        title={
-                          deleteConfirm === item.id ? "Click again to confirm" : "Delete"
-                        }
-                      >
-                        <Trash2 size={16} />
-                        <span className="hidden sm:inline">
-                          {deleteConfirm === item.id ? "Confirm" : "Delete"}
-                        </span>
-                      </button>
+          // Render grouped view when not filtered
+          if (groupedItems) {
+            return (
+              <div className="space-y-8">
+                {groupedItems.map(({ groupName, items }) => (
+                  <div key={groupName}>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">{groupName}</h2>
+                    <div className="space-y-4">
+                      {items.map((item) => (
+                        <MenuItemCard key={item.id} item={item} />
+                      ))}
                     </div>
                   </div>
-
-                  {/* Right Side - Image */}
-                  {item.image && (
-                    <div className="w-full sm:w-64 h-48 sm:h-auto bg-gray-200 flex-shrink-0">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            );
+          }
+
+          // Render flat view when filtered
+          return (
+            <div className="space-y-4">
+              {filteredItems.map((item) => (
+                <MenuItemCard key={item.id} item={item} />
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
+
+  // Helper component to render a menu item card
+  function MenuItemCard({ item }: { item: MenuItemDetails }) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden">
+        <div className="flex flex-col sm:flex-row">
+          {/* Left Side - Content */}
+          <div className="flex-1 p-4 sm:p-6">
+            {/* Header - Name and Status */}
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-bold text-xl text-gray-900 flex-1">
+                {item.name}
+              </h3>
+              <span
+                className={`text-xs px-3 py-1 rounded-full ml-2 font-medium ${
+                  item.status === "ACTIVE"
+                    ? "bg-green-100 text-green-800"
+                    : item.status === "DRAFT"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : item.status === "CATERING"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                {item.status}
+              </span>
+            </div>
+
+            {/* Description - 2 lines */}
+            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+              {item.description || "No description available"}
+            </p>
+
+            {/* Price and Group */}
+            <div className="flex items-center gap-4 mb-4">
+              <div>
+                <p className="text-primary font-bold text-2xl">
+                  {formatPrice(item.price)}
+                </p>
+                {item.isDiscount && item.discountPrice && (
+                  <p className="text-gray-500 text-sm line-through">
+                    {formatPrice(item.discountPrice)}
+                  </p>
+                )}
+              </div>
+              {item.groupTitle && (
+                <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full font-medium">
+                  {item.groupTitle}
+                </span>
+              )}
+            </div>
+
+            {/* Allergens */}
+            {item.allergens && item.allergens.length > 0 && (
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-1">
+                  {item.allergens.slice(0, 4).map((allergen, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full"
+                    >
+                      {allergen.replace(/_/g, " ")}
+                    </span>
+                  ))}
+                  {item.allergens.length > 4 && (
+                    <span className="text-xs text-gray-500 px-2 py-1">
+                      +{item.allergens.length - 4} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() =>
+                  router.push(`/restaurant/menu/${restaurantId}/edit/${item.id}`)
+                }
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Edit2 size={16} />
+                Edit
+              </button>
+              <button
+                onClick={() => handleDuplicate(item.id)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                title="Duplicate"
+              >
+                <Copy size={16} />
+                <span className="hidden sm:inline">Duplicate</span>
+              </button>
+              <button
+                onClick={() => handleDelete(item.id)}
+                className={`font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
+                  deleteConfirm === item.id
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                }`}
+                title={
+                  deleteConfirm === item.id ? "Click again to confirm" : "Delete"
+                }
+              >
+                <Trash2 size={16} />
+                <span className="hidden sm:inline">
+                  {deleteConfirm === item.id ? "Confirm" : "Delete"}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Right Side - Image */}
+          {item.image && (
+            <div className="w-full sm:w-64 h-48 sm:h-auto bg-gray-200 flex-shrink-0">
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 };
 
 export default MenuListPage;
