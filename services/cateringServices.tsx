@@ -487,7 +487,15 @@ async getRestaurantMenuItems(restaurantId: string): Promise<MenuItemDetails[]> {
 
   const data = await response.json();
   console.log('API Response data:', data);
-  return data;
+
+  // Handle both array and object responses
+  if (Array.isArray(data)) {
+    return data;
+  } else if (data && typeof data === 'object' && Array.isArray(data.menuItems)) {
+    return data.menuItems;
+  }
+
+  return [];
 }
 
 async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {

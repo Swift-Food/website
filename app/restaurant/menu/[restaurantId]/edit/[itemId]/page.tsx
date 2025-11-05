@@ -90,8 +90,8 @@ const EditMenuItemPage = () => {
       setStyle(item.style || MenuItemStyle.CARD);
       setPopular(item.popular || false);
       setGroupTitle(item.groupTitle);
-      setSelectedCategories(item.categoryIds);
-      setSelectedAllergens(item.allergens);
+      setSelectedCategories(item.categoryIds || []);
+      setSelectedAllergens(item.allergens || []);
       setAddons(item.addons || []);
     } catch (err: any) {
       setError(err.message || "Failed to load menu item");
