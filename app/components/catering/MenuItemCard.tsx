@@ -72,7 +72,7 @@ export default function MenuItemCard({
           <div className="flex-1 px-4 py-2 sm:p-6">
             {/* Header - Name */}
             <div className="flex flex-col h-full justify-between">
-              <>
+              <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1 line-clamp-1">
                     {item.name}
@@ -85,7 +85,7 @@ export default function MenuItemCard({
                     {item.description}
                   </p>
                 )}
-              </>
+              </div>
 
               {/* Show restaurant name in search results */}
               {/* {isSearching && item.restaurant && (
