@@ -290,7 +290,7 @@ export interface MenuItemAddon {
   allergens: string[];
   groupTitle?: string;
   selectionType?: "single" | "multiple";
-  required?: boolean;
+  isRequired?: boolean;
 }
 
 export enum MenuItemStatus {

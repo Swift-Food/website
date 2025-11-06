@@ -8,7 +8,7 @@ import {
   BalanceInfo,
   WithdrawalRequest,
   StripeOnboardingStatus,
-  PaymentAccounts,
+  // PaymentAccounts,
 } from "@/types/restaurant.types";
 import { CateringOrder } from "@/app/types/catering.types";
 import { PaymentAccountSelector } from "./shared/PaymentAccountSelector";
@@ -47,11 +47,11 @@ export const RestaurantDashboard = ({
     "withdrawals"
   );
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  // const [error, setError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
+    // setError("");
     try {
       const [statusData, balanceData, historyData, cateringData] = await Promise.all([
         restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
@@ -77,7 +77,7 @@ export const RestaurantDashboard = ({
       setCateringOrders(filteredOrders);
     } catch (err: any) {
       console.error("Fetch error:", err);
-      setError(err.message || "Failed to load data");
+      // setError(err.message || "Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -113,6 +113,39 @@ export const RestaurantDashboard = ({
               <LogOut size={20} className="mr-2" />
               Logout
             </button>
+          </div>
+
+          {/* Menu Management Button */}
+          <div className="mb-8">
+            <a
+              href={`/restaurant/menu/${restaurantId}`}
+              className="block bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold mb-1">Menu Management</h3>
+                  <p className="text-sm text-white/90">
+                    Edit your menu items, add allergens, and manage categories
+                  </p>
+                </div>
+                <div className="bg-white/20 rounded-full p-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </a>
           </div>
 
           <PaymentAccountSelector
@@ -153,6 +186,72 @@ export const RestaurantDashboard = ({
             <LogOut size={20} className="mr-2" />
             Logout
           </button>
+        </div>
+
+        {/* Menu Management Button */}
+        <div className="mb-8">
+          <a
+            href={`/restaurant/menu/${restaurantId}`}
+            className="block bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold mb-1">Menu Management</h3>
+                <p className="text-sm text-white/90">
+                  Edit your menu items, add allergens, and manage categories
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-full p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        {/* Menu Management Button */}
+        <div className="mb-8">
+          <a
+            href={`/restaurant/menu/${restaurantId}`}
+            className="block bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold mb-1">Menu Management</h3>
+                <p className="text-sm text-white/90">
+                  Edit your menu items, add allergens, and manage categories
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-full p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+              </div>
+            </div>
+          </a>
         </div>
 
         {/* Payment Account Selector */}Number

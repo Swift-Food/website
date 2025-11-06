@@ -72,7 +72,7 @@ const EditMenuItemPage = () => {
     allergens: [],
     groupTitle: "",
     selectionType: "multiple",
-    required: false,
+    isRequired: false,
   });
 
   useEffect(() => {
@@ -254,7 +254,7 @@ const EditMenuItemPage = () => {
       allergens: [],
       groupTitle: "",
       selectionType: "multiple",
-      required: false,
+      isRequired: false,
     });
     setEditingAddonIndex(null);
     setShowAddonModal(true);
@@ -685,12 +685,12 @@ const EditMenuItemPage = () => {
                                 </span>
                                 <span
                                   className={`text-xs px-2 py-0.5 rounded-full ${
-                                    addon.required
+                                    addon.isRequired
                                       ? "bg-red-100 text-red-800"
                                       : "bg-gray-200 text-gray-700"
                                   }`}
                                 >
-                                  {addon.required ? "Required" : "Optional"}
+                                  {addon.isRequired ? "Required" : "Optional"}
                                 </span>
                                 {addon.selectionType && (
                                   <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
@@ -952,11 +952,11 @@ const EditMenuItemPage = () => {
                     <label className="flex items-center">
                       <input
                         type="checkbox"
-                        checked={currentAddon.required || false}
+                        checked={currentAddon.isRequired || false}
                         onChange={(e) =>
                           setCurrentAddon({
                             ...currentAddon,
-                            required: e.target.checked,
+                            isRequired: e.target.checked,
                           })
                         }
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
