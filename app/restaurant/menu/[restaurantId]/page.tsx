@@ -39,6 +39,7 @@ const MenuListPage = () => {
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [reorderGroups, setReorderGroups] = useState<string[]>([]);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     console.log("Restaurant ID:", restaurantId);
@@ -281,6 +282,35 @@ const MenuListPage = () => {
     setReorderGroups(newGroups);
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === index) {
+      return;
+    }
+
+    const newGroups = [...reorderGroups];
+    const draggedItem = newGroups[draggedIndex];
+
+    // Remove the dragged item from its current position
+    newGroups.splice(draggedIndex, 1);
+
+    // Insert it at the new position
+    newGroups.splice(index, 0, draggedItem);
+
+    setReorderGroups(newGroups);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   const saveGroupOrder = async () => {
     setSavingOrder(true);
     try {
@@ -486,7 +516,7 @@ const MenuListPage = () => {
                   </button>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
-                  Use the arrows to reorder groups or click the trash icon to delete a group. Changes will be saved when you click Save.
+                  Drag groups to reorder them, use the arrows, or click the trash icon to delete a group. Changes will be saved when you click Save.
                 </p>
               </div>
 
@@ -496,7 +526,13 @@ const MenuListPage = () => {
                   {reorderGroups.map((groupName, index) => (
                     <div
                       key={groupName}
-                      className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200"
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`flex items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-move transition-all ${
+                        draggedIndex === index ? "opacity-50 scale-95" : ""
+                      }`}
                     >
                       <GripVertical size={20} className="text-gray-400" />
                       <span className="flex-1 font-medium text-gray-900">
