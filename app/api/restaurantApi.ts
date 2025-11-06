@@ -1,0 +1,246 @@
+// api/restaurantApi.ts
+import {
+  TokenPair,
+  SignInDto,
+  StripeOnboardingStatus,
+  BalanceInfo,
+  WithdrawalRequest,
+  AnalyticsDashboard,
+  PaymentAccounts,
+} from "@/types/restaurant.types";
+import { CateringOrder } from "@/app/types/catering.types";
+
+const API_BASE_URL = "https://swiftfoods-32981ec7b5a4.herokuapp.com";
+
+export const restaurantApi = {
+  // Auth endpoints
+  login: async (credentials: SignInDto): Promise<TokenPair> => {
+    const response = await fetch(`${API_BASE_URL}/auth/login-consumer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(credentials),
+    });
+    if (!response.ok) throw new Error("Login failed");
+    return response.json();
+  },
+
+  refreshToken: async (refreshToken: string): Promise<TokenPair> => {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh-consumer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!response.ok) throw new Error("Token refresh failed");
+    return response.json();
+  },
+
+  getProfile: async (token: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch profile");
+    return response.json();
+  },
+
+  // Stripe onboarding endpoints
+  checkStripeStatus: async (
+    userId: string,
+    accountId?: string | null
+  ): Promise<StripeOnboardingStatus | null> => {
+    try {
+      const url = accountId
+        ? `${API_BASE_URL}/restaurant-user/${userId}/stripe-status?accountId=${accountId}`
+        : `${API_BASE_URL}/restaurant-user/${userId}/stripe-status`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        console.warn("Stripe status fetch failed:", response.status);
+        return null;
+      }
+      return response.json();
+    } catch (error) {
+      console.error("Stripe status error:", error);
+      return null;
+    }
+  },
+
+  refreshOnboardingLink: async (
+    userId: string,
+    token: string,
+    accountId?: string
+  ): Promise<{ onboardingUrl: string }> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant-user/${userId}/stripe-refresh`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: accountId ? JSON.stringify({ accountId }) : undefined,
+      }
+    );
+    if (!response.ok) throw new Error("Failed to refresh onboarding link");
+    return response.json();
+  },
+
+  // Withdrawal endpoints
+  getBalance: async (
+    userId: string,
+    token: string,
+    accountId?: string | null
+  ): Promise<BalanceInfo | null> => {
+    try {
+      const url = accountId
+        ? `${API_BASE_URL}/withdrawals/balance/${userId}/restaurant?accountId=${accountId}`
+        : `${API_BASE_URL}/withdrawals/balance/${userId}/restaurant`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        console.warn("Balance fetch failed:", response.status);
+        return null;
+      }
+      return response.json();
+    } catch (error) {
+      console.error("Balance error:", error);
+      return null;
+    }
+  },
+
+  getPaymentAccounts: async (
+    restaurantUserId: string
+  ): Promise<PaymentAccounts | null> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/restaurant-user/${restaurantUserId}/payment-accounts`
+      );
+      if (!response.ok) return null;
+      return response.json();
+    } catch (error) {
+      console.error("Failed to fetch payment accounts:", error);
+      return null;
+    }
+  },
+
+  requestWithdrawal: async (
+    data: {
+      userId: string;
+      userType: string;
+      amount: number;
+      notes?: string;
+      isInstantPayout: boolean;
+    },
+    token: string
+  ): Promise<WithdrawalRequest> => {
+    const response = await fetch(`${API_BASE_URL}/withdrawals/request`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Failed to request withdrawal");
+    return response.json();
+  },
+
+  getWithdrawalHistory: async (
+    userId: string,
+    token: string,
+    accountId?: string | null
+  ): Promise<WithdrawalRequest[]> => {
+    const url = accountId
+      ? `${API_BASE_URL}/withdrawals/history/${userId}/restaurant?accountId=${accountId}`
+      : `${API_BASE_URL}/withdrawals/history/${userId}/restaurant`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch withdrawal history");
+    return response.json();
+  },
+
+  // Catering endpoints
+  getCateringOrders: async (
+    restaurantId: string,
+    accountId?: string | null
+  ): Promise<CateringOrder[]> => {
+    const url = accountId
+      ? `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}?accountId=${accountId}`
+      : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;
+    const response = await fetch(url);
+    return response.json();
+  },
+
+  reviewCateringOrder: async (
+    orderId: string,
+    restaurantId: string,
+    accepted: boolean,
+    token: string,
+    selectedAccountId?: string
+  ): Promise<CateringOrder> => {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          restaurantId,
+          accepted,
+          selectedAccountId,
+        }),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to review catering order");
+    return response.json();
+  },
+
+  // Analytics endpoints
+  getAnalyticsDashboard: async (
+    restaurantId: string,
+    token: string
+  ): Promise<AnalyticsDashboard> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/dashboard`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch analytics dashboard");
+    return response.json();
+  },
+
+  getMonthlyAnalytics: async (
+    restaurantId: string,
+    year: number,
+    month: number,
+    token: string
+  ): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/monthly?year=${year}&month=${month}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch monthly analytics");
+    return response.json();
+  },
+
+  getYearlyAnalytics: async (
+    restaurantId: string,
+    year: number,
+    token: string
+  ): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/yearly?year=${year}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch yearly analytics");
+    return response.json();
+  },
+};
