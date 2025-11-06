@@ -38,6 +38,7 @@ export default function MenuItemCard({
   const [quantityInput, setQuantityInput] = useState(
     portionQuantity.toString()
   );
+  const [isImageEnlarged, setIsImageEnlarged] = useState(false);
 
   // Sync input with external quantity changes
   useEffect(() => {
@@ -230,7 +231,13 @@ export default function MenuItemCard({
 
           {/* Right Side - Image */}
           {item.image && (
-            <div className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0">
+            <div
+              className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0 cursor-zoom-in"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsImageEnlarged(true);
+              }}
+            >
               <img
                 src={item.image}
                 alt={item.name}
@@ -250,6 +257,41 @@ export default function MenuItemCard({
         onAddItem={onAddItem}
         onUpdateQuantity={onUpdateQuantity}
       />
+
+      {/* Image Lightbox */}
+      {isImageEnlarged && item.image && (
+        <div
+          className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setIsImageEnlarged(false)}
+        >
+          <button
+            onClick={() => setIsImageEnlarged(false)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            aria-label="Close"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-8 w-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+          <img
+            src={item.image}
+            alt={item.name}
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </>
   );
 }
