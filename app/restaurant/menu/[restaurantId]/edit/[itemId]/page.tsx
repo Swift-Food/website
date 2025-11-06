@@ -67,12 +67,22 @@ const EditMenuItemPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [menuResponse, cats] = await Promise.all([
+      const [restaurant, menuResponse, cats] = await Promise.all([
+        cateringService.getRestaurant(restaurantId),
         cateringService.getRestaurantMenuItems(restaurantId),
         cateringService.getCategories(),
       ]);
 
-      // Handle both array and object responses
+      // Get menuGroupSettings from restaurant
+      let menuGroupSettings: Record<string, { displayOrder: number }> = {};
+      if (
+        restaurant.menuGroupSettings &&
+        typeof restaurant.menuGroupSettings === "object"
+      ) {
+        menuGroupSettings = restaurant.menuGroupSettings;
+      }
+
+      // Handle both array and object responses for menu items
       let items: any[] = [];
 
       if (Array.isArray(menuResponse)) {
@@ -83,7 +93,6 @@ const EditMenuItemPage = () => {
         if (hasMenuItems) {
           const responseWithMenuItems = menuResponse as {
             menuItems: any[];
-            groupSettings?: any;
           };
           if (Array.isArray(responseWithMenuItems.menuItems)) {
             items = responseWithMenuItems.menuItems;
@@ -99,11 +108,21 @@ const EditMenuItemPage = () => {
 
       setCategories(cats);
 
-      // Extract unique groups from existing items
-      const groups = Array.from(
+      // Extract unique groups from items
+      const itemGroups = Array.from(
         new Set(items.map((item: any) => item.groupTitle).filter(Boolean))
       ) as string[];
-      setExistingGroups(groups);
+
+      // Get groups from menuGroupSettings (preserve order)
+      const settingsGroups = Object.keys(menuGroupSettings);
+
+      // Append any itemGroups not in menuGroupSettings
+      const allGroups = [
+        ...settingsGroups,
+        ...itemGroups.filter((g) => !settingsGroups.includes(g)),
+      ];
+
+      setExistingGroups(allGroups);
 
       // Populate form with item data
       setName(item.name || "");
@@ -159,7 +178,6 @@ const EditMenuItemPage = () => {
         ...currentSettings,
         [newGroupName.trim()]: { displayOrder: maxOrder + 1 },
       };
-
 
       console.log("New Group Settings ", newGroupSettings);
       // Update restaurant's group settings
