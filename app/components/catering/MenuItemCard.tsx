@@ -60,10 +60,10 @@ export default function MenuItemCard({
     <>
       <div
         key={item.id}
-        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer"
+        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[280px] sm:h-[240px]"
         onClick={onToggleExpand}
       >
-        <div className="flex flex-col sm:flex-row">
+        <div className="flex flex-col sm:flex-row h-full">
           {/* Left Side - Content */}
           <div className="flex-1 p-4 sm:p-6">
             {/* Header - Name */}
@@ -199,7 +199,7 @@ export default function MenuItemCard({
 
           {/* Right Side - Image */}
           {item.image && (
-            <div className="w-full sm:w-64 h-48 sm:h-auto bg-gray-200 flex-shrink-0">
+            <div className="w-full sm:w-[320px] h-48 sm:h-full bg-gray-200 flex-shrink-0 aspect-[4/3]">
               <img
                 src={item.image}
                 alt={item.name}
