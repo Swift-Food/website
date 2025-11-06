@@ -198,8 +198,8 @@ export const RestaurantDashboard = ({
           </button>
         </div>
         {/* Menu Management Button */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="mb-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+          <div>
             <a
               href={`/restaurant/menu/${restaurantId}`}
               className="block h-full bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
@@ -232,7 +232,7 @@ export const RestaurantDashboard = ({
           </div>
 
           {/* Restaurant Analytics Button */}
-          <div className="mb-3">
+          <div>
             <a
               href={`/restaurant/analytics/${restaurantId}`}
               className="block h-full bg-success hover:bg-success/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
@@ -267,7 +267,7 @@ export const RestaurantDashboard = ({
           </div>
 
           {/* Opening Hours Button */}
-          <div className="mb-3">
+          <div>
             <a
               href={`/restaurant/opening-hours/${restaurantId}`}
               className="block h-full bg-warning hover:bg-warning/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
