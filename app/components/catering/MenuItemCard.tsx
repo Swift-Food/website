@@ -95,14 +95,14 @@ export default function MenuItemCard({
             <div className="flex items-end justify-between gap-4">
               <div className="flex-1">
                 {item.isDiscount && discountPrice > 0 ? (
-                  <>
-                    <p className="text-primary font-bold text-sm md:text-2xl">
-                      £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
-                    </p>
+                  <div className="flex flex-row items-center justify-start gap-3">
                     <p className="text-gray-500 text-[11px] md:text-sm line-through">
                       £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                     </p>
-                  </>
+                    <p className="text-primary font-bold text-sm md:text-2xl">
+                      £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
+                    </p>
+                  </div>
                 ) : (
                   <p className="text-primary font-bold text-md md:text-lg">
                     £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
