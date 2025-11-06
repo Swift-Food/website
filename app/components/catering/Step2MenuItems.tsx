@@ -793,7 +793,7 @@ export default function Step2MenuItems() {
                                           item
                                         )}
                                         isExpanded={expandedItemId === item.id}
-                                        isSearching={isSearching}
+                                        // isSearching={isSearching}
                                         onToggleExpand={() =>
                                           setExpandedItemId(
                                             expandedItemId === item.id
