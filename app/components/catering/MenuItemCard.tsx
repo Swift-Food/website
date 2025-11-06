@@ -235,13 +235,7 @@ export default function MenuItemCard({
 
           {/* Right Side - Image */}
           {item.image && (
-            <div
-              className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                // setIsImageEnlarged(true);
-              }}
-            >
+            <div className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0">
               <img
                 src={item.image}
                 alt={item.name}
