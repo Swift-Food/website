@@ -11,6 +11,7 @@ import {
   Trash2,
   Upload,
   AlertCircle,
+  Edit2,
 } from "lucide-react";
 import { cateringService } from "@/services/cateringServices";
 import {
@@ -61,7 +62,9 @@ const NewMenuItemPage = () => {
 
   // Addon modal state
   const [showAddonModal, setShowAddonModal] = useState(false);
-  const [editingAddonIndex, setEditingAddonIndex] = useState<number | null>(null);
+  const [editingAddonIndex, setEditingAddonIndex] = useState<number | null>(
+    null
+  );
   const [currentAddon, setCurrentAddon] = useState<MenuItemAddon>({
     name: "",
     price: 0,
@@ -631,7 +634,10 @@ const NewMenuItemPage = () => {
               return Object.keys(grouped).length > 0 ? (
                 <div className="space-y-4">
                   {Object.entries(grouped).map(([groupTitle, groupAddons]) => (
-                    <div key={groupTitle} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={groupTitle}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <h3 className="font-semibold text-gray-900 mb-3">
                         {groupTitle}
                       </h3>
@@ -643,7 +649,9 @@ const NewMenuItemPage = () => {
                           >
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">{addon.name}</span>
+                                <span className="font-medium text-gray-900">
+                                  {addon.name}
+                                </span>
                                 <span
                                   className={`text-xs px-2 py-0.5 rounded-full ${
                                     addon.required
@@ -655,7 +663,9 @@ const NewMenuItemPage = () => {
                                 </span>
                                 {addon.selectionType && (
                                   <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                                    {addon.selectionType === "single" ? "Single" : "Multiple"}
+                                    {addon.selectionType === "single"
+                                      ? "Single"
+                                      : "Multiple"}
                                   </span>
                                 )}
                               </div>
@@ -686,7 +696,9 @@ const NewMenuItemPage = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 italic">No add-ons yet. Click "Add Option" to create one.</p>
+                <p className="text-sm text-gray-500 italic">
+                  No add-ons yet. Click "Add Option" to create one.
+                </p>
               );
             })()}
           </div>
@@ -833,7 +845,10 @@ const NewMenuItemPage = () => {
                       type="text"
                       value={currentAddon.name}
                       onChange={(e) =>
-                        setCurrentAddon({ ...currentAddon, name: e.target.value })
+                        setCurrentAddon({
+                          ...currentAddon,
+                          name: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       placeholder="e.g., Extra Cheese"
@@ -889,7 +904,9 @@ const NewMenuItemPage = () => {
                       onChange={(e) =>
                         setCurrentAddon({
                           ...currentAddon,
-                          selectionType: e.target.value as "single" | "multiple",
+                          selectionType: e.target.value as
+                            | "single"
+                            | "multiple",
                         })
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
@@ -930,10 +947,16 @@ const NewMenuItemPage = () => {
                     <select
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (value && !(currentAddon.allergens || []).includes(value)) {
+                        if (
+                          value &&
+                          !(currentAddon.allergens || []).includes(value)
+                        ) {
                           setCurrentAddon({
                             ...currentAddon,
-                            allergens: [...(currentAddon.allergens || []), value],
+                            allergens: [
+                              ...(currentAddon.allergens || []),
+                              value,
+                            ],
                           });
                         }
                         e.target.value = "";
@@ -948,37 +971,38 @@ const NewMenuItemPage = () => {
                       ))}
                     </select>
 
-                    {currentAddon.allergens && currentAddon.allergens.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {currentAddon.allergens.map((allergenValue) => {
-                          const allergen = ALLERGENS.find(
-                            (a) => a.value === allergenValue
-                          );
-                          return (
-                            <span
-                              key={allergenValue}
-                              className="inline-flex items-center gap-1 bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm"
-                            >
-                              {allergen?.label || allergenValue}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setCurrentAddon({
-                                    ...currentAddon,
-                                    allergens: currentAddon.allergens?.filter(
-                                      (a) => a !== allergenValue
-                                    ),
-                                  })
-                                }
-                                className="hover:bg-red-200 rounded-full p-0.5"
+                    {currentAddon.allergens &&
+                      currentAddon.allergens.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {currentAddon.allergens.map((allergenValue) => {
+                            const allergen = ALLERGENS.find(
+                              (a) => a.value === allergenValue
+                            );
+                            return (
+                              <span
+                                key={allergenValue}
+                                className="inline-flex items-center gap-1 bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm"
                               >
-                                <X size={14} />
-                              </button>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
+                                {allergen?.label || allergenValue}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setCurrentAddon({
+                                      ...currentAddon,
+                                      allergens: currentAddon.allergens?.filter(
+                                        (a) => a !== allergenValue
+                                      ),
+                                    })
+                                  }
+                                  className="hover:bg-red-200 rounded-full p-0.5"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                   </div>
                 </div>
 
