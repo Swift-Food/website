@@ -8,7 +8,6 @@ import { useState, useEffect } from "react";
 import { LogOut, Loader } from "lucide-react";
 import { restaurantApi } from "@/app/api/restaurantApi";
 import { StripeOnboardingStatus } from "@/types/restaurant.types";
-import { PaymentAccountSelector } from "../../dashboard/shared/PaymentAccountSelector";
 import { StripeOnboardingRequired } from "../../dashboard/shared/StripeOnboardingRequired";
 import { AnalyticsDashboard } from "../../dashboard/analytics/AnalyticsDashboard";
 
@@ -82,12 +81,6 @@ const RestaurantAnalyticsPage = () => {
             </button>
           </div>
 
-          <PaymentAccountSelector
-            paymentAccounts={user.restaurantUser?.paymentAccounts}
-            selectedAccountId={selectedAccountId}
-            onSelectAccount={setSelectedAccountId}
-          />
-
           <StripeOnboardingRequired
             userId={user.restaurantUser.id}
             token={token}
@@ -124,13 +117,6 @@ const RestaurantAnalyticsPage = () => {
             Logout
           </button>
         </div>
-
-        {/* Payment Account Selector */}
-        <PaymentAccountSelector
-          paymentAccounts={user.restaurantUser?.paymentAccounts}
-          selectedAccountId={selectedAccountId}
-          onSelectAccount={setSelectedAccountId}
-        />
 
         {/* Analytics Dashboard */}
         <div className="bg-white rounded-lg p-6">
