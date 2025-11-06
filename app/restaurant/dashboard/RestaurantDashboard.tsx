@@ -8,7 +8,7 @@ import {
   BalanceInfo,
   WithdrawalRequest,
   StripeOnboardingStatus,
-  PaymentAccounts,
+  // PaymentAccounts,
 } from "@/types/restaurant.types";
 import { CateringOrder } from "@/app/types/catering.types";
 import { PaymentAccountSelector } from "./shared/PaymentAccountSelector";
@@ -47,11 +47,11 @@ export const RestaurantDashboard = ({
     "withdrawals"
   );
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  // const [error, setError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
+    // setError("");
     try {
       const [statusData, balanceData, historyData, cateringData] = await Promise.all([
         restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
@@ -77,7 +77,7 @@ export const RestaurantDashboard = ({
       setCateringOrders(filteredOrders);
     } catch (err: any) {
       console.error("Fetch error:", err);
-      setError(err.message || "Failed to load data");
+      // setError(err.message || "Failed to load data");
     } finally {
       setLoading(false);
     }
