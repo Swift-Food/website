@@ -174,12 +174,12 @@ export default function MenuItemCard({
                 ) : (
                   <button
                     onClick={handleAddToOrder}
-                    className="w-10 h-10 md:w-12 md:h-12 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                    className="w-8 h-8 md:w-10 md:h-10 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
                     aria-label="Add to Order"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 md:h-7 md:w-7"
+                      className="h-3 w-3 md:h-5 md:w-5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
