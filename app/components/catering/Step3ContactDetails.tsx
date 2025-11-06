@@ -62,6 +62,7 @@ export default function Step3ContactInfo() {
   const [ccEmails, setCcEmails] = useState<string[]>([]);
   const [ccEmailInput, setCcEmailInput] = useState("");
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -171,6 +172,12 @@ export default function Step3ContactInfo() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!termsAccepted) {
+      alert("Please accept the Terms and Conditions to continue");
+      return;
+    }
+
     if (!validateForm()) {
       // Scroll to first error - improved version
       setTimeout(() => {
@@ -948,11 +955,40 @@ export default function Step3ContactInfo() {
                 )}
               </div>
 
-              {/* Submit Button - Desktop */}
+              {/* Terms and Conditions - Desktop */}
               <div className="hidden lg:block pt-4">
+                <div className="flex items-start gap-3 mb-4">
+                  <input
+                    type="checkbox"
+                    id="terms-desktop"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
+                  />
+                  <label
+                    htmlFor="terms-desktop"
+                    className="text-sm text-base-content/80 cursor-pointer"
+                  >
+                    I accept the{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-dark-pink hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms and Conditions
+                    </a>
+                    *
+                  </label>
+                </div>
+              </div>
+
+              {/* Submit Button - Desktop */}
+              <div className="hidden lg:block">
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !termsAccepted}
                   className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
@@ -1215,11 +1251,40 @@ export default function Step3ContactInfo() {
                 </div>
               )}
 
-              {/* Mobile Submit Button */}
+              {/* Terms and Conditions - Mobile */}
               <div className="lg:hidden mt-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <input
+                    type="checkbox"
+                    id="terms-mobile"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
+                  />
+                  <label
+                    htmlFor="terms-mobile"
+                    className="text-sm text-base-content/80 cursor-pointer"
+                  >
+                    I accept the{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-dark-pink hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms and Conditions
+                    </a>
+                    *
+                  </label>
+                </div>
+              </div>
+
+              {/* Mobile Submit Button */}
+              <div className="lg:hidden">
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !termsAccepted}
                   onClick={handleSubmit}
                   className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
