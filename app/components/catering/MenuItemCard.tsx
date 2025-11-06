@@ -47,11 +47,14 @@ export default function MenuItemCard({
   const hasAddons = item.addons && item.addons.length > 0;
 
   const handleAddToOrder = () => {
-    if (hasAddons) {
-      // If item has addons, open modal
+    // Check if mobile (width < 768px which is md breakpoint)
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile || hasAddons) {
+      // On mobile or if item has addons, open modal
       onAddOrderPress(item);
     } else {
-      // If no addons, directly add to cart with default quantity
+      // On md and larger with no addons, directly add to cart with default quantity
       onAddItem({ ...item, portionQuantity: 1 });
     }
   };
@@ -60,7 +63,7 @@ export default function MenuItemCard({
     <>
       <div
         key={item.id}
-        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[180px]"
+        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[140px] md:h-[200px]"
         onClick={onToggleExpand}
       >
         <div className="flex flex-row h-full">
@@ -68,7 +71,7 @@ export default function MenuItemCard({
           <div className="flex-1 p-4 sm:p-6">
             {/* Header - Name */}
             <div className="flex items-start justify-between mb-2">
-              <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1">
+              <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1 line-clamp-1">
                 {item.name}
               </h3>
             </div>
@@ -92,7 +95,7 @@ export default function MenuItemCard({
               <div className="flex-1">
                 {item.isDiscount && discountPrice > 0 ? (
                   <>
-                    <p className="text-primary font-bold text-lg md:text-2xl">
+                    <p className="text-primary font-bold text-sm md:text-2xl">
                       £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
                     </p>
                     <p className="text-gray-500 text-[11px] md:text-sm line-through">
@@ -100,16 +103,16 @@ export default function MenuItemCard({
                     </p>
                   </>
                 ) : (
-                  <p className="text-primary font-bold text-2xl">
+                  <p className="text-primary font-bold text-md md:text-lg">
                     £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                   </p>
                 )}
                 {/* Feeds per unit */}
-                {/* {DISPLAY_FEEDS_PER_UNIT > 1 && (
+                {DISPLAY_FEEDS_PER_UNIT > 1 && (
                   <p className="text-[10px] md:text-xs text-gray-600 mt-1">
                     Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
                   </p>
-                )} */}
+                )}
               </div>
 
               {/* Add to order button / quantity controls */}
@@ -118,59 +121,87 @@ export default function MenuItemCard({
                 className="flex-shrink-0"
               >
                 {quantity > 0 ? (
-                  <div className="bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] flex items-center gap-2 max-w-[180px]">
+                  <>
+                    {/* On md and smaller: show simple add button that opens modal */}
                     <button
-                      onClick={() => {
-                        const newPortionQty = Math.max(0, portionQuantity - 1);
-                        const newBackendQty =
-                          newPortionQty * BACKEND_QUANTITY_UNIT;
-                        onUpdateQuantity(item.id, newBackendQty);
-                      }}
-                      className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                      onClick={() => onAddOrderPress(item)}
+                      className="lg:hidden w-8 h-8 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                      aria-label="Add to Order"
                     >
-                      −
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3 w-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
                     </button>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={quantityInput}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "" || /^\d+$/.test(val)) {
-                          setQuantityInput(val);
-                          if (val !== "" && !isNaN(parseInt(val))) {
-                            const newPortionQty = parseInt(val);
-                            const newBackendQty =
-                              Math.max(0, newPortionQty) *
-                              BACKEND_QUANTITY_UNIT;
-                            onUpdateQuantity(item.id, newBackendQty);
-                          }
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (
-                          e.target.value === "" ||
-                          parseInt(e.target.value) < 1
-                        ) {
-                          onUpdateQuantity(item.id, 0);
-                          setQuantityInput("0");
-                        }
-                      }}
-                      className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1 flex-shrink-0"
-                    />
 
-                    <button
-                      onClick={() => {
-                        const newPortionQty = portionQuantity + 1;
-                        const newBackendQty =
-                          newPortionQty * BACKEND_QUANTITY_UNIT;
-                        onUpdateQuantity(item.id, newBackendQty);
-                      }}
-                      className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
-                    >
-                      +
-                    </button>
-                  </div>
+                    {/* On lg and larger: show quantity controls */}
+                    <div className="hidden lg:flex bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] items-center gap-2 max-w-[180px]">
+                      <button
+                        onClick={() => {
+                          const newPortionQty = Math.max(
+                            0,
+                            portionQuantity - 1
+                          );
+                          const newBackendQty =
+                            newPortionQty * BACKEND_QUANTITY_UNIT;
+                          onUpdateQuantity(item.id, newBackendQty);
+                        }}
+                        className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={quantityInput}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "" || /^\d+$/.test(val)) {
+                            setQuantityInput(val);
+                            if (val !== "" && !isNaN(parseInt(val))) {
+                              const newPortionQty = parseInt(val);
+                              const newBackendQty =
+                                Math.max(0, newPortionQty) *
+                                BACKEND_QUANTITY_UNIT;
+                              onUpdateQuantity(item.id, newBackendQty);
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (
+                            e.target.value === "" ||
+                            parseInt(e.target.value) < 1
+                          ) {
+                            onUpdateQuantity(item.id, 0);
+                            setQuantityInput("0");
+                          }
+                        }}
+                        className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1 flex-shrink-0"
+                      />
+
+                      <button
+                        onClick={() => {
+                          const newPortionQty = portionQuantity + 1;
+                          const newBackendQty =
+                            newPortionQty * BACKEND_QUANTITY_UNIT;
+                          onUpdateQuantity(item.id, newBackendQty);
+                        }}
+                        className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <button
                     onClick={handleAddToOrder}
@@ -199,7 +230,7 @@ export default function MenuItemCard({
 
           {/* Right Side - Image */}
           {item.image && (
-            <div className="w-[180px] h-full bg-gray-200 flex-shrink-0">
+            <div className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0">
               <img
                 src={item.image}
                 alt={item.name}
