@@ -60,7 +60,7 @@ export default function MenuItemCard({
     <>
       <div
         key={item.id}
-        className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
+        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer"
         onClick={onToggleExpand}
       >
         <div className="flex flex-col sm:flex-row">
