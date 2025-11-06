@@ -288,6 +288,9 @@ export interface MenuItemAddon {
   name: string;
   price: number;
   allergens: string[];
+  groupTitle?: string;
+  selectionType?: "single" | "multiple";
+  required?: boolean;
 }
 
 export enum MenuItemStatus {

@@ -11,6 +11,7 @@ import {
   Trash2,
   Upload,
   AlertCircle,
+  Edit2,
 } from "lucide-react";
 import { cateringService } from "@/services/cateringServices";
 import {
@@ -59,6 +60,20 @@ const EditMenuItemPage = () => {
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+
+  // Addon modal state
+  const [showAddonModal, setShowAddonModal] = useState(false);
+  const [editingAddonIndex, setEditingAddonIndex] = useState<number | null>(
+    null
+  );
+  const [currentAddon, setCurrentAddon] = useState<MenuItemAddon>({
+    name: "",
+    price: 0,
+    allergens: [],
+    groupTitle: "",
+    selectionType: "multiple",
+    required: false,
+  });
 
   useEffect(() => {
     fetchData();
@@ -233,21 +248,50 @@ const EditMenuItemPage = () => {
   };
 
   const handleAddAddon = () => {
-    setAddons([...(addons || []), { name: "", price: 0, allergens: [] }]);
+    setCurrentAddon({
+      name: "",
+      price: 0,
+      allergens: [],
+      groupTitle: "",
+      selectionType: "multiple",
+      required: false,
+    });
+    setEditingAddonIndex(null);
+    setShowAddonModal(true);
+  };
+
+  const handleEditAddon = (index: number) => {
+    setCurrentAddon({ ...addons[index] });
+    setEditingAddonIndex(index);
+    setShowAddonModal(true);
   };
 
   const handleRemoveAddon = (index: number) => {
     setAddons((addons || []).filter((_, i) => i !== index));
   };
 
-  const handleAddonChange = (
-    index: number,
-    field: keyof MenuItemAddon,
-    value: any
-  ) => {
-    const updated = [...(addons || [])];
-    updated[index] = { ...updated[index], [field]: value };
-    setAddons(updated);
+  const handleSaveAddon = () => {
+    if (!currentAddon.name || currentAddon.price < 0) {
+      return;
+    }
+
+    if (editingAddonIndex !== null) {
+      // Update existing addon
+      const updated = [...(addons || [])];
+      updated[editingAddonIndex] = currentAddon;
+      setAddons(updated);
+    } else {
+      // Add new addon
+      setAddons([...(addons || []), currentAddon]);
+    }
+
+    setShowAddonModal(false);
+    setEditingAddonIndex(null);
+  };
+
+  const handleCloseAddonModal = () => {
+    setShowAddonModal(false);
+    setEditingAddonIndex(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -607,56 +651,87 @@ const EditMenuItemPage = () => {
               </button>
             </div>
 
-            {addons.map((addon, index) => (
-              <div
-                key={index}
-                className="p-4 border border-gray-300 rounded-lg space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Add-on Name
-                      </label>
-                      <input
-                        type="text"
-                        value={addon.name}
-                        onChange={(e) =>
-                          handleAddonChange(index, "name", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm"
-                      />
+            {(() => {
+              // Group addons by groupTitle
+              const grouped: Record<string, MenuItemAddon[]> = {};
+              (addons || []).forEach((addon, index) => {
+                const group = addon.groupTitle || "Ungrouped";
+                if (!grouped[group]) {
+                  grouped[group] = [];
+                }
+                grouped[group].push({ ...addon, index } as any);
+              });
+
+              return Object.keys(grouped).length > 0 ? (
+                <div className="space-y-4">
+                  {Object.entries(grouped).map(([groupTitle, groupAddons]) => (
+                    <div
+                      key={groupTitle}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
+                      <h3 className="font-semibold text-gray-900 mb-3">
+                        {groupTitle}
+                      </h3>
+                      <div className="space-y-2">
+                        {groupAddons.map((addon: any) => (
+                          <div
+                            key={addon.index}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-900">
+                                  {addon.name}
+                                </span>
+                                <span
+                                  className={`text-xs px-2 py-0.5 rounded-full ${
+                                    addon.required
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-gray-200 text-gray-700"
+                                  }`}
+                                >
+                                  {addon.required ? "Required" : "Optional"}
+                                </span>
+                                {addon.selectionType && (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                    {addon.selectionType === "single"
+                                      ? "Single"
+                                      : "Multiple"}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-600">
+                                £{addon.price.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleEditAddon(addon.index)}
+                                className="text-blue-600 hover:text-blue-700 p-1"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAddon(addon.index)}
+                                className="text-red-600 hover:text-red-700 p-1"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price (£)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={addon.price}
-                        onChange={(e) =>
-                          handleAddonChange(
-                            index,
-                            "price",
-                            parseFloat(e.target.value)
-                          )
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveAddon(index)}
-                    className="ml-2 text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  ))}
                 </div>
-              </div>
-            ))}
+              ) : (
+                <p className="text-sm text-gray-500 italic">
+                  No add-ons yet. Click "Add Option" to create one.
+                </p>
+              );
+            })()}
           </div>
 
           {/* Settings */}
@@ -773,6 +848,217 @@ const EditMenuItemPage = () => {
             </button>
           </div>
         </form>
+
+        {/* Addon Detail Modal */}
+        {showAddonModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {editingAddonIndex !== null ? "Edit Add-on" : "New Add-on"}
+                  </h3>
+                  <button
+                    onClick={handleCloseAddonModal}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={currentAddon.name}
+                      onChange={(e) =>
+                        setCurrentAddon({
+                          ...currentAddon,
+                          name: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                      placeholder="e.g., Extra Cheese"
+                    />
+                  </div>
+
+                  {/* Price */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price (£) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={currentAddon.price}
+                      onChange={(e) =>
+                        setCurrentAddon({
+                          ...currentAddon,
+                          price: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    />
+                  </div>
+
+                  {/* Group Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Group Title
+                    </label>
+                    <input
+                      type="text"
+                      value={currentAddon.groupTitle || ""}
+                      onChange={(e) =>
+                        setCurrentAddon({
+                          ...currentAddon,
+                          groupTitle: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                      placeholder="e.g., Toppings, Size Options"
+                    />
+                  </div>
+
+                  {/* Selection Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Selection Type
+                    </label>
+                    <select
+                      value={currentAddon.selectionType || "multiple"}
+                      onChange={(e) =>
+                        setCurrentAddon({
+                          ...currentAddon,
+                          selectionType: e.target.value as
+                            | "single"
+                            | "multiple",
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                    >
+                      <option value="multiple">Multiple Selection</option>
+                      <option value="single">Single Selection</option>
+                    </select>
+                  </div>
+
+                  {/* Required */}
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={currentAddon.required || false}
+                        onChange={(e) =>
+                          setCurrentAddon({
+                            ...currentAddon,
+                            required: e.target.checked,
+                          })
+                        }
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm font-medium text-gray-700">
+                        Required
+                      </span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-6">
+                      Customer must select this add-on
+                    </p>
+                  </div>
+
+                  {/* Allergens */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Allergens
+                    </label>
+                    <select
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (
+                          value &&
+                          !(currentAddon.allergens || []).includes(value)
+                        ) {
+                          setCurrentAddon({
+                            ...currentAddon,
+                            allergens: [
+                              ...(currentAddon.allergens || []),
+                              value,
+                            ],
+                          });
+                        }
+                        e.target.value = "";
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                    >
+                      <option value="">Select allergen...</option>
+                      {ALLERGENS.map((allergen) => (
+                        <option key={allergen.value} value={allergen.value}>
+                          {allergen.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    {currentAddon.allergens &&
+                      currentAddon.allergens.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {currentAddon.allergens.map((allergenValue) => {
+                            const allergen = ALLERGENS.find(
+                              (a) => a.value === allergenValue
+                            );
+                            return (
+                              <span
+                                key={allergenValue}
+                                className="inline-flex items-center gap-1 bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm"
+                              >
+                                {allergen?.label || allergenValue}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setCurrentAddon({
+                                      ...currentAddon,
+                                      allergens: currentAddon.allergens?.filter(
+                                        (a) => a !== allergenValue
+                                      ),
+                                    })
+                                  }
+                                  className="hover:bg-red-200 rounded-full p-0.5"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                  </div>
+                </div>
+
+                {/* Modal Actions */}
+                <div className="flex gap-3 mt-6 pt-6 border-t">
+                  <button
+                    type="button"
+                    onClick={handleCloseAddonModal}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveAddon}
+                    disabled={!currentAddon.name || currentAddon.price < 0}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {editingAddonIndex !== null ? "Save Changes" : "Add Add-on"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* New Group Modal */}
         {showNewGroupModal && (
