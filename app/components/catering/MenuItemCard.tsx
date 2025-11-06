@@ -38,7 +38,7 @@ export default function MenuItemCard({
   const [quantityInput, setQuantityInput] = useState(
     portionQuantity.toString()
   );
-  const [isImageEnlarged, setIsImageEnlarged] = useState(false);
+  // const [isImageEnlarged, setIsImageEnlarged] = useState(false);
 
   // Sync input with external quantity changes
   useEffect(() => {
@@ -232,10 +232,10 @@ export default function MenuItemCard({
           {/* Right Side - Image */}
           {item.image && (
             <div
-              className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0 cursor-zoom-in"
+              className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0"
               onClick={(e) => {
                 e.stopPropagation();
-                setIsImageEnlarged(true);
+                // setIsImageEnlarged(true);
               }}
             >
               <img
@@ -259,7 +259,7 @@ export default function MenuItemCard({
       />
 
       {/* Image Lightbox */}
-      {isImageEnlarged && item.image && (
+      {/* {isImageEnlarged && item.image && (
         <div
           className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setIsImageEnlarged(false)}
@@ -291,7 +291,7 @@ export default function MenuItemCard({
             onClick={(e) => e.stopPropagation()}
           />
         </div>
-      )}
+      )} */}
     </>
   );
 }

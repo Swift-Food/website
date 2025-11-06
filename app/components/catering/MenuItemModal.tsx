@@ -551,7 +551,7 @@ export default function MenuItemModal({
         <div className="p-6">
           {item.image && (
             <div
-              className="w-full h-full flex-shrink-0 cursor-zoom-in mb-3"
+              className="w-full h-full flex-shrink-0 mb-3"
               onClick={(e) => {
                 e.stopPropagation();
               }}
