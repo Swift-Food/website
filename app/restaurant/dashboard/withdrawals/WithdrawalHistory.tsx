@@ -63,15 +63,15 @@ export const WithdrawalHistory = ({ history }: WithdrawalHistoryProps) => {
               </div>
               <div className="text-right">
                 <p className="font-bold text-lg text-gray-900">
-                  £{withdrawal.amount.toFixed(2)}
+                  £{Number(withdrawal.amount).toFixed(2)}
                 </p>
                 {withdrawal.feeCharged > 0 && (
                   <p className="text-xs text-red-600">
-                    Fee: -£{withdrawal.feeCharged.toFixed(2)}
+                    Fee: -£{Number(withdrawal.feeCharged).toFixed(2)}
                   </p>
                 )}
                 <p className="text-sm font-semibold text-green-600">
-                  £{withdrawal.netAmount.toFixed(2)}
+                  £{Number(withdrawal.netAmount).toFixed(2)}
                 </p>
               </div>
             </div>
