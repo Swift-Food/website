@@ -39,26 +39,34 @@ export const RestaurantDashboard = ({
   onLogout,
 }: RestaurantDashboardProps) => {
   const [loading, setLoading] = useState(true);
-  const [stripeStatus, setStripeStatus] = useState<StripeOnboardingStatus | null>(null);
+  const [stripeStatus, setStripeStatus] =
+    useState<StripeOnboardingStatus | null>(null);
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
   const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
-  const [activeTab, setActiveTab] = useState<"withdrawals" | "catering" | "analytics">(
-    "withdrawals"
+  const [activeTab, setActiveTab] = useState<
+    "withdrawals" | "catering" | "analytics"
+  >("withdrawals");
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
+    null
   );
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   // const [error, setError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
     // setError("");
     try {
-      const [statusData, balanceData, historyData, cateringData] = await Promise.all([
-        restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
-        restaurantApi.getBalance(restaurantUserId, token, selectedAccountId),
-        restaurantApi.getWithdrawalHistory(restaurantUserId, token, selectedAccountId),
-        restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
-      ]);
+      const [statusData, balanceData, historyData, cateringData] =
+        await Promise.all([
+          restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
+          restaurantApi.getBalance(restaurantUserId, token, selectedAccountId),
+          restaurantApi.getWithdrawalHistory(
+            restaurantUserId,
+            token,
+            selectedAccountId
+          ),
+          restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
+        ]);
 
       if (statusData) setStripeStatus(statusData);
       if (balanceData) setBalance(balanceData);
@@ -91,7 +99,10 @@ export const RestaurantDashboard = ({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader
+            size={48}
+            className="animate-spin text-blue-600 mx-auto mb-4"
+          />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -187,7 +198,6 @@ export const RestaurantDashboard = ({
             Logout
           </button>
         </div>
-
         {/* Menu Management Button */}
         <div className="mb-8">
           <a
@@ -220,47 +230,12 @@ export const RestaurantDashboard = ({
             </div>
           </a>
         </div>
-
-        {/* Menu Management Button */}
-        <div className="mb-8">
-          <a
-            href={`/restaurant/menu/${restaurantId}`}
-            className="block bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold mb-1">Menu Management</h3>
-                <p className="text-sm text-white/90">
-                  Edit your menu items, add allergens, and manage categories
-                </p>
-              </div>
-              <div className="bg-white/20 rounded-full p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                  />
-                </svg>
-              </div>
-            </div>
-          </a>
-        </div>
-
         {/* Payment Account Selector */}Number
         <PaymentAccountSelector
           paymentAccounts={restaurantUser?.paymentAccounts}
           selectedAccountId={selectedAccountId}
           onSelectAccount={setSelectedAccountId}
         />
-
         {showAllBranches ? (
           <div className="bg-white rounded-lg p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">
@@ -337,7 +312,9 @@ export const RestaurantDashboard = ({
               </div>
             ) : activeTab === "analytics" ? (
               <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Analytics</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">
+                  Analytics
+                </h2>
                 <AnalyticsDashboard
                   restaurantId={restaurantId}
                   token={token}
@@ -346,7 +323,9 @@ export const RestaurantDashboard = ({
               </div>
             ) : (
               <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Event Orders</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">
+                  Event Orders
+                </h2>
                 <CateringOrdersList
                   orders={cateringOrders}
                   restaurantId={restaurantId}
