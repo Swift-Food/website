@@ -35,7 +35,9 @@ export default function MenuItemCard({
   const portionQuantity = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 0;
 
   // Use simple quantity state
-  const [quantityInput, setQuantityInput] = useState(portionQuantity.toString());
+  const [quantityInput, setQuantityInput] = useState(
+    portionQuantity.toString()
+  );
 
   // Sync input with external quantity changes
   useEffect(() => {
@@ -85,9 +87,9 @@ export default function MenuItemCard({
               </p>
             )}
 
-            {/* Price */}
-            <div className="flex items-center gap-4 mb-4">
-              <div>
+            {/* Price and Add to Order / Quantity */}
+            <div className="flex items-end justify-between gap-4">
+              <div className="flex-1">
                 {item.isDiscount && discountPrice > 0 ? (
                   <>
                     <p className="text-primary font-bold text-2xl">
@@ -109,44 +111,22 @@ export default function MenuItemCard({
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* Allergens */}
-            {item.allergens && item.allergens.length > 0 && (
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-1">
-                  {item.allergens.slice(0, 4).map((allergen, idx) => (
-                    <span
-                      key={idx}
-                      className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full"
-                    >
-                      {allergen.replace(/_/g, " ")}
-                    </span>
-                  ))}
-                  {item.allergens.length > 4 && (
-                    <span className="text-xs text-gray-500 px-2 py-1">
-                      +{item.allergens.length - 4} more
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Add to order button / quantity controls */}
-            <div onClick={(e) => e.stopPropagation()}>
-              {quantity > 0 ? (
-                <div className="bg-[#F5F1E8] p-2 rounded-lg mb-3 border border-[#F0ECE3] flex items-center justify-between">
-                  <span className="text-sm text-gray-700 ml-1">
-                    Quantity
-                  </span>
-                  <div className="flex items-center gap-2">
+              {/* Add to order button / quantity controls */}
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="flex-shrink-0"
+              >
+                {quantity > 0 ? (
+                  <div className="bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] flex items-center gap-2 max-w-[180px]">
                     <button
                       onClick={() => {
                         const newPortionQty = Math.max(0, portionQuantity - 1);
-                        const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
+                        const newBackendQty =
+                          newPortionQty * BACKEND_QUANTITY_UNIT;
                         onUpdateQuantity(item.id, newBackendQty);
                       }}
-                      className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm"
+                      className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
                     >
                       −
                     </button>
@@ -160,7 +140,9 @@ export default function MenuItemCard({
                           setQuantityInput(val);
                           if (val !== "" && !isNaN(parseInt(val))) {
                             const newPortionQty = parseInt(val);
-                            const newBackendQty = Math.max(0, newPortionQty) * BACKEND_QUANTITY_UNIT;
+                            const newBackendQty =
+                              Math.max(0, newPortionQty) *
+                              BACKEND_QUANTITY_UNIT;
                             onUpdateQuantity(item.id, newBackendQty);
                           }
                         }
@@ -174,33 +156,44 @@ export default function MenuItemCard({
                           setQuantityInput("0");
                         }
                       }}
-                      className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1"
+                      className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1 flex-shrink-0"
                     />
 
                     <button
                       onClick={() => {
                         const newPortionQty = portionQuantity + 1;
-                        const newBackendQty = newPortionQty * BACKEND_QUANTITY_UNIT;
+                        const newBackendQty =
+                          newPortionQty * BACKEND_QUANTITY_UNIT;
                         onUpdateQuantity(item.id, newBackendQty);
                       }}
-                      className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm"
+                      className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
                     >
                       +
                     </button>
                   </div>
-                </div>
-              ) : (
-                <button
-                  onClick={handleAddToOrder}
-                  className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
-                >
-                  Add to Order
-                </button>
-              )}
-
-              <p className="text-xs text-center text-gray-500 mt-2">
-                Click card to view details & allergens
-              </p>
+                ) : (
+                  <button
+                    onClick={handleAddToOrder}
+                    className="w-10 h-10 md:w-12 md:h-12 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                    aria-label="Add to Order"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6 md:h-7 md:w-7"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
