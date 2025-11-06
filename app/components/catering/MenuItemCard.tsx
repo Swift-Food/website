@@ -68,14 +68,14 @@ export default function MenuItemCard({
           <div className="flex-1 p-4 sm:p-6">
             {/* Header - Name */}
             <div className="flex items-start justify-between mb-2">
-              <h3 className="font-bold text-xl text-gray-900 flex-1">
+              <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1">
                 {item.name}
               </h3>
             </div>
 
             {/* Description - 2 lines */}
             {item.description && (
-              <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+              <p className="text-gray-600 text-xs md:text-sm mb-3 line-clamp-2">
                 {item.description}
               </p>
             )}
@@ -92,10 +92,10 @@ export default function MenuItemCard({
               <div className="flex-1">
                 {item.isDiscount && discountPrice > 0 ? (
                   <>
-                    <p className="text-primary font-bold text-2xl">
+                    <p className="text-primary font-bold text-lg md:text-2xl">
                       £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
                     </p>
-                    <p className="text-gray-500 text-sm line-through">
+                    <p className="text-gray-500 text-[11px] md:text-sm line-through">
                       £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                     </p>
                   </>
@@ -106,7 +106,7 @@ export default function MenuItemCard({
                 )}
                 {/* Feeds per unit */}
                 {DISPLAY_FEEDS_PER_UNIT > 1 && (
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-[10px] md:text-xs text-gray-600 mt-1">
                     Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
                   </p>
                 )}
