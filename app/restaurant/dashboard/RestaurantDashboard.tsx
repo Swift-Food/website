@@ -205,7 +205,7 @@ export const RestaurantDashboard = ({
               href={`/restaurant/menu/${restaurantId}`}
               className="block h-full bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between h-full">
                 <div>
                   <h3 className="text-lg font-bold mb-1">Menu Management</h3>
                   <p className="text-sm text-white/90">
@@ -238,7 +238,7 @@ export const RestaurantDashboard = ({
               href={`/restaurant/analytics/${restaurantId}`}
               className="block h-full bg-success hover:bg-success/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between h-full">
                 <div>
                   <h3 className="text-lg font-bold mb-1">
                     Restaurant Analytics
@@ -273,7 +273,7 @@ export const RestaurantDashboard = ({
               href={`/restaurant/analytics/${restaurantId}`}
               className="block h-full bg-warning hover:bg-warning/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between h-full">
                 <div>
                   <h3 className="text-lg font-bold mb-1">Opening Hours</h3>
                   <p className="text-sm text-white/90">
@@ -292,7 +292,7 @@ export const RestaurantDashboard = ({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                 </div>
