@@ -63,11 +63,13 @@ export default function MenuItemCard({
       >
         {/* Normal Card View with Image */}
         {item.image && (
-          <img
-            src={item.image}
-            alt={item.name}
-            className="w-full h-40 md:h-48 object-cover"
-          />
+          <div className="w-full aspect-[4/3] relative overflow-hidden">
+            <img
+              src={item.image}
+              alt={item.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
         )}
         <div className="p-3 md:p-4 flex-1 flex flex-col">
           {/* Top section - grows to fill space */}
