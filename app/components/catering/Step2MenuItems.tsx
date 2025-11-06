@@ -595,12 +595,11 @@ export default function Step2MenuItems() {
                       } else {
                         groupsForRest = Array.from(
                           new Set(
-                            rest.items
-                              .map((i) => i.groupTitle || "Other")
-                              // .filter((g) => {
-                              //   const lower = g.toLowerCase();
-                              //   return lower !== "drink" && lower !== "drinks";
-                              // })
+                            rest.items.map((i) => i.groupTitle || "Other")
+                            // .filter((g) => {
+                            //   const lower = g.toLowerCase();
+                            //   return lower !== "drink" && lower !== "drinks";
+                            // })
                           )
                         ).sort((a, b) => a.localeCompare(b));
                       }
@@ -771,7 +770,7 @@ export default function Step2MenuItems() {
                                   <h3 className="text-2xl font-bold text-primary mb-4">
                                     {groupName}
                                   </h3>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                                  <div className="grid grid-cols-1 2xl:grid-cols-2 3xl:grid-cols-3 gap-4 md:gap-6">
                                     {orderedItems.map((item) => (
                                       <MenuItemCard
                                         key={item.id}
