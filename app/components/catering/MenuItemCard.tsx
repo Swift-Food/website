@@ -60,10 +60,10 @@ export default function MenuItemCard({
     <>
       <div
         key={item.id}
-        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[280px] sm:h-[240px]"
+        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[180px]"
         onClick={onToggleExpand}
       >
-        <div className="flex flex-col sm:flex-row h-full">
+        <div className="flex flex-row h-full">
           {/* Left Side - Content */}
           <div className="flex-1 p-4 sm:p-6">
             {/* Header - Name */}
@@ -105,11 +105,11 @@ export default function MenuItemCard({
                   </p>
                 )}
                 {/* Feeds per unit */}
-                {DISPLAY_FEEDS_PER_UNIT > 1 && (
+                {/* {DISPLAY_FEEDS_PER_UNIT > 1 && (
                   <p className="text-[10px] md:text-xs text-gray-600 mt-1">
                     Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
                   </p>
-                )}
+                )} */}
               </div>
 
               {/* Add to order button / quantity controls */}
@@ -199,7 +199,7 @@ export default function MenuItemCard({
 
           {/* Right Side - Image */}
           {item.image && (
-            <div className="w-full sm:w-[320px] h-48 sm:h-full bg-gray-200 flex-shrink-0 aspect-[4/3]">
+            <div className="w-[180px] h-full bg-gray-200 flex-shrink-0">
               <img
                 src={item.image}
                 alt={item.name}
