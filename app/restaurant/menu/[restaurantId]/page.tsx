@@ -11,6 +11,11 @@ import {
   ArrowLeft,
   Search,
   AlertCircle,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
+  Save,
+  X,
 } from "lucide-react";
 import { cateringService } from "@/services/cateringServices";
 import { MenuItemDetails } from "@/types/catering.types";
@@ -29,6 +34,11 @@ const MenuListPage = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [restaurantData, setRestaurantData] = useState<any>(null);
+
+  // Reorder mode state
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [reorderGroups, setReorderGroups] = useState<string[]>([]);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
     console.log("Restaurant ID:", restaurantId);
@@ -235,6 +245,73 @@ const MenuListPage = () => {
     return `£${numPrice.toFixed(2)}`;
   };
 
+  // Reorder mode functions
+  const enterReorderMode = () => {
+    const groupedItems = getGroupedItems();
+    if (groupedItems) {
+      const groups = groupedItems.map(({ groupName }) => groupName);
+      setReorderGroups(groups);
+      setIsReorderMode(true);
+    }
+  };
+
+  const exitReorderMode = () => {
+    setIsReorderMode(false);
+    setReorderGroups([]);
+  };
+
+  const moveGroupUp = (index: number) => {
+    if (index > 0) {
+      const newGroups = [...reorderGroups];
+      [newGroups[index - 1], newGroups[index]] = [newGroups[index], newGroups[index - 1]];
+      setReorderGroups(newGroups);
+    }
+  };
+
+  const moveGroupDown = (index: number) => {
+    if (index < reorderGroups.length - 1) {
+      const newGroups = [...reorderGroups];
+      [newGroups[index], newGroups[index + 1]] = [newGroups[index + 1], newGroups[index]];
+      setReorderGroups(newGroups);
+    }
+  };
+
+  const deleteGroup = (index: number) => {
+    const newGroups = reorderGroups.filter((_, i) => i !== index);
+    setReorderGroups(newGroups);
+  };
+
+  const saveGroupOrder = async () => {
+    setSavingOrder(true);
+    try {
+      // Create group settings object with new display order
+      const newGroupSettings: Record<string, { displayOrder: number }> = {};
+      reorderGroups.forEach((groupName, index) => {
+        newGroupSettings[groupName] = { displayOrder: index + 1 };
+      });
+
+      // Save to backend
+      await cateringService.reorderGroups(restaurantId, newGroupSettings);
+
+      // Update local state
+      setRestaurantData((prev: any) => ({
+        ...prev,
+        menuGroupSettings: newGroupSettings,
+      }));
+
+      // Exit reorder mode
+      exitReorderMode();
+
+      // Refresh menu items to reflect new order
+      await fetchMenuItems();
+    } catch (err: any) {
+      console.error("Failed to save group order:", err);
+      setError("Failed to save group order");
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -268,13 +345,22 @@ const MenuListPage = () => {
               <p className="text-gray-600 mt-1">{menuItems.length} items</p>
             </div>
           </div>
-          <button
-            onClick={() => router.push(`/restaurant/menu/${restaurantId}/new`)}
-            className="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <Plus size={20} />
-            Add New Item
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={enterReorderMode}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <GripVertical size={20} />
+              Reorder Groups
+            </button>
+            <button
+              onClick={() => router.push(`/restaurant/menu/${restaurantId}/new`)}
+              className="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <Plus size={20} />
+              Add New Item
+            </button>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -380,6 +466,100 @@ const MenuListPage = () => {
               </div>
             );
           })()
+        )}
+
+        {/* Reorder Groups Modal */}
+        {isReorderMode && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Reorder Groups
+                  </h2>
+                  <button
+                    onClick={exitReorderMode}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Use the arrows to reorder groups or click the trash icon to delete a group. Changes will be saved when you click Save.
+                </p>
+              </div>
+
+              {/* Groups List */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-2">
+                  {reorderGroups.map((groupName, index) => (
+                    <div
+                      key={groupName}
+                      className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200"
+                    >
+                      <GripVertical size={20} className="text-gray-400" />
+                      <span className="flex-1 font-medium text-gray-900">
+                        {groupName}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => moveGroupUp(index)}
+                          disabled={index === 0}
+                          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Move up"
+                        >
+                          <ArrowUp size={18} />
+                        </button>
+                        <button
+                          onClick={() => moveGroupDown(index)}
+                          disabled={index === reorderGroups.length - 1}
+                          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Move down"
+                        >
+                          <ArrowDown size={18} />
+                        </button>
+                        <button
+                          onClick={() => deleteGroup(index)}
+                          className="p-2 rounded-lg border border-red-300 hover:bg-red-50 text-red-600 transition-colors"
+                          title="Delete group"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-gray-200 flex gap-3">
+                <button
+                  onClick={exitReorderMode}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveGroupOrder}
+                  disabled={savingOrder}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {savingOrder ? (
+                    <>
+                      <Loader size={20} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={20} />
+                      Save Order
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
