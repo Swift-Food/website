@@ -269,7 +269,7 @@ export const RestaurantDashboard = ({
           {/* Opening Hours Button */}
           <div className="mb-3">
             <a
-              href={`/restaurant/analytics/${restaurantId}`}
+              href={`/restaurant/opening-hours/${restaurantId}`}
               className="block h-full bg-warning hover:bg-warning/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
             >
               <div className="flex items-center justify-between h-full">
