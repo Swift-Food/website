@@ -767,9 +767,22 @@ export default function Step2MenuItems() {
                                   key={`${rest.restaurantId}-${groupName}`}
                                   className="mb-8"
                                 >
-                                  <h3 className="text-2xl font-bold text-primary mb-4">
+                                  <h3 className="ml-4 text-2xl font-bold text-primary mb-1">
                                     {groupName}
                                   </h3>
+
+                                  {/* Group Information (from menuGroupSettings) */}
+                                  {(() => {
+                                    const info =
+                                      rest.items[0]?.restaurant?.menuGroupSettings?.[groupName]
+                                        ?.information;
+                                    if (!info) return null;
+                                    return (
+                                      <p className="ml-4 text-gray-600 text-base mb-4 whitespace-pre-line">
+                                        {info}
+                                      </p>
+                                    );
+                                  })()}
                                   <div className="grid grid-cols-1 2xl:grid-cols-2 3xl:grid-cols-3 gap-4 md:gap-6">
                                     {orderedItems.map((item) => (
                                       <MenuItemCard
