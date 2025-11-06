@@ -6,7 +6,7 @@ interface MenuItemCardProps {
   item: MenuItem;
   quantity: number;
   isExpanded?: boolean;
-  isSearching: boolean;
+  // isSearching: boolean;
   onToggleExpand?: () => void;
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
@@ -17,7 +17,7 @@ export default function MenuItemCard({
   item,
   quantity,
   isExpanded = false,
-  isSearching,
+  // isSearching,
   onToggleExpand = () => {},
   onAddItem,
   onUpdateQuantity,

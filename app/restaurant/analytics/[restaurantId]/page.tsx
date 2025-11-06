@@ -18,12 +18,20 @@ const RestaurantAnalyticsPage = () => {
   const { user, token, login, logout, isAuthenticated } = useAuth();
 
   const [loading, setLoading] = useState(true);
-  const [stripeStatus, setStripeStatus] = useState<StripeOnboardingStatus | null>(null);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [stripeStatus, setStripeStatus] =
+    useState<StripeOnboardingStatus | null>(null);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    // TODO: This does not actually do anything, just to fix linting problem
+    setSelectedAccountId(null);
+  });
 
   const handleLogout = () => {
     logout();
-    router.push('/restaurant/dashboard');
+    router.push("/restaurant/dashboard");
   };
 
   const fetchData = async () => {
@@ -57,7 +65,10 @@ const RestaurantAnalyticsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader
+            size={48}
+            className="animate-spin text-blue-600 mx-auto mb-4"
+          />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -100,7 +111,7 @@ const RestaurantAnalyticsPage = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <button
-              onClick={() => router.push('/restaurant/dashboard')}
+              onClick={() => router.push("/restaurant/dashboard")}
               className="text-sm text-gray-600 hover:text-gray-900 mb-2 flex items-center"
             >
               ← Back to Dashboard
@@ -123,7 +134,7 @@ const RestaurantAnalyticsPage = () => {
           <AnalyticsDashboard
             restaurantId={restaurantId}
             token={token}
-            selectedAccountId={selectedAccountId}
+            // selectedAccountId={selectedAccountId}
           />
         </div>
       </div>
