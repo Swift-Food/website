@@ -155,7 +155,7 @@ export const RestaurantDashboard = ({
           </button>
         </div>
 
-        {/* Payment Account Selector */}
+        {/* Payment Account Selector */}Number
         <PaymentAccountSelector
           paymentAccounts={restaurantUser?.paymentAccounts}
           selectedAccountId={selectedAccountId}

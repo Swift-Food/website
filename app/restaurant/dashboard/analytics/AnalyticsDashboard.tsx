@@ -36,7 +36,7 @@ export const AnalyticsDashboard = ({
 
   useEffect(() => {
     fetchAnalytics();
-  }, [restaurantId, token, selectedAccountId]);
+  }, [restaurantId, token]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
