@@ -276,7 +276,7 @@ export const RestaurantDashboard = ({
                 <div>
                   <h3 className="text-lg font-bold mb-1">Opening Hours</h3>
                   <p className="text-sm text-white/90">
-                    Set your restaurant opening hours
+                    Set your restaurant&apos;s operating hours and availability
                   </p>
                 </div>
                 <div className="bg-white/20 rounded-full p-3">
