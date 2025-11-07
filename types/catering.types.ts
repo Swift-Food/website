@@ -84,6 +84,80 @@ export interface SearchFilters {
   maxPrice?: number;
 }
 
+export enum CorporateUserRole {
+  EMPLOYEE = "EMPLOYEE",
+  MANAGER = "MANAGER",
+  ADMIN = "ADMIN",
+}
+
+export enum CorporateUserStatus {
+  PENDING = "PENDING",
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  SUSPENDED = "SUSPENDED",
+}
+
+export interface CorporateUser {
+  id: string;
+  userId: string;
+  organizationId: string;
+  corporateRole: CorporateUserRole;
+  email: string;
+
+  // Employee info
+  employeeCode?: string;
+  fullName: string;
+  phoneNumber: string;
+  firstName?: string;
+  lastName?: string;
+  department?: string;
+  designation?: string;
+
+  // Budget configuration
+  dailyBudgetLimit?: number;
+  monthlyBudgetLimit?: number;
+
+  // Budget tracking
+  dailyBudgetSpent: number;
+  monthlyBudgetSpent: number;
+  lastMonthlyReset?: Date | string;
+  lastDailyReset?: Date | string;
+
+  // Preferences
+  dietaryRestrictions?: string[];
+  defaultDeliveryAddressId?: string;
+
+  // Status
+  status: CorporateUserStatus;
+  canOrder: boolean;
+
+  // Approval info
+  approvedBy?: string;
+  approvedAt?: Date | string;
+
+  // Timestamps
+  createdAt: Date | string;
+  updatedAt: Date | string;
+
+  // Job Title
+  jobTitleId?: string | null;
+
+  // Relations (optional - populate when needed)
+  user?: {
+    email?: string;
+    phoneNumber?: string;
+    [key: string]: any;
+  };
+  organization?: {
+    name?: string;
+    [key: string]: any;
+  };
+  // user?: User; // TODO: Define User type if needed
+  // organization?: Organization; // TODO: Define Organization type if needed
+  // subOrders?: CorporateSubOrder[]; // TODO: Define CorporateSubOrder type if needed
+  // jobTitle?: JobTitle; // TODO: Define JobTitle type if needed
+}
+
 export interface EventDetails {
   eventType: string;
   eventDate: string;
@@ -91,6 +165,8 @@ export interface EventDetails {
   guestCount: number;
   specialRequests?: string;
   address: string;
+  userType: "guest" | "corporate";
+  corporateUser: null | CorporateUser;
 }
 
 export interface SelectedMenuItem {
@@ -177,8 +253,6 @@ export interface PromoCodeValidation {
   discount?: number;
 }
 
-
-
 // NEW TYPES FOR DASHBOARD
 export interface SharedAccessUser {
   email: string;
@@ -190,14 +264,14 @@ export interface SharedAccessUser {
 }
 
 export enum CateringOrderStatus {
-  PENDING_REVIEW = 'pending_review',
-  ADMIN_REVIEWED = 'admin_reviewed',
-  RESTAURANT_REVIEWED = 'restaurant_reviewed',
-  PAYMENT_LINK_SENT = 'payment_link_sent',
-  PAID = 'paid',
-  CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
-  COMPLETED = 'completed',
+  PENDING_REVIEW = "pending_review",
+  ADMIN_REVIEWED = "admin_reviewed",
+  RESTAURANT_REVIEWED = "restaurant_reviewed",
+  PAYMENT_LINK_SENT = "payment_link_sent",
+  PAID = "paid",
+  CONFIRMED = "confirmed",
+  CANCELLED = "cancelled",
+  COMPLETED = "completed",
 }
 
 export interface CateringOrderDetails {
@@ -244,8 +318,8 @@ export interface CateringOrderDetails {
 }
 
 export enum SharedAccessRole {
-  VIEWER = 'viewer',
-  MANAGER = 'manager',
+  VIEWER = "viewer",
+  MANAGER = "manager",
 }
 
 export interface AddSharedAccessDto {

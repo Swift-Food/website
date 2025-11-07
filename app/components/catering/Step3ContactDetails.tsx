@@ -37,18 +37,18 @@ export default function Step3ContactInfo() {
   console.log("contact info", JSON.stringify(contactInfo));
   console.log("event info", JSON.stringify(eventDetails));
 
-  const [formData, setFormData] = useState<ContactInfo>(
-    contactInfo || {
-      organization: "",
-      fullName: "",
-      email: "",
-      phone: "",
-      addressLine1: "",
-      addressLine2: "",
-      city: "",
-      zipcode: "",
-    }
-  );
+  const [formData, setFormData] = useState<ContactInfo>({
+    organization: contactInfo?.organization || "",
+    fullName: contactInfo?.fullName || "",
+    email: contactInfo?.email || "",
+    phone: contactInfo?.phone || "",
+    addressLine1: contactInfo?.addressLine1 || "",
+    addressLine2: contactInfo?.addressLine2 || "",
+    city: contactInfo?.city || "",
+    zipcode: contactInfo?.zipcode || "",
+    latitude: contactInfo?.latitude,
+    longitude: contactInfo?.longitude,
+  });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [promoCodes, setPromoCodes] = useState<string[]>([]);
@@ -363,6 +363,24 @@ export default function Step3ContactInfo() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  // Update form data when contactInfo changes (e.g., after corporate login)
+  useEffect(() => {
+    if (contactInfo) {
+      setFormData({
+        organization: contactInfo.organization || "",
+        fullName: contactInfo.fullName || "",
+        email: contactInfo.email || "",
+        phone: contactInfo.phone || "",
+        addressLine1: contactInfo.addressLine1 || "",
+        addressLine2: contactInfo.addressLine2 || "",
+        city: contactInfo.city || "",
+        zipcode: contactInfo.zipcode || "",
+        latitude: contactInfo.latitude,
+        longitude: contactInfo.longitude,
+      });
+    }
+  }, [contactInfo]);
 
   useEffect(() => {
     calculatePricing();
