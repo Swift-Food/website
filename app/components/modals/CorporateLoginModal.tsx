@@ -1,13 +1,16 @@
+import { CorporateUser } from "@/types/catering.types";
 import React, { useState } from "react";
 
 interface CorporateLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccessfulLogin: (corporateAccount: CorporateUser) => void;
 }
 
 const CorporateLoginModal: React.FC<CorporateLoginModalProps> = ({
   isOpen,
   onClose,
+  onSuccessfulLogin,
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,9 +22,6 @@ const CorporateLoginModal: React.FC<CorporateLoginModalProps> = ({
       return;
     }
     setError(null);
-    if (onLogin) onLogin(email, password);
-    // Optionally close modal after login
-    // onClose();
   };
 
   if (!isOpen) return null;

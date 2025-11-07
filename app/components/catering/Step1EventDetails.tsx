@@ -4,7 +4,11 @@ import CorporateLoginModal from "@/app/components/modals/CorporateLoginModal";
 import { useState, FormEvent, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useCatering } from "@/context/CateringContext";
-import { ContactInfo, EventDetails } from "@/types/catering.types";
+import {
+  ContactInfo,
+  CorporateUser,
+  EventDetails,
+} from "@/types/catering.types";
 
 // Load Google Maps script
 declare global {
@@ -117,6 +121,7 @@ export default function Step1EventDetails() {
       specialRequests: "",
       address: "",
       userType: "guest",
+      corporateUser: null,
     }
   );
 
@@ -464,12 +469,21 @@ export default function Step1EventDetails() {
     setCurrentStep(3);
   };
 
+  const handleSuccessfulModalLogin = (corporateAccount: CorporateUser) => {
+    setFormData({
+      ...formData,
+      userType: "corporate",
+      corporateUser: corporateAccount,
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
       {/* Corporate Login Modal */}
       <CorporateLoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setLoginModalOpen(false)}
+        onSuccessfulLogin={handleSuccessfulModalLogin}
       />
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -517,9 +531,13 @@ export default function Step1EventDetails() {
                     : "border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
                 }
               `}
-              onClick={() =>
-                setFormData({ ...formData, userType: "corporate" })
-              }
+              onClick={() => {
+                if (formData.corporateUser) {
+                  setFormData({ ...formData, userType: "corporate" });
+                } else {
+                  setLoginModalOpen(true);
+                }
+              }}
             >
               Corporate Customer
             </button>
