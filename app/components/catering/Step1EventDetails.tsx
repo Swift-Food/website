@@ -478,6 +478,23 @@ export default function Step1EventDetails() {
       userType: "corporate",
       corporateUser: corporateAccount,
     });
+
+    // Populate contact info from corporate user data
+    const fullName = `${corporateAccount.firstName || ""} ${
+      corporateAccount.lastName || ""
+    }`.trim();
+
+    setAddressFormData({
+      organization: corporateAccount.organization?.name || "",
+      fullName: corporateAccount.fullName || "",
+      email: corporateAccount.email || "",
+      phone: corporateAccount.phoneNumber || "",
+      addressLine1: "", // Corporate users may have delivery addresses that could be populated
+      addressLine2: "",
+      city: "",
+      zipcode: "",
+    });
+
     setLoginModalOpen(false);
   };
 

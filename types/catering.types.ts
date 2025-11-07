@@ -105,6 +105,8 @@ export interface CorporateUser {
 
   // Employee info
   employeeCode?: string;
+  fullName: string;
+  phoneNumber: string;
   firstName?: string;
   lastName?: string;
   department?: string;
@@ -140,6 +142,15 @@ export interface CorporateUser {
   jobTitleId?: string | null;
 
   // Relations (optional - populate when needed)
+  user?: {
+    email?: string;
+    phoneNumber?: string;
+    [key: string]: any;
+  };
+  organization?: {
+    name?: string;
+    [key: string]: any;
+  };
   // user?: User; // TODO: Define User type if needed
   // organization?: Organization; // TODO: Define Organization type if needed
   // subOrders?: CorporateSubOrder[]; // TODO: Define CorporateSubOrder type if needed
