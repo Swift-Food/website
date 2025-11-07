@@ -722,182 +722,187 @@ export default function Step1EventDetails() {
         </div>
 
         {/* Delivery Address Section */}
-        <div>
-          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
-            Delivery Address
-          </h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Enter the delivery address for your event.
-          </p>
+        {formData.userType === "guest" && (
+          <div>
+            <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+              Delivery Address
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Enter the delivery address for your event.
+            </p>
 
-          {/* Google Places Autocomplete Search */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2 text-base-content">
-              Search the Event Address
-            </label>
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Start typing to autofill address fields..."
-              className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-                validationErrors.addressValidation
-                  ? "border-red-500"
-                  : "border-base-300"
-              }`}
-            />
-            {validationErrors.addressValidation && (
-              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">
-                  {validationErrors.addressValidation}
-                </p>
-              </div>
-            )}
-            {!validationErrors.addressValidation &&
-              selectedPlaceId &&
-              formData.address && (
-                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-600">
-                    ✓ Address validated successfully
-                  </p>
-                </div>
-              )}
-            {/* <p className="text-xs text-base-content/60 mt-2">
-              Select from dropdown to autofill, or enter manually below
-            </p> */}
-          </div>
-
-          {/* Address Line 1 */}
-          <div className="mb-4" ref={addressLine1Ref}>
-            <label className="block text-sm font-semibold mb-2 text-base-content">
-              Address Line 1*
-            </label>
-            <input
-              type="text"
-              required
-              value={addressFormData.addressLine1}
-              onChange={(e) => {
-                setAddressFormData({
-                  ...addressFormData,
-                  addressLine1: e.target.value,
-                });
-                setValidationErrors({
-                  ...validationErrors,
-                  addressLine1: undefined,
-                });
-              }}
-              placeholder="Street address"
-              className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-                validationErrors.addressLine1
-                  ? "border-red-500"
-                  : "border-base-300"
-              }`}
-            />
-            {validationErrors.addressLine1 && (
-              <p className="mt-1 text-sm text-red-600">
-                {validationErrors.addressLine1}
-              </p>
-            )}
-          </div>
-
-          {/* Address Line 2 */}
-          <div className="mb-4">
-            <label className="block text-sm font-semibold mb-2 text-base-content">
-              Address Line 2 (Optional)
-            </label>
-            <input
-              type="text"
-              value={addressFormData.addressLine2 || ""}
-              onChange={(e) =>
-                setAddressFormData({
-                  ...addressFormData,
-                  addressLine2: e.target.value,
-                })
-              }
-              placeholder="Apartment, suite, unit, etc."
-              className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-            />
-          </div>
-
-          {/* City and Zipcode */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div ref={cityRef}>
+            {/* Google Places Autocomplete Search */}
+            <div className="mb-6">
               <label className="block text-sm font-semibold mb-2 text-base-content">
-                City*
+                Search the Event Address
               </label>
               <input
+                ref={inputRef}
                 type="text"
-                required
-                value={addressFormData.city}
-                onChange={(e) => {
-                  setAddressFormData({
-                    ...addressFormData,
-                    city: e.target.value,
-                  });
-                  setValidationErrors({ ...validationErrors, city: undefined });
-                }}
-                placeholder="City"
+                placeholder="Start typing to autofill address fields..."
                 className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-                  validationErrors.city ? "border-red-500" : "border-base-300"
-                }`}
-              />
-              {validationErrors.city && (
-                <p className="mt-1 text-sm text-red-600">
-                  {validationErrors.city}
-                </p>
-              )}
-            </div>
-            <div ref={zipcodeRef}>
-              <label className="block text-sm font-semibold mb-2 text-base-content">
-                Postcode*
-              </label>
-              <input
-                type="text"
-                required
-                value={addressFormData.zipcode}
-                onChange={(e) => {
-                  const newPostcode = e.target.value.toUpperCase();
-                  setAddressFormData({
-                    ...addressFormData,
-                    zipcode: newPostcode,
-                  });
-                  setValidationErrors({
-                    ...validationErrors,
-                    zipcode: undefined,
-                  });
-                }}
-                onBlur={(e) => {
-                  // Validate on blur
-                  const postcode = e.target.value.trim();
-                  if (postcode && !validateUKPostcode(postcode)) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      zipcode:
-                        "Please enter a valid UK postcode (e.g., SW1A 1AA).",
-                    });
-                  }
-                }}
-                placeholder="e.g., SW1A 1AA"
-                className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-                  validationErrors.zipcode
+                  validationErrors.addressValidation
                     ? "border-red-500"
                     : "border-base-300"
                 }`}
               />
-              {validationErrors.zipcode && (
+              {validationErrors.addressValidation && (
+                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">
+                    {validationErrors.addressValidation}
+                  </p>
+                </div>
+              )}
+              {!validationErrors.addressValidation &&
+                selectedPlaceId &&
+                formData.address && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-600">
+                      ✓ Address validated successfully
+                    </p>
+                  </div>
+                )}
+              {/* <p className="text-xs text-base-content/60 mt-2">
+              Select from dropdown to autofill, or enter manually below
+            </p> */}
+            </div>
+
+            {/* Address Line 1 */}
+            <div className="mb-4" ref={addressLine1Ref}>
+              <label className="block text-sm font-semibold mb-2 text-base-content">
+                Address Line 1*
+              </label>
+              <input
+                type="text"
+                required
+                value={addressFormData.addressLine1}
+                onChange={(e) => {
+                  setAddressFormData({
+                    ...addressFormData,
+                    addressLine1: e.target.value,
+                  });
+                  setValidationErrors({
+                    ...validationErrors,
+                    addressLine1: undefined,
+                  });
+                }}
+                placeholder="Street address"
+                className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                  validationErrors.addressLine1
+                    ? "border-red-500"
+                    : "border-base-300"
+                }`}
+              />
+              {validationErrors.addressLine1 && (
                 <p className="mt-1 text-sm text-red-600">
-                  {validationErrors.zipcode}
+                  {validationErrors.addressLine1}
                 </p>
               )}
-              {!validationErrors.zipcode &&
-                addressFormData.zipcode &&
-                validateUKPostcode(addressFormData.zipcode) && (
-                  <p className="mt-1 text-sm text-green-600">
-                    ✓ Valid UK postcode
+            </div>
+
+            {/* Address Line 2 */}
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-2 text-base-content">
+                Address Line 2 (Optional)
+              </label>
+              <input
+                type="text"
+                value={addressFormData.addressLine2 || ""}
+                onChange={(e) =>
+                  setAddressFormData({
+                    ...addressFormData,
+                    addressLine2: e.target.value,
+                  })
+                }
+                placeholder="Apartment, suite, unit, etc."
+                className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              />
+            </div>
+
+            {/* City and Zipcode */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div ref={cityRef}>
+                <label className="block text-sm font-semibold mb-2 text-base-content">
+                  City*
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addressFormData.city}
+                  onChange={(e) => {
+                    setAddressFormData({
+                      ...addressFormData,
+                      city: e.target.value,
+                    });
+                    setValidationErrors({
+                      ...validationErrors,
+                      city: undefined,
+                    });
+                  }}
+                  placeholder="City"
+                  className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                    validationErrors.city ? "border-red-500" : "border-base-300"
+                  }`}
+                />
+                {validationErrors.city && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {validationErrors.city}
                   </p>
                 )}
+              </div>
+              <div ref={zipcodeRef}>
+                <label className="block text-sm font-semibold mb-2 text-base-content">
+                  Postcode*
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addressFormData.zipcode}
+                  onChange={(e) => {
+                    const newPostcode = e.target.value.toUpperCase();
+                    setAddressFormData({
+                      ...addressFormData,
+                      zipcode: newPostcode,
+                    });
+                    setValidationErrors({
+                      ...validationErrors,
+                      zipcode: undefined,
+                    });
+                  }}
+                  onBlur={(e) => {
+                    // Validate on blur
+                    const postcode = e.target.value.trim();
+                    if (postcode && !validateUKPostcode(postcode)) {
+                      setValidationErrors({
+                        ...validationErrors,
+                        zipcode:
+                          "Please enter a valid UK postcode (e.g., SW1A 1AA).",
+                      });
+                    }
+                  }}
+                  placeholder="e.g., SW1A 1AA"
+                  className={`w-full px-4 py-3 bg-base-200/50 border rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                    validationErrors.zipcode
+                      ? "border-red-500"
+                      : "border-base-300"
+                  }`}
+                />
+                {validationErrors.zipcode && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {validationErrors.zipcode}
+                  </p>
+                )}
+                {!validationErrors.zipcode &&
+                  addressFormData.zipcode &&
+                  validateUKPostcode(addressFormData.zipcode) && (
+                    <p className="mt-1 text-sm text-green-600">
+                      ✓ Valid UK postcode
+                    </p>
+                  )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="text-center pt-4">
           <div className="flex items-stretch justify-center gap-4 max-w-2xl mx-auto">
