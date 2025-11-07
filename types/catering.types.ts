@@ -84,6 +84,68 @@ export interface SearchFilters {
   maxPrice?: number;
 }
 
+export enum CorporateUserRole {
+  EMPLOYEE = "EMPLOYEE",
+  MANAGER = "MANAGER",
+  ADMIN = "ADMIN",
+}
+
+export enum CorporateUserStatus {
+  PENDING = "PENDING",
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  SUSPENDED = "SUSPENDED",
+}
+
+export interface CorporateUser {
+  id: string;
+  userId: string;
+  organizationId: string;
+  corporateRole: CorporateUserRole;
+
+  // Employee info
+  employeeCode?: string;
+  firstName?: string;
+  lastName?: string;
+  department?: string;
+  designation?: string;
+
+  // Budget configuration
+  dailyBudgetLimit?: number;
+  monthlyBudgetLimit?: number;
+
+  // Budget tracking
+  dailyBudgetSpent: number;
+  monthlyBudgetSpent: number;
+  lastMonthlyReset?: Date | string;
+  lastDailyReset?: Date | string;
+
+  // Preferences
+  dietaryRestrictions?: string[];
+  defaultDeliveryAddressId?: string;
+
+  // Status
+  status: CorporateUserStatus;
+  canOrder: boolean;
+
+  // Approval info
+  approvedBy?: string;
+  approvedAt?: Date | string;
+
+  // Timestamps
+  createdAt: Date | string;
+  updatedAt: Date | string;
+
+  // Job Title
+  jobTitleId?: string | null;
+
+  // Relations (optional - populate when needed)
+  // user?: User; // TODO: Define User type if needed
+  // organization?: Organization; // TODO: Define Organization type if needed
+  // subOrders?: CorporateSubOrder[]; // TODO: Define CorporateSubOrder type if needed
+  // jobTitle?: JobTitle; // TODO: Define JobTitle type if needed
+}
+
 export interface EventDetails {
   eventType: string;
   eventDate: string;
@@ -92,6 +154,7 @@ export interface EventDetails {
   specialRequests?: string;
   address: string;
   userType: "guest" | "corporate";
+  corporateUser: null | CorporateUser;
 }
 
 export interface SelectedMenuItem {

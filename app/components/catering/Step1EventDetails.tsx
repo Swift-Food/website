@@ -1,5 +1,6 @@
 "use client";
 
+import CorporateLoginModal from "@/app/components/modals/CorporateLoginModal";
 import { useState, FormEvent, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useCatering } from "@/context/CateringContext";
@@ -68,6 +69,8 @@ const validateUKPostcode = (postcode: string): boolean => {
 };
 
 export default function Step1EventDetails() {
+  // State to control modal visibility
+  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const {
     eventDetails,
     setEventDetails,
@@ -463,6 +466,11 @@ export default function Step1EventDetails() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
+      {/* Corporate Login Modal */}
+      <CorporateLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
       <div className="flex justify-between items-start mb-4">
         <div>
           {/* <p className="text-sm text-base-content/60 mb-2">
@@ -516,6 +524,7 @@ export default function Step1EventDetails() {
               Corporate Customer
             </button>
           </div>
+
           <h3 className="text-2xl font-semibold mb-4 text-gray-800">
             Delivery Date & Time
           </h3>
