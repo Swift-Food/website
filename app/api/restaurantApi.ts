@@ -9,6 +9,7 @@ import {
   PaymentAccounts,
 } from "@/types/restaurant.types";
 import { CateringOrder } from "@/app/types/catering.types";
+import { CorporateUser } from "@/types/catering.types";
 
 const API_BASE_URL = "https://swiftfoods-32981ec7b5a4.herokuapp.com";
 
@@ -22,6 +23,21 @@ export const restaurantApi = {
     });
     if (!response.ok) throw new Error("Login failed");
     return response.json();
+  },
+
+  loginCorporate: async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<TokenPair> => {
+    const response = await fetch(`${API_BASE_URL}/auth/corporate-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(credentials),
+    });
+    if (!response.ok) throw new Error("Corporate login failed");
+    const data = await response.json();
+    console.log("Corporate login response data: ", data);
+    return data;
   },
 
   refreshToken: async (refreshToken: string): Promise<TokenPair> => {
@@ -242,5 +258,16 @@ export const restaurantApi = {
     );
     if (!response.ok) throw new Error("Failed to fetch yearly analytics");
     return response.json();
+  },
+
+  // Corporate user endpoints
+  getCorporateUser: async (corporateUserId: string): Promise<CorporateUser> => {
+    const response = await fetch(
+      `${API_BASE_URL}/corporate-users/${corporateUserId}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch corporate user");
+    const data = await response.json();
+    console.log("Corporate user data: ", data);
+    return data;
   },
 };

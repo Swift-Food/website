@@ -475,6 +475,7 @@ export default function Step1EventDetails() {
       userType: "corporate",
       corporateUser: corporateAccount,
     });
+    setLoginModalOpen(false);
   };
 
   return (
@@ -532,6 +533,8 @@ export default function Step1EventDetails() {
                 }
               `}
               onClick={() => {
+                setFormData({ ...formData, corporateUser: null });
+                setLoginModalOpen(true);
                 if (formData.corporateUser) {
                   setFormData({ ...formData, userType: "corporate" });
                 } else {
