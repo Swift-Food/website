@@ -91,6 +91,7 @@ export interface EventDetails {
   guestCount: number;
   specialRequests?: string;
   address: string;
+  userType: "guest" | "corporate";
 }
 
 export interface SelectedMenuItem {
@@ -177,8 +178,6 @@ export interface PromoCodeValidation {
   discount?: number;
 }
 
-
-
 // NEW TYPES FOR DASHBOARD
 export interface SharedAccessUser {
   email: string;
@@ -190,14 +189,14 @@ export interface SharedAccessUser {
 }
 
 export enum CateringOrderStatus {
-  PENDING_REVIEW = 'pending_review',
-  ADMIN_REVIEWED = 'admin_reviewed',
-  RESTAURANT_REVIEWED = 'restaurant_reviewed',
-  PAYMENT_LINK_SENT = 'payment_link_sent',
-  PAID = 'paid',
-  CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
-  COMPLETED = 'completed',
+  PENDING_REVIEW = "pending_review",
+  ADMIN_REVIEWED = "admin_reviewed",
+  RESTAURANT_REVIEWED = "restaurant_reviewed",
+  PAYMENT_LINK_SENT = "payment_link_sent",
+  PAID = "paid",
+  CONFIRMED = "confirmed",
+  CANCELLED = "cancelled",
+  COMPLETED = "completed",
 }
 
 export interface CateringOrderDetails {
@@ -244,8 +243,8 @@ export interface CateringOrderDetails {
 }
 
 export enum SharedAccessRole {
-  VIEWER = 'viewer',
-  MANAGER = 'manager',
+  VIEWER = "viewer",
+  MANAGER = "manager",
 }
 
 export interface AddSharedAccessDto {

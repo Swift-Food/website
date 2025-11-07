@@ -68,10 +68,6 @@ const validateUKPostcode = (postcode: string): boolean => {
 };
 
 export default function Step1EventDetails() {
-  // State for customer type selection
-  const [customerType, setCustomerType] = useState<
-    "guest" | "corporate" | null
-  >(null);
   const {
     eventDetails,
     setEventDetails,
@@ -117,6 +113,7 @@ export default function Step1EventDetails() {
       guestCount: 0,
       specialRequests: "",
       address: "",
+      userType: "guest",
     }
   );
 
@@ -486,17 +483,20 @@ export default function Step1EventDetails() {
       <form onSubmit={handleSubmit} noValidate className="space-y-10">
         {/* Delivery Date & Time Section */}
         <div>
-          <div className="flex flex-1 flex-row gap-2">
+          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+            User Type
+          </h3>
+          <div className="flex flex-1 flex-row gap-2 mb-4">
             <button
               type="button"
               className={`flex-1 py-3 px-4 rounded-xl font-semibold border-2 transition-colors
                 ${
-                  customerType === "guest"
-                    ? "border-hot-pink bg-hot-pink/10 text-hot-pink"
+                  formData.userType == "guest"
+                    ? "bg-primary text-white"
                     : "border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
                 }
               `}
-              onClick={() => setCustomerType("guest")}
+              onClick={() => setFormData({ ...formData, userType: "guest" })}
             >
               Guest Customer
             </button>
@@ -504,12 +504,14 @@ export default function Step1EventDetails() {
               type="button"
               className={`flex-1 py-3 px-4 rounded-xl font-semibold border-2 transition-colors
                 ${
-                  customerType === "corporate"
-                    ? "border-hot-pink bg-hot-pink/10 text-hot-pink"
+                  formData.userType == "corporate"
+                    ? "bg-primary text-white"
                     : "border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
                 }
               `}
-              onClick={() => setCustomerType("corporate")}
+              onClick={() =>
+                setFormData({ ...formData, userType: "corporate" })
+              }
             >
               Corporate Customer
             </button>
