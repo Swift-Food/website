@@ -74,14 +74,19 @@ const MenuListPage = () => {
         // Type guard to check if response has menuItems property
         const hasMenuItems = "menuItems" in response;
         if (hasMenuItems) {
-          const responseWithMenuItems = response as { menuItems: MenuItemDetails[], groupSettings?: any };
+          const responseWithMenuItems = response as {
+            menuItems: MenuItemDetails[];
+            groupSettings?: any;
+          };
           if (Array.isArray(responseWithMenuItems.menuItems)) {
             // API now returns { menuItems: [...], groupSettings: {...} }
             items = responseWithMenuItems.menuItems;
 
             // Store group settings if available
             if (responseWithMenuItems.groupSettings) {
-              setRestaurantData({ menuGroupSettings: responseWithMenuItems.groupSettings });
+              setRestaurantData({
+                menuGroupSettings: responseWithMenuItems.groupSettings,
+              });
             }
           }
         } else {
@@ -264,7 +269,10 @@ const MenuListPage = () => {
   const moveGroupUp = (index: number) => {
     if (index > 0) {
       const newGroups = [...reorderGroups];
-      [newGroups[index - 1], newGroups[index]] = [newGroups[index], newGroups[index - 1]];
+      [newGroups[index - 1], newGroups[index]] = [
+        newGroups[index],
+        newGroups[index - 1],
+      ];
       setReorderGroups(newGroups);
     }
   };
@@ -272,7 +280,10 @@ const MenuListPage = () => {
   const moveGroupDown = (index: number) => {
     if (index < reorderGroups.length - 1) {
       const newGroups = [...reorderGroups];
-      [newGroups[index], newGroups[index + 1]] = [newGroups[index + 1], newGroups[index]];
+      [newGroups[index], newGroups[index + 1]] = [
+        newGroups[index + 1],
+        newGroups[index],
+      ];
       setReorderGroups(newGroups);
     }
   };
@@ -384,7 +395,9 @@ const MenuListPage = () => {
               Reorder Groups
             </button>
             <button
-              onClick={() => router.push(`/restaurant/menu/${restaurantId}/new`)}
+              onClick={() =>
+                router.push(`/restaurant/menu/${restaurantId}/new`)
+              }
               className="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <Plus size={20} />
@@ -516,7 +529,9 @@ const MenuListPage = () => {
                   </button>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
-                  Drag groups to reorder them, use the arrows, or click the trash icon to delete a group. Changes will be saved when you click Save.
+                  Drag groups to reorder them, use the arrows, or click the
+                  trash icon to delete a group. Changes will be saved when you
+                  click Save.
                 </p>
               </div>
 
@@ -637,11 +652,13 @@ const MenuListPage = () => {
             <div className="flex items-center gap-4 mb-4">
               <div>
                 <p className="text-primary font-bold text-2xl">
-                  {formatPrice(item.price)}
+                  {item.isDiscount && item.discountPrice
+                    ? formatPrice(item.discountPrice)
+                    : formatPrice(item.price)}
                 </p>
                 {item.isDiscount && item.discountPrice && (
                   <p className="text-gray-500 text-sm line-through">
-                    {formatPrice(item.discountPrice)}
+                    {formatPrice(item.price)}
                   </p>
                 )}
               </div>

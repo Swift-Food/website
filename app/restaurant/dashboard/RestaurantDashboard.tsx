@@ -17,7 +17,6 @@ import { BalanceCards } from "./withdrawals/BalanceCards";
 import { WithdrawalForm } from "./withdrawals/WithdrawalForm";
 import { WithdrawalHistory } from "./withdrawals/WithdrawalHistory";
 import { CateringOrdersList } from "./catering/CateringOrdersList";
-import { AnalyticsDashboard } from "./analytics/AnalyticsDashboard";
 
 interface RestaurantDashboardProps {
   userId: string;
@@ -44,9 +43,9 @@ export const RestaurantDashboard = ({
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
   const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
-  const [activeTab, setActiveTab] = useState<
-    "withdrawals" | "catering" | "analytics"
-  >("withdrawals");
+  const [activeTab, setActiveTab] = useState<"withdrawals" | "catering">(
+    "withdrawals"
+  );
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     null
   );
@@ -199,13 +198,13 @@ export const RestaurantDashboard = ({
           </button>
         </div>
         {/* Menu Management Button */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="mb-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+          <div>
             <a
               href={`/restaurant/menu/${restaurantId}`}
               className="block h-full bg-gradient-to-r from-primary to-pink-500 hover:from-primary/90 hover:to-pink-500/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between h-full">
                 <div>
                   <h3 className="text-lg font-bold mb-1">Menu Management</h3>
                   <p className="text-sm text-white/90">
@@ -233,12 +232,12 @@ export const RestaurantDashboard = ({
           </div>
 
           {/* Restaurant Analytics Button */}
-          <div className="mb-3">
+          <div>
             <a
               href={`/restaurant/analytics/${restaurantId}`}
               className="block h-full bg-success hover:bg-success/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between h-full">
                 <div>
                   <h3 className="text-lg font-bold mb-1">
                     Restaurant Analytics
@@ -268,16 +267,16 @@ export const RestaurantDashboard = ({
           </div>
 
           {/* Opening Hours Button */}
-          <div className="mb-3">
+          <div>
             <a
-              href={`/restaurant/analytics/${restaurantId}`}
+              href={`/restaurant/opening-hours/${restaurantId}`}
               className="block h-full bg-warning hover:bg-warning/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between h-full">
                 <div>
                   <h3 className="text-lg font-bold mb-1">Opening Hours</h3>
                   <p className="text-sm text-white/90">
-                    Set your restaurant opening hours
+                    Set your restaurant&apos;s operating hours and availability
                   </p>
                 </div>
                 <div className="bg-white/20 rounded-full p-3">
@@ -292,7 +291,7 @@ export const RestaurantDashboard = ({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                 </div>
@@ -341,16 +340,6 @@ export const RestaurantDashboard = ({
                     Withdrawals
                   </button>
                   <button
-                    onClick={() => setActiveTab("analytics")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                      activeTab === "analytics"
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    Analytics
-                  </button>
-                  <button
                     onClick={() => setActiveTab("catering")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === "catering"
@@ -379,17 +368,6 @@ export const RestaurantDashboard = ({
                   onSuccess={fetchData}
                 />
                 <WithdrawalHistory history={history} />
-              </div>
-            ) : activeTab === "analytics" ? (
-              <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">
-                  Analytics
-                </h2>
-                <AnalyticsDashboard
-                  restaurantId={restaurantId}
-                  token={token}
-                  selectedAccountId={selectedAccountId}
-                />
               </div>
             ) : (
               <div className="bg-white rounded-lg p-6">

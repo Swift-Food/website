@@ -21,13 +21,13 @@ import { AnalyticsDashboard as AnalyticsData } from "@/types/restaurant.types";
 interface AnalyticsDashboardProps {
   restaurantId: string;
   token: string;
-  selectedAccountId: string | null;
+  // selectedAccountId: string | null;
 }
 
 export const AnalyticsDashboard = ({
   restaurantId,
   token,
-  selectedAccountId,
+  // selectedAccountId,
 }: AnalyticsDashboardProps) => {
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);

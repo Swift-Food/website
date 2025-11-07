@@ -549,11 +549,25 @@ export default function MenuItemModal({
 
         {/* Modal Body */}
         <div className="p-6">
+          {item.image && (
+            <div
+              className="w-full h-full flex-shrink-0 mb-3"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover rounded-2xl"
+              />
+            </div>
+          )}
           <h2 className="font-bold text-xl md:text-2xl text-base-content mb-4 pr-8">
             {item.name}
           </h2>
 
-          <div className="space-y-4">
+          <div className="space-y-4 mt-2">
             {item.description && (
               <div>
                 <p className="text-base-content/70 text-sm leading-relaxed">
