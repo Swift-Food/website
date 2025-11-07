@@ -393,29 +393,32 @@ export default function Step1EventDetails() {
       if (!firstErrorElement) firstErrorElement = eventTypeRef.current;
     }
 
-    // Validate address fields
-    if (!addressFormData.addressLine1.trim()) {
-      newErrors.addressLine1 = "Address Line 1 is required.";
-      if (!firstErrorElement) firstErrorElement = addressLine1Ref.current;
-    }
+    // Validate address fields only for guest users
+    if (formData.userType === "guest") {
+      if (!addressFormData.addressLine1.trim()) {
+        newErrors.addressLine1 = "Address Line 1 is required.";
+        if (!firstErrorElement) firstErrorElement = addressLine1Ref.current;
+      }
 
-    if (!addressFormData.city.trim()) {
-      newErrors.city = "City is required.";
-      if (!firstErrorElement) firstErrorElement = cityRef.current;
-    }
+      if (!addressFormData.city.trim()) {
+        newErrors.city = "City is required.";
+        if (!firstErrorElement) firstErrorElement = cityRef.current;
+      }
 
-    if (!addressFormData.zipcode.trim()) {
-      newErrors.zipcode = "Postcode is required.";
-      if (!firstErrorElement) firstErrorElement = zipcodeRef.current;
-    } else if (!validateUKPostcode(addressFormData.zipcode)) {
-      newErrors.zipcode = "Please enter a valid UK postcode (e.g., SW1A 1AA).";
-      if (!firstErrorElement) firstErrorElement = zipcodeRef.current;
-    }
+      if (!addressFormData.zipcode.trim()) {
+        newErrors.zipcode = "Postcode is required.";
+        if (!firstErrorElement) firstErrorElement = zipcodeRef.current;
+      } else if (!validateUKPostcode(addressFormData.zipcode)) {
+        newErrors.zipcode =
+          "Please enter a valid UK postcode (e.g., SW1A 1AA).";
+        if (!firstErrorElement) firstErrorElement = zipcodeRef.current;
+      }
 
-    // Check if there's an existing address validation error
-    if (validationErrors.addressValidation) {
-      newErrors.addressValidation = validationErrors.addressValidation;
-      if (!firstErrorElement) firstErrorElement = addressLine1Ref.current;
+      // Check if there's an existing address validation error
+      if (validationErrors.addressValidation) {
+        newErrors.addressValidation = validationErrors.addressValidation;
+        if (!firstErrorElement) firstErrorElement = addressLine1Ref.current;
+      }
     }
 
     // Validate delivery notice
