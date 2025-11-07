@@ -68,6 +68,10 @@ const validateUKPostcode = (postcode: string): boolean => {
 };
 
 export default function Step1EventDetails() {
+  // State for customer type selection
+  const [customerType, setCustomerType] = useState<
+    "guest" | "corporate" | null
+  >(null);
   const {
     eventDetails,
     setEventDetails,
@@ -482,6 +486,34 @@ export default function Step1EventDetails() {
       <form onSubmit={handleSubmit} noValidate className="space-y-10">
         {/* Delivery Date & Time Section */}
         <div>
+          <div className="flex flex-1 flex-row gap-2">
+            <button
+              type="button"
+              className={`flex-1 py-3 px-4 rounded-xl font-semibold border-2 transition-colors
+                ${
+                  customerType === "guest"
+                    ? "border-hot-pink bg-hot-pink/10 text-hot-pink"
+                    : "border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
+                }
+              `}
+              onClick={() => setCustomerType("guest")}
+            >
+              Guest Customer
+            </button>
+            <button
+              type="button"
+              className={`flex-1 py-3 px-4 rounded-xl font-semibold border-2 transition-colors
+                ${
+                  customerType === "corporate"
+                    ? "border-hot-pink bg-hot-pink/10 text-hot-pink"
+                    : "border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
+                }
+              `}
+              onClick={() => setCustomerType("corporate")}
+            >
+              Corporate Customer
+            </button>
+          </div>
           <h3 className="text-2xl font-semibold mb-4 text-gray-800">
             Delivery Date & Time
           </h3>
