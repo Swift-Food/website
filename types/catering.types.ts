@@ -102,6 +102,7 @@ export interface CorporateUser {
   userId: string;
   organizationId: string;
   corporateRole: CorporateUserRole;
+  email: string;
 
   // Employee info
   employeeCode?: string;

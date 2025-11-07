@@ -270,4 +270,15 @@ export const restaurantApi = {
     console.log("Corporate user data: ", data);
     return data;
   },
+
+  // Organization endpoints
+  getOrganization: async (organizationId: string): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/organizations/${organizationId}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch organization");
+    const data = await response.json();
+    console.log("Organization data: ", data);
+    return data;
+  },
 };

@@ -4,6 +4,7 @@ import CorporateLoginModal from "@/app/components/modals/CorporateLoginModal";
 import { useState, FormEvent, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useCatering } from "@/context/CateringContext";
+import { restaurantApi } from "@/app/api/restaurantApi";
 import {
   ContactInfo,
   CorporateUser,
@@ -472,20 +473,31 @@ export default function Step1EventDetails() {
     setCurrentStep(3);
   };
 
-  const handleSuccessfulModalLogin = (corporateAccount: CorporateUser) => {
+  const handleSuccessfulModalLogin = async (
+    corporateAccount: CorporateUser
+  ) => {
     setFormData({
       ...formData,
       userType: "corporate",
       corporateUser: corporateAccount,
     });
 
-    // Populate contact info from corporate user data
-    const fullName = `${corporateAccount.firstName || ""} ${
-      corporateAccount.lastName || ""
-    }`.trim();
+    // Fetch organization details if organizationId exists
+    let organizationName = "";
+    if (corporateAccount.organizationId) {
+      try {
+        const organization = await restaurantApi.getOrganization(
+          corporateAccount.organizationId
+        );
+        organizationName = organization.name || "";
+      } catch (error) {
+        console.error("Error fetching organization:", error);
+        // Fall back to empty string if fetch fails
+      }
+    }
 
     setAddressFormData({
-      organization: corporateAccount.organization?.name || "",
+      organization: organizationName,
       fullName: corporateAccount.fullName || "",
       email: corporateAccount.email || "",
       phone: corporateAccount.phoneNumber || "",
