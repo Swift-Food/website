@@ -7,7 +7,6 @@ import {
   Loader,
   ChevronDown,
   ChevronUp,
-  Download,
   EyeIcon,
 } from "lucide-react";
 import { CateringOrder } from "@/app/types/catering.types";
@@ -36,7 +35,6 @@ export const CateringOrderCard = ({
   token,
 }: CateringOrderCardProps) => {
   const [expandedItems, setExpandedItems] = useState(false);
-  const [downloadingReceipt, setDownloadingReceipt] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState(false);
 
   // 🔍 View receipt in new tab (no print)

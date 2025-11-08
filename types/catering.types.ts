@@ -85,9 +85,9 @@ export interface SearchFilters {
 }
 
 export enum CorporateUserRole {
-  EMPLOYEE = "EMPLOYEE",
-  MANAGER = "MANAGER",
-  ADMIN = "ADMIN",
+  employee = "EMPLOYEE",
+  manager = "MANAGER",
+  admin = "ADMIN",
 }
 
 export enum CorporateUserStatus {
@@ -166,7 +166,7 @@ export interface EventDetails {
   specialRequests?: string;
   address: string;
   userType: "guest" | "corporate";
-  corporateUser: null | CorporateUser;
+  // corporateUser: null | CorporateUser;
 }
 
 export interface SelectedMenuItem {
