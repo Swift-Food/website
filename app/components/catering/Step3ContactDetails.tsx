@@ -34,6 +34,7 @@ export default function Step3ContactInfo() {
     getTotalPrice,
     resetOrder,
     markOrderAsSubmitted,
+    corporateUser,
   } = useCatering();
   console.log("contact info", JSON.stringify(contactInfo));
   console.log("event info", JSON.stringify(eventDetails));
@@ -66,14 +67,15 @@ export default function Step3ContactInfo() {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [corporateUserId, setCorporateUserId] = useState<string>('');
-  const [organizationId, setOrganizationId] = useState<string>('');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'wallet' | 'card' | null>(null);
-  const [paymentMethodId, setPaymentMethodId] = useState<string>('');
+  const [corporateUserId, setCorporateUserId] = useState<string>("");
+  const [organizationId, setOrganizationId] = useState<string>("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    "wallet" | "card" | null
+  >(null);
+  const [paymentMethodId, setPaymentMethodId] = useState<string>("");
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  
 
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) {
@@ -89,15 +91,16 @@ export default function Step3ContactInfo() {
 
   const checkCorporateUser = async () => {
     try {
-
-      
-      if (eventDetails?.corporateUser) {
-        setCorporateUserId(eventDetails.corporateUser.id);
-        setOrganizationId(eventDetails.corporateUser.organizationId);
+      if (eventDetails?.userType === "corporate") {
+        if (corporateUser) {
+          setCorporateUserId(corporateUser.id);
+          setOrganizationId(corporateUser.organizationId);
+        }
         return true;
       }
       return false;
     } catch (error) {
+      console.error(error);
       return false;
     }
   };
@@ -232,7 +235,7 @@ export default function Step3ContactInfo() {
 
       return;
     }
-    
+
     // setSubmitting(true);
 
     const isCorporate = await checkCorporateUser();
@@ -243,7 +246,6 @@ export default function Step3ContactInfo() {
     }
 
     await submitOrder();
-
   };
 
   const submitOrder = async (paymentInfo?: {
@@ -251,29 +253,31 @@ export default function Step3ContactInfo() {
     paymentMethodId?: string;
   }) => {
     setSubmitting(true);
-  
+
     try {
       if (!pricing) {
         alert("Please wait for pricing calculation to complete");
         setSubmitting(false);
         return;
       }
-  
+
       setContactInfo(formData);
-  
+
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
         formData,
         promoCodes,
         ccEmails,
-        paymentInfo ? {
-          corporateUserId,
-          organizationId,
-          ...paymentInfo
-        } : undefined
+        paymentInfo
+          ? {
+              corporateUserId,
+              organizationId,
+              ...paymentInfo,
+            }
+          : undefined
       );
-  
+
       markOrderAsSubmitted();
       setSuccess(true);
       setShowPaymentModal(false);
@@ -284,21 +288,21 @@ export default function Step3ContactInfo() {
       setSubmitting(false);
     }
   };
-  
+
   const handleWalletPayment = async () => {
-    console.log('Wallet payment clicked');
-    console.log('Organization ID:', organizationId);
-    console.log('Corporate User ID:', corporateUserId);
-    console.log('Amount:', pricing?.total);
-    
+    console.log("Wallet payment clicked");
+    console.log("Organization ID:", organizationId);
+    console.log("Corporate User ID:", corporateUserId);
+    console.log("Amount:", pricing?.total);
+
     if (!organizationId || !corporateUserId) {
-      alert('Missing organization or user information');
+      alert("Missing organization or user information");
       return;
     }
-    
+
     await submitOrder({ useOrganizationWallet: true });
   };
-  
+
   const handleCardPaymentComplete = async (paymentMethodId: string) => {
     setPaymentMethodId(paymentMethodId);
     await submitOrder({ paymentMethodId });
@@ -1383,7 +1387,9 @@ export default function Step3ContactInfo() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-base-100 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-base-100 border-b border-base-300 px-6 py-4 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-base-content">Select Payment Method</h3>
+                <h3 className="text-xl font-bold text-base-content">
+                  Select Payment Method
+                </h3>
                 <button
                   onClick={() => {
                     setShowPaymentModal(false);
@@ -1391,44 +1397,82 @@ export default function Step3ContactInfo() {
                   }}
                   className="text-base-content/60 hover:text-base-content"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
 
               <div className="p-6 space-y-4">
                 <div className="bg-base-200/50 rounded-xl p-4 border border-base-300">
-                  <p className="text-sm text-base-content/70 mb-2">Order Total</p>
-                  <p className="text-2xl font-bold text-primary">£{pricing?.total.toFixed(2)}</p>
+                  <p className="text-sm text-base-content/70 mb-2">
+                    Order Total
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    £{pricing?.total.toFixed(2)}
+                  </p>
                 </div>
 
                 {/* Payment Method Selection */}
                 <div className="space-y-3">
                   <button
-                    onClick={() => setSelectedPaymentMethod('wallet')}
+                    onClick={() => setSelectedPaymentMethod("wallet")}
                     className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedPaymentMethod === 'wallet'
-                        ? 'border-primary bg-primary/10'
-                        : 'border-base-300 hover:border-base-content/20'
+                      selectedPaymentMethod === "wallet"
+                        ? "border-primary bg-primary/10"
+                        : "border-base-300 hover:border-base-content/20"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          <svg
+                            className="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                            />
                           </svg>
                         </div>
                         <div>
-                          <p className="font-semibold text-base-content">Organization Wallet</p>
-                          <p className="text-sm text-base-content/60">Pay from your organization balance</p>
+                          <p className="font-semibold text-base-content">
+                            Organization Wallet
+                          </p>
+                          <p className="text-sm text-base-content/60">
+                            Pay from your organization balance
+                          </p>
                         </div>
                       </div>
-                      {selectedPaymentMethod === 'wallet' && (
+                      {selectedPaymentMethod === "wallet" && (
                         <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                         </div>
                       )}
@@ -1436,29 +1480,53 @@ export default function Step3ContactInfo() {
                   </button>
 
                   <button
-                    onClick={() => setSelectedPaymentMethod('card')}
+                    onClick={() => setSelectedPaymentMethod("card")}
                     className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedPaymentMethod === 'card'
-                        ? 'border-primary bg-primary/10'
-                        : 'border-base-300 hover:border-base-content/20'
+                      selectedPaymentMethod === "card"
+                        ? "border-primary bg-primary/10"
+                        : "border-base-300 hover:border-base-content/20"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          <svg
+                            className="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                            />
                           </svg>
                         </div>
                         <div>
-                          <p className="font-semibold text-base-content">Credit/Debit Card</p>
-                          <p className="text-sm text-base-content/60">Pay securely with Stripe</p>
+                          <p className="font-semibold text-base-content">
+                            Credit/Debit Card
+                          </p>
+                          <p className="text-sm text-base-content/60">
+                            Pay securely with Stripe
+                          </p>
                         </div>
                       </div>
-                      {selectedPaymentMethod === 'card' && (
+                      {selectedPaymentMethod === "card" && (
                         <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                         </div>
                       )}
@@ -1467,7 +1535,7 @@ export default function Step3ContactInfo() {
                 </div>
 
                 {/* ONLY show PaymentMethodSelector for CARD payment */}
-                {selectedPaymentMethod === 'card' && (
+                {selectedPaymentMethod === "card" && (
                   <PaymentMethodSelector
                     organizationId={organizationId}
                     managerId={corporateUserId}
@@ -1477,7 +1545,7 @@ export default function Step3ContactInfo() {
                 )}
 
                 {/* Wallet Confirm Button - NO Stripe needed */}
-                {selectedPaymentMethod === 'wallet' && (
+                {selectedPaymentMethod === "wallet" && (
                   <button
                     onClick={handleWalletPayment}
                     disabled={submitting}
@@ -1509,7 +1577,6 @@ export default function Step3ContactInfo() {
             {submitting ? 'Submitting...' : 'Submit'}
           </button>
         </div> */}
-
       </div>
     </div>
   );

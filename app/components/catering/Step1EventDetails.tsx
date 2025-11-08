@@ -84,7 +84,6 @@ export default function Step1EventDetails() {
     selectedRestaurants,
     contactInfo,
     setContactInfo,
-    corporateUser,
     setCorporateUser,
   } = useCatering();
   const [dateTimeError, setDateTimeError] = useState<string | null>(null);
@@ -125,7 +124,7 @@ export default function Step1EventDetails() {
       specialRequests: "",
       address: "",
       userType: "guest",
-      corporateUser: null,
+      // corporateUser: null,
     }
   );
 
@@ -489,7 +488,7 @@ export default function Step1EventDetails() {
     setFormData({
       ...formData,
       userType: "corporate",
-      corporateUser: corporateAccount,
+      // corporateUser: corporateAccount,
     });
 
     // Fetch organization details if organizationId exists
@@ -525,7 +524,7 @@ export default function Step1EventDetails() {
     setFormData({
       ...formData,
       userType: "guest",
-      corporateUser: null,
+      // corporateUser: null,
     });
   };
 

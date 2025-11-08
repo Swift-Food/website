@@ -166,7 +166,7 @@ export interface EventDetails {
   specialRequests?: string;
   address: string;
   userType: "guest" | "corporate";
-  corporateUser: null | CorporateUser;
+  // corporateUser: null | CorporateUser;
 }
 
 export interface SelectedMenuItem {
