@@ -1,10 +1,17 @@
-// components/restaurant-dashboard/catering/CateringOrderCard.tsx
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, AlertCircle, Loader, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  CheckCircle,
+  AlertCircle,
+  Loader,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  EyeIcon,
+} from "lucide-react";
 import { CateringOrder } from "@/app/types/catering.types";
-
+import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 interface CateringOrderCardProps {
   order: CateringOrder;
   restaurantId: string;
@@ -14,6 +21,7 @@ interface CateringOrderCardProps {
   selectedAccounts: Record<string, string>;
   onAccountSelect: (orderId: string, accountId: string) => void;
   loadingAccounts: boolean;
+  token?: string;
 }
 
 export const CateringOrderCard = ({
@@ -25,9 +33,48 @@ export const CateringOrderCard = ({
   selectedAccounts,
   onAccountSelect,
   loadingAccounts,
+  token,
 }: CateringOrderCardProps) => {
   const [expandedItems, setExpandedItems] = useState(false);
+  const [downloadingReceipt, setDownloadingReceipt] = useState(false);
+  const [viewingReceipt, setViewingReceipt] = useState(false);
 
+  // 🔍 View receipt in new tab (no print)
+  const viewReceipt = async () => {
+    if (!token) {
+      alert("Missing authentication token. Please log in again.");
+      return;
+    }
+    setViewingReceipt(true);
+    try {
+      const selectedAccountId = selectedAccounts?.[order.id];
+      const branchName =
+        selectedAccountId && availableAccounts
+          ? availableAccounts[selectedAccountId]?.name
+          : null;
+
+      const data = await fetchReceiptJson(order.id, restaurantId, token);
+      const html = buildReceiptHTML(data, order.id, order.eventDate, branchName);
+      const w = window.open("", "_blank");
+      if (!w) {
+        alert("Popup blocked. Please allow popups to view receipt.");
+        return;
+      }
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+    } catch (err) {
+      console.error("Receipt view error:", err);
+      alert(
+        `Failed to view receipt: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setViewingReceipt(false);
+    }
+  };
+  
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -64,7 +111,10 @@ export const CateringOrderCard = ({
     const totalMinutes = hours * 60 + minutes - 15;
     const newHours = Math.floor(((totalMinutes + 24 * 60) % (24 * 60)) / 60);
     const newMinutes = ((totalMinutes % 60) + 60) % 60;
-    return `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(2, "0")}`;
+    return `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   const getPayoutAccountName = (): string | null => {
@@ -105,11 +155,55 @@ export const CateringOrderCard = ({
           </div>
           <div className="mb-2">
             <p className="text-sm text-gray-600">
-              Customer Paid: {formatCurrency(order.orderItems[0].totalPrice ?? 0)}
+              Customer Paid:{" "}
+              {formatCurrency(order.orderItems[0].totalPrice ?? 0)}
             </p>
           </div>
-          <p className="text-xs text-gray-500">Event: {formatDate(order.eventDate)}</p>
+          <p className="text-xs text-gray-500">
+            Event: {formatDate(order.eventDate)}
+          </p>
         </div>
+      </div>
+
+      {/* 👁️ View / 💾 Download Receipt Buttons */}
+      <div className="flex justify-end gap-2 mb-3">
+        <button
+          onClick={viewReceipt}
+          disabled={viewingReceipt}
+          className="px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+          type="button"
+        >
+          {viewingReceipt ? (
+            <>
+              <Loader size={14} className="animate-spin" />
+              Viewing...
+            </>
+          ) : (
+            <>
+              <EyeIcon />
+              View Receipt
+            </>
+          )}
+        </button>
+
+        {/* <button
+          onClick={downloadReceipt}
+          disabled={downloadingReceipt}
+          className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+          type="button"
+        > */}
+          {/* {downloadingReceipt ? (
+            <>
+              <Loader size={14} className="animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Download size={14} />
+              Download Receipt
+            </>
+          )}
+        // </button> */}
       </div>
 
       {/* Event Details */}
@@ -127,7 +221,9 @@ export const CateringOrderCard = ({
           <p className="text-gray-600">
             Collection Time:{" "}
             <span className="text-gray-900 font-medium">
-              {order.collectionTime ? order.collectionTime : formatEventTime(order.eventTime)}
+              {order.collectionTime
+                ? order.collectionTime
+                : formatEventTime(order.eventTime)}
             </span>
           </p>
           <p className="text-gray-600">
@@ -139,7 +235,9 @@ export const CateringOrderCard = ({
         </div>
         <p className="text-sm text-gray-600 mt-2">
           Delivery:{" "}
-          <span className="text-gray-900 font-medium">{order.deliveryAddress}</span>
+          <span className="text-gray-900 font-medium">
+            {order.deliveryAddress}
+          </span>
         </p>
       </div>
 
@@ -151,7 +249,10 @@ export const CateringOrderCard = ({
         >
           <span>
             Order Items (
-            {order.orderItems.reduce((total, restaurant) => total + restaurant.menuItems.length, 0)}{" "}
+            {order.orderItems.reduce(
+              (total, restaurant) => total + restaurant.menuItems.length,
+              0
+            )}{" "}
             items)
           </span>
           {expandedItems ? (
@@ -160,6 +261,7 @@ export const CateringOrderCard = ({
             <ChevronDown size={20} className="text-gray-600" />
           )}
         </button>
+
         {expandedItems && (
           <div>
             {order.orderItems.map((restaurant, idx) => (
@@ -174,7 +276,9 @@ export const CateringOrderCard = ({
                         <p className="font-medium text-gray-900 text-sm truncate">
                           {item.name}
                         </p>
-                        <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                        <p className="text-xs text-gray-500">
+                          Qty: {item.quantity}
+                        </p>
                       </div>
                       {item.commissionPrice && item.priceForRestaurant && (
                         <div className="flex flex-col gap-1.5 ml-2">
@@ -183,13 +287,16 @@ export const CateringOrderCard = ({
                               YOUR EARNINGS
                             </p>
                             <p className="text-[10px] text-green-600 leading-tight">
-                              Unit Commission: {formatCurrency(item.commissionPrice)}
+                              Unit Commission:{" "}
+                              {formatCurrency(item.commissionPrice)}
                             </p>
                             <p className="text-[10px] text-green-600 leading-tight">
                               Quantity: {item.quantity}
                             </p>
                             <p className="text-sm font-bold text-green-800 leading-tight mt-0.5">
-                              {formatCurrency(item.commissionPrice * item.quantity)}
+                              {formatCurrency(
+                                item.commissionPrice * item.quantity
+                              )}
                             </p>
                           </div>
                           <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
@@ -197,13 +304,16 @@ export const CateringOrderCard = ({
                               TOTAL PRICE
                             </p>
                             <p className="text-[10px] text-gray-600 leading-tight">
-                              Unit Price: {formatCurrency(item.priceForRestaurant)}
+                              Unit Price:{" "}
+                              {formatCurrency(item.priceForRestaurant)}
                             </p>
                             <p className="text-[10px] text-gray-600 leading-tight">
                               Quantity: {item.quantity}
                             </p>
                             <p className="text-sm font-semibold text-gray-700 leading-tight mt-0.5">
-                              {formatCurrency(item.priceForRestaurant * item.quantity)}
+                              {formatCurrency(
+                                item.priceForRestaurant * item.quantity
+                              )}
                             </p>
                           </div>
                         </div>
@@ -245,16 +355,19 @@ export const CateringOrderCard = ({
                   onChange={(e) => onAccountSelect(order.id, e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
                 >
-                  {Object.entries(availableAccounts).map(([id, account]: [string, any]) => (
-                    <option key={id} value={id}>
-                      {account.name}
-                    </option>
-                  ))}
+                  {Object.entries(availableAccounts).map(
+                    ([id, account]: [string, any]) => (
+                      <option key={id} value={id}>
+                        {account.name}
+                      </option>
+                    )
+                  )}
                 </select>
                 <p className="text-xs text-blue-700 mt-2">
                   💰 Payment will be sent to:{" "}
                   <strong>
-                    {availableAccounts[selectedAccounts[order.id]]?.name || "Selected Account"}
+                    {availableAccounts[selectedAccounts[order.id]]?.name ||
+                      "Selected Account"}
                   </strong>
                 </p>
               </div>

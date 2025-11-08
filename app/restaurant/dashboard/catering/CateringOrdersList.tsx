@@ -1,4 +1,3 @@
-// components/restaurant-dashboard/catering/CateringOrdersList.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,9 +27,14 @@ export const CateringOrdersList = ({
 }: CateringOrdersListProps) => {
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [activeStatusTab, setActiveStatusTab] = useState<string>("admin_reviewed");
-  const [selectedAccounts, setSelectedAccounts] = useState<Record<string, string>>({});
-  const [availableAccounts, setAvailableAccounts] = useState<Record<string, any>>({});
+  const [activeStatusTab, setActiveStatusTab] =
+    useState<string>("admin_reviewed");
+  const [selectedAccounts, setSelectedAccounts] = useState<
+    Record<string, string>
+  >({});
+  const [availableAccounts, setAvailableAccounts] = useState<
+    Record<string, any>
+  >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
 
   useEffect(() => {
@@ -92,7 +96,8 @@ export const CateringOrdersList = ({
     return acc;
   }, {} as Record<string, CateringOrder[]>);
 
-  const showOnlyPendingReview = hasMultipleBranches && selectedAccountId === null;
+  const showOnlyPendingReview =
+    hasMultipleBranches && selectedAccountId === null;
   const hidePendingReview = hasMultipleBranches && selectedAccountId !== null;
 
   const allStatusTabs = [
@@ -153,7 +158,9 @@ export const CateringOrdersList = ({
     return (
       <div className="text-center py-12 text-gray-500">
         <p className="text-lg">No Event orders yet</p>
-        <p className="text-sm mt-2">Your confirmed Event orders will appear here</p>
+        <p className="text-sm mt-2">
+          Your confirmed Event orders will appear here
+        </p>
       </div>
     );
   }
@@ -214,9 +221,13 @@ export const CateringOrdersList = ({
               availableAccounts={availableAccounts}
               selectedAccounts={selectedAccounts}
               onAccountSelect={(orderId, accountId) =>
-                setSelectedAccounts((prev) => ({ ...prev, [orderId]: accountId }))
+                setSelectedAccounts((prev) => ({
+                  ...prev,
+                  [orderId]: accountId,
+                }))
               }
               loadingAccounts={loadingAccounts}
+              token={token}
             />
           ))}
         </div>
