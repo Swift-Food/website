@@ -72,7 +72,6 @@ export default function Step3ContactInfo() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "wallet" | "card" | null
   >(null);
-  const [paymentMethodId, setPaymentMethodId] = useState<string>("");
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -304,7 +303,6 @@ export default function Step3ContactInfo() {
   };
 
   const handleCardPaymentComplete = async (paymentMethodId: string) => {
-    setPaymentMethodId(paymentMethodId);
     await submitOrder({ paymentMethodId });
   };
 
