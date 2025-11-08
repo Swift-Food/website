@@ -22,12 +22,11 @@ const CorporateLoginModal: React.FC<CorporateLoginModalProps> = ({
   onSuccessfulLogin,
   handleLogout,
 }) => {
-  const { corporateUser, setCorporateUser } = useCatering();
+  const { corporateUser } = useCatering();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showExistingUserConfirm, setShowExistingUserConfirm] = useState(true);
 
   const handleProceedWithExistingUser = () => {
     if (corporateUser) {
@@ -36,8 +35,7 @@ const CorporateLoginModal: React.FC<CorporateLoginModalProps> = ({
   };
 
   const handleLoginWithDifferentAccount = () => {
-    handleLogout()
-    setShowExistingUserConfirm(false);
+    handleLogout();
   };
 
   const handleLogin = async () => {
@@ -87,7 +85,7 @@ const CorporateLoginModal: React.FC<CorporateLoginModalProps> = ({
   if (!isOpen) return null;
 
   // Show existing user confirmation
-  if (corporateUser && showExistingUserConfirm) {
+  if (corporateUser) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative">
