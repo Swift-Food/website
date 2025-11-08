@@ -79,7 +79,10 @@ class CateringService {
     }
   ) {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
-    console.log("submitted order with payment info", JSON.stringify(paymentInfo))
+    console.log(
+      "submitted order with payment info",
+      JSON.stringify(paymentInfo)
+    );
     // Step 2: Create address
     // await this.createAddress(userId, contactInfo);
 
@@ -353,6 +356,31 @@ class CateringService {
     }
 
     return response.json();
+  }
+  // New: validate a catering promo for a specific restaurant (calls GET /promotions/validate-catering)
+  async validateCateringPromo(
+    code: string,
+    orderTotal: number,
+    restaurantId: string
+  ): Promise<PromoCodeValidation> {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+    const url = `${API_BASE_URL}/promotions/validate-catering?code=${encodeURIComponent(
+      code
+    )}&orderTotal=${encodeURIComponent(
+      String(orderTotal)
+    )}&restaurantId=${encodeURIComponent(restaurantId)}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(
+        `Failed to validate catering promo: ${res.status} ${text}`
+      );
+    }
+    return res.json();
   }
 
   async validatePromoCode(
