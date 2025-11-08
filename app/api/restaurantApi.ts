@@ -36,7 +36,7 @@ export const restaurantApi = {
     });
     if (!response.ok) throw new Error("Corporate login failed");
     const data = await response.json();
-    console.log("Corporate login response data: ", data);
+    // console.log("Corporate login response data: ", data);
     return data;
   },
 
@@ -267,7 +267,7 @@ export const restaurantApi = {
     );
     if (!response.ok) throw new Error("Failed to fetch corporate user");
     const data = await response.json();
-    console.log("Corporate user data: ", data);
+    // console.log("Corporate user data: ", data);
     return data;
   },
 
@@ -278,7 +278,7 @@ export const restaurantApi = {
     );
     if (!response.ok) throw new Error("Failed to fetch organization");
     const data = await response.json();
-    console.log("Organization data: ", data);
+    // console.log("Organization data: ", data);
     return data;
   },
 };
