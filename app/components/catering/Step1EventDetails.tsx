@@ -84,6 +84,8 @@ export default function Step1EventDetails() {
     selectedRestaurants,
     contactInfo,
     setContactInfo,
+    corporateUser,
+    setCorporateUser,
   } = useCatering();
   const [dateTimeError, setDateTimeError] = useState<string | null>(null);
 
@@ -483,6 +485,7 @@ export default function Step1EventDetails() {
       );
       return;
     }
+    setCorporateUser(corporateAccount);
     setFormData({
       ...formData,
       userType: "corporate",
@@ -517,6 +520,15 @@ export default function Step1EventDetails() {
     setLoginModalOpen(false);
   };
 
+  const handleLogout = () => {
+    setCorporateUser(null);
+    setFormData({
+      ...formData,
+      userType: "guest",
+      corporateUser: null,
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
       {/* Corporate Login Modal */}
@@ -524,6 +536,7 @@ export default function Step1EventDetails() {
         isOpen={isLoginModalOpen}
         onClose={() => setLoginModalOpen(false)}
         onSuccessfulLogin={handleSuccessfulModalLogin}
+        handleLogout={handleLogout}
       />
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -553,7 +566,8 @@ export default function Step1EventDetails() {
               type="button"
               className={`flex-1 py-3 px-4 rounded-xl font-semibold border-2 transition-colors
                 ${
-                  formData.userType == "guest"
+                  // !(formData.userType == "corporate" && corporateUser)
+                  formData.userType === "guest"
                     ? "bg-primary text-white"
                     : "border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
                 }
@@ -566,7 +580,8 @@ export default function Step1EventDetails() {
               type="button"
               className={`flex-1 py-3 px-4 rounded-xl font-semibold border-2 transition-colors
                 ${
-                  formData.userType == "corporate"
+                  // formData.userType == "corporate" && corporateUser
+                  formData.userType === "corporate"
                     ? "bg-primary text-white"
                     : "border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
                 }

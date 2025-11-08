@@ -2,11 +2,13 @@ import { CorporateUser } from "@/types/catering.types";
 import React, { useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { restaurantApi } from "@/app/api/restaurantApi";
+import { useCatering } from "@/context/CateringContext";
 
 interface CorporateLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccessfulLogin: (corporateAccount: CorporateUser) => void;
+  handleLogout: () => void;
 }
 
 interface JwtPayload {
@@ -18,11 +20,25 @@ const CorporateLoginModal: React.FC<CorporateLoginModalProps> = ({
   isOpen,
   onClose,
   onSuccessfulLogin,
+  handleLogout,
 }) => {
+  const { corporateUser, setCorporateUser } = useCatering();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showExistingUserConfirm, setShowExistingUserConfirm] = useState(true);
+
+  const handleProceedWithExistingUser = () => {
+    if (corporateUser) {
+      onSuccessfulLogin(corporateUser);
+    }
+  };
+
+  const handleLoginWithDifferentAccount = () => {
+    handleLogout()
+    setShowExistingUserConfirm(false);
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -69,6 +85,52 @@ const CorporateLoginModal: React.FC<CorporateLoginModalProps> = ({
   };
 
   if (!isOpen) return null;
+
+  // Show existing user confirmation
+  if (corporateUser && showExistingUserConfirm) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative">
+          <button
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            Existing Corporate Account
+          </h2>
+          <p className="text-gray-700 mb-2 text-center">
+            You're currently logged in with:
+          </p>
+          <p className="text-lg font-semibold text-center mb-6 text-primary">
+            {corporateUser.email}
+          </p>
+          <p className="text-gray-600 text-center mb-6">
+            Do you want to proceed with this account or login to a different
+            one?
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              className="w-full bg-primary text-white py-3 px-6 rounded-xl font-bold text-base transition-colors hover:bg-hot-pink cursor-pointer"
+              onClick={handleProceedWithExistingUser}
+            >
+              Proceed with {corporateUser.email}
+            </button>
+            <button
+              type="button"
+              className="w-full bg-gray-200 text-gray-800 py-3 px-6 rounded-xl font-bold text-base transition-colors hover:bg-gray-300 cursor-pointer"
+              onClick={handleLoginWithDifferentAccount}
+            >
+              Login to Different Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
