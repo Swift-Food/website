@@ -230,6 +230,10 @@ export interface CreateCateringOrderDto {
   orderItems: OrderItemDto[];
   estimatedTotal?: number;
   promoCodes?: string[];
+  corporateUserId?: string;
+  organizationId?: string;
+  useOrganizationWallet?: boolean;
+  paymentMethodId?: string;
 }
 
 export interface CateringPricingData {

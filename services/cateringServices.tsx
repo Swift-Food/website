@@ -70,10 +70,16 @@ class CateringService {
     selectedItems: SelectedMenuItem[],
     contactInfo: ContactInfo,
     promoCodes: string[],
-    ccEmails?: string[]
+    ccEmails?: string[],
+    paymentInfo?: {
+      corporateUserId?: string;
+      organizationId?: string;
+      useOrganizationWallet?: boolean;
+      paymentMethodId?: string;
+    }
   ) {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
-
+    console.log("submitted order with payment info", JSON.stringify(paymentInfo))
     // Step 2: Create address
     // await this.createAddress(userId, contactInfo);
 
@@ -179,6 +185,10 @@ class CateringService {
       orderItems,
       estimatedTotal,
       promoCodes,
+      corporateUserId: paymentInfo?.corporateUserId,
+      organizationId: paymentInfo?.organizationId,
+      useOrganizationWallet: paymentInfo?.useOrganizationWallet,
+      paymentMethodId: paymentInfo?.paymentMethodId,
     };
     console.log("catering req", JSON.stringify(createDto));
 

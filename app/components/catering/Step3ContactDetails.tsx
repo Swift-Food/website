@@ -6,6 +6,7 @@ import { useState, FormEvent, useEffect, useRef } from "react";
 import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
+import { PaymentMethodSelector } from "../PaymentMethodSelector";
 
 interface ValidationErrors {
   organization?: string;
@@ -64,18 +65,41 @@ export default function Step3ContactInfo() {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [termsAccepted, setTermsAccepted] = useState(false);
 
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [corporateUserId, setCorporateUserId] = useState<string>('');
+  const [organizationId, setOrganizationId] = useState<string>('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'wallet' | 'card' | null>(null);
+  const [paymentMethodId, setPaymentMethodId] = useState<string>('');
+
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
 
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) {
       return "Email is required";
     }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return "Please enter a valid email address";
     }
     return undefined;
+  };
+
+  const checkCorporateUser = async () => {
+    try {
+
+      
+      if (eventDetails?.corporateUser) {
+        setCorporateUserId(eventDetails.corporateUser.id);
+        setOrganizationId(eventDetails.corporateUser.organizationId);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
   };
 
   const validatePhone = (phone: string): string | undefined => {
@@ -208,35 +232,76 @@ export default function Step3ContactInfo() {
 
       return;
     }
+    
+    // setSubmitting(true);
 
+    const isCorporate = await checkCorporateUser();
+    if (isCorporate) {
+      // Show payment modal for corporate users
+      setShowPaymentModal(true);
+      return;
+    }
+
+    await submitOrder();
+
+  };
+
+  const submitOrder = async (paymentInfo?: {
+    useOrganizationWallet?: boolean;
+    paymentMethodId?: string;
+  }) => {
     setSubmitting(true);
-
+  
     try {
       if (!pricing) {
         alert("Please wait for pricing calculation to complete");
         setSubmitting(false);
         return;
       }
-
+  
       setContactInfo(formData);
-      console.log("the event details are", JSON.stringify(eventDetails));
-      // Pass ccEmails to the service
+  
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
         formData,
         promoCodes,
-        ccEmails // Add this parameter
+        ccEmails,
+        paymentInfo ? {
+          corporateUserId,
+          organizationId,
+          ...paymentInfo
+        } : undefined
       );
-      // Mark order as submitted so cart is cleared on next page load
+  
       markOrderAsSubmitted();
       setSuccess(true);
+      setShowPaymentModal(false);
     } catch (error) {
       console.error("Error submitting order:", error);
       alert("Failed to submit order. Please try again.");
     } finally {
       setSubmitting(false);
     }
+  };
+  
+  const handleWalletPayment = async () => {
+    console.log('Wallet payment clicked');
+    console.log('Organization ID:', organizationId);
+    console.log('Corporate User ID:', corporateUserId);
+    console.log('Amount:', pricing?.total);
+    
+    if (!organizationId || !corporateUserId) {
+      alert('Missing organization or user information');
+      return;
+    }
+    
+    await submitOrder({ useOrganizationWallet: true });
+  };
+  
+  const handleCardPaymentComplete = async (paymentMethodId: string) => {
+    setPaymentMethodId(paymentMethodId);
+    await submitOrder({ paymentMethodId });
   };
 
   const calculatePricing = async () => {
@@ -1313,6 +1378,126 @@ export default function Step3ContactInfo() {
           </div>
         </div>
 
+        {/* Payment Modal JSX */}
+        {showPaymentModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-base-100 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-base-100 border-b border-base-300 px-6 py-4 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-base-content">Select Payment Method</h3>
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setSelectedPaymentMethod(null);
+                  }}
+                  className="text-base-content/60 hover:text-base-content"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-base-200/50 rounded-xl p-4 border border-base-300">
+                  <p className="text-sm text-base-content/70 mb-2">Order Total</p>
+                  <p className="text-2xl font-bold text-primary">£{pricing?.total.toFixed(2)}</p>
+                </div>
+
+                {/* Payment Method Selection */}
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setSelectedPaymentMethod('wallet')}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedPaymentMethod === 'wallet'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-base-300 hover:border-base-content/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-base-content">Organization Wallet</p>
+                          <p className="text-sm text-base-content/60">Pay from your organization balance</p>
+                        </div>
+                      </div>
+                      {selectedPaymentMethod === 'wallet' && (
+                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedPaymentMethod('card')}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedPaymentMethod === 'card'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-base-300 hover:border-base-content/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-base-content">Credit/Debit Card</p>
+                          <p className="text-sm text-base-content/60">Pay securely with Stripe</p>
+                        </div>
+                      </div>
+                      {selectedPaymentMethod === 'card' && (
+                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+
+                {/* ONLY show PaymentMethodSelector for CARD payment */}
+                {selectedPaymentMethod === 'card' && (
+                  <PaymentMethodSelector
+                    organizationId={organizationId}
+                    managerId={corporateUserId}
+                    amount={pricing?.total || 0}
+                    onPaymentComplete={handleCardPaymentComplete}
+                  />
+                )}
+
+                {/* Wallet Confirm Button - NO Stripe needed */}
+                {selectedPaymentMethod === 'wallet' && (
+                  <button
+                    onClick={handleWalletPayment}
+                    disabled={submitting}
+                    className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        Processing Payment...
+                      </>
+                    ) : (
+                      `Pay £${pricing?.total.toFixed(2)} from Wallet`
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mobile Submit Button (Below Form) */}
         {/* <div className="lg:hidden mt-6">
           <button
@@ -1324,6 +1509,7 @@ export default function Step3ContactInfo() {
             {submitting ? 'Submitting...' : 'Submit'}
           </button>
         </div> */}
+
       </div>
     </div>
   );
