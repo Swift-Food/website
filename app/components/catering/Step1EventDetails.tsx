@@ -8,6 +8,7 @@ import { restaurantApi } from "@/app/api/restaurantApi";
 import {
   ContactInfo,
   CorporateUser,
+  CorporateUserRole,
   EventDetails,
 } from "@/types/catering.types";
 
@@ -476,6 +477,12 @@ export default function Step1EventDetails() {
   const handleSuccessfulModalLogin = async (
     corporateAccount: CorporateUser
   ) => {
+    if (corporateAccount.corporateRole === ("employee" as CorporateUserRole)) {
+      alert(
+        "You need to sign in as a manager account to make a corporate order"
+      );
+      return;
+    }
     setFormData({
       ...formData,
       userType: "corporate",
@@ -565,13 +572,12 @@ export default function Step1EventDetails() {
                 }
               `}
               onClick={() => {
-                setFormData({ ...formData, corporateUser: null });
                 setLoginModalOpen(true);
-                if (formData.corporateUser) {
-                  setFormData({ ...formData, userType: "corporate" });
-                } else {
-                  setLoginModalOpen(true);
-                }
+                // if (formData.corporateUser) {
+                //   setFormData({ ...formData, userType: "corporate" });
+                // } else {
+                //   setLoginModalOpen(true);
+                // }
               }}
             >
               Corporate Customer

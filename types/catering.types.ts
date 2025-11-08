@@ -85,9 +85,9 @@ export interface SearchFilters {
 }
 
 export enum CorporateUserRole {
-  EMPLOYEE = "EMPLOYEE",
-  MANAGER = "MANAGER",
-  ADMIN = "ADMIN",
+  employee = "EMPLOYEE",
+  manager = "MANAGER",
+  admin = "ADMIN",
 }
 
 export enum CorporateUserStatus {
