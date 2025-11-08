@@ -120,9 +120,12 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
       setError('');
 
 
-      const response = await fetch(`${API_BASE_URL}/corporate/organization/wallet/setup-intent/${props.organizationId}`);
+      const response = await fetch(`${API_BASE_URL}/corporate/organization/wallet/setup-intent/${props.organizationId}`,{
+        method: 'POST',
+      });
 
       if (!response.ok) {
+        console.log("response", response)
         throw new Error('Failed to create payment intent');
       }
 
