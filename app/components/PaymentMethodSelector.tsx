@@ -18,8 +18,6 @@ interface PaymentMethodSelectorProps {
 
 // Inner component that uses Stripe hooks
 function PaymentForm({
-  organizationId,
-  managerId,
   amount,
   onPaymentComplete,
 }: PaymentMethodSelectorProps) {
