@@ -250,6 +250,7 @@ export default function Step3ContactInfo() {
   const submitOrder = async (paymentInfo?: {
     useOrganizationWallet?: boolean;
     paymentMethodId?: string;
+    paymentIntentId?: string;
   }) => {
     setSubmitting(true);
 
@@ -302,8 +303,8 @@ export default function Step3ContactInfo() {
     await submitOrder({ useOrganizationWallet: true });
   };
 
-  const handleCardPaymentComplete = async (paymentMethodId: string) => {
-    await submitOrder({ paymentMethodId });
+  const handleCardPaymentComplete = async (paymentMethodId: string, paymentIntentId: string) => {
+    await submitOrder({ paymentMethodId, paymentIntentId });
   };
 
   const calculatePricing = async () => {
@@ -1539,6 +1540,7 @@ export default function Step3ContactInfo() {
                     managerId={corporateUserId}
                     amount={pricing?.total || 0}
                     onPaymentComplete={handleCardPaymentComplete}
+                    onCancel={() => setShowPaymentModal(false)}
                   />
                 )}
 

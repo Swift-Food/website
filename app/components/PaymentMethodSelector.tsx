@@ -12,7 +12,7 @@ interface PaymentMethodSelectorProps {
   organizationId: string;
   managerId: string;
   amount: number;
-  onPaymentComplete: (paymentMethodId: string) => void;
+  onPaymentComplete: (paymentMethodId: string, paymentIntentId: string) => void;
   onCancel?: () => void;
 }
 
@@ -60,7 +60,7 @@ function PaymentForm({
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
         const paymentMethodId = paymentIntent.payment_method as string;
-        onPaymentComplete(paymentMethodId);
+        onPaymentComplete(paymentMethodId, paymentIntent.id);
       }
     } catch (err: any) {
       setError(err.message || 'Payment failed');
@@ -116,22 +116,31 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
     try {
       setIsLoading(true);
       setError('');
-
-
-      const response = await fetch(`${API_BASE_URL}/corporate/organization/wallet/setup-intent/${props.organizationId}`,{
-        method: 'POST',
-      });
-
+  
+      const response = await fetch(
+        `${API_BASE_URL}/corporate/organization/wallet/organization/wallet/catering-payment-intent/${props.organizationId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: props.amount,
+            // No orderId needed here
+          }),
+        }
+      );
+      console.log("Response", response)
+  
       if (!response.ok) {
-        console.log("response", response)
         throw new Error('Failed to create payment intent');
       }
-
+  
       const data = await response.json();
       setClientSecret(data.clientSecret);
     } catch (err: any) {
       console.error('Payment intent creation error:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to initialize payment');
+      setError(err.message || 'Failed to initialize payment');
     } finally {
       setIsLoading(false);
     }

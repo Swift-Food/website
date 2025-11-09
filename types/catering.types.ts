@@ -234,6 +234,7 @@ export interface CreateCateringOrderDto {
   organizationId?: string;
   useOrganizationWallet?: boolean;
   paymentMethodId?: string;
+  paymentIntentId?: string;
 }
 
 export interface CateringPricingData {
