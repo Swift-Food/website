@@ -179,12 +179,14 @@ export const restaurantApi = {
   // Catering endpoints
   getCateringOrders: async (
     restaurantId: string,
-    accountId?: string | null
+    selectedAccountId?: string | null
   ): Promise<CateringOrder[]> => {
-    const url = accountId
-      ? `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}?accountId=${accountId}`
+    const url = selectedAccountId
+      ? `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}?accountId=${selectedAccountId}`
       : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;
+    
     const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch catering orders");
     return response.json();
   },
 
@@ -211,6 +213,28 @@ export const restaurantApi = {
       }
     );
     if (!response.ok) throw new Error("Failed to review catering order");
+    return response.json();
+  },
+
+  claimCateringOrder: async (
+    orderId: string,
+    restaurantId: string,
+    selectedAccountId: string,
+  ): Promise<CateringOrder> => {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/${orderId}/claim`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          restaurantId,
+          selectedAccountId,
+        }),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to claim catering order");
     return response.json();
   },
 

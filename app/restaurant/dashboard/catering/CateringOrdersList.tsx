@@ -27,8 +27,10 @@ export const CateringOrdersList = ({
 }: CateringOrdersListProps) => {
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [activeStatusTab, setActiveStatusTab] =
-    useState<string>("admin_reviewed");
+  const [claiming, setClaiming] = useState<string | null>(null);
+  const [activeStatusTab, setActiveStatusTab] = useState<string>(
+    selectedAccountId === null ? "unassigned" : "admin_reviewed" // Start with unassigned if viewing all branches
+  );
   const [selectedAccounts, setSelectedAccounts] = useState<
     Record<string, string>
   >({});
@@ -67,6 +69,11 @@ export const CateringOrdersList = ({
       setActiveStatusTab("restaurant_reviewed");
     }
   }, [hasMultipleBranches, selectedAccountId, activeStatusTab]);
+  useEffect(() => {
+    if (selectedAccountId === null && activeStatusTab !== "unassigned") {
+      setActiveStatusTab("unassigned");
+    }
+  }, [selectedAccountId]);
 
   const handleReview = async (orderId: string, accepted: boolean) => {
     setReviewing(orderId);
@@ -89,6 +96,36 @@ export const CateringOrdersList = ({
     }
   };
 
+  const handleClaim = async (orderId: string) => {
+    console.log('Claiming order:', orderId, 'with account:', selectedAccounts[orderId]); // Add logging
+    
+    setClaiming(orderId);
+    setError("");
+
+    try {
+      const selectedAccountId = selectedAccounts[orderId];
+      
+      if (!selectedAccountId) {
+        throw new Error("Please select an account first");
+      }
+
+      await restaurantApi.claimCateringOrder(
+        orderId,
+        restaurantId,
+        selectedAccountId,
+      
+      );
+      
+      console.log('Order claimed successfully'); // Add logging
+      await onRefresh();
+    } catch (err: any) {
+      console.error('Claim error:', err); // Add logging
+      setError(err.message || "Failed to claim order");
+    } finally {
+      setClaiming(null);
+    }
+  };
+
   const ordersByStatus = orders.reduce((acc, order) => {
     const status = order.status;
     if (!acc[status]) acc[status] = [];
@@ -96,11 +133,17 @@ export const CateringOrdersList = ({
     return acc;
   }, {} as Record<string, CateringOrder[]>);
 
+  const unassignedOrders = orders.filter(order => order.isUnassigned === true);
   const showOnlyPendingReview =
     hasMultipleBranches && selectedAccountId === null;
   const hidePendingReview = hasMultipleBranches && selectedAccountId !== null;
 
   const allStatusTabs = [
+    ...(selectedAccountId === null ? [{
+      key: "unassigned",
+      label: "⚠️ Unassigned",
+      count: unassignedOrders.length,
+    }] : []),
     {
       key: "admin_reviewed",
       label: "Pending Review",
@@ -131,12 +174,15 @@ export const CateringOrdersList = ({
   ];
 
   const statusTabs = showOnlyPendingReview
-    ? allStatusTabs.filter((tab) => tab.key === "admin_reviewed")
+    ? allStatusTabs.filter((tab) => tab.key === "admin_reviewed" || tab.key === "unassigned")
     : hidePendingReview
     ? allStatusTabs.filter((tab) => tab.key !== "admin_reviewed")
     : allStatusTabs;
 
   const getActiveOrders = () => {
+    if (activeStatusTab === "unassigned") {
+      return unassignedOrders;
+    }
     if (activeStatusTab === "confirmed") {
       return [
         ...(ordersByStatus["paid"] || []),
@@ -218,6 +264,8 @@ export const CateringOrdersList = ({
               restaurantId={restaurantId}
               onReview={handleReview}
               reviewing={reviewing}
+              onClaim={handleClaim}
+              claiming={claiming}
               availableAccounts={availableAccounts}
               selectedAccounts={selectedAccounts}
               onAccountSelect={(orderId, accountId) =>

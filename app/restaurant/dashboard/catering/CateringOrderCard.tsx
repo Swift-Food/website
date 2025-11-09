@@ -12,7 +12,7 @@ import {
 import { CateringOrder } from "@/app/types/catering.types";
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 interface CateringOrderCardProps {
-  order: CateringOrder;
+  order: CateringOrder & { isUnassigned?: boolean };
   restaurantId: string;
   onReview: (orderId: string, accepted: boolean) => Promise<void>;
   reviewing: string | null;
@@ -21,6 +21,8 @@ interface CateringOrderCardProps {
   onAccountSelect: (orderId: string, accountId: string) => void;
   loadingAccounts: boolean;
   token?: string;
+  onClaim: (orderId: string) => Promise<void>; 
+  claiming: string | null; 
 }
 
 export const CateringOrderCard = ({
@@ -33,10 +35,14 @@ export const CateringOrderCard = ({
   onAccountSelect,
   loadingAccounts,
   token,
+  onClaim, // Add new prop
+  claiming, 
 }: CateringOrderCardProps) => {
   const [expandedItems, setExpandedItems] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState(false);
-
+  const isUnassigned = order.isUnassigned === true;
+  const isPaidOrder = order.status === 'paid' || order.status === 'confirmed';
+  console.log('Order:', order.id, 'isUnassigned:', isUnassigned, 'status:', order.status);
   // 🔍 View receipt in new tab (no print)
   const viewReceipt = async () => {
     if (!token) {
@@ -132,6 +138,68 @@ export const CateringOrderCard = ({
           </b>
         </span>
       </div>
+      {isUnassigned && isPaidOrder && (
+        <div className="mb-4 bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+            <div className="flex-1">
+              <p className="font-semibold text-yellow-900 mb-2">
+                ⚠️ Action Required: Assign Payment Account
+              </p>
+              <p className="text-sm text-yellow-800 mb-3">
+                This order has been paid by the customer. Please select which branch/account should receive the payout.
+              </p>
+              
+              {/* Account Selector */}
+              <div className="mb-3">
+                <label className="block text-xs font-semibold text-yellow-900 mb-2">
+                  💳 Select Branch/Payment Account:
+                </label>
+                <select
+                  value={selectedAccounts[order.id] || ""}
+                  onChange={(e) => onAccountSelect(order.id, e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-yellow-400 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-yellow-500 text-sm"
+                >
+                  <option value="">-- Choose Account --</option>
+                  {Object.entries(availableAccounts).map(
+                    ([id, account]: [string, any]) => (
+                      <option key={id} value={id}>
+                        {account.name}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+
+              {/* Claim Button */}
+              <button
+                onClick={() => onClaim(order.id)}
+                disabled={!selectedAccounts[order.id] || claiming === order.id}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors disabled:bg-yellow-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
+              >
+                {claiming === order.id ? (
+                  <>
+                    <Loader size={16} className="mr-2 animate-spin" />
+                    Assigning Account...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={16} className="mr-2" />
+                    Confirm & Assign Account
+                  </>
+                )}
+              </button>
+
+              <p className="text-xs text-yellow-700 mt-2">
+                💰 Once assigned, earnings will be transferred to:{" "}
+                <strong>
+                  {selectedAccounts[order.id] && availableAccounts[selectedAccounts[order.id]]?.name}
+                </strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">

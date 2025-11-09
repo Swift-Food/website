@@ -53,7 +53,6 @@ export const RestaurantDashboard = ({
 
   const fetchData = async () => {
     setLoading(true);
-    // setError("");
     try {
       const [statusData, balanceData, historyData, cateringData] =
         await Promise.all([
@@ -64,27 +63,22 @@ export const RestaurantDashboard = ({
             token,
             selectedAccountId
           ),
-          restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
+          restaurantApi.getCateringOrders(restaurantId, selectedAccountId), // Pass selectedAccountId here
         ]);
-
+  
+      console.log('Fetched catering orders:', cateringData); // Add logging
+      console.log('Selected account ID:', selectedAccountId); // Add logging
+  
       if (statusData) setStripeStatus(statusData);
       if (balanceData) setBalance(balanceData);
       setHistory(historyData || []);
-
-      let filteredOrders = cateringData || [];
-      if (selectedAccountId) {
-        filteredOrders = filteredOrders.filter((order: CateringOrder) => {
-          if (!order.restaurantPayoutDetails) return false;
-          return Object.values(order.restaurantPayoutDetails).some(
-            (details: any) => details.selectedAccountId === selectedAccountId
-          );
-        });
-      }
-
-      setCateringOrders(filteredOrders);
+  
+      // Remove the filtering logic - let backend handle it
+      setCateringOrders(cateringData || []);
+      
     } catch (err: any) {
       console.error("Fetch error:", err);
-      // setError(err.message || "Failed to load data");
+     
     } finally {
       setLoading(false);
     }

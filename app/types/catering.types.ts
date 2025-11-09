@@ -33,6 +33,7 @@ export interface CateringOrder {
   serviceCharge: number;
   deliveryFee: number;
   promoDiscount: number;
+  isUnassigned?: boolean;
   estimatedTotal: number;
   finalTotal: number;
   restaurantTotalCost: number;
