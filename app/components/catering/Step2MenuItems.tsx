@@ -372,7 +372,7 @@ export default function Step2MenuItems() {
   
       // Count for optional sections
       if (counts[restaurantId].optional) {
-        counts[restaurantId].optional.forEach((rule, index) => {
+        counts[restaurantId].optional.forEach((rule,) => {
           const matches = item.groupTitle && rule.sections.includes(item.groupTitle);
          
           
@@ -395,7 +395,7 @@ export default function Step2MenuItems() {
   
     console.log('⚠️ Checking for warnings...');
   
-    Object.entries(counts).forEach(([restaurantId, data]) => {
+    Object.entries(counts).forEach(([, data]) => {
      
       // Check required sections
       if (data.required) {
@@ -415,7 +415,7 @@ export default function Step2MenuItems() {
   
       // Check optional sections (only if items from those sections are ordered)
       if (data.optional) {
-        data.optional.forEach((rule, index) => {
+        data.optional.forEach((rule, ) => {
         
           
           if (rule.hasItems && rule.count < rule.minRequired) {
