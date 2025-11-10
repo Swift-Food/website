@@ -194,7 +194,6 @@ class CateringService {
       useOrganizationWallet: paymentInfo?.useOrganizationWallet,
       paymentMethodId: paymentInfo?.paymentMethodId,
       paymentIntentId: paymentInfo?.paymentIntentId,
-
     };
     console.log("catering req", JSON.stringify(createDto));
 
@@ -360,57 +359,37 @@ class CateringService {
 
     return response.json();
   }
-  // New: validate a catering promo for a specific restaurant (calls GET /promotions/validate-catering)
-  async validateCateringPromo(
-    code: string,
-    orderTotal: number,
-    restaurantId: string
-  ): Promise<PromoCodeValidation> {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
-    const url = `${API_BASE_URL}/promotions/validate-catering?code=${encodeURIComponent(
-      code
-    )}&orderTotal=${encodeURIComponent(
-      String(orderTotal)
-    )}&restaurantId=${encodeURIComponent(restaurantId)}`;
-
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to validate catering promo: ${res.status} ${text}`
-      );
-    }
-    return res.json();
-  }
 
   async validatePromoCode(
     promoCode: string,
     orderItems: OrderItemDto[]
   ): Promise<PromoCodeValidation> {
-    const subtotal = orderItems.reduce(
-      (sum, order) => sum + order.totalPrice,
-      0
-    );
-    const firstRestaurantId = orderItems[0]?.restaurantId;
+    // Use POST request with body instead of GET with query params
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/promotions/validate-catering`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: promoCode,
+            orderItems,
+          }),
+        }
+      );
 
-    const response = await fetch(
-      `${API_BASE_URL}/promotions/validate-catering?code=${promoCode}&orderTotal=${subtotal}&restaurantId=${
-        firstRestaurantId || ""
-      }`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+      if (!response.ok) {
+        return { valid: false, reason: "Failed to validate promo code" };
       }
-    );
 
-    if (!response.ok) {
-      return { valid: false, reason: "Failed to validate promo code" };
+      return response.json();
+    } catch (err) {
+      console.error("Promo validation error:", err);
+      return {
+        valid: false,
+        reason: "Network error while validating promo code",
+      };
     }
-
-    return response.json();
   }
 
   // services/catering.service.ts - Add these methods to the CateringService class
