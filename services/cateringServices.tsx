@@ -277,11 +277,7 @@ class CateringService {
       },
     };
 
-    console.log(
-      "Creating address for user:",
-      userId,
-      JSON.stringify(createAddressDto)
-    );
+
     const response = await fetch(`${API_BASE_URL}/address`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -337,10 +333,6 @@ class CateringService {
       promoCodes,
     };
 
-    console.log(
-      "Calculating catering pricing:",
-      JSON.stringify(pricingData, null, 2)
-    );
 
     const response = await fetch(
       `${API_BASE_URL}/pricing/catering-verify-cart`,

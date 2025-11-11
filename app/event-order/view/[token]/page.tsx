@@ -13,20 +13,31 @@ import SharedAccessManager from "@/app/components/catering/dashboard/SharedAcces
 import PickupContactManager from "@/app/components/catering/dashboard/PickupContactManager";
 import DeliveryTimeManager from "@/app/components/catering/dashboard/DeliveryTimeManager";
 import { Loader2, Eye } from "lucide-react";
+import RefundRequestButton from "@/app/components/catering/dashboard/RefundRequestButton";
+import { RefundRequest } from "@/types/refund.types";
+import { refundService } from "@/services/refundServices";
+import RefundsList from "@/app/components/catering/dashboard/refundList";
 
 export default function CateringDashboardPage() {
   const params = useParams();
   const token = params.token as string;
-
+  const [refunds, setRefunds] = useState<RefundRequest[]>([]);
+  const [loadingRefunds, setLoadingRefunds] = useState(false);
   const [order, setOrder] = useState<CateringOrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] =
     useState<SharedAccessRole | null>(null);
 
-  useEffect(() => {
-    loadOrder();
-  }, [token]);
+    useEffect(() => {
+      loadOrder();
+    }, [token]);
+    
+    useEffect(() => {
+      if (order) {
+        loadRefunds();
+      }
+    }, [order]);
 
   const loadOrder = async () => {
     try {
@@ -44,6 +55,21 @@ export default function CateringDashboardPage() {
       setError(err.message || "Failed to load order");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRefunds = async () => {
+    console.log("loading refunds")
+    if (!order) return;
+    console.log("past condiiton")
+    setLoadingRefunds(true);
+    try {
+      const data = await refundService.getOrderRefunds(order.id);
+      setRefunds(data);
+    } catch (err) {
+      console.error('Failed to load refunds:', err);
+    } finally {
+      setLoadingRefunds(false);
     }
   };
 
@@ -119,6 +145,27 @@ export default function CateringDashboardPage() {
           {/* Sidebar */}
           <div className="space-y-4 sm:space-y-6">
             <DeliveryInfo order={order} />
+
+
+              {refunds.length > 0 && (
+                <RefundsList refunds={refunds} />
+              )}
+              {order.status === 'completed' && (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Need a Refund?</h3>
+                <RefundRequestButton
+                  orderId={order.id}
+                  orderType="catering"
+                  orderCompletedAt={order.updatedAt}
+                  totalAmount={order.finalTotal}
+                  orderItems={order.orderItems}
+                  canRequestRefund={true}
+                  onRefundRequested={loadOrder}
+                  userId={order.userId}
+                />
+              </div>
+              )}
+            
 
             {/* Only show management components if user is a manager */}
             {isManager ? (

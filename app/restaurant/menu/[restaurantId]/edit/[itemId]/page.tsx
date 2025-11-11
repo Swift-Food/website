@@ -154,10 +154,6 @@ const EditMenuItemPage = () => {
       setPopular(item.popular || false);
       setGroupTitle(item.groupTitle || "");
 
-      // Handle categoryIds - check both categoryIds and categories fields
-      console.log("Item data:", item);
-      console.log("Item categoryIds:", item.categoryIds);
-      console.log("Item categories:", item.categories);
 
       const categoryIds =
         item.categoryIds ||
@@ -165,7 +161,7 @@ const EditMenuItemPage = () => {
           ? item.categories.map((cat: any) => cat.id)
           : []);
 
-      console.log("Processed categoryIds:", categoryIds);
+
       setSelectedCategories(categoryIds);
 
       setSelectedAllergens(item.allergens || []);

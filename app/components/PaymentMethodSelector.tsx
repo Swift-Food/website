@@ -130,7 +130,7 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
           }),
         }
       );
-      console.log("Response", response)
+
   
       if (!response.ok) {
         throw new Error('Failed to create payment intent');
