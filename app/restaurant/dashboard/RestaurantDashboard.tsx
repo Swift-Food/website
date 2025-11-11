@@ -388,13 +388,14 @@ export const RestaurantDashboard = ({
             </div>
 
             {/* Tab Content */}
-            {activeTab === "withdrawals" ? (
+            {activeTab === "withdrawals" && selectedAccountId ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <WithdrawalForm
                   restaurantUserId={restaurantUserId}
                   token={token}
                   balance={balance}
                   onSuccess={fetchData}
+                  accountId={selectedAccountId}
                 />
                 <WithdrawalHistory history={history} />
               </div>

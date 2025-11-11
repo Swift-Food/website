@@ -146,6 +146,7 @@ export const restaurantApi = {
       amount: number;
       notes?: string;
       isInstantPayout: boolean;
+      accountId: string;
     },
     token: string
   ): Promise<WithdrawalRequest> => {

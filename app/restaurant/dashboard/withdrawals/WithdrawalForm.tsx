@@ -11,12 +11,14 @@ interface WithdrawalFormProps {
   token: string;
   balance: BalanceInfo | null;
   onSuccess: () => void;
+  accountId: string
 }
 
 export const WithdrawalForm = ({
   restaurantUserId,
   token,
   balance,
+  accountId,
   onSuccess,
 }: WithdrawalFormProps) => {
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
@@ -54,6 +56,7 @@ export const WithdrawalForm = ({
           amount,
           notes: notes.trim() || undefined,
           isInstantPayout: false,
+          accountId: accountId
         },
         token
       );
