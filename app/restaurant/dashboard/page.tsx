@@ -13,12 +13,13 @@ const RestaurantWithdrawalApp = () => {
   const handleLogout = () => {
     logout();
     // Clear URL parameters by navigating to clean path
-    router.push('/restaurant/dashboard');
+    router.push("/restaurant/dashboard");
   };
 
   if (!isAuthenticated || !user || !token) {
     return <LoginPage onLogin={login} />;
   }
+  console.log("USER: ", user);
 
   return (
     <RestaurantDashboard
