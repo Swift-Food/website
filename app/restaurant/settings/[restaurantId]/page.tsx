@@ -13,12 +13,12 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { cateringService } from "@/services/cateringServices";
-import Image from "next/image";
 
 interface Restaurant {
   restaurantId: string;
   restaurant_name: string;
   description?: string;
+  images?: string[];
   image?: string;
   isOpen?: boolean;
   openingHours?: any[];
@@ -43,9 +43,41 @@ const RestaurantSettingsPage = () => {
   });
 
   useEffect(() => {
-    fetchRestaurantDetails();
+    loadRestaurantDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
+
+  const loadRestaurantDetails = () => {
+    // First try to load from sessionStorage (passed from dashboard)
+    const cachedData = sessionStorage.getItem("restaurantData");
+
+    if (cachedData) {
+      try {
+        const restaurantDetails = JSON.parse(cachedData);
+        console.log("Loaded restaurant from cache:", restaurantDetails);
+        setRestaurant(restaurantDetails);
+
+        // Handle images array - get first image or fallback to image field
+        const imageUrl =
+          restaurantDetails.images?.[0] || restaurantDetails.image || "";
+
+        setFormData({
+          restaurant_name: restaurantDetails.restaurant_name || "",
+          description: restaurantDetails.restaurant_description || "",
+          image: imageUrl,
+        });
+        setLoading(false);
+        // Clear the cached data after using it
+        sessionStorage.removeItem("restaurantData");
+        return;
+      } catch (err) {
+        console.error("Failed to parse cached restaurant data:", err);
+      }
+    }
+
+    // If no cached data, fetch from API
+    fetchRestaurantDetails();
+  };
 
   const fetchRestaurantDetails = async () => {
     setLoading(true);
@@ -53,11 +85,17 @@ const RestaurantSettingsPage = () => {
       const restaurantDetails = await cateringService.getRestaurant(
         restaurantId
       );
+      console.log("Fetched restaurant from API:", restaurantDetails);
       setRestaurant(restaurantDetails);
+
+      // Handle images array - get first image or fallback to image field
+      const imageUrl =
+        restaurantDetails.images?.[0] || restaurantDetails.image || "";
+
       setFormData({
         restaurant_name: restaurantDetails.restaurant_name || "",
-        description: restaurantDetails.description || "",
-        image: restaurantDetails.image || "",
+        description: restaurantDetails.restaurant_description || "",
+        image: imageUrl,
       });
     } catch (err: any) {
       setError(err.message || "Failed to load restaurant details");
@@ -66,10 +104,7 @@ const RestaurantSettingsPage = () => {
     }
   };
 
-  const updateRestaurant = async (
-    id: string,
-    updates: Record<string, any>
-  ) => {
+  const updateRestaurant = async (id: string, updates: Record<string, any>) => {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
     const response = await fetch(`${API_BASE_URL}/restaurant/${id}`, {
       method: "PATCH",
@@ -159,11 +194,18 @@ const RestaurantSettingsPage = () => {
         return;
       }
 
-      await updateRestaurant(restaurantId, {
+      // Prepare update data with images array
+      const updateData: Record<string, any> = {
         restaurant_name: formData.restaurant_name,
         description: formData.description,
-        image: formData.image,
-      });
+      };
+
+      // Only include images if there's an image to save
+      if (formData.image) {
+        updateData.images = [formData.image];
+      }
+
+      await updateRestaurant(restaurantId, updateData);
 
       setSuccess("Restaurant settings updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
@@ -262,12 +304,11 @@ const RestaurantSettingsPage = () => {
               </label>
               <div className="flex flex-col md:flex-row gap-4 items-start">
                 {formData.image ? (
-                  <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-200">
-                    <Image
+                  <div className="w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-200">
+                    <img
                       src={formData.image}
                       alt="Restaurant"
-                      fill
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 ) : (

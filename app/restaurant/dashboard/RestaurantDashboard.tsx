@@ -3,7 +3,9 @@
 
 import { useState, useEffect } from "react";
 import { LogOut, Loader } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { restaurantApi } from "@/app/api/restaurantApi";
+import { cateringService } from "@/services/cateringServices";
 import {
   BalanceInfo,
   WithdrawalRequest,
@@ -37,7 +39,9 @@ export const RestaurantDashboard = ({
   token,
   onLogout,
 }: RestaurantDashboardProps) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [loadingSettings, setLoadingSettings] = useState(false);
   const [stripeStatus, setStripeStatus] =
     useState<StripeOnboardingStatus | null>(null);
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
@@ -87,6 +91,26 @@ export const RestaurantDashboard = ({
   useEffect(() => {
     fetchData();
   }, [userId, token, selectedAccountId]);
+
+  const handleNavigateToSettings = async () => {
+    setLoadingSettings(true);
+    try {
+      // Fetch full restaurant details using cateringService
+      const fullRestaurantDetails = await cateringService.getRestaurant(restaurantId);
+
+      // Store full restaurant data in sessionStorage for the settings page to use
+      sessionStorage.setItem('restaurantData', JSON.stringify(fullRestaurantDetails));
+
+      // Navigate to settings page
+      router.push(`/restaurant/settings/${restaurantId}`);
+    } catch (error) {
+      console.error('Failed to load restaurant details:', error);
+      // Navigate anyway - the settings page will fetch the data itself
+      router.push(`/restaurant/settings/${restaurantId}`);
+    } finally {
+      setLoadingSettings(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -262,41 +286,46 @@ export const RestaurantDashboard = ({
 
           {/* Restaurant Settings Button */}
           <div>
-            <a
-              href={`/restaurant/settings/${restaurantId}`}
-              className="block h-full bg-warning hover:bg-warning/90 text-white rounded-lg p-4 transition-all hover:shadow-lg"
+            <button
+              onClick={handleNavigateToSettings}
+              disabled={loadingSettings}
+              className="block h-full w-full bg-warning hover:bg-warning/90 disabled:bg-warning/70 disabled:cursor-not-allowed text-white rounded-lg p-4 transition-all hover:shadow-lg text-left"
             >
               <div className="flex items-center justify-between h-full">
                 <div>
                   <h3 className="text-lg font-bold mb-1">Restaurant Settings</h3>
                   <p className="text-sm text-white/90">
-                    Manage your restaurant profile and settings
+                    {loadingSettings ? "Loading..." : "Manage your restaurant profile and settings"}
                   </p>
                 </div>
                 <div className="bg-white/20 rounded-full p-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
+                  {loadingSettings ? (
+                    <Loader className="h-6 w-6 animate-spin" />
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  )}
                 </div>
               </div>
-            </a>
+            </button>
           </div>
         </div>
         {/* Payment Account Selector */}
