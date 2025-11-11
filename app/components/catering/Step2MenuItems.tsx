@@ -302,22 +302,21 @@ export default function Step2MenuItems() {
   };
 
   const getRestaurantItemCounts = () => {
-    const counts: Record<string,
-      {
-        required?: {
-          count: number;
-          minRequired: number;
-          sections: string[];
-        };
-        optional?: Array<{
-          count: number;
-          minRequired: number;
-          sections: string[];
-          hasItems: boolean;
-        }>;
-        name: string;
-      }
-    > = {};
+    const counts: Record<string, {
+      required?: {
+        count: number;
+        minRequired: number;
+        sections: string[];
+      };
+      optional?: Array<{
+        count: number;
+        minRequired: number;
+        sections: string[];
+        hasItems: boolean;
+      }>;
+      name: string;
+      hasAnyItems: boolean;
+    }> = {};
   
     selectedItems.forEach(({ item, quantity }) => {
       const restaurantId = item.restaurantId;
@@ -329,108 +328,120 @@ export default function Step2MenuItems() {
       if (!counts[restaurantId]) {
         counts[restaurantId] = {
           name: restaurant?.restaurant_name || "Unknown Restaurant",
+          hasAnyItems: false,
         };
   
-  
-        // Initialize required settings
-        if (settings?.required) {
+        // ✅ Handle required as array (take first element as the main required rule)
+        if (settings?.required && Array.isArray(settings.required) && settings.required.length > 0) {
+          const firstRequired = settings.required[0];
           counts[restaurantId].required = {
             count: 0,
-            minRequired: settings.required.minQuantity,
-            sections: settings.required.applicableSections,
+            minRequired: firstRequired.minQuantity || 0,
+            sections: firstRequired.applicableSections || [],
           };
-
         }
   
         // Initialize optional settings
-        if (settings?.optional && settings.optional.length > 0) {
+        if (settings?.optional && Array.isArray(settings.optional) && settings.optional.length > 0) {
           counts[restaurantId].optional = settings.optional.map(rule => ({
             count: 0,
-            minRequired: rule.minQuantity,
-            sections: rule.applicableSections,
+            minRequired: rule.minQuantity || 0,
+            sections: rule.applicableSections || [],
             hasItems: false,
           }));
-         
         }
       }
+  
+      counts[restaurantId].hasAnyItems = true;
   
       const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
       const normalizedQuantity = quantity / BACKEND_QUANTITY_UNIT;
   
-      // Count for required sections
-      if (counts[restaurantId].required) {
-        const shouldCount =
-          counts[restaurantId].required.sections.length === 0 ||
-          (item.groupTitle && counts[restaurantId].required!.sections.includes(item.groupTitle));
-
+      // Count for REQUIRED sections
+      const requiredRule = counts[restaurantId]?.required;
+      if (requiredRule) {
+        const sections = requiredRule.sections || [];
+        const isFromRequiredSection = 
+          sections.length === 0 || 
+          (item.groupTitle && sections.includes(item.groupTitle));
         
-        if (shouldCount) {
-          counts[restaurantId].required.count += normalizedQuantity;
-          
+        if (isFromRequiredSection) {
+          requiredRule.count += normalizedQuantity;
         }
       }
   
-      // Count for optional sections
-      if (counts[restaurantId].optional) {
-        counts[restaurantId].optional.forEach((rule,) => {
-          const matches = item.groupTitle && rule.sections.includes(item.groupTitle);
-         
-          
-          if (matches) {
+      // Count for OPTIONAL sections
+      const optionalRules = counts[restaurantId]?.optional;
+      if (optionalRules && Array.isArray(optionalRules)) {
+        optionalRules.forEach((rule) => {
+          const sections = rule.sections || [];
+          if (item.groupTitle && sections.includes(item.groupTitle)) {
             rule.hasItems = true;
             rule.count += normalizedQuantity;
-            
           }
         });
       }
     });
   
-   
     return counts;
   };
-  
+
   const getMinimumOrderWarnings = () => {
     const counts = getRestaurantItemCounts();
     const warnings: string[] = [];
   
-    console.log('⚠️ Checking for warnings...');
+    console.log('⚠️ Full counts object:', JSON.stringify(counts, null, 2));
   
-    Object.entries(counts).forEach(([, data]) => {
-     
-      // Check required sections
+    Object.entries(counts).forEach(([restaurantId, data]) => {
+      console.log(`\n🔍 Checking ${data.name} (${restaurantId})`);
+      console.log('  hasAnyItems:', data.hasAnyItems);
+      console.log('  required:', data.required);
+      
+      // Check REQUIRED sections - applies if ANY item from restaurant is ordered
       if (data.required) {
-       
-        if (data.required.count < data.required.minRequired) {
+        console.log('  ✓ Has required rule');
+        console.log('    count:', data.required.count);
+        console.log('    minRequired:', data.required.minRequired);
+        console.log('    hasAnyItems:', data.hasAnyItems);
+        
+        if (data.hasAnyItems && data.required.count < data.required.minRequired) {
+          const shortage = data.required.minRequired - data.required.count;
           const sectionInfo =
             data.required.sections.length > 0
               ? ` from sections: ${data.required.sections.join(", ")}`
               : "";
-          const warning = `${data.name}: Add ${
-            data.required.minRequired - data.required.count
-          } more required item(s)${sectionInfo}`;
+          const warning = `${data.name}: Add ${shortage} more required item(s)${sectionInfo}`;
+          console.log('    ⚠️ WARNING:', warning);
           warnings.push(warning);
-         
+        } else {
+          console.log('    ✓ Required minimum met or no items ordered');
         }
+      } else {
+        console.log('  ✗ No required rule');
       }
   
-      // Check optional sections (only if items from those sections are ordered)
+      // Check OPTIONAL sections
       if (data.optional) {
-        data.optional.forEach((rule, ) => {
-        
+        console.log('  ✓ Has optional rules');
+        data.optional.forEach((rule, index) => {
+          console.log(`    Rule ${index}:`, {
+            hasItems: rule.hasItems,
+            count: rule.count,
+            minRequired: rule.minRequired,
+            sections: rule.sections
+          });
           
           if (rule.hasItems && rule.count < rule.minRequired) {
-            const warning = `${data.name}: Add ${
-              rule.minRequired - rule.count
-            } more item(s) from sections: ${rule.sections.join(", ")}`;
+            const shortage = rule.minRequired - rule.count;
+            const warning = `${data.name}: Add ${shortage} more item(s) from sections: ${rule.sections.join(", ")}`;
+            console.log('      ⚠️ WARNING:', warning);
             warnings.push(warning);
-            
-          } 
+          }
         });
       }
     });
   
-  
-    
+    console.log('\n📋 Final warnings:', warnings);
     return warnings;
   };
 
@@ -1075,21 +1086,7 @@ export default function Step2MenuItems() {
               <h3 className="text-xl font-bold text-base-content mb-6">
                 Your List
               </h3>
-              {(() => {
-                const warnings = getMinimumOrderWarnings();
-                return warnings.length > 0 ? (
-                  <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-xl">
-                    <p className="text-md font-semibold text-base-content mb-2">
-                      ⚠️ Minimum Order Requirements
-                    </p>
-                    {warnings.map((warning, index) => (
-                      <p key={index} className="text-md text-base-content">
-                        {warning}
-                      </p>
-                    ))}
-                  </div>
-                ) : null;
-              })()}
+             
 
               {selectedItems.length === 0 ? (
                 <p className="text-base-content/50 text-center py-8">
@@ -1099,6 +1096,21 @@ export default function Step2MenuItems() {
                 // <></>
                 <>
                   <div className="space-y-4 mb-6 flex-1 overflow-y-auto">
+                    {(() => {
+                      const warnings = getMinimumOrderWarnings();
+                      return warnings.length > 0 ? (
+                        <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-xl">
+                          <p className="text-md font-semibold text-base-content mb-2">
+                            ⚠️ Minimum Order Requirements
+                          </p>
+                          {warnings.map((warning, index) => (
+                            <p key={index} className="text-md text-base-content">
+                              {warning}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
                     {selectedItems.map(({ item, quantity }, index) => {
                       const BACKEND_QUANTITY_UNIT =
                         item.cateringQuantityUnit || 7;
