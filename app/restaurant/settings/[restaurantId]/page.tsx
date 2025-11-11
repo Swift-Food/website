@@ -11,12 +11,14 @@ import {
   Upload,
   Clock,
   Image as ImageIcon,
+  X,
 } from "lucide-react";
 import { cateringService } from "@/services/cateringServices";
 
 interface Restaurant {
   restaurantId: string;
   restaurant_name: string;
+  restaurant_description?: string;
   description?: string;
   images?: string[];
   image?: string;
@@ -34,12 +36,13 @@ const RestaurantSettingsPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [formData, setFormData] = useState({
     restaurant_name: "",
     description: "",
-    image: "",
+    images: [] as string[],
   });
 
   useEffect(() => {
@@ -57,14 +60,13 @@ const RestaurantSettingsPage = () => {
         console.log("Loaded restaurant from cache:", restaurantDetails);
         setRestaurant(restaurantDetails);
 
-        // Handle images array - get first image or fallback to image field
-        const imageUrl =
-          restaurantDetails.images?.[0] || restaurantDetails.image || "";
+        // Handle images array
+        const images = restaurantDetails.images || (restaurantDetails.image ? [restaurantDetails.image] : []);
 
         setFormData({
           restaurant_name: restaurantDetails.restaurant_name || "",
           description: restaurantDetails.restaurant_description || "",
-          image: imageUrl,
+          images: images,
         });
         setLoading(false);
         // Clear the cached data after using it
@@ -88,14 +90,13 @@ const RestaurantSettingsPage = () => {
       console.log("Fetched restaurant from API:", restaurantDetails);
       setRestaurant(restaurantDetails);
 
-      // Handle images array - get first image or fallback to image field
-      const imageUrl =
-        restaurantDetails.images?.[0] || restaurantDetails.image || "";
+      // Handle images array
+      const images = restaurantDetails.images || (restaurantDetails.image ? [restaurantDetails.image] : []);
 
       setFormData({
         restaurant_name: restaurantDetails.restaurant_name || "",
         description: restaurantDetails.restaurant_description || "",
-        image: imageUrl,
+        images: images,
       });
     } catch (err: any) {
       setError(err.message || "Failed to load restaurant details");
@@ -131,17 +132,31 @@ const RestaurantSettingsPage = () => {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log("No file selected");
+      return;
+    }
+
+    console.log("File selected:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeInMB: (file.size / 1024 / 1024).toFixed(2) + "MB",
+    });
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file");
+      const errorMsg = "Please upload an image file";
+      console.error("Invalid file type:", file.type);
+      setError(errorMsg);
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image size should be less than 5MB");
+      const errorMsg = "Image size should be less than 5MB";
+      console.error("File too large:", file.size, "bytes");
+      setError(errorMsg);
       return;
     }
 
@@ -151,59 +166,121 @@ const RestaurantSettingsPage = () => {
     try {
       // Create FormData for file upload
       const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
+
+      // IMPORTANT: Field name must be "upload" (singular) as per backend service configuration
+      formDataUpload.append("upload", file);
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_BASE_URL}/upload/restaurant-image`, {
+      const uploadUrl = `${API_BASE_URL}/image-upload`;
+
+      console.log("=== IMAGE UPLOAD DEBUG ===");
+      console.log("API_BASE_URL:", API_BASE_URL);
+      console.log("Upload URL:", uploadUrl);
+      console.log("File details:", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified,
+      });
+      console.log("FormData field name: 'upload'");
+
+      const response = await fetch(uploadUrl, {
         method: "POST",
         body: formDataUpload,
       });
 
+      console.log("=== RESPONSE DEBUG ===");
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
+      // Get response text
+      const responseText = await response.text();
+      console.log("Response text (raw):", responseText);
+
       if (!response.ok) {
-        throw new Error("Failed to upload image");
+        console.error("=== UPLOAD FAILED ===");
+        console.error("Status:", response.status, response.statusText);
+        console.error("Response body:", responseText);
+        throw new Error(`Failed to upload image: ${response.status} - ${responseText}`);
       }
 
-      const data = await response.json();
-      const imageUrl = data.url || data.imageUrl;
+      // The backend returns the image URL as a plain JSON string (e.g., "https://...")
+      // We need to parse it to remove the quotes
+      let imageUrl: string;
+      try {
+        imageUrl = JSON.parse(responseText);
+        console.log("=== SUCCESS ===");
+        console.log("Image URL:", imageUrl);
+      } catch (parseError) {
+        console.error("=== PARSE ERROR ===");
+        console.error("Failed to parse response:", parseError);
+        console.error("Response text:", responseText);
+        throw new Error("Invalid response format from server");
+      }
+
+      if (!imageUrl || typeof imageUrl !== 'string') {
+        console.error("=== INVALID URL ===");
+        console.error("Parsed value:", imageUrl);
+        throw new Error("No valid image URL returned from server");
+      }
 
       setFormData((prev) => ({
         ...prev,
-        image: imageUrl,
+        images: [...prev.images, imageUrl],
       }));
+
+      console.log("Image added to form data, total images:", formData.images.length + 1);
 
       setSuccess("Image uploaded successfully!");
       setTimeout(() => setSuccess(""), 3000);
+
+      // Clear the file input
+      e.target.value = "";
     } catch (err: any) {
+      console.error("Upload error:", err);
+      console.error("Error name:", err.name);
+      console.error("Error message:", err.message);
+      console.error("Error stack:", err.stack);
       setError(err.message || "Failed to upload image");
     } finally {
       setUploadingImage(false);
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleRemoveImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    // Validate required fields
+    if (!formData.restaurant_name.trim()) {
+      setError("Restaurant name is required");
+      return;
+    }
+
+    // Show confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  const confirmSave = async () => {
     setSaving(true);
     setError("");
     setSuccess("");
+    setShowConfirmModal(false);
 
     try {
-      // Validate required fields
-      if (!formData.restaurant_name.trim()) {
-        setError("Restaurant name is required");
-        setSaving(false);
-        return;
-      }
-
-      // Prepare update data with images array
+      // Prepare update data with correct field names
       const updateData: Record<string, any> = {
         restaurant_name: formData.restaurant_name,
-        description: formData.description,
+        restaurant_description: formData.description,
+        images: formData.images,
       };
-
-      // Only include images if there's an image to save
-      if (formData.image) {
-        updateData.images = [formData.image];
-      }
 
       await updateRestaurant(restaurantId, updateData);
 
@@ -297,63 +374,74 @@ const RestaurantSettingsPage = () => {
         {/* Form */}
         <form onSubmit={handleSave} className="bg-white rounded-lg p-6">
           <div className="space-y-6">
-            {/* Restaurant Image */}
+            {/* Restaurant Images */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Restaurant Image
+                Restaurant Images
               </label>
-              <div className="flex flex-col md:flex-row gap-4 items-start">
-                {formData.image ? (
-                  <div className="w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-200">
-                    <img
-                      src={formData.image}
-                      alt="Restaurant"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                    <ImageIcon className="text-gray-400" size={48} />
-                  </div>
-                )}
 
-                <div className="flex-1">
-                  <input
-                    type="file"
-                    id="image-upload"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={uploadingImage}
-                  />
-                  <label
-                    htmlFor="image-upload"
-                    className={`inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg ${
-                      uploadingImage
-                        ? "bg-gray-100 cursor-not-allowed"
-                        : "bg-white hover:bg-gray-50 cursor-pointer"
-                    } transition-colors`}
-                  >
-                    {uploadingImage ? (
-                      <>
-                        <Loader size={20} className="animate-spin" />
-                        <span className="text-sm font-medium text-gray-700">
-                          Uploading...
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={20} className="text-gray-600" />
-                        <span className="text-sm font-medium text-gray-700">
-                          Upload Image
-                        </span>
-                      </>
-                    )}
-                  </label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Recommended: Square image, max 5MB (JPG, PNG, WebP)
-                  </p>
+              {/* Display existing images */}
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
+                        <img
+                          src={image}
+                          alt={`Restaurant ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove image"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
+              )}
+
+              {/* Upload button */}
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  id="image-upload"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={uploadingImage}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={`inline-flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg ${
+                    uploadingImage
+                      ? "bg-gray-100 border-gray-300 cursor-not-allowed"
+                      : "bg-white border-gray-300 hover:border-blue-500 hover:bg-blue-50 cursor-pointer"
+                  } transition-colors`}
+                >
+                  {uploadingImage ? (
+                    <>
+                      <Loader size={20} className="animate-spin text-gray-600" />
+                      <span className="text-sm font-medium text-gray-700">
+                        Uploading...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={20} className="text-gray-600" />
+                      <span className="text-sm font-medium text-gray-700">
+                        Upload Image
+                      </span>
+                    </>
+                  )}
+                </label>
+                <p className="text-xs text-gray-500">
+                  Recommended: Square images, max 5MB each (JPG, PNG, WebP)
+                </p>
               </div>
             </div>
 
@@ -428,6 +516,57 @@ const RestaurantSettingsPage = () => {
             </button>
           </div>
         </form>
+
+        {/* Confirmation Modal */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-blue-100 rounded-full p-3">
+                  <AlertCircle className="text-blue-600" size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Confirm Changes
+                </h3>
+              </div>
+
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to save these changes to your restaurant
+                settings? This will update your restaurant&apos;s name,
+                description, and images.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmModal(false)}
+                  disabled={saving}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmSave}
+                  disabled={saving}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <Loader size={20} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={20} />
+                      Confirm & Save
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
