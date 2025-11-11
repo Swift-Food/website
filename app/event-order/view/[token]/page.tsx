@@ -22,7 +22,7 @@ export default function CateringDashboardPage() {
   const params = useParams();
   const token = params.token as string;
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
-  const [loadingRefunds, setLoadingRefunds] = useState(false);
+  const [, setLoadingRefunds] = useState(false);
   const [order, setOrder] = useState<CateringOrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

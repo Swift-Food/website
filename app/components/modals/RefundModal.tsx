@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { cateringService } from '@/services/cateringServices';
+
 import { X, Upload, Loader2 } from 'lucide-react';
 import { refundService } from '@/services/refundServices';
 
@@ -32,7 +32,6 @@ export function RefundModal({
   onClose,
   orderId,
   orderType,
-  totalAmount,
   orderItems,
   onSuccess,
   userId
@@ -40,7 +39,7 @@ export function RefundModal({
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [reason, setReason] = useState('');
   const [additionalDetails, setAdditionalDetails] = useState('');
-  const [images, setImages] = useState<string[]>([]);
+  const [images, ] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

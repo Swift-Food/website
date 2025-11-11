@@ -18,6 +18,10 @@ export interface RefundRequest {
   requestedAmount: number;
   approvedAmount?: number;
   status: RefundStatus;
+  userEmail?: string;
+  userName?: string;
+  cateringOrderId?: string;
+  corporateOrderId?: string;
   restaurantResponse?: string;
   createdAt: string;
   updatedAt: string;

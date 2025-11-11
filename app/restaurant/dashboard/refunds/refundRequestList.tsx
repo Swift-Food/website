@@ -11,17 +11,18 @@ interface RefundRequestsListProps {
 }
 
 export const RefundRequestsList = ({ refunds, onViewDetails }: RefundRequestsListProps) => {
+  
   const getStatusBadge = (status: string) => {
-    const config = {
+    const config: Record<string, { bg: string; text: string; icon: any; label: string }> = {
       pending: { bg: 'bg-amber-100', text: 'text-amber-800', icon: Clock, label: 'Pending Review' },
       approved: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Approved' },
       rejected: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle, label: 'Rejected' },
       processed: { bg: 'bg-blue-100', text: 'text-blue-800', icon: CheckCircle, label: 'Processed' },
       cancelled: { bg: 'bg-gray-100', text: 'text-gray-800', icon: XCircle, label: 'Cancelled' },
     };
-
+  
     const { bg, text, icon: Icon, label } = config[status] || config.pending;
-
+  
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${bg} ${text}`}>
         <Icon className="h-3.5 w-3.5" />

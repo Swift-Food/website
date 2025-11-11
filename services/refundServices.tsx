@@ -32,6 +32,11 @@ class RefundService {
     return response.data;
   }
 
+  async getRestaurantRefundRequests(restaurantId: string): Promise<RefundRequest[]> {
+    const response = await apiClient.get(`/refunds/restaurant/${restaurantId}`);
+    return response.data;
+  }
+
 }
 
 export const refundService = new RefundService();
