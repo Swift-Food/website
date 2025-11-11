@@ -10,21 +10,10 @@ import {
   Settings,
   Upload,
   Clock,
-  Image as ImageIcon,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import { cateringService } from "@/services/cateringServices";
-
-interface Restaurant {
-  restaurantId: string;
-  restaurant_name: string;
-  restaurant_description?: string;
-  description?: string;
-  images?: string[];
-  image?: string;
-  isOpen?: boolean;
-  openingHours?: any[];
-}
 
 const RestaurantSettingsPage = () => {
   const params = useParams();
@@ -38,7 +27,6 @@ const RestaurantSettingsPage = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [formData, setFormData] = useState({
     restaurant_name: "",
     description: "",
@@ -58,7 +46,6 @@ const RestaurantSettingsPage = () => {
       try {
         const restaurantDetails = JSON.parse(cachedData);
         console.log("Loaded restaurant from cache:", restaurantDetails);
-        setRestaurant(restaurantDetails);
 
         // Handle images array
         const images = restaurantDetails.images || (restaurantDetails.image ? [restaurantDetails.image] : []);
@@ -88,7 +75,6 @@ const RestaurantSettingsPage = () => {
         restaurantId
       );
       console.log("Fetched restaurant from API:", restaurantDetails);
-      setRestaurant(restaurantDetails);
 
       // Handle images array
       const images = restaurantDetails.images || (restaurantDetails.image ? [restaurantDetails.image] : []);
@@ -385,11 +371,13 @@ const RestaurantSettingsPage = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   {formData.images.map((image, index) => (
                     <div key={index} className="relative group">
-                      <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
-                        <img
+                      <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-gray-200 relative">
+                        <Image
                           src={image}
                           alt={`Restaurant ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          unoptimized
                         />
                       </div>
                       <button
