@@ -37,6 +37,22 @@ class RefundService {
     return response.data;
   }
 
+  async processRefund(
+    refundId: string,
+    restUserId: string,
+    data: {
+      status: 'approved' | 'rejected';
+      approvedAmount?: number;
+      restaurantResponse?: string;
+    }
+  ): Promise<any> {
+    const response = await apiClient.post(
+      `/refunds/${refundId}/${restUserId}/process`, 
+      data
+    );
+    return response.data;
+  }
+
 }
 
 export const refundService = new RefundService();

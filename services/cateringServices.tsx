@@ -548,6 +548,7 @@ class CateringService {
   }
 
   async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
+    console.log("dot is", dto)
     const response = await fetch(`${API_BASE_URL}/menu-item`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

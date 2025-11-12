@@ -19,6 +19,9 @@ import { BalanceCards } from "./withdrawals/BalanceCards";
 import { WithdrawalForm } from "./withdrawals/WithdrawalForm";
 import { WithdrawalHistory } from "./withdrawals/WithdrawalHistory";
 import { CateringOrdersList } from "./catering/CateringOrdersList";
+import { RefundRequest } from "@/types/refund.types";
+import { refundService } from "@/services/refundServices";
+import { RefundRequestsList } from "./refunds/refundRequestList";
 
 interface RestaurantDashboardProps {
   userId: string;
@@ -47,50 +50,75 @@ export const RestaurantDashboard = ({
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
   const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
-  const [activeTab, setActiveTab] = useState<"withdrawals" | "catering">(
+  const [activeTab, setActiveTab] = useState<"withdrawals" | "catering" | "refunds">(
     "withdrawals"
   );
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     null
   );
-  // const [error, setError] = useState("");
+  const [refunds, setRefunds] = useState<RefundRequest[]>([]);
+  
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statusData, balanceData, historyData, cateringData] =
+      const [statusData, balanceData, historyData, cateringData, refundsData] =
         await Promise.all([
           restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
           restaurantApi.getBalance(restaurantUserId, token, selectedAccountId),
-          restaurantApi.getWithdrawalHistory(
-            restaurantUserId,
-            token,
-            selectedAccountId
-          ),
-          restaurantApi.getCateringOrders(restaurantId, selectedAccountId), // Pass selectedAccountId here
+          restaurantApi.getWithdrawalHistory(restaurantUserId, token, selectedAccountId),
+          restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
+          refundService.getRestaurantRefundRequests(restaurantId)
         ]);
-  
-      console.log('Fetched catering orders:', cateringData); // Add logging
-      console.log('Selected account ID:', selectedAccountId); // Add logging
-  
+
       if (statusData) setStripeStatus(statusData);
       if (balanceData) setBalance(balanceData);
       setHistory(historyData || []);
-  
-      // Remove the filtering logic - let backend handle it
       setCateringOrders(cateringData || []);
-      
+      setRefunds(refundsData || []); // Add this
     } catch (err: any) {
       console.error("Fetch error:", err);
-     
     } finally {
       setLoading(false);
     }
   };
 
+
   useEffect(() => {
     fetchData();
   }, [userId, token, selectedAccountId]);
+
+  // RestaurantDashboard.tsx - Add handleProcessRefund
+
+  // RestaurantDashboard.tsx - Fix handleProcessRefund
+
+const handleProcessRefund = async (
+  refundId: string,
+  data: {
+    status: 'approved' | 'rejected';
+    approvedAmount?: number;
+    restaurantResponse?: string;
+  }
+) => {
+  try {
+    await refundService.processRefund(refundId, restaurantUserId, data);
+    
+    // Show success message
+    if (data.status === 'approved') {
+      alert('Refund approved successfully');
+    } else {
+      alert('Refund rejected successfully');
+    }
+    
+    // Refresh data
+    await fetchData();
+  } catch (error: any) {
+    console.error('Failed to process refund:', error);
+    const errorMessage = error.response?.data?.message || 'Failed to process refund. Please try again.';
+    alert(errorMessage);
+    throw error;
+  }
+};
 
   const handleNavigateToSettings = async () => {
     setLoadingSettings(true);
@@ -383,6 +411,21 @@ export const RestaurantDashboard = ({
                       </span>
                     )}
                   </button>
+                  <button
+                    onClick={() => setActiveTab("refunds")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === "refunds"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Refund Requests
+                    {refunds.filter(r => r.status === 'pending').length > 0 && (
+                      <span className="ml-2 bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs">
+                        {refunds.filter(r => r.status === 'pending').length}
+                      </span>
+                    )}
+                  </button>
                 </nav>
               </div>
             </div>
@@ -397,9 +440,9 @@ export const RestaurantDashboard = ({
                   onSuccess={fetchData}
                   accountId={selectedAccountId}
                 />
-                <WithdrawalHistory history={history} />
+                <WithdrawalHistory history={history} /> f
               </div>
-            ) : (
+            ) : activeTab == "catering" ? (
               <div className="bg-white rounded-lg p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
                   Event Orders
@@ -414,7 +457,16 @@ export const RestaurantDashboard = ({
                   selectedAccountId={selectedAccountId}
                 />
               </div>
-            )}
+            ) : (
+              <div className="bg-white rounded-lg p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Refund Requests</h2>
+                <RefundRequestsList
+                  refunds={refunds}
+                  onProcessRefund={handleProcessRefund}
+                />
+              </div>
+            )
+            }
           </>
         )}
       </div>
