@@ -3,6 +3,7 @@ import { cateringService } from "@/services/cateringServices";
 import { useCatering } from "@/context/CateringContext";
 import MenuItemCard from "./MenuItemCard";
 import MenuItemModal from "./MenuItemModal";
+import { promotionsServices } from "@/services/promotionServices";
 
 export interface Restaurant {
   id: string;
@@ -145,12 +146,16 @@ export default function Step2MenuItems() {
     totalPrice,
     addMenuItem,
     removeMenuItemByIndex,
-    // removeMenuItem,
     getTotalPrice,
     updateItemQuantity,
     updateMenuItemByIndex,
     setCurrentStep,
     setSelectedRestaurants,
+    restaurantPromotions, // FROM CONTEXT
+    setRestaurantPromotions, // FROM CONTEXT
+    subtotalBeforeDiscount, // FROM CONTEXT
+    promotionDiscount, // FROM CONTEXT
+    finalTotal, // FROM CONTEXT
   } = useCatering();
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -204,18 +209,28 @@ export default function Step2MenuItems() {
     setSelectedRestaurants(selectedRests);
   }, [selectedItems, restaurants]);
 
-  // useEffect(() => {
-  //   if (selectedRestaurantId) {
-  //     const selectedRestaurant = restaurants.find(
-  //       (r) => r.id === selectedRestaurantId
-  //     );
-  //     setRestaurantName(selectedRestaurant?.restaurant_name || "");
-  //   } else {
-  //     setRestaurantName("");
-  //   }
-  // }, [restaurants, selectedRestaurantId]);
+  const fetchRestaurantPromotions = async (restaurantIds: string[]) => {
+    const promotionsMap: Record<string, any[]> = {};
+    
+    await Promise.all(
+      restaurantIds.map(async (restaurantId) => {
+        try {
+          const promos = await promotionsServices.getActivePromotions(
+            restaurantId,
+            'CATERING'
+          );
+          if (promos && promos.length > 0) {
+            promotionsMap[restaurantId] = promos;
+          }
+        } catch (error) {
+          console.error(`Failed to fetch promotions for ${restaurantId}:`, error);
+        }
+      })
+    );
+    
+    setRestaurantPromotions(promotionsMap); // USE CONTEXT SETTER
+  };
 
-  // Fetch menu items when restaurant is selected
   useEffect(() => {
     if (!isSearching) {
       fetchAllMenuItems();
@@ -283,17 +298,14 @@ export default function Step2MenuItems() {
         `${process.env.NEXT_PUBLIC_API_URL}/restaurant/catering/restaurants`
       );
       const data = await response.json();
-      // Filter to only show restaurants with isCatering = true
-      // const cateringRestaurants = data.filter(
-      //   (restaurant: any) => restaurant.isCatering === true
-      // );
-      // Sort restaurants by minimumDeliveryNoticeHours (ascending)
       const sortedRestaurants = data.sort((a: Restaurant, b: Restaurant) => {
         const aNotice = a.minimumDeliveryNoticeHours ?? 0;
         const bNotice = b.minimumDeliveryNoticeHours ?? 0;
         return aNotice - bNotice;
       });
       setRestaurants(sortedRestaurants);
+      const restaurantIds = sortedRestaurants.map((r: Restaurant) => r.id);
+      await fetchRestaurantPromotions(restaurantIds);
     } catch (error) {
       console.error("Error fetching restaurants:", error);
     } finally {
@@ -527,6 +539,128 @@ export default function Step2MenuItems() {
   const handleOrderPress = (item: MenuItem) => {
     // This opens the modal when clicking "Add to Order" button
     setExpandedItemId(expandedItemId === item.id ? null : item.id);
+  };
+
+  // Replace the PromotionDetailsCard component with this scrollable version:
+  const PromotionDetailsCard = ({ promotions }: { promotions: any[] }) => {
+    if (!promotions || promotions.length === 0) return null;
+    
+    return (
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-lg font-bold text-gray-900">Active Offers</h3>
+          <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            {promotions.length}
+          </span>
+        </div>
+        
+        {/* Horizontal Scrollable Container */}
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+          {promotions.map((promo) => (
+            <div
+              key={promo.id}
+              className="flex-shrink-0 snap-start bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-500 rounded-xl p-4 min-w-[280px] max-w-[350px]"
+            >
+              <div className="flex items-start gap-3">
+  
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-base font-bold text-green-900 mb-1 truncate">
+                    {promo.name}
+                  </h4>
+                  <p className="text-green-800 font-bold text-lg mb-2">
+                    {promo.discountPercentage}% OFF
+                  </p>
+                  {promo.description && (
+                    <p className="text-green-700 text-xs mb-2 line-clamp-2">
+                      {promo.description}
+                    </p>
+                  )}
+                  <div className="flex flex-col gap-1.5 text-xs">
+                    {promo.minOrderAmount > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                          className="w-3.5 h-3.5 text-green-700"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                          />
+                        </svg>
+                        <span className="text-green-800 font-medium">
+                          Min. £{promo.minOrderAmount}
+                        </span>
+                      </div>
+                    )}
+                    {promo.maxDiscountAmount && (
+                      <div className="flex items-center gap-1.5">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                          className="w-3.5 h-3.5 text-green-700"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span className="text-green-800 font-medium">
+                          Max. £{promo.maxDiscountAmount} off
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-3.5 h-3.5 text-green-700"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                        />
+                      </svg>
+                      <span className="text-green-700">
+                        Until {new Date(promo.endDate).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Scroll Indicator (optional) */}
+        {promotions.length > 1 && (
+          <div className="flex justify-center gap-1.5 mt-3">
+            {promotions.map((_, index) => (
+              <div
+                key={index}
+                className="w-1.5 h-1.5 rounded-full bg-green-500/30"
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   // Filter by selected restaurant if one is selected
@@ -798,6 +932,9 @@ export default function Step2MenuItems() {
                               );
                             })()}
                           </div>
+                          {restaurantPromotions[rest.restaurantId] && (
+                            <PromotionDetailsCard promotions={restaurantPromotions[rest.restaurantId]} />
+                          )}
                           {groupsForRest
                             .filter(
                               (groupName) =>
@@ -930,11 +1067,28 @@ export default function Step2MenuItems() {
                           : "border-base-300 hover:border-primary/50"
                       }`}
                     >
-                      <img
-                        src={restaurant.images[0] || "/placeholder.jpg"}
-                        alt={restaurant.restaurant_name}
-                        className="w-full aspect-[16/9]  object-cover"
-                      />
+                      <div className="relative">
+                        <img
+                          src={restaurant.images[0] || "/placeholder.jpg"}
+                          alt={restaurant.restaurant_name}
+                          className="w-full aspect-[16/9]  object-cover"
+                        />
+                        {/* COMPACT PROMOTION BANNER OVERLAY */}
+                      {restaurantPromotions[restaurant.id] && (
+                        <div className="absolute top-2 left-2 right-2">
+                          <div className="bg-green-500 text-white px-3 py-1.5 rounded-lg shadow-lg flex items-center justify-center gap-1.5 backdrop-blur-sm bg-opacity-95">
+                            <span className="font-bold text-sm">
+                              {restaurantPromotions[restaurant.id][0].discountPercentage}% OFF
+                            </span>
+                            {restaurantPromotions[restaurant.id][0].minOrderAmount > 0 && (
+                              <span className="text-xs">
+                                (£{restaurantPromotions[restaurant.id][0].minOrderAmount}+ orders)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      </div>
                       <div className="p-2 md:p-3 bg-base-100">
                         <div className="flex items-center justify-between gap-2">
                           <h4 className="font-semibold text-md md:text-sm text-base-content truncate">
@@ -1022,6 +1176,7 @@ export default function Step2MenuItems() {
                             {restaurant.averageRating}
                           </span>
                         </div>
+                        
 
                         {restaurant.minCateringOrderQuantity &&
                           restaurant.minCateringOrderQuantity > 1 && (
@@ -1066,255 +1221,212 @@ export default function Step2MenuItems() {
           )}
 
           {/* Cart Sidebar - Desktop */}
-          <div
-            className="hidden lg:block lg:w-[25%] sticky top-32 items-center justify-center"
-            style={{ maxHeight: "calc(100vh - 10rem)" }}
-          >
-            <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
-              {selectedRestaurantId && (
-                <button
-                  className="w-full mb-4 px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-                  onClick={() => {
-                    setSelectedRestaurantId(null);
-                    setSearchQuery("");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  ← Back to All Restaurants
-                </button>
-              )}
-              <h3 className="text-xl font-bold text-base-content mb-6">
-                Your List
-              </h3>
-             
+          {/* Cart Sidebar - Desktop */}
+<div
+  className="hidden lg:block lg:w-[25%] sticky top-4"
+  style={{ maxHeight: "calc(100vh - 2rem)" }}
+>
+  <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
+    {selectedRestaurantId && (
+      <button
+        className="w-full mb-4 px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
+        onClick={() => {
+          setSelectedRestaurantId(null);
+          setSearchQuery("");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      >
+        ← Back to All Restaurants
+      </button>
+    )}
+    
+    <h3 className="text-xl font-bold text-base-content mb-4">
+      Your List
+    </h3>
 
-              {selectedItems.length === 0 ? (
-                <p className="text-base-content/50 text-center py-8">
-                  No items selected yet
+    {selectedItems.length === 0 ? (
+      <p className="text-base-content/50 text-center py-8">
+        No items selected yet
+      </p>
+    ) : (
+      <>
+        {/* Minimum Order Warnings - Compact */}
+        {(() => {
+          const warnings = getMinimumOrderWarnings();
+          return warnings.length > 0 ? (
+            <div className="mb-3 p-2 bg-warning/10 border border-warning/30 rounded-lg flex-shrink-0">
+              <p className="text-xs font-semibold text-base-content mb-1">
+                ⚠️ Minimum Order Requirements
+              </p>
+              {warnings.map((warning, index) => (
+                <p key={index} className="text-xs text-base-content leading-tight">
+                  {warning}
                 </p>
-              ) : (
-                // <></>
-                <>
-                  <div className="space-y-4 mb-6 flex-1 overflow-y-auto">
-                    {(() => {
-                      const warnings = getMinimumOrderWarnings();
-                      return warnings.length > 0 ? (
-                        <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-xl">
-                          <p className="text-md font-semibold text-base-content mb-2">
-                            ⚠️ Minimum Order Requirements
-                          </p>
-                          {warnings.map((warning, index) => (
-                            <p key={index} className="text-md text-base-content">
-                              {warning}
-                            </p>
-                          ))}
-                        </div>
-                      ) : null;
-                    })()}
-                    {selectedItems.map(({ item, quantity }, index) => {
-                      const BACKEND_QUANTITY_UNIT =
-                        item.cateringQuantityUnit || 7;
-                      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                      const price = parseFloat(item.price?.toString() || "0");
-                      const discountPrice = parseFloat(
-                        item.discountPrice?.toString() || "0"
-                      );
-                      const itemPrice =
-                        item.isDiscount && discountPrice > 0
-                          ? discountPrice
-                          : price;
-                      const addonPrice =
-                        DISPLAY_FEEDS_PER_UNIT * (item.addonPrice || 0);
-                      const subtotal = itemPrice * quantity + addonPrice;
+              ))}
+            </div>
+          ) : null;
+        })()}
 
-                      const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-                      const displayQuantity = numUnits;
+        {/* SCROLLABLE ITEMS SECTION */}
+        <div className="flex-1 overflow-y-auto mb-3 space-y-3 pr-2">
+          {selectedItems.map(({ item, quantity }, index) => {
+            const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+            const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+            const price = parseFloat(item.price?.toString() || "0");
+            const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+            const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+            
+            // FIXED: Calculate addon price correctly
+            const addonPricePerPortion = (item.selectedAddons || []).reduce(
+              (addonTotal, { price, quantity }) => {
+                return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+              },
+              0
+            );
+            
+            const numPortions = quantity / BACKEND_QUANTITY_UNIT;
+            const totalAddonPrice = addonPricePerPortion * numPortions;
+            const lineTotal = (itemPrice * quantity) + totalAddonPrice;
+            const displayQuantity = numPortions;
 
-                      return (
-                        <div
-                          key={index}
-                          className={`flex gap-3 pb-4${
-                            index !== selectedItems.length - 1
-                              ? " border-b border-base-300"
-                              : ""
-                          }`}
-                        >
-                          {item.image && (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-16 h-16 object-cover rounded-lg"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-sm text-base-content mb-1">
-                              {item.name}
-                            </h4>
-                            {item.selectedAddons &&
-                              item.selectedAddons.length > 0 && (
-                                <div className="text-xs text-base-content/60 mb-1 flex flex-col gap-1">
-                                  {/* Group addons by groupTitle */}
-                                  {(() => {
-                                    const grouped = item.selectedAddons.reduce(
-                                      (acc, addon) => {
-                                        if (!acc[addon.groupTitle])
-                                          acc[addon.groupTitle] = [];
-                                        acc[addon.groupTitle].push(addon);
-                                        return acc;
-                                      },
-                                      {} as Record<
-                                        string,
-                                        typeof item.selectedAddons
-                                      >
-                                    );
-                                    return Object.entries(grouped).map(
-                                      ([groupTitle, addons]) => (
-                                        <div key={groupTitle} className="mb-1">
-                                          <span className="font-semibold text-base-content/80 block mb-0.5">
-                                            {groupTitle}
-                                          </span>
-                                          <span className="flex flex-col">
-                                            {addons.map((addon, idx) => (
-                                              <span key={idx}>
-                                                + {addon.name}
-                                                {addon.quantity > 1 &&
-                                                  ` (×${addon.quantity})`}
-                                                {/* {idx < addons.length - 1
-                                                  ? ", "
-                                                  : ""} */}
-                                              </span>
-                                            ))}
-                                          </span>
-                                        </div>
-                                      )
-                                    );
-                                  })()}
-                                </div>
-                              )}
-                            <p className="text-xl font-bold text-primary mb-2">
-                              £{subtotal.toFixed(2)}
-                            </p>
-
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {/* <button
-                                  onClick={() =>
-                                    updateItemQuantity(
-                                      item.id,
-                                      Math.max(
-                                        0,
-                                        quantity - BACKEND_QUANTITY_UNIT
-                                      )
-                                    )
-                                  }
-                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
-                                >
-                                  −
-                                </button> */}
-                                <span className="text-sm font-medium text-base-content">
-                                  {displayQuantity} portion
-                                </span>
-                                {/* <button
-                                  onClick={() =>
-                                    updateItemQuantity(
-                                      item.id,
-                                      quantity + BACKEND_QUANTITY_UNIT
-                                    )
-                                  }
-                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
-                                >
-                                  +
-                                </button> */}
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <button
-                                  onClick={() => handleEditItem(index)}
-                                  className="text-primary hover:opacity-80 text-xs"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => removeMenuItemByIndex(index)}
-                                  className="text-error hover:opacity-80 text-xs"
-                                >
-                                  Remove
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="space-y-2 border-t border-base-300 pt-4 mb-6 flex-shrink-0">
-                    <div className="flex justify-end text-sm text-base-content/70">
-                      {/* <span>Items ({selectedItems.length})</span> */}
-                      <span>
-                        Feeds up to{" "}
-                        {selectedItems.reduce((sum, { item, quantity }) => {
-                          const BACKEND_QUANTITY_UNIT =
-                            item.cateringQuantityUnit || 7;
-                          const DISPLAY_FEEDS_PER_UNIT =
-                            item.feedsPerUnit || 10;
-                          return (
-                            sum +
-                            (quantity / BACKEND_QUANTITY_UNIT) *
-                              DISPLAY_FEEDS_PER_UNIT
-                          );
-                        }, 0)}{" "}
-                        people
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold text-base-content">
-                      <span>Total:</span>
-                      <span>
-                        £{totalPrice.toFixed(2)}
-                        {/* {selectedItems
-                          .reduce((sum, { item, quantity }) => {
-                            const price = parseFloat(
-                              item.price?.toString() || "0"
-                            );
-                            const discountPrice = parseFloat(
-                              item.discountPrice?.toString() || "0"
-                            );
-                            const itemPrice =
-                              item.isDiscount && discountPrice > 0
-                                ? discountPrice
-                                : price;
-                            const addonPrice = item.addonPrice || 0;
-                            return sum + itemPrice * quantity + addonPrice;
-                          }, 0)
-                          .toFixed(2)} */}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-md transition-all disabled:bg-base-300 disabled:cursor-not-allowed flex-shrink-0"
-                    onClick={() => {
-                      const warnings = getMinimumOrderWarnings();
-                      if (warnings.length > 0) {
-                        alert(
-                          `Please meet minimum order requirements:\n\n${warnings.join(
-                            "\n"
-                          )}`
+            return (
+              <div
+                key={index}
+                className="flex gap-2 p-2 bg-base-200/30 rounded-lg"
+              >
+                {item.image && (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-xs text-base-content mb-0.5 truncate">
+                    {item.name}
+                  </h4>
+                  
+                  {/* Addons - Compact */}
+                  {item.selectedAddons && item.selectedAddons.length > 0 && (
+                    <div className="text-[10px] text-base-content/60 mb-1">
+                      {(() => {
+                        const grouped = item.selectedAddons.reduce(
+                          (acc, addon) => {
+                            if (!acc[addon.groupTitle]) acc[addon.groupTitle] = [];
+                            acc[addon.groupTitle].push(addon);
+                            return acc;
+                          },
+                          {} as Record<string, typeof item.selectedAddons>
                         );
-                        return;
-                      }
-                      setCurrentStep(2);
-                    }}
-                    disabled={
-                      selectedItems.length === 0 ||
-                      getMinimumOrderWarnings().length > 0
-                    }
-                  >
-                    Continue to Event Details
-                  </button>
-                </>
-              )}
+                        return Object.entries(grouped).map(([groupTitle, addons]) => (
+                          <div key={groupTitle} className="leading-tight">
+                            <span className="font-semibold">{groupTitle}: </span>
+                            {addons.map((addon, idx) => (
+                              <span key={idx}>
+                                {addon.name}
+                                {addon.quantity > 1 && ` ×${addon.quantity}`}
+                                {idx < addons.length - 1 ? ", " : ""}
+                              </span>
+                            ))}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
+                  
+                  {/* Price and Quantity */}
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold text-primary">
+                      £{lineTotal.toFixed(2)}
+                    </span>
+                    <span className="text-xs text-base-content/60">
+                      {displayQuantity} portion{displayQuantity !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  {/* Action Buttons - Compact */}
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => handleEditItem(index)}
+                      className="flex-1 px-2 py-1 text-primary hover:bg-primary/10 rounded text-[10px] font-semibold transition-colors border border-primary/20"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => removeMenuItemByIndex(index)}
+                      className="flex-1 px-2 py-1 text-error hover:bg-error/10 rounded text-[10px] font-semibold transition-colors border border-error/20"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* COMPACT FOOTER SECTION - Fixed at bottom */}
+        <div className="flex-shrink-0 border-t border-base-300 pt-3 space-y-2">
+          {/* Summary Info */}
+          <div className="text-xs text-base-content/70 text-right">
+            Feeds up to{" "}
+            {selectedItems.reduce((sum, { item, quantity }) => {
+              const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+              const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+              return sum + (quantity / BACKEND_QUANTITY_UNIT) * DISPLAY_FEEDS_PER_UNIT;
+            }, 0)}{" "}
+            people
+          </div>
+
+          {/* Pricing - Compact */}
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between text-base-content/70">
+              <span>Subtotal</span>
+              <span>£{subtotalBeforeDiscount.toFixed(2)}</span>
+            </div>
+            
+            {promotionDiscount > 0 && (
+              <div className="flex justify-between text-green-600 font-semibold">
+                <span>Promotion</span>
+                <span>-£{promotionDiscount.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between font-bold text-base-content pt-1 border-t border-base-300">
+              <span>Total:</span>
+              <div className="text-right">
+                {promotionDiscount > 0 && (
+                  <div className="text-xs text-base-content/50 line-through">
+                    £{subtotalBeforeDiscount.toFixed(2)}
+                  </div>
+                )}
+                <div className={promotionDiscount > 0 ? "text-green-600" : ""}>
+                  £{finalTotal.toFixed(2)}
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Continue Button */}
+          <button
+            className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-bold text-sm transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
+            onClick={() => {
+              const warnings = getMinimumOrderWarnings();
+              if (warnings.length > 0) {
+                alert(`Please meet minimum order requirements:\n\n${warnings.join("\n")}`);
+                return;
+              }
+              setCurrentStep(2);
+            }}
+            disabled={selectedItems.length === 0 || getMinimumOrderWarnings().length > 0}
+          >
+            Continue to Event Details
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+</div>
         </div>
       </div>
 
@@ -1402,143 +1514,111 @@ export default function Step2MenuItems() {
               ) : (
                 <div className="space-y-4">
                   {selectedItems.map(({ item, quantity }, index) => {
-                    const price = parseFloat(item.price?.toString() || "0");
-                    const discountPrice = parseFloat(
-                      item.discountPrice?.toString() || "0"
-                    );
-                    const itemPrice =
-                      item.isDiscount && discountPrice > 0
-                        ? discountPrice
-                        : price;
-                    const addonPrice = item.addonPrice || 0;
-                    const subtotal = itemPrice * quantity + addonPrice;
+  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+  const price = parseFloat(item.price?.toString() || "0");
+  const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+  const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+  
+  // FIXED: Calculate addon price correctly per portion, then multiply by number of portions
+  const addonPricePerPortion = (item.selectedAddons || []).reduce(
+    (addonTotal, { price, quantity }) => {
+      return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+    },
+    0
+  );
+  
+  const numPortions = quantity / BACKEND_QUANTITY_UNIT;
+  const totalAddonPrice = addonPricePerPortion * numPortions;
+  
+  // CORRECT CALCULATION: Item price + addon price for all portions
+  const lineTotal = (itemPrice * quantity) + totalAddonPrice;
+  
+  const displayQuantity = numPortions;
 
-                    // USE ITEM'S OWN VALUES:
-                    const BACKEND_QUANTITY_UNIT =
-                      item.cateringQuantityUnit || 7;
+  return (
+    <div
+      key={index}
+      className={`flex gap-3 pb-4${
+        index !== selectedItems.length - 1
+          ? " border-b border-base-300"
+          : ""
+      }`}
+    >
+      {item.image && (
+        <img
+          src={item.image}
+          alt={item.name}
+          className="w-16 h-16 object-cover rounded-lg"
+        />
+      )}
+      <div className="flex-1">
+        <h4 className="font-semibold text-sm text-base-content mb-1">
+          {item.name}
+        </h4>
+        {item.selectedAddons && item.selectedAddons.length > 0 && (
+          <div className="text-xs text-base-content/60 mb-1 flex flex-col gap-1">
+            {(() => {
+              const grouped = item.selectedAddons.reduce(
+                (acc, addon) => {
+                  if (!acc[addon.groupTitle])
+                    acc[addon.groupTitle] = [];
+                  acc[addon.groupTitle].push(addon);
+                  return acc;
+                },
+                {} as Record<string, typeof item.selectedAddons>
+              );
+              return Object.entries(grouped).map(
+                ([groupTitle, addons]) => (
+                  <div key={groupTitle} className="mb-1">
+                    <span className="font-semibold text-base-content/80 block mb-0.5">
+                      {groupTitle}
+                    </span>
+                    <span className="flex flex-col">
+                      {addons.map((addon, idx) => (
+                        <span key={idx}>
+                          + {addon.name}
+                          {addon.quantity > 1 && ` (×${addon.quantity})`}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                )
+              );
+            })()}
+          </div>
+        )}
+        
+        {/* FIXED PRICE DISPLAY */}
+        <p className="text-xl font-bold text-primary mb-2">
+          £{lineTotal.toFixed(2)}
+        </p>
 
-                    const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-
-                    const displayQuantity = numUnits;
-
-                    return (
-                      <div
-                        key={index}
-                        className={`flex gap-3 pb-4${
-                          index !== selectedItems.length - 1
-                            ? " border-b border-base-300"
-                            : ""
-                        }`}
-                      >
-                        {item.image && (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-sm text-base-content mb-1">
-                            {item.name}
-                          </h4>
-                          {item.selectedAddons &&
-                            item.selectedAddons.length > 0 && (
-                              <div className="text-xs text-base-content/60 mb-1 flex flex-col gap-1">
-                                {/* Group addons by groupTitle */}
-                                {(() => {
-                                  const grouped = item.selectedAddons.reduce(
-                                    (acc, addon) => {
-                                      if (!acc[addon.groupTitle])
-                                        acc[addon.groupTitle] = [];
-                                      acc[addon.groupTitle].push(addon);
-                                      return acc;
-                                    },
-                                    {} as Record<
-                                      string,
-                                      typeof item.selectedAddons
-                                    >
-                                  );
-                                  return Object.entries(grouped).map(
-                                    ([groupTitle, addons]) => (
-                                      <div key={groupTitle} className="mb-1">
-                                        <span className="font-semibold text-base-content/80 block mb-0.5">
-                                          {groupTitle}
-                                        </span>
-                                        <span>
-                                          {addons.map((addon, idx) => (
-                                            <span key={idx}>
-                                              + {addon.name}
-                                              {addon.quantity > 1 &&
-                                                ` (×${addon.quantity})`}
-                                              {idx < addons.length - 1
-                                                ? ", "
-                                                : ""}
-                                            </span>
-                                          ))}
-                                        </span>
-                                      </div>
-                                    )
-                                  );
-                                })()}
-                              </div>
-                            )}
-                          <p className="text-lg font-bold text-primary mb-2">
-                            £{subtotal.toFixed(2)}
-                          </p>
-
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {/* <button
-                                  onClick={() =>
-                                    updateItemQuantity(
-                                      item.id,
-                                      Math.max(
-                                        0,
-                                        quantity - BACKEND_QUANTITY_UNIT
-                                      )
-                                    )
-                                  }
-                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
-                                >
-                                  −
-                                </button> */}
-                              <p className="text-xs text-base-content/60 mt-1">
-                                {displayQuantity} portion
-                              </p>
-                              {/* <button
-                                  onClick={() =>
-                                    updateItemQuantity(
-                                      item.id,
-                                      quantity + BACKEND_QUANTITY_UNIT
-                                    )
-                                  }
-                                  className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
-                                >
-                                  +
-                                </button> */}
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <button
-                                onClick={() => {
-                                  handleEditItem(index);
-                                  setShowCartMobile(false);
-                                }}
-                                className="text-primary hover:opacity-80 text-sm"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => removeMenuItemByIndex(index)}
-                                className="text-error hover:opacity-80 text-sm"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-base-content">
+              {displayQuantity} portion{displayQuantity !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex flex-row gap-2">
+            <button
+              onClick={() => handleEditItem(index)}
+              className="px-3 py-1 text-primary hover:bg-primary/10 rounded-lg text-xs font-medium transition-colors border border-primary/20"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => removeMenuItemByIndex(index)}
+              className="px-3 py-1 text-error hover:bg-error/10 rounded-lg text-xs font-medium transition-colors border border-error/20"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+})}
                 </div>
               )}
             </div>

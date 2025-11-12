@@ -6,7 +6,6 @@ import { useState, FormEvent, useEffect, useRef } from "react";
 import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
-import { PaymentMethodSelector } from "../PaymentMethodSelector";
 
 interface ValidationErrors {
   organization?: string;
@@ -23,8 +22,7 @@ interface ValidationErrors {
 }
 
 export default function Step3ContactInfo() {
-  // const BACKEND_QUANTITY_UNIT = 7;
-  // const DISPLAY_FEEDS_PER_UNIT = 10;
+
   const {
     contactInfo,
     setContactInfo,
@@ -35,9 +33,9 @@ export default function Step3ContactInfo() {
     resetOrder,
     markOrderAsSubmitted,
     corporateUser,
+    subtotalBeforeDiscount,
+    promotionDiscount,
   } = useCatering();
-  console.log("contact info", JSON.stringify(contactInfo));
-  console.log("event info", JSON.stringify(eventDetails));
 
   const [formData, setFormData] = useState<ContactInfo>({
     organization: contactInfo?.organization || "",
@@ -69,7 +67,7 @@ export default function Step3ContactInfo() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [corporateUserId, setCorporateUserId] = useState<string>("");
   const [organizationId, setOrganizationId] = useState<string>("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+  const [, setSelectedPaymentMethod] = useState<
     "wallet" | "card" | null
   >(null);
 
@@ -289,23 +287,6 @@ export default function Step3ContactInfo() {
     }
   };
 
-  const handleWalletPayment = async () => {
-    console.log("Wallet payment clicked");
-    console.log("Organization ID:", organizationId);
-    console.log("Corporate User ID:", corporateUserId);
-    console.log("Amount:", pricing?.total);
-
-    if (!organizationId || !corporateUserId) {
-      alert("Missing organization or user information");
-      return;
-    }
-
-    await submitOrder({ useOrganizationWallet: true });
-  };
-
-  const handleCardPaymentComplete = async (paymentMethodId: string, paymentIntentId: string) => {
-    await submitOrder({ paymentMethodId, paymentIntentId });
-  };
 
   const calculatePricing = async () => {
     setCalculatingPricing(true);
@@ -395,13 +376,7 @@ export default function Step3ContactInfo() {
         promoCodes
       );
 
-      // ADD THESE LOGS
-      console.log("=== PRICING RESULT ===");
-      console.log("Full pricing result:", pricingResult);
-      console.log("Promo discount value:", pricingResult.promoDiscount);
-      console.log("Promo discount type:", typeof pricingResult.promoDiscount);
-      console.log("Promo codes:", promoCodes);
-      console.log("=====================");
+    
 
       if (!pricingResult.isValid) {
         alert(pricingResult.error || "Unable to calculate pricing");
@@ -808,43 +783,53 @@ export default function Step3ContactInfo() {
               })}
             </div>
 
-            {pricing && (
-              <div className="space-y-2 pt-4 border-t border-base-300">
-                <div className="flex justify-between text-base-content/70">
-                  <span>Subtotal</span>
-                  <span>£{pricing.subtotal.toFixed(2)}</span>
-                </div>
-                {/* <div className="flex justify-between text-base-content/70">
-                  <span>Service Charge</span>
-                  <span>£{pricing.serviceCharge.toFixed(2)}</span>
-                </div> */}
-                <div className="flex justify-between text-base-content/70">
-                  <span> Delivery Cost</span>
-                  <span>£{pricing.deliveryFee.toFixed(2)}</span>
-                </div>
+            // Step3ContactInfo.tsx - Update the pricing display
 
-                {(pricing.promoDiscount ?? 0) > 0 && (
-                  <div className="flex justify-between text-success font-medium">
-                    <span>Promo Discount</span>
-                    <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-xl font-bold text-base-content pt-2 border-t border-base-300">
-                  <span>Total</span>
-                  <div className="text-right">
-                    <p className="">£{pricing.total.toFixed(2)}</p>
-                    {(pricing.promoDiscount ?? 0) > 0 && (
-                      <p className="text-sm line-through text-base-content/50">
-                        £
-                        {(pricing.total + (pricing.promoDiscount ?? 0)).toFixed(
-                          2
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+{pricing && (
+  <div className="space-y-2 pt-4 border-t border-base-300">
+    {/* Subtotal */}
+    <div className="flex justify-between text-sm text-base-content/70">
+      <span>Subtotal</span>
+      <span>£{pricing.subtotal.toFixed(2)}</span>
+    </div>
+    
+    {/* Restaurant Promotion Discount - FROM BACKEND */}
+    {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
+      <div className="flex justify-between text-sm text-green-600 font-semibold">
+        <span>Restaurant Promotion</span>
+        <span>-£{pricing.restaurantPromotionDiscount!.toFixed(2)}</span>
+      </div>
+    )}
+    
+    {/* Delivery fee */}
+    <div className="flex justify-between text-sm text-base-content/70">
+      <span>Delivery Cost</span>
+      <span>£{pricing.deliveryFee.toFixed(2)}</span>
+    </div>
+    
+    {/* Promo code discount */}
+    {(pricing.promoDiscount ?? 0) > 0 && (
+      <div className="flex justify-between text-sm text-success font-medium">
+        <span>Promo Code Discount</span>
+        <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
+      </div>
+    )}
+    
+    {/* Total - Now correct from backend */}
+    <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
+      <span>Total</span>
+      <div className="text-right">
+        <p className="">£{pricing.total.toFixed(2)}</p>
+        {(pricing.totalDiscount ?? 0) > 0 && (
+          <p className="text-xs line-through text-base-content/50">
+            £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
+          </p>
+        )}
+      </div>
+    </div>
+
+  </div>
+)}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1294,31 +1279,42 @@ export default function Step3ContactInfo() {
 
               {pricing && (
                 <div className="space-y-2 pt-4 border-t border-base-300">
+                  {/* Show subtotal before promotion */}
                   <div className="flex justify-between text-sm text-base-content/70">
                     <span>Subtotal</span>
-                    <span>£{pricing.subtotal.toFixed(2)}</span>
+                    <span>£{subtotalBeforeDiscount.toFixed(2)}</span>
                   </div>
-                  {/* <div className="flex justify-between text-sm text-base-content/70">
-                    <span>Service Charge</span>
-                    <span>£{pricing.serviceCharge.toFixed(2)}</span>
-                  </div> */}
+                  
+                  {/* Show promotion discount if active */}
+                  {promotionDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600 font-semibold">
+                      <span>Restaurant Promotion</span>
+                      <span>-£{promotionDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
+                  {/* Delivery fee */}
                   <div className="flex justify-between text-sm text-base-content/70">
                     <span>Delivery Cost</span>
                     <span>£{pricing.deliveryFee.toFixed(2)}</span>
                   </div>
+                  
+                  {/* Promo code discount */}
                   {(pricing.promoDiscount ?? 0) > 0 && (
                     <div className="flex justify-between text-sm text-success font-medium">
-                      <span>Promo Discount</span>
+                      <span>Promo Code Discount</span>
                       <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
                     </div>
                   )}
+                  
+                  {/* Total */}
                   <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
                     <span>Total</span>
                     <div className="text-right">
                       <p className="">£{pricing.total.toFixed(2)}</p>
-                      {(pricing.promoDiscount ?? 0) > 0 && (
+                      {(promotionDiscount > 0 || (pricing.promoDiscount ?? 0) > 0) && (
                         <p className="text-xs line-through text-base-content/50">
-                          £{(pricing.total + pricing.promoDiscount!).toFixed(2)}
+                          £{(subtotalBeforeDiscount + pricing.deliveryFee).toFixed(2)}
                         </p>
                       )}
                     </div>
@@ -1412,154 +1408,22 @@ export default function Step3ContactInfo() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
-                <div className="bg-base-200/50 rounded-xl p-4 border border-base-300">
-                  <p className="text-sm text-base-content/70 mb-2">
-                    Order Total
-                  </p>
-                  <p className="text-2xl font-bold text-primary">
-                    £{pricing?.total.toFixed(2)}
-                  </p>
+              <div className="bg-base-200/50 rounded-xl p-4 border border-base-300">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-base-content/70">Order Total</p>
+                  {(pricing?.totalDiscount ?? 0) > 0 && (
+                    <p className="text-xs text-green-600 font-semibold">
+                      Saved £{pricing!.totalDiscount!.toFixed(2)}
+                    </p>
+                  )}
                 </div>
-
-                {/* Payment Method Selection */}
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setSelectedPaymentMethod("wallet")}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedPaymentMethod === "wallet"
-                        ? "border-primary bg-primary/10"
-                        : "border-base-300 hover:border-base-content/20"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-                          <svg
-                            className="w-6 h-6 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-base-content">
-                            Organization Wallet
-                          </p>
-                          <p className="text-sm text-base-content/60">
-                            Pay from your organization balance
-                          </p>
-                        </div>
-                      </div>
-                      {selectedPaymentMethod === "wallet" && (
-                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedPaymentMethod("card")}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedPaymentMethod === "card"
-                        ? "border-primary bg-primary/10"
-                        : "border-base-300 hover:border-base-content/20"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
-                          <svg
-                            className="w-6 h-6 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-base-content">
-                            Credit/Debit Card
-                          </p>
-                          <p className="text-sm text-base-content/60">
-                            Pay securely with Stripe
-                          </p>
-                        </div>
-                      </div>
-                      {selectedPaymentMethod === "card" && (
-                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                </div>
-
-                {/* ONLY show PaymentMethodSelector for CARD payment */}
-                {selectedPaymentMethod === "card" && (
-                  <PaymentMethodSelector
-                    organizationId={organizationId}
-                    managerId={corporateUserId}
-                    amount={pricing?.total || 0}
-                    onPaymentComplete={handleCardPaymentComplete}
-                    onCancel={() => setShowPaymentModal(false)}
-                  />
-                )}
-
-                {/* Wallet Confirm Button - NO Stripe needed */}
-                {selectedPaymentMethod === "wallet" && (
-                  <button
-                    onClick={handleWalletPayment}
-                    disabled={submitting}
-                    className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                        Processing Payment...
-                      </>
-                    ) : (
-                      `Pay £${pricing?.total.toFixed(2)} from Wallet`
-                    )}
-                  </button>
+                <p className="text-2xl font-bold text-primary">
+                  £{pricing?.total.toFixed(2)}
+                </p>
+                {(pricing?.totalDiscount ?? 0) > 0 && (
+                  <p className="text-sm text-base-content/50 line-through mt-1">
+                    £{(pricing!.subtotal + pricing!.deliveryFee).toFixed(2)}
+                  </p>
                 )}
               </div>
             </div>

@@ -247,6 +247,8 @@ export interface CateringPricingResult {
   isValid: boolean;
   subtotal: number;
   deliveryFee: number;
+  restaurantPromotionDiscount?: number; // NEW: Restaurant promotion discount
+  totalDiscount?: number; // NEW: Combined discount
   promoDiscount?: number;
   total: number;
   error?: string;
