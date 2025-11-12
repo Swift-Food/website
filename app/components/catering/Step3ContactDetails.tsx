@@ -783,8 +783,6 @@ export default function Step3ContactInfo() {
               })}
             </div>
 
-            // Step3ContactInfo.tsx - Update the pricing display
-
 {pricing && (
   <div className="space-y-2 pt-4 border-t border-base-300">
     {/* Subtotal */}
