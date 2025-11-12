@@ -45,7 +45,6 @@ const NewMenuItemPage = () => {
   const [isDiscount, setIsDiscount] = useState(false);
   const [prepTime, setPrepTime] = useState(15);
   const [image, setImage] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isAvailable, setIsAvailable] = useState(true);
   const [status, setStatus] = useState<MenuItemStatus>(MenuItemStatus.ACTIVE);
@@ -289,7 +288,6 @@ const NewMenuItemPage = () => {
 
       // Store the uploaded image URL
       setImage(imageUrl);
-      setImageFile(file);
 
       console.log("Image uploaded successfully:", imageUrl);
 
@@ -306,7 +304,6 @@ const NewMenuItemPage = () => {
       setError(err.message || "Failed to upload image");
       // Clear preview on error
       setImagePreview("");
-      setImageFile(null);
     } finally {
       setUploadingImage(false);
     }
@@ -314,7 +311,6 @@ const NewMenuItemPage = () => {
 
   const handleRemoveImage = () => {
     setImage("");
-    setImageFile(null);
     setImagePreview("");
   };
 
