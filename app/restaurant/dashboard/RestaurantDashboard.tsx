@@ -204,6 +204,38 @@ const handleProcessRefund = async (
             </a>
           </div>
 
+          <div>
+            <a
+              href={`/restaurant/promotions/${restaurantId}`}
+              className="block h-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg p-4 transition-all hover:shadow-lg"
+            >
+              <div className="flex items-center justify-between h-full">
+                <div>
+                  <h3 className="text-lg font-bold mb-1">Promotions</h3>
+                  <p className="text-sm text-white/90">
+                    Create and manage discounts and special offers
+                  </p>
+                </div>
+                <div className="bg-white/20 rounded-full p-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </a>
+          </div>
+
           <PaymentAccountSelector
             paymentAccounts={restaurantUser?.paymentAccounts}
             selectedAccountId={selectedAccountId}
@@ -356,6 +388,38 @@ const handleProcessRefund = async (
             </button>
           </div>
         </div>
+
+        <div>
+            <a
+              href={`/restaurant/promotions/${restaurantId}`}
+              className="block h-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg p-4 mb-4 transition-all hover:shadow-lg"
+            >
+              <div className="flex items-center justify-between h-full">
+                <div>
+                  <h3 className="text-lg font-bold mb-1">Promotions</h3>
+                  <p className="text-sm text-white/90">
+                    Create and manage discounts and special offers
+                  </p>
+                </div>
+                <div className="bg-white/20 rounded-full p-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </a>
+          </div>
         {/* Payment Account Selector */}
         <PaymentAccountSelector
           paymentAccounts={restaurantUser?.paymentAccounts}
