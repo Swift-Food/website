@@ -32,6 +32,7 @@ const NewMenuItemPage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Categories
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -44,7 +45,6 @@ const NewMenuItemPage = () => {
   const [isDiscount, setIsDiscount] = useState(false);
   const [prepTime, setPrepTime] = useState(15);
   const [image, setImage] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isAvailable, setIsAvailable] = useState(true);
   const [status, setStatus] = useState<MenuItemStatus>(MenuItemStatus.ACTIVE);
@@ -185,21 +185,132 @@ const NewMenuItemPage = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
+    if (!file) {
+      console.log("No file selected");
+      return;
+    }
+
+    console.log("File selected:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeInMB: (file.size / 1024 / 1024).toFixed(2) + "MB",
+    });
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      const errorMsg = "Please upload an image file";
+      console.error("Invalid file type:", file.type);
+      setError(errorMsg);
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      const errorMsg = "Image size should be less than 5MB";
+      console.error("File too large:", file.size, "bytes");
+      setError(errorMsg);
+      return;
+    }
+
+    setUploadingImage(true);
+    setError("");
+
+    try {
+      // Create preview for UI
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Create FormData for file upload
+      const formDataUpload = new FormData();
+
+      // IMPORTANT: Field name must be "upload" (singular) as per backend service configuration
+      formDataUpload.append("upload", file);
+
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+      const uploadUrl = `${API_BASE_URL}/image-upload`;
+
+      console.log("=== IMAGE UPLOAD DEBUG ===");
+      console.log("API_BASE_URL:", API_BASE_URL);
+      console.log("Upload URL:", uploadUrl);
+      console.log("File details:", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified,
+      });
+      console.log("FormData field name: 'upload'");
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      console.log("=== RESPONSE DEBUG ===");
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
+      // Get response text
+      const responseText = await response.text();
+      console.log("Response text (raw):", responseText);
+
+      if (!response.ok) {
+        console.error("=== UPLOAD FAILED ===");
+        console.error("Status:", response.status, response.statusText);
+        console.error("Response body:", responseText);
+        throw new Error(`Failed to upload image: ${response.status} - ${responseText}`);
+      }
+
+      // The backend returns the image URL as a plain JSON string (e.g., "https://...")
+      // We need to parse it to remove the quotes
+      let imageUrl: string;
+      try {
+        imageUrl = JSON.parse(responseText);
+        console.log("=== SUCCESS ===");
+        console.log("Image URL:", imageUrl);
+      } catch (parseError) {
+        console.error("=== PARSE ERROR ===");
+        console.error("Failed to parse response:", parseError);
+        console.error("Response text:", responseText);
+        throw new Error("Invalid response format from server");
+      }
+
+      if (!imageUrl || typeof imageUrl !== 'string') {
+        console.error("=== INVALID URL ===");
+        console.error("Parsed value:", imageUrl);
+        throw new Error("No valid image URL returned from server");
+      }
+
+      // Store the uploaded image URL
+      setImage(imageUrl);
+
+      console.log("Image uploaded successfully:", imageUrl);
+
+      setSuccess("Image uploaded successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+
+      // Clear the file input
+      e.target.value = "";
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      console.error("Error name:", err.name);
+      console.error("Error message:", err.message);
+      console.error("Error stack:", err.stack);
+      setError(err.message || "Failed to upload image");
+      // Clear preview on error
+      setImagePreview("");
+    } finally {
+      setUploadingImage(false);
     }
   };
 
   const handleRemoveImage = () => {
     setImage("");
-    setImageFile(null);
     setImagePreview("");
   };
 
@@ -272,13 +383,8 @@ const NewMenuItemPage = () => {
         throw new Error("Please fill in all required fields");
       }
 
-      // Handle image upload if there's a new file
-      let imageUrl = image;
-      if (imageFile) {
-        // In a real implementation, you would upload the image to cloud storage
-        // For now, we'll use the data URL
-        imageUrl = imagePreview;
-      }
+      // Use the uploaded image URL (already uploaded via handleImageChange)
+      const imageUrl = image || "";
 
       const createData: CreateMenuItemDto = {
         restaurantId,
@@ -505,16 +611,33 @@ const NewMenuItemPage = () => {
                   </button>
                 </div>
               )}
-              <label className="cursor-pointer inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
-                <Upload size={20} />
-                Upload Image
+              <label className={`inline-flex items-center gap-2 font-medium py-2 px-4 rounded-lg transition-colors ${
+                uploadingImage
+                  ? "bg-gray-100 text-gray-700 cursor-not-allowed"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer"
+              }`}>
+                {uploadingImage ? (
+                  <>
+                    <Loader size={20} className="animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={20} />
+                    Upload Image
+                  </>
+                )}
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
                   className="hidden"
+                  disabled={uploadingImage}
                 />
               </label>
+              <p className="text-xs text-gray-500 mt-1">
+                Max 5MB (JPG, PNG, WebP)
+              </p>
             </div>
           </div>
 
@@ -800,7 +923,7 @@ const NewMenuItemPage = () => {
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploadingImage}
               className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {saving ? (

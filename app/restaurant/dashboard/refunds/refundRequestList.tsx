@@ -29,7 +29,7 @@ export const RefundRequestsList = ({ refunds, onProcessRefund }: RefundRequestsL
         status: 'approved',
         approvedAmount: refund.requestedAmount,
       });
-    } catch (error) {
+    } catch {
       alert('Failed to process refund. Please try again.');
     } finally {
       setProcessing(null);
@@ -46,7 +46,7 @@ export const RefundRequestsList = ({ refunds, onProcessRefund }: RefundRequestsL
         status: 'rejected',
         restaurantResponse: reason,
       });
-    } catch (error) {
+    } catch {
       alert('Failed to reject refund. Please try again.');
     } finally {
       setProcessing(null);
