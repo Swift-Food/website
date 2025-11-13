@@ -260,7 +260,7 @@ export default function Step3ContactInfo() {
       }
 
       setContactInfo(formData);
-
+      console.log(JSON.stringify(selectedItems))
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
