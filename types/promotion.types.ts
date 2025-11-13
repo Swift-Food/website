@@ -27,13 +27,7 @@ export const PROMOTION_TYPES: PromotionTypeInfo[] = [
     icon: "📂",
     available: true,
   },
-  {
-    type: "ITEM_SPECIFIC",
-    title: "Item-Specific Discount",
-    description: "Apply discount to selected menu items",
-    icon: "🍽️",
-    available: true,
-  },
+
   {
     type: 'BUY_MORE_SAVE_MORE',
     title: 'Buy More Save More',

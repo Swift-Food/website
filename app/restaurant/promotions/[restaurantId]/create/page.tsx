@@ -7,7 +7,7 @@ import { ArrowLeft, Loader } from "lucide-react";
 import { promotionsServices } from "@/services/promotionServices";
 import { RestaurantWideForm } from "@/app/components/restaurant-promotion/RestaurantWideForm";
 import { GroupWideForm } from "@/app/components/restaurant-promotion/GroupWideForm";
-import { ItemSpecificForm } from "@/app/components/restaurant-promotion/ItemSpecificForm";
+
 
 export default function CreatePromotionPage() {
   const params = useParams();
@@ -104,11 +104,12 @@ export default function CreatePromotionPage() {
             submitting={submitting}
           />
         )}
-
-        {/* {promotionType === "ITEM_SPECIFIC" && (
+{/* 
+        {promotionType === "ITEM_SPECIFIC" && (
           <ItemSpecificForm
             onSubmit={handleSubmit}
             onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            restaurantId={restaurantId}
             submitting={submitting}
           />
         )} */}

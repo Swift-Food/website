@@ -1,15 +1,16 @@
 "use client";
 
+import { cateringService } from "@/services/cateringServices";
 import { useState, useEffect } from "react";
-import { menuService } from "@/services/menuServices";
 
 interface ItemSpecificFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  restaurantId: string;
   submitting: boolean;
 }
 
-export function ItemSpecificForm({ onSubmit, onCancel, submitting }: ItemSpecificFormProps) {
+export function ItemSpecificForm({ onSubmit, onCancel, restaurantId, submitting }: ItemSpecificFormProps) {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
@@ -27,8 +28,8 @@ export function ItemSpecificForm({ onSubmit, onCancel, submitting }: ItemSpecifi
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
-        const menuData = await menuService.getMenu(/* restaurantId */);
-        setMenuItems(menuData.items || []);
+        const menuData = await cateringService.getRestaurantMenuItems(restaurantId)
+        setMenuItems(menuData || []);
       } catch (error) {
         console.error("Failed to fetch menu items:", error);
       }
@@ -40,7 +41,7 @@ export function ItemSpecificForm({ onSubmit, onCancel, submitting }: ItemSpecifi
     e.preventDefault();
     onSubmit({
       ...formData,
-      type: "ITEM_SPECIFIC",
+      promotionType: "ITEM_SPECIFIC",
     });
   };
 

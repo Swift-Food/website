@@ -402,7 +402,7 @@ export default function Step2MenuItems() {
     const counts = getRestaurantItemCounts();
     const warnings: string[] = [];
   
-    Object.entries(counts).forEach(([restaurantId, data]) => {
+    Object.entries(counts).forEach(([, data]) => {
      
       // Check REQUIRED sections - applies if ANY item from restaurant is ordered
       if (data.required) {
