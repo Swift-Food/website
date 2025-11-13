@@ -391,10 +391,10 @@ export default function Step1EventDetails() {
       if (!firstErrorElement) firstErrorElement = timeRef.current;
     }
 
-    if (!formData.eventType) {
-      newErrors.eventType = "Event type is required.";
-      if (!firstErrorElement) firstErrorElement = eventTypeRef.current;
-    }
+    // if (!formData.eventType) {
+    //   newErrors.eventType = "Event type is required.";
+    //   if (!firstErrorElement) firstErrorElement = eventTypeRef.current;
+    // }
 
     // Validate address fields only for guest users
     if (formData.userType === "guest") {
