@@ -18,7 +18,7 @@ function CateringSteps() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w mx-auto">
         {/* Progress Indicator (Linear Bar Design) */}
         <div className="mb-10 mr-10 ml-10 max-w mx-auto">
@@ -54,7 +54,7 @@ function CateringSteps() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm sm:p-8 max-w-none">
+        <div className="bg-base-100 rounded-lg max-w-none">
           {currentStep === 1 && <Step2MenuItems />}
           {currentStep === 2 && <Step1EventDetails />}
           {currentStep === 3 && <Step3ContactInfo />}

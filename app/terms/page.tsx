@@ -18,7 +18,7 @@ export default function TermsAndConditions() {
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-xl shadow-sm border p-8 space-y-10">
+        <div className="bg-white rounded-xl border p-8 space-y-10">
 
           {/* 1. Definitions */}
           <section>

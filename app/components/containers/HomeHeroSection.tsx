@@ -82,10 +82,10 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
             animation-delay: 0.4s;
           }
         `}</style>
-        <span className="inline-block wave-1">REAL,</span>
+        <span className="inline-block">REAL,</span>
         <br />
-        <span className="inline-block wave-2">LOCAL</span>{" "}
-        <span className="inline-block wave-3">& FAST</span>
+        <span className="inline-block">LOCAL</span>{" "}
+        <span className="inline-block">& FAST</span>
       </div>
       {/* <p
         className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
@@ -104,7 +104,7 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
       <div className="max-lg:flex max-lg:justify-center mt-5">
         <button
           onClick={handleButtonClick}
-          className="btn btn-primary rounded-full btn-sm text-white w-fit px-12 py-8 text-2xl font-bold tracking-wider border-primary hover:bg-hot-pink shadow-none transform-gpu transition-transform duration-200 ease-out hover:scale-105 active:scale-100"
+          className="btn btn-primary rounded-full btn-sm text-white w-fit px-12 py-8 text-2xl font-bold tracking-wider border-primary shadow-none transform-gpu transition-transform duration-200 ease-out hover:scale-105 active:scale-100 hover:!bg-primary hover:!text-white hover:!border-primary hover:!shadow-none hover:!brightness-100 hover:!filter-none"
         >
           ORDER NOW
         </button>

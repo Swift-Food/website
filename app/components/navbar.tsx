@@ -54,18 +54,28 @@ export default function Navbar() {
           <NavbarAction />
         </div>
         <Link href={"/"} className="cursor-pointer">
-          <div className="flex items-center gap-4 cursor-pointer h-full whitespace-nowrap">
+          <div className="flex items-center gap-4 cursor-pointer h-full whitespace-nowrap group relative">
             {/* <Image
             src="/logo.png"
             width={40}
             height={40}
             alt="swift foods logo"
           /> */}
-            <p
-              className={`font-bold text-primary text-3xl md:text-5xl cursor-pointer ${styles.montFont} whitespace-nowrap leading-none`}
-            >
-              SWIFT FOOD
-            </p>
+            <div className="relative">
+              <div
+                className={`font-bold text-primary text-3xl md:text-5xl cursor-pointer ${styles.montFont} leading-none whitespace-nowrap`}
+              >
+                <span className={styles.logoTicker}>
+                  <span className={styles.logoTrack}>
+                    <span>SWIFT FOOD</span>
+                    <span className="text-3xl text-center">
+                      REAL, LOCAL & FAST
+                    </span>
+                  </span>
+                </span>
+                <span className="sr-only">Swift Food — Real, Local & Fast</span>
+              </div>
+            </div>
           </div>
         </Link>
         <div className="visible max-md:hidden whitespace-nowrap">

@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-xl shadow-sm border p-8 space-y-8">
+        <div className="bg-white rounded-xl border p-8 space-y-8">
 
           {/* 1. Contact Details */}
           <section>

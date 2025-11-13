@@ -10,6 +10,16 @@ import {
   ContactInfo,
   CateringPricingResult,
   PromoCodeValidation,
+  UpdateDeliveryTimeDto,
+  CateringOrderDetails,
+  AddSharedAccessDto,
+  RemoveSharedAccessDto,
+  UpdatePickupContactDto,
+  UpdateSharedAccessRoleDto,
+  CreateMenuItemDto,
+  MenuItemDetails,
+  UpdateMenuItemDto,
+  MenuCategory,
 } from "@/types/catering.types";
 // import { create } from "domain";
 
@@ -60,10 +70,20 @@ class CateringService {
     selectedItems: SelectedMenuItem[],
     contactInfo: ContactInfo,
     promoCodes: string[],
-    ccEmails?: string[]
+    ccEmails?: string[],
+    paymentInfo?: {
+      corporateUserId?: string;
+      organizationId?: string;
+      useOrganizationWallet?: boolean;
+      paymentMethodId?: string;
+      paymentIntentId?: string;
+    }
   ) {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
-
+    console.log(
+      "submitted order with payment info",
+      JSON.stringify(paymentInfo)
+    );
     // Step 2: Create address
     // await this.createAddress(userId, contactInfo);
 
@@ -153,6 +173,7 @@ class CateringService {
 
     const createDto: CreateCateringOrderDto = {
       userId,
+      organization: contactInfo.organization,
       customerName: contactInfo.fullName,
       customerEmail: contactInfo.email,
       customerPhone: contactInfo.phone,
@@ -168,6 +189,11 @@ class CateringService {
       orderItems,
       estimatedTotal,
       promoCodes,
+      corporateUserId: paymentInfo?.corporateUserId,
+      organizationId: paymentInfo?.organizationId,
+      useOrganizationWallet: paymentInfo?.useOrganizationWallet,
+      paymentMethodId: paymentInfo?.paymentMethodId,
+      paymentIntentId: paymentInfo?.paymentIntentId,
     };
     console.log("catering req", JSON.stringify(createDto));
 
@@ -251,11 +277,7 @@ class CateringService {
       },
     };
 
-    console.log(
-      "Creating address for user:",
-      userId,
-      JSON.stringify(createAddressDto)
-    );
+
     const response = await fetch(`${API_BASE_URL}/address`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -311,10 +333,6 @@ class CateringService {
       promoCodes,
     };
 
-    console.log(
-      "Calculating catering pricing:",
-      JSON.stringify(pricingData, null, 2)
-    );
 
     const response = await fetch(
       `${API_BASE_URL}/pricing/catering-verify-cart`,
@@ -338,24 +356,315 @@ class CateringService {
     promoCode: string,
     orderItems: OrderItemDto[]
   ): Promise<PromoCodeValidation> {
-    const subtotal = orderItems.reduce(
-      (sum, order) => sum + order.totalPrice,
-      0
-    );
-    const firstRestaurantId = orderItems[0]?.restaurantId;
+    // Use POST request with body instead of GET with query params
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/promotions/validate-catering`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: promoCode,
+            orderItems,
+          }),
+        }
+      );
 
+      if (!response.ok) {
+        return { valid: false, reason: "Failed to validate promo code" };
+      }
+
+      return response.json();
+    } catch (err) {
+      console.error("Promo validation error:", err);
+      return {
+        valid: false,
+        reason: "Network error while validating promo code",
+      };
+    }
+  }
+
+  // services/catering.service.ts - Add these methods to the CateringService class
+
+  async getOrderByToken(token: string): Promise<CateringOrderDetails> {
     const response = await fetch(
-      `${API_BASE_URL}/promotions/validate-catering?code=${promoCode}&orderTotal=${subtotal}&restaurantId=${
-        firstRestaurantId || ""
-      }`,
+      `${API_BASE_URL}/catering-orders/view/${token}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch order");
+    }
+
+    return response.json();
+  }
+
+  async getOrdersByUserId(userId: string): Promise<CateringOrderDetails[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/user/${userId}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch orders");
+    }
+
+    return response.json();
+  }
+
+  async addSharedAccess(
+    dto: AddSharedAccessDto
+  ): Promise<CateringOrderDetails> {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/shared-access/add`,
       {
-        method: "GET",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
       }
     );
 
     if (!response.ok) {
-      return { valid: false, reason: "Failed to validate promo code" };
+      const error = await response.json();
+      throw new Error(error.message || "Failed to add shared access");
+    }
+
+    return response.json();
+  }
+
+  async updateSharedAccessRole(
+    dto: UpdateSharedAccessRoleDto
+  ): Promise<CateringOrderDetails> {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/shared-access/update-role`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update role");
+    }
+
+    return response.json();
+  }
+
+  async removeSharedAccess(
+    dto: RemoveSharedAccessDto
+  ): Promise<CateringOrderDetails> {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/shared-access/remove`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to remove shared access");
+    }
+
+    return response.json();
+  }
+
+  async updatePickupContact(
+    dto: UpdatePickupContactDto
+  ): Promise<CateringOrderDetails> {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/pickup-contact`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update pickup contact");
+    }
+
+    return response.json();
+  }
+
+  async updateDeliveryTime(
+    dto: UpdateDeliveryTimeDto
+  ): Promise<CateringOrderDetails> {
+    const response = await fetch(
+      `${API_BASE_URL}/catering-orders/delivery-time`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update delivery time");
+    }
+
+    return response.json();
+  }
+
+  // MENU MANAGEMENT METHODS
+
+  async getRestaurantMenuItems(
+    restaurantId: string
+  ): Promise<MenuItemDetails[]> {
+    const url = `${API_BASE_URL}/menu-item/admin/restaurant/${restaurantId}`;
+    console.log("Fetching menu items from:", url);
+
+    const response = await fetch(url);
+
+    console.log("Response status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API Error:", errorText);
+      throw new Error(
+        `Failed to fetch menu items: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log("API Response data:", data);
+
+    // Handle both array and object responses
+    if (Array.isArray(data)) {
+      return data;
+    } else if (
+      data &&
+      typeof data === "object" &&
+      Array.isArray(data.menuItems)
+    ) {
+      return data.menuItems;
+    }
+
+    return [];
+  }
+
+  async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
+    console.log("dot is", dto)
+    const response = await fetch(`${API_BASE_URL}/menu-item`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dto),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to create menu item");
+    }
+
+    return response.json();
+  }
+
+  async updateMenuItem(
+    itemId: string,
+    dto: UpdateMenuItemDto
+  ): Promise<MenuItemDetails> {
+    const response = await fetch(`${API_BASE_URL}/menu-item/${itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dto),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update menu item");
+    }
+
+    return response.json();
+  }
+
+  async deleteMenuItem(itemId: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/menu-item/${itemId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to delete menu item");
+    }
+  }
+
+  async duplicateMenuItem(
+    itemId: string,
+    restaurantId: string
+  ): Promise<MenuItemDetails> {
+    // Fetch the original item
+    const items = await this.getRestaurantMenuItems(restaurantId);
+    const originalItem = items.find((item) => item.id === itemId);
+
+    if (!originalItem) {
+      throw new Error("Menu item not found");
+    }
+
+    // Create a duplicate with modified name
+    const duplicateDto: CreateMenuItemDto = {
+      restaurantId: originalItem.restaurantId,
+      categoryIds: originalItem.categoryIds || [],
+      groupTitle: originalItem.groupTitle,
+      name: `${originalItem.name} (Copy)`,
+      description: originalItem.description,
+      price: originalItem.price,
+      prepTime: originalItem.prepTime,
+      discountPrice: originalItem.discountPrice,
+      isDiscount: originalItem.isDiscount,
+      image: originalItem.image,
+      isAvailable: originalItem.isAvailable,
+      allergens: originalItem.allergens || [],
+      addons: originalItem.addons,
+      itemDisplayOrder: originalItem.itemDisplayOrder,
+      popular: originalItem.popular,
+      style: originalItem.style,
+      status: originalItem.status,
+    };
+
+    return this.createMenuItem(duplicateDto);
+  }
+
+  async getCategories(): Promise<MenuCategory[]> {
+    const response = await fetch(`${API_BASE_URL}/categories`);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch categories");
+    }
+
+    return response.json();
+  }
+
+  async reorderGroups(
+    restaurantId: string,
+    groupSettings: { [groupTitle: string]: { displayOrder: number } }
+  ): Promise<void> {
+    console.log("groupSettings", groupSettings);
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/menu/reorder-groups/${restaurantId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ groupSettings }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to reorder groups");
+    }
+
+    return response.json();
+  }
+
+  async getRestaurant(restaurantId: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/restaurant/${restaurantId}`);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch restaurant");
     }
 
     return response.json();

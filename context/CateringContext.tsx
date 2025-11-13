@@ -11,6 +11,7 @@ import {
   EventDetails,
   SelectedMenuItem,
   ContactInfo,
+  CorporateUser,
 } from "@/types/catering.types";
 import { Restaurant } from "@/app/components/catering/Step2MenuItems";
 
@@ -21,7 +22,13 @@ interface CateringContextType {
   contactInfo: ContactInfo | null;
   promoCodes: string[] | null;
   selectedRestaurants: Restaurant[];
+  corporateUser: CorporateUser | null;
   totalPrice: number;
+  restaurantPromotions: Record<string, any[]>; // NEW
+  subtotalBeforeDiscount: number; // NEW
+  promotionDiscount: number; // NEW
+  finalTotal: number; // NEW
+  restaurantDiscounts: Record<string, { discount: number; promotion: any }>; // NEW
   setCurrentStep: (step: number) => void;
   setEventDetails: (details: EventDetails) => void;
   addMenuItem: (item: SelectedMenuItem) => void;
@@ -34,7 +41,9 @@ interface CateringContextType {
   getTotalPrice: () => number;
   resetOrder: () => void;
   setSelectedRestaurants: (restaurants: Restaurant[]) => void;
+  setCorporateUser: (user: CorporateUser | null) => void;
   markOrderAsSubmitted: () => void;
+  setRestaurantPromotions: (promotions: Record<string, any[]>) => void; // NEW
 }
 
 const CateringContext = createContext<CateringContextType | undefined>(
@@ -49,7 +58,9 @@ const STORAGE_KEYS = {
   CONTACT_INFO: "catering_contact_info",
   PROMO_CODES: "catering_promo_codes",
   SELECTED_RESTAURANTS: "catering_selected_restaurants",
+  CORPORATE_USER: "catering_corporate_user",
   ORDER_SUBMITTED: "catering_order_submitted",
+  RESTAURANT_PROMOTIONS: "catering_restaurant_promotions", // NEW
 };
 
 export function CateringProvider({ children }: { children: ReactNode }) {
@@ -67,47 +78,135 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const [selectedRestaurants, setSelectedRestaurantsState] = useState<
     Restaurant[]
   >([]);
+  const [corporateUser, setCorporateUserState] = useState<CorporateUser | null>(null);
+  const [restaurantPromotions, setRestaurantPromotionsState] = useState<Record<string, any[]>>({}); // NEW
+
+  // NEW: Calculated values for promotions
+  const [subtotalBeforeDiscount, setSubtotalBeforeDiscount] = useState(0);
+  const [promotionDiscount, setPromotionDiscount] = useState(0);
+  const [finalTotal, setFinalTotal] = useState(0);
+  const [restaurantDiscounts, setRestaurantDiscounts] = useState<Record<string, { discount: number; promotion: any }>>({});
+
+  // NEW: Helper function to calculate promotion discount
+  const calculatePromotionDiscount = (
+    restaurantId: string,
+    subtotal: number
+  ): { discount: number; promotion: any | null } => {
+    const promos = restaurantPromotions[restaurantId];
+    
+    if (!promos || promos.length === 0) {
+      return { discount: 0, promotion: null };
+    }
+
+    const promo = promos[0];
+
+    // Check minimum order amount
+    if (promo.minOrderAmount && subtotal < promo.minOrderAmount) {
+      return { discount: 0, promotion: promo };
+    }
+
+    // Calculate percentage discount
+    let discount = subtotal * (promo.discountPercentage / 100);
+
+    // Apply max discount cap if set
+    if (promo.maxDiscountAmount && discount > promo.maxDiscountAmount) {
+      discount = promo.maxDiscountAmount;
+    }
+
+    return { discount: Number(Number(discount).toFixed(2)), promotion: promo };
+  };
+
+  // NEW: Calculate totals with promotions whenever items or promotions change
+  useEffect(() => {
+    const restaurantSubtotals: Record<string, number> = {};
+    const newRestaurantDiscounts: Record<string, { discount: number; promotion: any }> = {};
+    
+    // Calculate subtotal per restaurant
+    selectedItems.forEach(({ item, quantity }) => {
+      const restaurantId = item.restaurantId;
+      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+      
+      const price = parseFloat(item.price?.toString() || "0");
+      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+      const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      
+      // FIXED: Calculate addon price correctly
+      const addonPricePerPortion = (item.selectedAddons || []).reduce(
+        (addonTotal, { price, quantity }) => {
+          return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+        },
+        0
+      );
+      
+      const numPortions = quantity / BACKEND_QUANTITY_UNIT;
+      const totalAddonPrice = addonPricePerPortion * numPortions;
+      const itemSubtotal = (itemPrice * quantity) + totalAddonPrice;
+      
+      if (!restaurantSubtotals[restaurantId]) {
+        restaurantSubtotals[restaurantId] = 0;
+      }
+      restaurantSubtotals[restaurantId] += itemSubtotal;
+    });
+
+    // Calculate discount per restaurant
+    Object.keys(restaurantSubtotals).forEach(restaurantId => {
+      const subtotal = restaurantSubtotals[restaurantId];
+      const { discount, promotion } = calculatePromotionDiscount(restaurantId, subtotal);
+      newRestaurantDiscounts[restaurantId] = { discount, promotion };
+    });
+
+    // Calculate totals
+    const newSubtotal = Object.values(restaurantSubtotals).reduce((sum, val) => sum + val, 0);
+    const newTotalDiscount = Object.values(newRestaurantDiscounts).reduce(
+      (sum, { discount }) => sum + discount,
+      0
+    );
+    const newFinalTotal = newSubtotal - newTotalDiscount;
+
+    setSubtotalBeforeDiscount(newSubtotal);
+    setPromotionDiscount(newTotalDiscount);
+    setFinalTotal(newFinalTotal);
+    setRestaurantDiscounts(newRestaurantDiscounts);
+  }, [selectedItems, restaurantPromotions]);
 
   // Load data from localStorage on mount
   useEffect(() => {
     try {
-      // Check if order was submitted in previous session
       const orderSubmitted = localStorage.getItem(STORAGE_KEYS.ORDER_SUBMITTED);
 
       if (orderSubmitted === "true") {
-        // Clear all cart data if order was submitted
         localStorage.removeItem(STORAGE_KEYS.CURRENT_STEP);
         localStorage.removeItem(STORAGE_KEYS.EVENT_DETAILS);
         localStorage.removeItem(STORAGE_KEYS.SELECTED_ITEMS);
         localStorage.removeItem(STORAGE_KEYS.CONTACT_INFO);
         localStorage.removeItem(STORAGE_KEYS.PROMO_CODES);
         localStorage.removeItem(STORAGE_KEYS.SELECTED_RESTAURANTS);
+        localStorage.removeItem(STORAGE_KEYS.CORPORATE_USER);
         localStorage.removeItem(STORAGE_KEYS.ORDER_SUBMITTED);
+        localStorage.removeItem(STORAGE_KEYS.RESTAURANT_PROMOTIONS); // NEW
 
-        // States are already initialized to empty/null values
         setIsHydrated(true);
         return;
       }
 
       const savedStep = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
-      const savedEventDetails = localStorage.getItem(
-        STORAGE_KEYS.EVENT_DETAILS
-      );
+      const savedEventDetails = localStorage.getItem(STORAGE_KEYS.EVENT_DETAILS);
       const savedItems = localStorage.getItem(STORAGE_KEYS.SELECTED_ITEMS);
       const savedContactInfo = localStorage.getItem(STORAGE_KEYS.CONTACT_INFO);
       const savedPromoCodes = localStorage.getItem(STORAGE_KEYS.PROMO_CODES);
-      const savedRestaurants = localStorage.getItem(
-        STORAGE_KEYS.SELECTED_RESTAURANTS
-      );
+      const savedRestaurants = localStorage.getItem(STORAGE_KEYS.SELECTED_RESTAURANTS);
+      const savedCorporateUser = localStorage.getItem(STORAGE_KEYS.CORPORATE_USER);
+      const savedPromotions = localStorage.getItem(STORAGE_KEYS.RESTAURANT_PROMOTIONS); // NEW
 
       if (savedStep) setCurrentStepState(JSON.parse(savedStep));
-      if (savedEventDetails)
-        setEventDetailsState(JSON.parse(savedEventDetails));
+      if (savedEventDetails) setEventDetailsState(JSON.parse(savedEventDetails));
       if (savedItems) setSelectedItemsState(JSON.parse(savedItems));
       if (savedContactInfo) setContactInfoState(JSON.parse(savedContactInfo));
       if (savedPromoCodes) setPromoCodesState(JSON.parse(savedPromoCodes));
-      if (savedRestaurants)
-        setSelectedRestaurantsState(JSON.parse(savedRestaurants));
+      if (savedRestaurants) setSelectedRestaurantsState(JSON.parse(savedRestaurants));
+      if (savedCorporateUser) setCorporateUserState(JSON.parse(savedCorporateUser));
+      if (savedPromotions) setRestaurantPromotionsState(JSON.parse(savedPromotions)); // NEW
     } catch (error) {
       console.error("Error loading catering data from localStorage:", error);
     } finally {
@@ -144,27 +243,39 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEYS.PROMO_CODES, JSON.stringify(codes));
   };
 
+  const setCorporateUser = (user: CorporateUser | null) => {
+    setCorporateUserState(user);
+    if (user) {
+      localStorage.setItem(STORAGE_KEYS.CORPORATE_USER, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.CORPORATE_USER);
+    }
+  };
+
+  // NEW: Set restaurant promotions
+  const setRestaurantPromotions = (promotions: Record<string, any[]>) => {
+    setRestaurantPromotionsState(promotions);
+    localStorage.setItem(STORAGE_KEYS.RESTAURANT_PROMOTIONS, JSON.stringify(promotions));
+  };
+
   const addMenuItem = (newItem: SelectedMenuItem) => {
     const validQuantity = Math.max(newItem.quantity);
 
     setSelectedItemsState((prev) => {
-      // Check if item exists with same addons AND same addon quantities
       const existingIndex = prev.findIndex((i) => {
         if (i.item.id !== newItem.item.id) return false;
 
-        // Check if addons match
         const existingAddons = i.item.selectedAddons || [];
         const newAddons = newItem.item.selectedAddons || [];
 
         if (existingAddons.length !== newAddons.length) return false;
 
-        // Compare addon selections (including quantities)
         return existingAddons.every((existingAddon) =>
           newAddons.some(
             (newAddon) =>
               newAddon.name === existingAddon.name &&
               newAddon.groupTitle === existingAddon.groupTitle &&
-              newAddon.quantity === existingAddon.quantity // Also compare quantities
+              newAddon.quantity === existingAddon.quantity
           )
         );
       });
@@ -172,15 +283,12 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       let updated;
 
       if (existingIndex >= 0) {
-        // Item with exact same addons and quantities exists, increase item quantity
         updated = [...prev];
         updated[existingIndex].quantity += validQuantity;
       } else {
-        // New item or different addon combination
         updated = [...prev, { ...newItem, quantity: validQuantity }];
       }
 
-      // Save to localStorage
       localStorage.setItem(
         STORAGE_KEYS.SELECTED_ITEMS,
         JSON.stringify(updated)
@@ -252,16 +360,18 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       optionalSelectedItems.length > 0 ? optionalSelectedItems : selectedItems;
     const newTotalPrice = usedSelectedItems.reduce(
       (total, { item, quantity }) => {
+        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
         const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-
+  
         const price = parseFloat(item.price?.toString() || "0");
         const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
         const unitPrice =
           item.isDiscount && discountPrice > 0 ? discountPrice : price;
-
+  
         const itemPrice = unitPrice * quantity;
-        // Addon price: sum of (addon price * addon quantity * backend unit), or 0 if no addons
-        const addonPrice = (item.selectedAddons || []).reduce(
+        
+        // FIXED: Calculate addon price per portion, then multiply by number of portions
+        const addonPricePerPortion = (item.selectedAddons || []).reduce(
           (addonTotal, { price, quantity }) => {
             return (
               addonTotal +
@@ -270,38 +380,17 @@ export function CateringProvider({ children }: { children: ReactNode }) {
           },
           0
         );
-
-        return total + itemPrice + addonPrice;
+        
+        // Calculate how many portions
+        const numPortions = quantity / BACKEND_QUANTITY_UNIT;
+        const totalAddonPrice = addonPricePerPortion * numPortions;
+  
+        return total + itemPrice + totalAddonPrice;
       },
       0
     );
     setTotalPrice(newTotalPrice);
     return newTotalPrice;
-    //  let basePrice =
-    //     BACKEND_QUANTITY_UNIT *
-    //     (item.isDiscount
-    //       ? parseFloat(item.discountPrice || "0")
-    //       : parseFloat(item.price || "0"));
-
-    //   if (isNaN(basePrice)) basePrice = 0;
-
-    //   // Calculate addon costs
-    //   let addonCost = 0;
-    //   Object.entries(addonGroups).forEach(([groupTitle, group]) => {
-    //     group.items.forEach((addon) => {
-    //       if (selectedAddons[groupTitle]?.[addon.name]) {
-    //         const addonPrice = parseFloat(addon.price) || 0;
-    //         if (group.selectionType === "single") {
-    //           // For single selection: multiply by specific addon quantity
-    //           const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
-    //           addonCost += addonPrice * qty * DISPLAY_FEEDS_PER_UNIT;
-    //         } else {
-    //           // For multiple selection: multiply by total item quantity (applies to all portions)
-    //           addonCost += addonPrice * itemQuantity * DISPLAY_FEEDS_PER_UNIT;
-    //         }
-    //       }
-    //     });
-    //   });
   };
 
   const resetOrder = () => {
@@ -311,24 +400,26 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     setContactInfoState(null);
     setPromoCodesState([]);
     setSelectedRestaurantsState([]);
+    setCorporateUserState(null);
+    setRestaurantPromotionsState({}); // NEW
 
-    // Clear localStorage
     localStorage.removeItem(STORAGE_KEYS.CURRENT_STEP);
     localStorage.removeItem(STORAGE_KEYS.EVENT_DETAILS);
     localStorage.removeItem(STORAGE_KEYS.SELECTED_ITEMS);
     localStorage.removeItem(STORAGE_KEYS.CONTACT_INFO);
     localStorage.removeItem(STORAGE_KEYS.PROMO_CODES);
     localStorage.removeItem(STORAGE_KEYS.SELECTED_RESTAURANTS);
+    localStorage.removeItem(STORAGE_KEYS.CORPORATE_USER);
     localStorage.removeItem(STORAGE_KEYS.ORDER_SUBMITTED);
+    localStorage.removeItem(STORAGE_KEYS.RESTAURANT_PROMOTIONS); // NEW
   };
 
   const markOrderAsSubmitted = () => {
     localStorage.setItem(STORAGE_KEYS.ORDER_SUBMITTED, "true");
   };
 
-  // Prevent hydration mismatch by not rendering until client-side data is loaded
   if (!isHydrated) {
-    return null; // or return a loading spinner
+    return null;
   }
 
   return (
@@ -341,6 +432,12 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         contactInfo,
         promoCodes,
         selectedRestaurants,
+        corporateUser,
+        restaurantPromotions, // NEW
+        subtotalBeforeDiscount, // NEW
+        promotionDiscount, // NEW
+        finalTotal, // NEW
+        restaurantDiscounts, // NEW
         setCurrentStep,
         setEventDetails,
         addMenuItem,
@@ -353,7 +450,9 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         resetOrder,
         setPromoCodes,
         setSelectedRestaurants,
+        setCorporateUser,
         markOrderAsSubmitted,
+        setRestaurantPromotions, // NEW
       }}
     >
       {children}

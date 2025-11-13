@@ -18,7 +18,7 @@ export default function SwiftPartnerPolicies() {
         </div>
 
         {/* Introduction */}
-        <div className="bg-white rounded-xl shadow-sm border p-8 mb-8">
+        <div className="bg-white rounded-xl border p-8 mb-8">
           <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mb-6">
             <p className="text-gray-700 leading-relaxed">
               These Partner Policies (the "Policies") govern the relationship between Swift Food Services Ltd ("Swift Food", "we", "us", or "our"), a company registered in England and Wales with company number 16457702 and registered office at 251 Grays Inn Rd, London WC1X 8QT, and each restaurant, food stall, or vendor ("Swift Partner", "you", or "your") that uses the Swift Food platform. These Policies are legally binding and apply in addition to the Partner Terms and Conditions. By signing up as a Swift Partner, you agree to comply fully with these Policies.
@@ -27,7 +27,7 @@ export default function SwiftPartnerPolicies() {
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-xl shadow-sm border p-8 space-y-10">
+        <div className="bg-white rounded-xl border p-8 space-y-10">
 
           {/* 1. General Obligations */}
           <section>
@@ -138,7 +138,7 @@ export default function SwiftPartnerPolicies() {
               </div>
             </div>
           </section>
-
+                    
           {/* 6. Customer Complaints and Refunds */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">6. Customer Complaints and Refunds</h2>

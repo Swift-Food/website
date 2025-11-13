@@ -7,9 +7,22 @@ import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 
+interface ValidationErrors {
+  organization?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  zipcode?: string;
+  ccEmail?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export default function Step3ContactInfo() {
-  // const BACKEND_QUANTITY_UNIT = 7;
-  // const DISPLAY_FEEDS_PER_UNIT = 10;
+
   const {
     contactInfo,
     setContactInfo,
@@ -19,21 +32,23 @@ export default function Step3ContactInfo() {
     getTotalPrice,
     resetOrder,
     markOrderAsSubmitted,
+    corporateUser,
+    subtotalBeforeDiscount,
+    promotionDiscount,
   } = useCatering();
-  console.log("contact info", JSON.stringify(contactInfo))
-  console.log("event info", JSON.stringify(eventDetails))
 
-  const [formData, setFormData] = useState<ContactInfo>(
-    contactInfo || {
-      fullName: "",
-      email: "",
-      phone: "",
-      addressLine1: "",
-      addressLine2: "",
-      city: "",
-      zipcode: "",
-    }
-  );
+  const [formData, setFormData] = useState<ContactInfo>({
+    organization: contactInfo?.organization || "",
+    fullName: contactInfo?.fullName || "",
+    email: contactInfo?.email || "",
+    phone: contactInfo?.phone || "",
+    addressLine1: contactInfo?.addressLine1 || "",
+    addressLine2: contactInfo?.addressLine2 || "",
+    city: contactInfo?.city || "",
+    zipcode: contactInfo?.zipcode || "",
+    latitude: contactInfo?.latitude,
+    longitude: contactInfo?.longitude,
+  });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [promoCodes, setPromoCodes] = useState<string[]>([]);
@@ -43,14 +58,113 @@ export default function Step3ContactInfo() {
   const [promoSuccess, setPromoSuccess] = useState("");
   const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
   const [calculatingPricing, setCalculatingPricing] = useState(false);
-  const [preferredContact, setPreferredContact] = useState<"email" | "phone">(
-    "email"
-  );
+
   const [ccEmails, setCcEmails] = useState<string[]>([]);
   const [ccEmailInput, setCcEmailInput] = useState("");
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [corporateUserId, setCorporateUserId] = useState<string>("");
+  const [organizationId, setOrganizationId] = useState<string>("");
+  const [, setSelectedPaymentMethod] = useState<
+    "wallet" | "card" | null
+  >(null);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) {
+      return "Email is required";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return undefined;
+  };
+
+  const checkCorporateUser = async () => {
+    try {
+      if (eventDetails?.userType === "corporate") {
+        if (corporateUser) {
+          setCorporateUserId(corporateUser.id);
+          setOrganizationId(corporateUser.organizationId);
+        }
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
+
+  const validatePhone = (phone: string): string | undefined => {
+    if (!phone.trim()) {
+      return "Phone number is required";
+    }
+    // UK phone number validation (accepts various formats)
+    const cleanPhone = phone.replace(/[\s()-]/g, "");
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      return "Please enter a valid UK phone number";
+    }
+    return undefined;
+  };
+  const validateFullName = (name: string): string | undefined => {
+    if (!name.trim()) {
+      return "Full name is required";
+    }
+    if (name.trim().length < 2) {
+      return "Name must be at least 2 characters";
+    }
+    return undefined;
+  };
+
+  const handleBlur = (field: keyof ContactInfo) => {
+    let error: string | undefined;
+
+    switch (field) {
+      case "fullName":
+        error = validateFullName(formData.fullName);
+        break;
+      case "email":
+        error = validateEmail(formData.email);
+        break;
+      case "phone":
+        error = validatePhone(formData.phone);
+        break;
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      [field]: error,
+    }));
+  };
+
+  // Clear error when user starts typing
+  const handleChange = (field: keyof ContactInfo, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  // Validate all fields
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {
+      fullName: validateFullName(formData.fullName),
+      email: validateEmail(formData.email),
+      phone: validatePhone(formData.phone),
+    };
+
+    setErrors(newErrors);
+
+    // Return true if no errors
+    return !Object.values(newErrors).some((error) => error !== undefined);
+  };
 
   const handleAddCcEmail = () => {
     const trimmedEmail = ccEmailInput.trim();
@@ -82,6 +196,60 @@ export default function Step3ContactInfo() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!termsAccepted) {
+      alert("Please accept the Terms and Conditions to continue");
+      return;
+    }
+
+    if (!validateForm()) {
+      // Scroll to first error - improved version
+      setTimeout(() => {
+        const firstErrorField = Object.keys(errors).find(
+          (key) => errors[key as keyof ValidationErrors]
+        );
+
+        if (firstErrorField) {
+          // Try multiple selectors
+          const element =
+            document.querySelector(`[name="${firstErrorField}"]`) ||
+            document.getElementById(firstErrorField) ||
+            document.querySelector(`input[name="${firstErrorField}"]`);
+
+          if (element) {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            // Focus the input to draw attention
+            (element as HTMLInputElement).focus();
+          } else {
+            // Fallback: scroll to top of form
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      }, 100); // Small delay to ensure errors are rendered
+
+      return;
+    }
+
+    // setSubmitting(true);
+
+    const isCorporate = await checkCorporateUser();
+    if (isCorporate) {
+      // Show payment modal for corporate users
+      setShowPaymentModal(true);
+      return;
+    }
+
+    await submitOrder();
+  };
+
+  const submitOrder = async (paymentInfo?: {
+    useOrganizationWallet?: boolean;
+    paymentMethodId?: string;
+    paymentIntentId?: string;
+  }) => {
     setSubmitting(true);
 
     try {
@@ -92,18 +260,25 @@ export default function Step3ContactInfo() {
       }
 
       setContactInfo(formData);
-      console.log("the event details are", JSON.stringify(eventDetails));
-      // Pass ccEmails to the service
+
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
         formData,
         promoCodes,
-        ccEmails // Add this parameter
+        ccEmails,
+        paymentInfo
+          ? {
+              corporateUserId,
+              organizationId,
+              ...paymentInfo,
+            }
+          : undefined
       );
-      // Mark order as submitted so cart is cleared on next page load
+
       markOrderAsSubmitted();
       setSuccess(true);
+      setShowPaymentModal(false);
     } catch (error) {
       console.error("Error submitting order:", error);
       alert("Failed to submit order. Please try again.");
@@ -111,6 +286,7 @@ export default function Step3ContactInfo() {
       setSubmitting(false);
     }
   };
+
 
   const calculatePricing = async () => {
     setCalculatingPricing(true);
@@ -152,10 +328,12 @@ export default function Step3ContactInfo() {
           const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
           // Transform addon quantities for backend
-          const transformedAddons = (item.selectedAddons || []).map(addon => ({
-            ...addon,
-            quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-          }));
+          const transformedAddons = (item.selectedAddons || []).map(
+            (addon) => ({
+              ...addon,
+              quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
+            })
+          );
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
@@ -198,13 +376,7 @@ export default function Step3ContactInfo() {
         promoCodes
       );
 
-      // ADD THESE LOGS
-      console.log("=== PRICING RESULT ===");
-      console.log("Full pricing result:", pricingResult);
-      console.log("Promo discount value:", pricingResult.promoDiscount);
-      console.log("Promo discount type:", typeof pricingResult.promoDiscount);
-      console.log("Promo codes:", promoCodes);
-      console.log("=====================");
+    
 
       if (!pricingResult.isValid) {
         alert(pricingResult.error || "Unable to calculate pricing");
@@ -234,6 +406,24 @@ export default function Step3ContactInfo() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  // Update form data when contactInfo changes (e.g., after corporate login)
+  useEffect(() => {
+    if (contactInfo) {
+      setFormData({
+        organization: contactInfo.organization || "",
+        fullName: contactInfo.fullName || "",
+        email: contactInfo.email || "",
+        phone: contactInfo.phone || "",
+        addressLine1: contactInfo.addressLine1 || "",
+        addressLine2: contactInfo.addressLine2 || "",
+        city: contactInfo.city || "",
+        zipcode: contactInfo.zipcode || "",
+        latitude: contactInfo.latitude,
+        longitude: contactInfo.longitude,
+      });
+    }
+  }, [contactInfo]);
 
   useEffect(() => {
     calculatePricing();
@@ -285,10 +475,12 @@ export default function Step3ContactInfo() {
           const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
           // Transform addon quantities for backend
-          const transformedAddons = (item.selectedAddons || []).map(addon => ({
-            ...addon,
-            quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-          }));
+          const transformedAddons = (item.selectedAddons || []).map(
+            (addon) => ({
+              ...addon,
+              quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
+            })
+          );
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
@@ -447,7 +639,7 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
-    console.log("pricing", JSON.stringify(pricing))
+    console.log("pricing", JSON.stringify(pricing));
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
         <div className="max-w-2xl mx-auto text-center">
@@ -502,7 +694,7 @@ export default function Step3ContactInfo() {
                 </p>
               </div>
               {/* <div> */}
-                {/* <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
+              {/* <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
                 <p className="font-semibold text-base-content">
                   {(eventDetails?.guestCount || 10) - 10} -{" "}
                   {(eventDetails?.guestCount || 10) + 10}{" "}
@@ -510,9 +702,7 @@ export default function Step3ContactInfo() {
               </div> */}
             </div>
 
-            <h4 className="font-bold mb-4 text-base-content">
-              Your List
-            </h4>
+            <h4 className="font-bold mb-4 text-base-content">Your List</h4>
 
             {promoCodes.length > 0 && (
               <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-xl">
@@ -534,8 +724,7 @@ export default function Step3ContactInfo() {
                 // USE ITEM'S OWN VALUES:
                 const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
                 const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                const displayFeeds =
-                  (quantity / BACKEND_QUANTITY_UNIT);
+                const displayFeeds = quantity / BACKEND_QUANTITY_UNIT;
 
                 // Calculate addon price
                 const addonPrice = (item.selectedAddons || []).reduce(
@@ -594,46 +783,57 @@ export default function Step3ContactInfo() {
               })}
             </div>
 
-            {pricing && (
-              <div className="space-y-2 pt-4 border-t border-base-300">
-                <div className="flex justify-between text-base-content/70">
-                  <span>Subtotal</span>
-                  <span>£{pricing.subtotal.toFixed(2)}</span>
-                </div>
-                {/* <div className="flex justify-between text-base-content/70">
-                  <span>Service Charge</span>
-                  <span>£{pricing.serviceCharge.toFixed(2)}</span>
-                </div> */}
-                <div className="flex justify-between text-base-content/70">
-                  <span>Estimated Delivery Cost</span>
-                  <span>£{pricing.deliveryFee.toFixed(2)}</span>
-                </div>
+{pricing && (
+  <div className="space-y-2 pt-4 border-t border-base-300">
+    {/* Subtotal */}
+    <div className="flex justify-between text-sm text-base-content/70">
+      <span>Subtotal</span>
+      <span>£{pricing.subtotal.toFixed(2)}</span>
+    </div>
+    
+    {/* Restaurant Promotion Discount - FROM BACKEND */}
+    {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
+      <div className="flex justify-between text-sm text-green-600 font-semibold">
+        <span>Restaurant Promotion</span>
+        <span>-£{pricing.restaurantPromotionDiscount!.toFixed(2)}</span>
+      </div>
+    )}
+    
+    {/* Delivery fee */}
+    <div className="flex justify-between text-sm text-base-content/70">
+      <span>Delivery Cost</span>
+      <span>£{pricing.deliveryFee.toFixed(2)}</span>
+    </div>
+    
+    {/* Promo code discount */}
+    {(pricing.promoDiscount ?? 0) > 0 && (
+      <div className="flex justify-between text-sm text-success font-medium">
+        <span>Promo Code Discount</span>
+        <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
+      </div>
+    )}
+    
+    {/* Total - Now correct from backend */}
+    <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
+      <span>Total</span>
+      <div className="text-right">
+        <p className="">£{pricing.total.toFixed(2)}</p>
+        {(pricing.totalDiscount ?? 0) > 0 && (
+          <p className="text-xs line-through text-base-content/50">
+            £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
+          </p>
+        )}
+      </div>
+    </div>
 
-                {(pricing.promoDiscount ?? 0) > 0 && (
-                  <div className="flex justify-between text-success font-medium">
-                    <span>Promo Discount</span>
-                    <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-xl font-bold text-base-content pt-2 border-t border-base-300">
-                  <span>Total</span>
-                  <div className="text-right">
-                    <p className="">£{pricing.total.toFixed(2)}</p>
-                    {(pricing.promoDiscount ?? 0) > 0 && (
-                      <p className="text-sm line-through text-base-content/50">
-                        £{(pricing.total + (pricing.promoDiscount ?? 0)).toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+  </div>
+)}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={resetOrder}
-              className="bg-dark-pink hover:opacity-90 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-lg"
+              className="bg-base-300 hover:opacity-90 text-base-content px-8 py-4 rounded-xl font-bold text-lg transition-all"
             >
               Back to Home
             </button>
@@ -641,7 +841,7 @@ export default function Step3ContactInfo() {
               href="https://www.instagram.com/swiftfood_uk?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-base-300 hover:bg-base-content/10 text-base-content px-8 py-4 rounded-full font-bold text-lg transition-all inline-block text-center"
+              className="bg-dark-pink hover:bg-base-content/10 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all inline-block text-center"
             >
               Follow us on Instagram
             </a>
@@ -673,8 +873,8 @@ export default function Step3ContactInfo() {
                 Your Contact Details
               </h2>
               <p className="text-base-content/70">
-                Please provide your contact details so we can confirm your
-                event order request.
+                Please provide your contact details so we can confirm your event
+                order request.
               </p>
             </div>
             <button
@@ -690,6 +890,21 @@ export default function Step3ContactInfo() {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Organization */}
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-base-content">
+                  Organization (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="organization"
+                  value={formData.organization}
+                  onChange={(e) => handleChange("organization", e.target.value)}
+                  onBlur={() => handleBlur("organization")}
+                  placeholder="Your Organization Name"
+                  className={`w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+                />
+              </div>
               {/* Name */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
@@ -697,14 +912,19 @@ export default function Step3ContactInfo() {
                 </label>
                 <input
                   type="text"
+                  name="fullName"
                   required
                   value={formData.fullName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fullName: e.target.value })
-                  }
+                  onChange={(e) => handleChange("fullName", e.target.value)}
+                  onBlur={() => handleBlur("fullName")}
                   placeholder="Your Name"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                  className={`w-full px-4 py-3 bg-base-200/50 border ${
+                    errors.fullName ? "border-error" : "border-base-300"
+                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
+                {errors.fullName && (
+                  <p className="mt-1 text-sm text-error">✗ {errors.fullName}</p>
+                )}
               </div>
 
               {/* Telephone */}
@@ -714,15 +934,19 @@ export default function Step3ContactInfo() {
                 </label>
                 <input
                   type="tel"
+                  name="phone"
                   required
                   value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder="Your Phone Number"
-                  pattern="^(\+?[1-9]\d{1,14}|0\d{10})$"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  onBlur={() => handleBlur("phone")}
+                  placeholder="Your Number"
+                  className={`w-full px-4 py-3 bg-base-200/50 border ${
+                    errors.phone ? "border-error" : "border-base-300"
+                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-error">✗ {errors.phone}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -732,14 +956,19 @@ export default function Step3ContactInfo() {
                 </label>
                 <input
                   type="email"
+                  name="email"
                   required
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder="Email"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  onBlur={() => handleBlur("email")}
+                  placeholder="Your Email"
+                  className={`w-full px-4 py-3 bg-base-200/50 border ${
+                    errors.email ? "border-error" : "border-base-300"
+                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-error">✗ {errors.email}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-2 text-base-content">
@@ -795,126 +1024,41 @@ export default function Step3ContactInfo() {
                 )}
               </div>
 
-              {/* Preferred Contact Method */}
-              <div>
-                <label className="block text-sm font-semibold mb-3 text-base-content">
-                  How would you prefer to be contacted?
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="contact"
-                      value="email"
-                      checked={preferredContact === "email"}
-                      onChange={() => setPreferredContact("email")}
-                      className="radio radio-primary"
-                    />
-                    <span className="text-base-content">Email</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="contact"
-                      value="phone"
-                      checked={preferredContact === "phone"}
-                      onChange={() => setPreferredContact("phone")}
-                      className="radio radio-primary"
-                    />
-                    <span className="text-base-content">Phone</span>
+              {/* Terms and Conditions - Desktop */}
+              <div className="hidden lg:block pt-4">
+                <div className="flex items-start gap-3 mb-4">
+                  <input
+                    type="checkbox"
+                    id="terms-desktop"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
+                  />
+                  <label
+                    htmlFor="terms-desktop"
+                    className="text-sm text-base-content/80 cursor-pointer"
+                  >
+                    I accept the{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-dark-pink hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms and Conditions
+                    </a>
+                    *
                   </label>
                 </div>
               </div>
 
-              {/* Address Search */}
-              {/* <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Search the Event Address
-                </label>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Start typing to autofill address fields..."
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                />
-                <p className="text-xs text-base-content/60 mt-2">
-                  Select from dropdown to autofill, or enter manually below
-                </p>
-              </div> */}
-
-              {/* Address Line 1 */}
-              {/* <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Address Line 1*
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.addressLine1}
-                  onChange={(e) =>
-                    setFormData({ ...formData, addressLine1: e.target.value })
-                  }
-                  placeholder="Street address"
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                />
-              </div> */}
-
-              {/* Address Line 2 */}
-              {/* <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Address Line 2 (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.addressLine2 || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, addressLine2: e.target.value })
-                  }
-                  placeholder="Apartment, suite, unit, etc."
-                  className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                />
-              </div> */}
-
-              {/* City and Zipcode */}
-              {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    City*
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    placeholder="City"
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    Postcode*
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.zipcode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, zipcode: e.target.value })
-                    }
-                    placeholder="Postcode"
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
-                  />
-                </div>
-              </div> */}
-
               {/* Submit Button - Desktop */}
-              <div className="hidden lg:block pt-4">
+              <div className="hidden lg:block">
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                  disabled={submitting || !termsAccepted}
+                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>
@@ -962,9 +1106,7 @@ export default function Step3ContactInfo() {
               </div>
 
               {/* Catering List */}
-              <h4 className="font-bold mb-4 text-base-content">
-                Your List
-              </h4>
+              <h4 className="font-bold mb-4 text-base-content">Your List</h4>
 
               {/* Important Notes */}
               <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 mb-4">
@@ -973,8 +1115,11 @@ export default function Step3ContactInfo() {
                 </p>
                 <p className="text-xs text-base-content/80 leading-relaxed">
                   For accurate allergen information, please contact stalls or
-                  restaurants directly. For any last-minute times, please
-                  contact us immediately — at least two days before your event.
+                  restaurants directly.
+                </p>
+                <p className="text-xs text-base-content/80 leading-relaxed">
+                  For any last-minute changes, please contact us at least two
+                  days before your event.
                 </p>
               </div>
 
@@ -997,7 +1142,7 @@ export default function Step3ContactInfo() {
                       }
                     }}
                     placeholder="Add discount code or voucher"
-                    className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-xs"
                   />
                   <button
                     type="button"
@@ -1064,8 +1209,7 @@ export default function Step3ContactInfo() {
                   // USE ITEM'S OWN VALUES:
                   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
                   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-                  const displayFeeds =
-                    (quantity / BACKEND_QUANTITY_UNIT);
+                  const displayFeeds = quantity / BACKEND_QUANTITY_UNIT;
 
                   // Calculate addon price
                   const addonPrice = (item.selectedAddons || []).reduce(
@@ -1133,31 +1277,42 @@ export default function Step3ContactInfo() {
 
               {pricing && (
                 <div className="space-y-2 pt-4 border-t border-base-300">
+                  {/* Show subtotal before promotion */}
                   <div className="flex justify-between text-sm text-base-content/70">
                     <span>Subtotal</span>
-                    <span>£{pricing.subtotal.toFixed(2)}</span>
+                    <span>£{subtotalBeforeDiscount.toFixed(2)}</span>
                   </div>
-                  {/* <div className="flex justify-between text-sm text-base-content/70">
-                    <span>Service Charge</span>
-                    <span>£{pricing.serviceCharge.toFixed(2)}</span>
-                  </div> */}
+                  
+                  {/* Show promotion discount if active */}
+                  {promotionDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600 font-semibold">
+                      <span>Restaurant Promotion</span>
+                      <span>-£{promotionDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
+                  {/* Delivery fee */}
                   <div className="flex justify-between text-sm text-base-content/70">
-                    <span>Estimated Delivery Cost</span>
+                    <span>Delivery Cost</span>
                     <span>£{pricing.deliveryFee.toFixed(2)}</span>
                   </div>
+                  
+                  {/* Promo code discount */}
                   {(pricing.promoDiscount ?? 0) > 0 && (
                     <div className="flex justify-between text-sm text-success font-medium">
-                      <span>Promo Discount</span>
+                      <span>Promo Code Discount</span>
                       <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
                     </div>
                   )}
+                  
+                  {/* Total */}
                   <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
                     <span>Total</span>
                     <div className="text-right">
                       <p className="">£{pricing.total.toFixed(2)}</p>
-                      {(pricing.promoDiscount ?? 0) > 0 && (
+                      {(promotionDiscount > 0 || (pricing.promoDiscount ?? 0) > 0) && (
                         <p className="text-xs line-through text-base-content/50">
-                          £{(pricing.total + pricing.promoDiscount!).toFixed(2)}
+                          £{(subtotalBeforeDiscount + pricing.deliveryFee).toFixed(2)}
                         </p>
                       )}
                     </div>
@@ -1176,13 +1331,42 @@ export default function Step3ContactInfo() {
                 </div>
               )}
 
-              {/* Mobile Submit Button */}
+              {/* Terms and Conditions - Mobile */}
               <div className="lg:hidden mt-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <input
+                    type="checkbox"
+                    id="terms-mobile"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
+                  />
+                  <label
+                    htmlFor="terms-mobile"
+                    className="text-sm text-base-content/80 cursor-pointer"
+                  >
+                    I accept the{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-dark-pink hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms and Conditions
+                    </a>
+                    *
+                  </label>
+                </div>
+              </div>
+
+              {/* Mobile Submit Button */}
+              <div className="lg:hidden">
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !termsAccepted}
                   onClick={handleSubmit}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>
@@ -1191,13 +1375,66 @@ export default function Step3ContactInfo() {
           </div>
         </div>
 
+        {/* Payment Modal JSX */}
+        {showPaymentModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-base-100 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-base-100 border-b border-base-300 px-6 py-4 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-base-content">
+                  Select Payment Method
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setSelectedPaymentMethod(null);
+                  }}
+                  className="text-base-content/60 hover:text-base-content"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="bg-base-200/50 rounded-xl p-4 border border-base-300">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-base-content/70">Order Total</p>
+                  {(pricing?.totalDiscount ?? 0) > 0 && (
+                    <p className="text-xs text-green-600 font-semibold">
+                      Saved £{pricing!.totalDiscount!.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+                <p className="text-2xl font-bold text-primary">
+                  £{pricing?.total.toFixed(2)}
+                </p>
+                {(pricing?.totalDiscount ?? 0) > 0 && (
+                  <p className="text-sm text-base-content/50 line-through mt-1">
+                    £{(pricing!.subtotal + pricing!.deliveryFee).toFixed(2)}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mobile Submit Button (Below Form) */}
         {/* <div className="lg:hidden mt-6">
           <button
             type="submit"
             disabled={submitting}
             onClick={handleSubmit}
-            className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all shadow-lg disabled:bg-base-300 disabled:cursor-not-allowed"
+            className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-full font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
           >
             {submitting ? 'Submitting...' : 'Submit'}
           </button>

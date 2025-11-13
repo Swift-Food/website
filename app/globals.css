@@ -12,13 +12,19 @@
   --color-primary-content: #ffffff;
   
   /* Secondary colors */
-  --color-secondary: #ffb3e6; /* Light Pink */
+  --color-secondary: #ffd4ee;
+  --color-secondary: #edcadb;
+  --color-secondary: #fae5e3;
+  --color-secondary: #f6d9e1;
+  --color-secondary: #f1cce1;
+  --color-secondary: 	hsl(340, 100%, 88%);
+  /* --color-secondary: 	hsl(340, 100%, 88%); Light Pink */
   --color-secondary-content: #282828;
 
   --color-text-grey: #6A6A6A;
 
   /* Accent colors */
-  --color-accent: #ffcd5e; /* Yellow/Gold */
+  --color-accent: #ffdd83; /* Yellow/Gold */
   --color-accent-content: #282828;
 
   /* Neutral colors */
