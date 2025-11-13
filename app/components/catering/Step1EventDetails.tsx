@@ -557,7 +557,7 @@ export default function Step1EventDetails() {
       <form onSubmit={handleSubmit} noValidate className="space-y-10">
         {/* Delivery Date & Time Section */}
         <div>
-          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+          {/* <h3 className="text-2xl font-semibold mb-4 text-gray-800">
             User Type
           </h3>
           <div className="flex flex-1 flex-row gap-2 mb-4">
@@ -596,7 +596,7 @@ export default function Step1EventDetails() {
             >
               Corporate Customer
             </button>
-          </div>
+          </div> */}
 
           <h3 className="text-2xl font-semibold mb-4 text-gray-800">
             Delivery Date & Time
