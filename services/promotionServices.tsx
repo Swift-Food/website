@@ -8,7 +8,7 @@ export interface Promotion {
   restaurantId: string;
   name: string;
   description: string;
-  type: 'RESTAURANT_WIDE' | 'GROUP_WIDE' | 'BUY_MORE_SAVE_MORE' | 'BOGO' | 'BOGO_ITEM';
+  promotionType: 'RESTAURANT_WIDE' | 'GROUP_WIDE' | 'BUY_MORE_SAVE_MORE' | 'BOGO' | 'BOGO_ITEM';
   status: 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'EXPIRED';
   applicability: 'CATERING' | 'CORPORATE' | 'BOTH';
   discountPercentage: number;
@@ -65,6 +65,7 @@ export const promotionsServices = {
 
   // Create promotion
   createPromotion: async (data: CreatePromotionDto) => {
+    // console.log("promotion dto", JSON.stringify(data))
     const response = await axios.post(`${API_BASE_URL}/promotions`, data);
     return response.data;
   },

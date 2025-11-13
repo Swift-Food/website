@@ -6,6 +6,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader } from "lucide-react";
 import { promotionsServices } from "@/services/promotionServices";
 import { RestaurantWideForm } from "@/app/components/restaurant-promotion/RestaurantWideForm";
+import { GroupWideForm } from "@/app/components/restaurant-promotion/GroupWideForm";
+import { ItemSpecificForm } from "@/app/components/restaurant-promotion/ItemSpecificForm";
 
 export default function CreatePromotionPage() {
   const params = useParams();
@@ -29,7 +31,7 @@ export default function CreatePromotionPage() {
       await promotionsServices.createPromotion({
         ...formData,
         restaurantId,
-        type: promotionType,
+
       });
       
       alert("Promotion created successfully!");
@@ -94,17 +96,22 @@ export default function CreatePromotionPage() {
           />
         )}
 
-        {promotionType === "GROUP_WIDE" && (
-          <div className="bg-white rounded-lg p-8 text-center">
-            <p className="text-gray-600">Menu Group Discount form coming soon...</p>
-          </div>
+        {promotionType === "CATEGORY_SPECIFIC" && (
+          <GroupWideForm
+            restaurantId={restaurantId}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            submitting={submitting}
+          />
         )}
 
-        {promotionType === "BUY_MORE_SAVE_MORE" && (
-          <div className="bg-white rounded-lg p-8 text-center">
-            <p className="text-gray-600">Buy More Save More form coming soon...</p>
-          </div>
-        )}
+        {/* {promotionType === "ITEM_SPECIFIC" && (
+          <ItemSpecificForm
+            onSubmit={handleSubmit}
+            onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            submitting={submitting}
+          />
+        )} */}
       </div>
     </div>
   );

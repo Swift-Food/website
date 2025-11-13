@@ -80,6 +80,12 @@ export const restaurantApi = {
     }
   },
 
+  async getMenuGroups(restaurantId: string): Promise<string[]> {
+    const response = await fetch(`${API_BASE_URL}/restaurant/${restaurantId}/menu-groups`);
+    if (!response.ok) throw new Error("Failed to get menu group titles");
+    return response.json();
+  },
+
   refreshOnboardingLink: async (
     userId: string,
     token: string,

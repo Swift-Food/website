@@ -1,5 +1,4 @@
 // services/catering.service.ts
-
 import {
   SearchResponse,
   SearchFilters,
@@ -21,7 +20,6 @@ import {
   UpdateMenuItemDto,
   MenuCategory,
 } from "@/types/catering.types";
-// import { create } from "domain";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -333,7 +331,7 @@ class CateringService {
       promoCodes,
     };
 
-
+    console.log(JSON.stringify(pricingData))
     const response = await fetch(
       `${API_BASE_URL}/pricing/catering-verify-cart`,
       {

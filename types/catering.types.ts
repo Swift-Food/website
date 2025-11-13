@@ -420,6 +420,7 @@ export interface MenuItemDetails extends CreateMenuItemDto {
   updatedAt?: string;
   averageRating: string;
   categories?: MenuCategory[];
+
 }
 
 export interface UpdateMenuItemDto {
