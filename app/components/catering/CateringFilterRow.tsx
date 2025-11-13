@@ -43,7 +43,7 @@ export default function CateringFilterRow({
   return (
     <>
       {/* Desktop Layout */}
-      <div className="hidden md:flex md:sticky top-24 md:top-28 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative bg-base-100/80 backdrop-blur-xs">
+      <div className="hidden md:flex md:sticky top-[100px] md:top-[110px] z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative bg-base-100/80 backdrop-blur-xs">
         <div className="flex items-center justify-center gap-4 relative w-full max-w-[100vw]">
           {/* Date/Time/Budget Inputs */}
           <div className="flex items-center gap-2 md:gap-3 bg-white rounded-full px-4 md:px-8 h-16 border border-base-200 min-w-0 flex-shrink">
@@ -294,7 +294,7 @@ export default function CateringFilterRow({
       </section>
 
       {/* Mobile Search and Filter Row */}
-      <div className="md:hidden sticky top-[72px] z-40 -mx-4 px-4 py-3 mb-6 bg-base-100/80 backdrop-blur-sm">
+      <div className="md:hidden sticky top-[100px] z-40 -mx-4 px-4 py-3 mb-6 bg-base-100/80 backdrop-blur-sm">
         <div className="flex items-center gap-2 w-full">
           {/* Search Bar fills available width */}
           <div className="flex-1">
