@@ -380,8 +380,8 @@ export default function Step2MenuItems() {
 
     // console.log('⚠️ Full counts object:', JSON.stringify(counts, null, 2));
 
-    Object.entries(counts).forEach(([restaurantId, data]) => {
-      // console.log(`\n🔍 Checking ${data.name} (${restaurantId})`);
+    Object.entries(counts).forEach(([, data]) => {
+      // console.log(`\n🔍 Checking ${data.name}`);
       // console.log('  hasAnyItems:', data.hasAnyItems);
       // console.log('  required:', data.required);
 
@@ -411,8 +411,8 @@ export default function Step2MenuItems() {
       // Check OPTIONAL sections
       if (data.optional) {
         // console.log('  ✓ Has optional rules');
-        data.optional.forEach((rule, index) => {
-          // console.log(`    Rule ${index}:`, {
+        data.optional.forEach((rule) => {
+          // console.log(`    Rule:`, {
           //   hasItems: rule.hasItems,
           //   count: rule.count,
           //   minRequired: rule.minRequired,

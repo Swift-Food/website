@@ -1,6 +1,5 @@
 import { Restaurant } from "./Step2MenuItems";
 import CateringFilterRow from "./CateringFilterRow";
-import CateringFilterModal from "./CateringFilterModal";
 
 interface RestaurantCatalogueProps {
   restaurants: Restaurant[];
@@ -109,10 +108,6 @@ export default function RestaurantCatalogue({
         hasActiveFilters={hasActiveFilters}
         onFilterClick={onFilterClick}
         filterModalOpen={filterModalOpen}
-      />
-      <CateringFilterModal
-        isOpen={filterModalOpen}
-        onClose={onFilterClick}
       />
       <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
         Select Restaurant

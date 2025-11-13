@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import CateringFilterModal from "./CateringFilterModal";
 
 interface CateringFilterRowProps {
   // Display values
@@ -386,6 +387,14 @@ export default function CateringFilterRow({
           )}
         </div>
       </div>
+
+      {/* Filter Modal - Rendered below the sticky row */}
+      {onFilterClick && (
+        <CateringFilterModal
+          isOpen={filterModalOpen}
+          onClose={onFilterClick}
+        />
+      )}
     </>
   );
 }

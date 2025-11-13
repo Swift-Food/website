@@ -1,7 +1,6 @@
 import { Restaurant, MenuItem } from "./Step2MenuItems";
 import MenuItemCard from "./MenuItemCard";
 import CateringFilterRow from "./CateringFilterRow";
-import CateringFilterModal from "./CateringFilterModal";
 import { useCateringFilters } from "@/context/CateringFilterContext";
 
 interface MenuCatalogueProps {
@@ -246,10 +245,6 @@ export default function MenuCatalogue({
         hasActiveFilters={filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0}
         onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
         filterModalOpen={filterModalOpen}
-      />
-      <CateringFilterModal
-        isOpen={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
       />
       {loading ? (
         <div className="text-center py-12 text-base-content/60">

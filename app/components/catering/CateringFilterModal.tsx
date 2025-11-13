@@ -293,10 +293,10 @@ export default function CateringFilterModal({ isOpen, onClose }: FilterModalProp
         </div>
       </div>
 
-      {/* Desktop Dropdown (absolute positioning) */}
+      {/* Desktop Dropdown (fixed positioning below sticky row) */}
       <div
         ref={desktopDropdownRef}
-        className="hidden md:block absolute top-full left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl max-h-[80vh] overflow-y-auto p-6 z-50 max-w-4xl mx-auto"
+        className="hidden md:block fixed top-[140px] left-0 right-0 bg-white rounded-3xl shadow-2xl max-h-[calc(100vh-160px)] overflow-y-auto p-6 z-[45] max-w-4xl mx-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
