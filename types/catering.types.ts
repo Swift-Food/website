@@ -82,6 +82,8 @@ export interface SearchFilters {
   categoryId?: string;
   minRating?: number;
   maxPrice?: number;
+  dietaryFilters?: string[];
+  allergens?: string[];
 }
 
 export enum CorporateUserRole {

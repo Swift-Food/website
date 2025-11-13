@@ -1,5 +1,8 @@
 import { Restaurant, MenuItem } from "./Step2MenuItems";
 import MenuItemCard from "./MenuItemCard";
+import CateringFilterRow from "./CateringFilterRow";
+import CateringFilterModal from "./CateringFilterModal";
+import { useCateringFilters } from "@/context/CateringFilterContext";
 
 interface MenuCatalogueProps {
   displayItems: MenuItem[];
@@ -14,9 +17,15 @@ interface MenuCatalogueProps {
   handleAddItem: (item: MenuItem) => void;
   updateItemQuantity: (itemId: string, quantity: number) => void;
   handleOrderPress: (item: MenuItem) => void;
-  selectedRestaurantId: string | null;
-  setSelectedRestaurantId: (id: string | null) => void;
-  setSearchQuery: (query: string) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onSearch: (e?: React.FormEvent) => void;
+  onClearSearch: () => void;
+  deliveryDate: string;
+  deliveryTime: string;
+  eventBudget: string;
+  filterModalOpen: boolean;
+  setFilterModalOpen: (open: boolean) => void;
 }
 
 const formatCateringHours = (
@@ -212,12 +221,36 @@ export default function MenuCatalogue({
   handleAddItem,
   updateItemQuantity,
   handleOrderPress,
-  selectedRestaurantId,
-  setSelectedRestaurantId,
-  setSearchQuery,
+  searchQuery,
+  onSearchChange,
+  onSearch,
+  onClearSearch,
+  deliveryDate,
+  deliveryTime,
+  eventBudget,
+  filterModalOpen,
+  setFilterModalOpen,
 }: MenuCatalogueProps) {
+  const { filters } = useCateringFilters();
+
   return (
     <div className="flex-1">
+      <CateringFilterRow
+        date={deliveryDate}
+        time={deliveryTime}
+        budget={eventBudget}
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        onSearch={onSearch}
+        onClearSearch={onClearSearch}
+        hasActiveFilters={filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0}
+        onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
+        filterModalOpen={filterModalOpen}
+      />
+      <CateringFilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+      />
       {loading ? (
         <div className="text-center py-12 text-base-content/60">
           Loading menu items...

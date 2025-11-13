@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cateringService } from "@/services/cateringServices";
 import { useCatering } from "@/context/CateringContext";
-import MenuItemCard from "./MenuItemCard";
 import MenuItemModal from "./MenuItemModal";
 import { promotionsServices } from "@/services/promotionServices";
 import RestaurantCatalogue from "./RestaurantCatalogue";
 import MenuCatalogue from "./MenuCatalogue";
+import { useCateringFilters } from "@/context/CateringFilterContext";
 
 export interface Restaurant {
   id: string;
@@ -87,6 +87,7 @@ export default function Step2MenuItems() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { filters } = useCateringFilters();
 
   const {
     selectedItems,
@@ -120,6 +121,12 @@ export default function Step2MenuItems() {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [displayItems, setDisplayItems] = useState<MenuItem[]>([]);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+
+  // Date/Time/Budget state for filter row (read-only display for now)
+  const deliveryDate = "Tomorrow";
+  const deliveryTime = "12:00 PM - 2:00 PM";
+  const eventBudget = "£500";
 
   // Helper: stable sort items by restaurant name (fallback to id)
   const sortByRestaurant = (items: MenuItem[] | null) => {
@@ -371,19 +378,19 @@ export default function Step2MenuItems() {
     const counts = getRestaurantItemCounts();
     const warnings: string[] = [];
 
-    console.log('⚠️ Full counts object:', JSON.stringify(counts, null, 2));
+    // console.log('⚠️ Full counts object:', JSON.stringify(counts, null, 2));
 
     Object.entries(counts).forEach(([restaurantId, data]) => {
-      console.log(`\n🔍 Checking ${data.name} (${restaurantId})`);
-      console.log('  hasAnyItems:', data.hasAnyItems);
-      console.log('  required:', data.required);
+      // console.log(`\n🔍 Checking ${data.name} (${restaurantId})`);
+      // console.log('  hasAnyItems:', data.hasAnyItems);
+      // console.log('  required:', data.required);
 
       // Check REQUIRED sections - applies if ANY item from restaurant is ordered
       if (data.required) {
-        console.log('  ✓ Has required rule');
-        console.log('    count:', data.required.count);
-        console.log('    minRequired:', data.required.minRequired);
-        console.log('    hasAnyItems:', data.hasAnyItems);
+        // console.log('  ✓ Has required rule');
+        // console.log('    count:', data.required.count);
+        // console.log('    minRequired:', data.required.minRequired);
+        // console.log('    hasAnyItems:', data.hasAnyItems);
 
         if (data.hasAnyItems && data.required.count < data.required.minRequired) {
           const shortage = data.required.minRequired - data.required.count;
@@ -392,46 +399,50 @@ export default function Step2MenuItems() {
               ? ` from sections: ${data.required.sections.join(", ")}`
               : "";
           const warning = `${data.name}: Add ${shortage} more required item(s)${sectionInfo}`;
-          console.log('    ⚠️ WARNING:', warning);
+          // console.log('    ⚠️ WARNING:', warning);
           warnings.push(warning);
         } else {
-          console.log('    ✓ Required minimum met or no items ordered');
+          // console.log('    ✓ Required minimum met or no items ordered');
         }
       } else {
-        console.log('  ✗ No required rule');
+        // console.log('  ✗ No required rule');
       }
 
       // Check OPTIONAL sections
       if (data.optional) {
-        console.log('  ✓ Has optional rules');
+        // console.log('  ✓ Has optional rules');
         data.optional.forEach((rule, index) => {
-          console.log(`    Rule ${index}:`, {
-            hasItems: rule.hasItems,
-            count: rule.count,
-            minRequired: rule.minRequired,
-            sections: rule.sections
-          });
+          // console.log(`    Rule ${index}:`, {
+          //   hasItems: rule.hasItems,
+          //   count: rule.count,
+          //   minRequired: rule.minRequired,
+          //   sections: rule.sections
+          // });
 
           if (rule.hasItems && rule.count < rule.minRequired) {
             const shortage = rule.minRequired - rule.count;
             const warning = `${data.name}: Add ${shortage} more item(s) from sections: ${rule.sections.join(", ")}`;
-            console.log('      ⚠️ WARNING:', warning);
+            // console.log('      ⚠️ WARNING:', warning);
             warnings.push(warning);
           }
         });
       }
     });
 
-    console.log('\n📋 Final warnings:', warnings);
+    // console.log('\n📋 Final warnings:', warnings);
     return warnings;
   };
 
 
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
-    if (!searchQuery.trim()) {
+    const hasNoFilters =
+      (!filters.dietaryRestrictions || filters.dietaryRestrictions.length === 0) &&
+      (!filters.allergens || filters.allergens.length === 0);
+
+    if (!searchQuery.trim() && hasNoFilters) {
       setIsSearching(false);
       fetchAllMenuItems();
       return;
@@ -444,6 +455,8 @@ export default function Step2MenuItems() {
       const response = await cateringService.searchMenuItems(searchQuery, {
         page: 1,
         limit: 50,
+        dietaryFilters: filters.dietaryRestrictions,
+        allergens: filters.allergens,
       });
 
       setSearchResults(response.menuItems || []);
@@ -461,6 +474,19 @@ export default function Step2MenuItems() {
     setSearchResults(null);
     fetchAllMenuItems();
   };
+
+  // Wrapper to handle async search
+  const handleSearchWrapper = () => {
+    handleSearch();
+  };
+
+  // Re-run search when filters change
+  useEffect(() => {
+    if (filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0) {
+      handleSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   const getItemQuantity = (itemId: string, item?: MenuItem) => {
     // For items with addons, always return 0 so the card shows "Add to Order"
@@ -528,58 +554,6 @@ export default function Step2MenuItems() {
     <div className="min-h-screen bg-base-100">
       {/* Main Content */}
       <div className="mx-auto px-4 py-6">
-        <form onSubmit={handleSearch} className="mb-4">
-          <div className="flex gap-2 md:gap-4">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search menu items..."
-                className="w-full pl-10 md:pl-12 pr-4 py-2 md:py-3 bg-white border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
-              />
-              <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-base-content/40">
-                <svg
-                  aria-hidden="true"
-                  focusable="false"
-                  className="w-4 h-4 md:w-5 md:h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="6.25"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M20 20L16.65 16.65"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="bg-primary hover:opacity-90 text-white px-4 md:px-8 py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
-            >
-              Search
-            </button>
-            {isSearching && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="bg-base-300 text-base-content px-3 md:px-6 py-2 md:py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm md:text-base"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        </form>
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Menu Items Grid */}
 
@@ -591,15 +565,21 @@ export default function Step2MenuItems() {
               restaurants={restaurants}
               sortByRestaurant={sortByRestaurant}
               restaurantPromotions={restaurantPromotions}
+              filterModalOpen={filterModalOpen}
+              setFilterModalOpen={setFilterModalOpen}
               expandedItemId={expandedItemId}
               setExpandedItemId={setExpandedItemId}
               getItemQuantity={getItemQuantity}
               handleAddItem={handleAddItem}
               updateItemQuantity={updateItemQuantity}
               handleOrderPress={handleOrderPress}
-              selectedRestaurantId={selectedRestaurantId}
-              setSelectedRestaurantId={updateSelectedRestaurant}
-              setSearchQuery={setSearchQuery}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSearch={handleSearchWrapper}
+              onClearSearch={clearSearch}
+              deliveryDate={deliveryDate}
+              deliveryTime={deliveryTime}
+              eventBudget={eventBudget}
             />
           ) : (
             <RestaurantCatalogue
@@ -608,6 +588,16 @@ export default function Step2MenuItems() {
               selectedRestaurantId={selectedRestaurantId}
               setSelectedRestaurantId={updateSelectedRestaurant}
               restaurantPromotions={restaurantPromotions}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSearch={handleSearchWrapper}
+              onClearSearch={clearSearch}
+              deliveryDate={deliveryDate}
+              deliveryTime={deliveryTime}
+              eventBudget={eventBudget}
+              hasActiveFilters={filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0}
+              onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
+              filterModalOpen={filterModalOpen}
             />
           )}
 

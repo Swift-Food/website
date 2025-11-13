@@ -1,4 +1,6 @@
 import { Restaurant } from "./Step2MenuItems";
+import CateringFilterRow from "./CateringFilterRow";
+import CateringFilterModal from "./CateringFilterModal";
 
 interface RestaurantCatalogueProps {
   restaurants: Restaurant[];
@@ -6,6 +8,16 @@ interface RestaurantCatalogueProps {
   selectedRestaurantId: string | null;
   setSelectedRestaurantId: (id: string | null) => void;
   restaurantPromotions: Record<string, any[]>;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onSearch: (e?: React.FormEvent) => void;
+  onClearSearch: () => void;
+  deliveryDate: string;
+  deliveryTime: string;
+  eventBudget: string;
+  hasActiveFilters: boolean;
+  onFilterClick: () => void;
+  filterModalOpen: boolean;
 }
 
 const formatCateringHours = (
@@ -73,9 +85,35 @@ export default function RestaurantCatalogue({
   selectedRestaurantId,
   setSelectedRestaurantId,
   restaurantPromotions,
+  searchQuery,
+  onSearchChange,
+  onSearch,
+  onClearSearch,
+  deliveryDate,
+  deliveryTime,
+  eventBudget,
+  hasActiveFilters,
+  onFilterClick,
+  filterModalOpen,
 }: RestaurantCatalogueProps) {
   return (
     <div className="flex-1">
+      <CateringFilterRow
+        date={deliveryDate}
+        time={deliveryTime}
+        budget={eventBudget}
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        onSearch={onSearch}
+        onClearSearch={onClearSearch}
+        hasActiveFilters={hasActiveFilters}
+        onFilterClick={onFilterClick}
+        filterModalOpen={filterModalOpen}
+      />
+      <CateringFilterModal
+        isOpen={filterModalOpen}
+        onClose={onFilterClick}
+      />
       <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
         Select Restaurant
       </h3>
