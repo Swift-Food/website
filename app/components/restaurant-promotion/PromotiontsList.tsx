@@ -61,6 +61,7 @@ export const PromotionsList = ({
       </div>
     );
   }
+  console.log("promotions", JSON.stringify(promotions))
 
   return (
     <div className="space-y-4">
@@ -71,10 +72,14 @@ export const PromotionsList = ({
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center mb-2">
+              <h3 className="text-md font-bold text-gray-900">
+                  {promotion.promotionType}
+              </h3>
+              <div className="flex mt-2 items-center mb-2">
                 <h3 className="text-xl font-bold text-gray-900">
                   {promotion.name}
                 </h3>
+                
                 <span
                   className={`ml-3 px-3 py-1 rounded-full text-xs font-semibold ${
                     promotion.status === "ACTIVE"

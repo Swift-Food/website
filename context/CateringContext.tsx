@@ -90,34 +90,105 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   // NEW: Helper function to calculate promotion discount
   const calculatePromotionDiscount = (
     restaurantId: string,
-    subtotal: number
+    subtotal: number,
+    cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number }> // Add cart items
   ): { discount: number; promotion: any | null } => {
     const promos = restaurantPromotions[restaurantId];
+
     
     if (!promos || promos.length === 0) {
       return { discount: 0, promotion: null };
     }
-
-    const promo = promos[0];
-
+  
+    // Sort by priority and find applicable promotion
+    const applicablePromo = promos
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))
+      .find(promo => isPromotionApplicable(promo, subtotal));
+  
+    if (!applicablePromo) {
+      return { discount: 0, promotion: null };
+    }
+    console.log("applicable promo", applicablePromo)
+    const discount = calculateDiscountByType(applicablePromo, subtotal, cartItems);
+    
+    return { 
+      discount: Number(Number(discount).toFixed(2)), 
+      promotion: applicablePromo 
+    };
+  };
+  
+  // Helper: Check if promotion is applicable
+  const isPromotionApplicable = (promo: any, subtotal: number): boolean => {
+    // Check date range
+    const now = new Date();
+    if (now < new Date(promo.startDate) || now > new Date(promo.endDate)) {
+      return false;
+    }
+  
     // Check minimum order amount
     if (promo.minOrderAmount && subtotal < promo.minOrderAmount) {
-      return { discount: 0, promotion: promo };
+      return false;
     }
-
+  
+    return true;
+  };
+  
+  const calculateDiscountByType = (
+    promo: any,
+    subtotal: number,
+    cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number }>
+  ): number => {
+    let eligibleAmount = 0;
+  
+    switch (promo.promotionType) {
+      case 'RESTAURANT_WIDE':
+        eligibleAmount = subtotal;
+        break;
+  
+      case 'CATEGORY_SPECIFIC':
+        eligibleAmount = cartItems
+          .filter(item => promo.applicableCategories?.includes(item.groupTitle))
+          .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        break;
+  
+      case 'ITEM_SPECIFIC':
+        eligibleAmount = cartItems
+          .filter(item => promo.applicableMenuItemIds?.includes(item.menuItemId))
+          .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        break;
+  
+      case 'BUY_MORE_SAVE_MORE':
+        // Implement tiered discount logic here
+        eligibleAmount = calculateTieredDiscount(promo, subtotal);
+        break;
+  
+      default:
+        eligibleAmount = 0;
+    }
+  
     // Calculate percentage discount
-    let discount = subtotal * (promo.discountPercentage / 100);
-
+    let discount = eligibleAmount * (promo.discountPercentage / 100);
+    console.log("discount", discount)
     // Apply max discount cap if set
+    
     if (promo.maxDiscountAmount && discount > promo.maxDiscountAmount) {
       discount = promo.maxDiscountAmount;
     }
-
-    return { discount: Number(Number(discount).toFixed(2)), promotion: promo };
+    console.log("disocunti n end", discount)
+    
+    return discount;
+  };
+  
+  // Helper: For future BUY_MORE_SAVE_MORE type
+  const calculateTieredDiscount = (promo: any, subtotal: number): number => {
+    // Example: Different discount tiers based on subtotal
+    // This can be extended based on promo.tiers configuration
+    return subtotal;
   };
 
   // NEW: Calculate totals with promotions whenever items or promotions change
   useEffect(() => {
+    console.log("use effect", restaurantPromotions)
     const restaurantSubtotals: Record<string, number> = {};
     const newRestaurantDiscounts: Record<string, { discount: number; promotion: any }> = {};
     
@@ -149,10 +220,16 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       restaurantSubtotals[restaurantId] += itemSubtotal;
     });
 
+    const cartItems = selectedItems.map(selected => ({
+      menuItemId: selected.item.id,
+      groupTitle: selected.item.groupTitle || '',
+      price: parseFloat(selected.item.price) + (selected.item.addonPrice || 0),
+      quantity: selected.quantity
+    }));
     // Calculate discount per restaurant
     Object.keys(restaurantSubtotals).forEach(restaurantId => {
       const subtotal = restaurantSubtotals[restaurantId];
-      const { discount, promotion } = calculatePromotionDiscount(restaurantId, subtotal);
+      const { discount, promotion } = calculatePromotionDiscount(restaurantId, subtotal, cartItems);
       newRestaurantDiscounts[restaurantId] = { discount, promotion };
     });
 

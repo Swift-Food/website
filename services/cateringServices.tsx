@@ -1,5 +1,4 @@
 // services/catering.service.ts
-
 import {
   SearchResponse,
   SearchFilters,
@@ -21,7 +20,6 @@ import {
   UpdateMenuItemDto,
   MenuCategory,
 } from "@/types/catering.types";
-// import { create } from "domain";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -80,15 +78,10 @@ class CateringService {
     }
   ) {
     const userId = await this.findOrCreateConsumerAccount(contactInfo);
-    console.log(
-      "submitted order with payment info",
-      JSON.stringify(paymentInfo)
-    );
-    // Step 2: Create address
-    // await this.createAddress(userId, contactInfo);
+
 
     // Group items by restaurant
-    const groupedByRestaurant = selectedItems.reduce(
+    const groupedByRestaurant =   selectedItems.reduce(
       (acc, { item, quantity }) => {
         const restaurantId =
           item.restaurant?.restaurantId || item.restaurantId || "unknown";
@@ -131,6 +124,7 @@ class CateringService {
         acc[restaurantId].items.push({
           menuItemId: item.id,
           name: item.name,
+          groupTitle: item.groupTitle,
           quantity,
           unitPrice,
           addonPrice: addonPricePerUnit,
@@ -146,6 +140,7 @@ class CateringService {
       >
     );
 
+
     // Transform to OrderItemDto format
     const orderItems: OrderItemDto[] = Object.values(groupedByRestaurant).map(
       (group: any) => {
@@ -157,6 +152,7 @@ class CateringService {
         return {
           restaurantId: group.restaurantId,
           restaurantName: group.restaurantName,
+        
           menuItems: group.items,
           status: "pending",
           restaurantCost: restaurantTotal,
@@ -195,7 +191,7 @@ class CateringService {
       paymentMethodId: paymentInfo?.paymentMethodId,
       paymentIntentId: paymentInfo?.paymentIntentId,
     };
-    console.log("catering req", JSON.stringify(createDto));
+
 
     const response = await fetch(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
@@ -333,7 +329,7 @@ class CateringService {
       promoCodes,
     };
 
-
+    console.log(JSON.stringify(pricingData))
     const response = await fetch(
       `${API_BASE_URL}/pricing/catering-verify-cart`,
       {

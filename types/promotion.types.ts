@@ -1,5 +1,5 @@
 // types/promotion.types.ts
-export type PromotionType = 'RESTAURANT_WIDE' | 'GROUP_WIDE' | 'BUY_MORE_SAVE_MORE' | 'BOGO' | 'BOGO_ITEM';
+export type PromotionType = 'RESTAURANT_WIDE' | 'RESTAURANT_WIDE' | 'CATEGORY_SPECIFIC' | 'ITEM_SPECIFIC' | 'BUY_MORE_SAVE_MORE' | 'BOGO' | 'BOGO_ITEM';
 export type PromotionStatus = 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'EXPIRED';
 export type PromotionApplicability = 'CATERING' | 'CORPORATE' | 'BOTH';
 
@@ -21,13 +21,13 @@ export const PROMOTION_TYPES: PromotionTypeInfo[] = [
     available: true,
   },
   {
-    type: 'GROUP_WIDE',
-    title: 'Menu Group Discount',
-    description: 'Discount specific menu categories or groups',
-    icon: '📁',
+    type: "CATEGORY_SPECIFIC",
+    title: "Menu Group Discount",
+    description: "Apply discount to specific menu categories/groups",
+    icon: "📂",
     available: true,
-    comingSoon: true,
   },
+
   {
     type: 'BUY_MORE_SAVE_MORE',
     title: 'Buy More Save More',
