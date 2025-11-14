@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, Trash2, ToggleLeft, ToggleRight, TrendingUp, Grid, Percent } from "lucide-react";
+import { Edit2, Trash2, ToggleLeft, ToggleRight, TrendingUp, Grid, Percent, Gift } from "lucide-react";
 import { Promotion, promotionsServices } from "@/services/promotionServices";
 import { useRouter } from "next/navigation";
 
@@ -56,6 +56,8 @@ export const PromotionsList = ({
         return <Grid size={18} className="text-purple-600" />;
       case "BUY_MORE_SAVE_MORE":
         return <TrendingUp size={18} className="text-green-600" />;
+      case "BOGO": // ADD THIS
+        return <Gift size={18} className="text-orange-600" />;
       default:
         return null;
     }
@@ -69,6 +71,8 @@ export const PromotionsList = ({
         return "Menu Group";
       case "BUY_MORE_SAVE_MORE":
         return "Buy More Save More";
+      case "BOGO": // ADD THIS
+        return "Buy One Get One";
       case "ITEM_SPECIFIC":
         return "Item-Specific";
       default:
@@ -123,6 +127,27 @@ export const PromotionsList = ({
                 {category}
               </span>
             ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (promotion.promotionType === "BOGO" && promotion.bogoItemIds && promotion.bogoItemIds.length > 0) {
+      const bogoType = (promotion as any).bogoType || "BUY_ONE_GET_ONE_FREE";
+      const buyQty = (promotion as any).buyQuantity || 1;
+      const getQty = (promotion as any).getQuantity || 1;
+      
+      return (
+        <div className="mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="px-4 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-semibold">
+              {bogoType === "BUY_ONE_GET_ONE_FREE" 
+                ? "Buy 1 Get 1 Free" 
+                : `Buy ${buyQty} Get ${getQty} Free`}
+            </span>
+            <span className="text-sm text-gray-600">
+              on {promotion.bogoItemIds.length} item{promotion.bogoItemIds.length !== 1 ? 's' : ''}
+            </span>
           </div>
         </div>
       );

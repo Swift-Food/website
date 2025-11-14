@@ -1,4 +1,5 @@
-// app/restaurant/promotions/[restaurantId]/edit/[promotionId]/page.tsx
+// app/restaurant/promotions/[restaurantId]/edit/[promotionId]/page.tsx - UPDATE
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,6 +9,7 @@ import { promotionsServices } from "@/services/promotionServices";
 import { RestaurantWideForm } from "@/app/components/restaurant-promotion/RestaurantWideForm";
 import { GroupWideForm } from "@/app/components/restaurant-promotion/GroupWideForm";
 import { BuyMoreSaveMoreForm } from "@/app/components/restaurant-promotion/BuyMoreSaveMoreForm";
+import { BogoForm } from "@/app/components/restaurant-promotion/BOGOForm";
 import { Promotion } from "@/services/promotionServices";
 
 export default function EditPromotionPage() {
@@ -88,6 +90,8 @@ export default function EditPromotionPage() {
         return "Edit Menu Group Discount";
       case "BUY_MORE_SAVE_MORE":
         return "Edit Buy More Save More";
+      case "BOGO": // ADD THIS
+        return "Edit Buy One Get One (BOGO)";
       case "ITEM_SPECIFIC":
         return "Edit Item-Specific Discount";
       default:
@@ -190,6 +194,18 @@ export default function EditPromotionPage() {
 
         {promotion.promotionType === "BUY_MORE_SAVE_MORE" && (
           <BuyMoreSaveMoreForm
+            mode="edit"
+            promotion={promotion}
+            restaurantId={restaurantId}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            submitting={submitting}
+          />
+        )}
+
+        {/* ADD THIS */}
+        {promotion.promotionType === "BOGO" && (
+          <BogoForm
             mode="edit"
             promotion={promotion}
             restaurantId={restaurantId}

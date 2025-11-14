@@ -1,4 +1,5 @@
-// app/restaurant/promotions/[restaurantId]/create/page.tsx
+// app/restaurant/promotions/[restaurantId]/create/page.tsx - UPDATE
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,6 +9,7 @@ import { promotionsServices } from "@/services/promotionServices";
 import { RestaurantWideForm } from "@/app/components/restaurant-promotion/RestaurantWideForm";
 import { GroupWideForm } from "@/app/components/restaurant-promotion/GroupWideForm";
 import { BuyMoreSaveMoreForm } from "@/app/components/restaurant-promotion/BuyMoreSaveMoreForm";
+import { BogoForm } from "@/app/components/restaurant-promotion/BOGOForm";
 
 
 export default function CreatePromotionPage() {
@@ -52,6 +54,8 @@ export default function CreatePromotionPage() {
         return "Menu Group Discount";
       case "BUY_MORE_SAVE_MORE":
         return "Buy More Save More";
+      case "BOGO": // ADD THIS
+        return "Buy One Get One (BOGO)";
       default:
         return "Create Promotion";
     }
@@ -65,6 +69,8 @@ export default function CreatePromotionPage() {
         return "Apply discounts to specific menu groups";
       case "BUY_MORE_SAVE_MORE":
         return "Offer tiered discounts based on quantity purchased";
+      case "BOGO": // ADD THIS
+        return "Buy one get one free or buy X get Y free deals";
       default:
         return "Set up your promotion details below";
     }
@@ -127,7 +133,15 @@ export default function CreatePromotionPage() {
           />
         )}
 
-        {/* Add other promotion types as needed */}
+        {/* ADD THIS */}
+        {promotionType === "BOGO" && (
+          <BogoForm
+            restaurantId={restaurantId}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            submitting={submitting}
+          />
+        )}
       </div>
     </div>
   );

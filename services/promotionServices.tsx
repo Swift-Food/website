@@ -13,7 +13,7 @@ export interface Promotion {
   restaurantId: string;
   name: string;
   description: string;
-  promotionType: 'RESTAURANT_WIDE' | 'ITEM_SPECIFIC' | 'CATEGORY_SPECIFIC' | 'BUY_MORE_SAVE_MORE';
+  promotionType: 'RESTAURANT_WIDE' | 'ITEM_SPECIFIC' | 'CATEGORY_SPECIFIC' | 'BUY_MORE_SAVE_MORE' | 'BOGO';
   status: 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'EXPIRED';
   applicability: 'CATERING' | 'CORPORATE' | 'BOTH';
   discountPercentage: number;
@@ -26,9 +26,14 @@ export interface Promotion {
   priority: number;
   discountTiers?: DiscountTier[] | null;
   applyToAllGroups?: boolean;
+  bogoItemIds?: string[] | null;
+  bogoType?: 'BUY_ONE_GET_ONE_FREE' | 'BUY_X_GET_Y_FREE' | null;
+  buyQuantity?: number | null;
+  getQuantity?: number | null;
   isStackable: boolean;
   createdAt: string;
   updatedAt: string;
+  
 }
 
 export interface CreatePromotionDto {
@@ -46,6 +51,10 @@ export interface CreatePromotionDto {
   applicableCategories?: string[];
   discountTiers?: DiscountTier[];
   applyToAllGroups?: boolean;
+  bogoItemIds?: string[];
+  bogoType?: 'BUY_ONE_GET_ONE_FREE' | 'BUY_X_GET_Y_FREE';
+  buyQuantity?: number;
+  getQuantity?: number;
   priority?: number;
   isStackable?: boolean;
 }

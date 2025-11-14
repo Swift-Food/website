@@ -84,7 +84,6 @@ export default function PromotionsPage() {
         {showTypeSelector && (
           <PromotionTypeSelector
             onSelect={handleSelectType}
-            onClose={() => setShowTypeSelector(false)}
           />
         )}
       </div>
