@@ -7,6 +7,7 @@ import { ArrowLeft, Loader } from "lucide-react";
 import { promotionsServices } from "@/services/promotionServices";
 import { RestaurantWideForm } from "@/app/components/restaurant-promotion/RestaurantWideForm";
 import { GroupWideForm } from "@/app/components/restaurant-promotion/GroupWideForm";
+import { BuyMoreSaveMoreForm } from "@/app/components/restaurant-promotion/BuyMoreSaveMoreForm";
 
 
 export default function CreatePromotionPage() {
@@ -31,7 +32,6 @@ export default function CreatePromotionPage() {
       await promotionsServices.createPromotion({
         ...formData,
         restaurantId,
-
       });
       
       alert("Promotion created successfully!");
@@ -48,12 +48,25 @@ export default function CreatePromotionPage() {
     switch (promotionType) {
       case "RESTAURANT_WIDE":
         return "Restaurant-Wide Discount";
-      case "GROUP_WIDE":
+      case "CATEGORY_SPECIFIC":
         return "Menu Group Discount";
       case "BUY_MORE_SAVE_MORE":
         return "Buy More Save More";
       default:
         return "Create Promotion";
+    }
+  };
+
+  const getPromotionDescription = () => {
+    switch (promotionType) {
+      case "RESTAURANT_WIDE":
+        return "Apply a percentage discount to the entire order";
+      case "CATEGORY_SPECIFIC":
+        return "Apply discounts to specific menu groups";
+      case "BUY_MORE_SAVE_MORE":
+        return "Offer tiered discounts based on quantity purchased";
+      default:
+        return "Set up your promotion details below";
     }
   };
 
@@ -82,7 +95,7 @@ export default function CreatePromotionPage() {
               {getPromotionTitle()}
             </h1>
             <p className="text-gray-600 mt-1">
-              Set up your promotion details below
+              {getPromotionDescription()}
             </p>
           </div>
         </div>
@@ -104,15 +117,17 @@ export default function CreatePromotionPage() {
             submitting={submitting}
           />
         )}
-{/* 
-        {promotionType === "ITEM_SPECIFIC" && (
-          <ItemSpecificForm
+
+        {promotionType === "BUY_MORE_SAVE_MORE" && (
+          <BuyMoreSaveMoreForm
+            restaurantId={restaurantId}
             onSubmit={handleSubmit}
             onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
-            restaurantId={restaurantId}
             submitting={submitting}
           />
-        )} */}
+        )}
+
+        {/* Add other promotion types as needed */}
       </div>
     </div>
   );

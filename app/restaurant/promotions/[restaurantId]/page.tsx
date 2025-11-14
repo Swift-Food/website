@@ -52,7 +52,7 @@ export default function PromotionsPage() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.replace('/restaurant/dashboard')}
               className="mr-4 p-2 hover:bg-gray-200 rounded-full transition"
             >
               <ArrowLeft size={24} />

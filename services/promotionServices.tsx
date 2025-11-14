@@ -3,20 +3,29 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+export interface DiscountTier {
+  minQuantity: number;
+  discountPercentage: number;
+}
+
 export interface Promotion {
   id: string;
   restaurantId: string;
   name: string;
   description: string;
-  promotionType: 'RESTAURANT_WIDE' | 'GROUP_WIDE' | 'BUY_MORE_SAVE_MORE' | 'BOGO' | 'BOGO_ITEM';
+  promotionType: 'RESTAURANT_WIDE' | 'ITEM_SPECIFIC' | 'CATEGORY_SPECIFIC' | 'BUY_MORE_SAVE_MORE';
   status: 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'EXPIRED';
   applicability: 'CATERING' | 'CORPORATE' | 'BOTH';
   discountPercentage: number;
-  maxDiscountAmount?: number;
-  minOrderAmount?: number;
+  maxDiscountAmount?: number | null;
+  minOrderAmount?: number | null;
   startDate: string;
   endDate: string;
+  applicableMenuItemIds?: string[] | null;
+  applicableCategories?: string[] | null;
   priority: number;
+  discountTiers?: DiscountTier[] | null;
+  applyToAllGroups?: boolean;
   isStackable: boolean;
   createdAt: string;
   updatedAt: string;
@@ -26,15 +35,29 @@ export interface CreatePromotionDto {
   restaurantId: string;
   name: string;
   description?: string;
-  type: 'RESTAURANT_WIDE' | 'GROUP_WIDE' | 'BUY_MORE_SAVE_MORE';
+  promotionType: 'RESTAURANT_WIDE' | 'ITEM_SPECIFIC' | 'CATEGORY_SPECIFIC' | 'BUY_MORE_SAVE_MORE';
   applicability: 'CATERING' | 'CORPORATE' | 'BOTH';
   discountPercentage: number;
-  maxDiscountAmount?: number;
-  minOrderAmount?: number;
+  maxDiscountAmount?: number | null;
+  minOrderAmount?: number | null;
   startDate: string;
   endDate: string;
+  applicableMenuItemIds?: string[];
+  applicableCategories?: string[];
+  discountTiers?: DiscountTier[];
+  applyToAllGroups?: boolean;
   priority?: number;
   isStackable?: boolean;
+}
+
+export interface UpdatePromotionDto extends Partial<CreatePromotionDto> {
+  status?: 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'EXPIRED';
+}
+
+export interface PromotionValidationResult {
+  isValid: boolean;
+  discount: number;
+  message?: string;
 }
 
 export const promotionsServices = {
@@ -105,4 +128,10 @@ export const promotionsServices = {
     });
     return response.data;
   },
+
+  async getPromotionById(promotionId: string): Promise<Promotion> {
+    const response = await axios.get(`${API_BASE_URL}/promotions/${promotionId}`);
+    return response.data;
+  },
+
 };

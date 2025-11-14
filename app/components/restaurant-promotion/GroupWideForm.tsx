@@ -1,33 +1,47 @@
+// app/components/restaurant-promotion/GroupWideForm.tsx (UPDATED)
 "use client";
 
 import { useState, useEffect } from "react";
 import { restaurantApi } from "@/app/api/restaurantApi";
+import { Promotion } from "@/services/promotionServices";
 
 interface GroupWideFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
   submitting: boolean;
-  restaurantId: string; // Add this prop
+  restaurantId: string;
+  promotion?: Promotion; // Optional: for edit mode
+  mode?: "create" | "edit"; // Optional: defaults to "create"
 }
 
-export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: GroupWideFormProps) {
+export function GroupWideForm({ 
+  onSubmit, 
+  onCancel, 
+  submitting, 
+  restaurantId,
+  promotion,
+  mode = "create"
+}: GroupWideFormProps) {
+  const isEditMode = mode === "edit" && promotion;
   const [groupTitles, setGroupTitles] = useState<string[]>([]);
+  
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    applicability: "BOTH",
-    discountPercentage: 0,
-    maxDiscountAmount: null as number | null,
-    minOrderAmount: null as number | null,
-    startDate: "",
-    endDate: "",
-    applicableCategories: [] as string[], // These will be groupTitle strings
+    name: promotion?.name || "",
+    description: promotion?.description || "",
+    applicability: promotion?.applicability || "BOTH",
+    discountPercentage: promotion?.discountPercentage || 0,
+    maxDiscountAmount: promotion?.maxDiscountAmount || null,
+    minOrderAmount: promotion?.minOrderAmount || null,
+    startDate: promotion ? formatDateTimeLocal(promotion.startDate) : "",
+    endDate: promotion ? formatDateTimeLocal(promotion.endDate) : "",
+    status: promotion?.status || "ACTIVE",
+    applicableCategories: promotion?.applicableCategories || [],
   });
 
   useEffect(() => {
     const fetchGroupTitles = async () => {
       try {
-        const titles = await restaurantApi.getMenuGroups(restaurantId)
+        const titles = await restaurantApi.getMenuGroups(restaurantId);
         setGroupTitles(titles);
       } catch (error) {
         console.error("Failed to fetch group titles:", error);
@@ -65,7 +79,7 @@ export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: 
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
@@ -76,10 +90,30 @@ export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: 
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           rows={3}
         />
       </div>
+
+      {/* Status (only show in edit mode) */}
+      {isEditMode && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Status *
+          </label>
+          <select
+            required
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            <option value="SCHEDULED">Scheduled</option>
+            <option value="EXPIRED">Expired</option>
+          </select>
+        </div>
+      )}
 
       {/* Select Group Titles */}
       <div>
@@ -99,7 +133,7 @@ export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: 
                   type="checkbox"
                   checked={formData.applicableCategories.includes(groupTitle)}
                   onChange={() => toggleGroupTitle(groupTitle)}
-                  className="mr-3 h-4 w-4"
+                  className="mr-3 h-4 w-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
                 <span className="font-medium">{groupTitle}</span>
               </label>
@@ -118,35 +152,46 @@ export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: 
           required
           min="0"
           max="100"
+          step="0.01"
           value={formData.discountPercentage}
           onChange={(e) => setFormData({ ...formData, discountPercentage: Number(e.target.value) })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Max Discount Amount
+            Max Discount Amount (£)
           </label>
           <input
             type="number"
             min="0"
-            value={formData.maxDiscountAmount || 0}
-            onChange={(e) => setFormData({ ...formData, maxDiscountAmount: Number(e.target.value) })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            step="0.01"
+            value={formData.maxDiscountAmount || ""}
+            onChange={(e) => setFormData({ 
+              ...formData, 
+              maxDiscountAmount: e.target.value ? Number(e.target.value) : null 
+            })}
+            placeholder="Optional cap"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Min Order Amount
+            Min Order Amount (£)
           </label>
           <input
             type="number"
             min="0"
-            value={formData.minOrderAmount || 0}
-            onChange={(e) => setFormData({ ...formData, minOrderAmount: Number(e.target.value) })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            step="0.01"
+            value={formData.minOrderAmount || ""}
+            onChange={(e) => setFormData({ 
+              ...formData, 
+              minOrderAmount: e.target.value ? Number(e.target.value) : null 
+            })}
+            placeholder="Optional minimum"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -158,8 +203,8 @@ export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: 
         <select
           required
           value={formData.applicability}
-          onChange={(e) => setFormData({ ...formData, applicability: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          onChange={(e) => setFormData({ ...formData, applicability: e.target.value as any })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="CATERING">Catering Only</option>
           <option value="CORPORATE">Corporate Only</option>
@@ -177,7 +222,7 @@ export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: 
             required
             value={formData.startDate}
             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <div>
@@ -189,29 +234,39 @@ export function GroupWideForm({ onSubmit, onCancel, submitting, restaurantId }: 
             required
             value={formData.endDate}
             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 pt-4">
+      <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
         <button
           type="button"
           onClick={onCancel}
           disabled={submitting}
-          className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={submitting || formData.applicableCategories.length === 0}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
         >
-          {submitting ? "Creating..." : "Create Promotion"}
+          {submitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Promotion" : "Create Promotion")}
         </button>
       </div>
     </form>
   );
+}
+
+function formatDateTimeLocal(dateString: string): string {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }

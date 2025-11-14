@@ -157,10 +157,8 @@ export function CateringProvider({ children }: { children: ReactNode }) {
           .reduce((sum, item) => sum + (item.price * item.quantity), 0);
         break;
   
-      case 'BUY_MORE_SAVE_MORE':
-        // Implement tiered discount logic here
-        eligibleAmount = calculateTieredDiscount(promo, subtotal);
-        break;
+        case 'BUY_MORE_SAVE_MORE':
+          return calculateBuyMoreSaveMoreDiscount(promo, cartItems);
   
       default:
         eligibleAmount = 0;
@@ -180,10 +178,60 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   };
   
   // Helper: For future BUY_MORE_SAVE_MORE type
-  const calculateTieredDiscount = (promo: any, subtotal: number): number => {
-    // Example: Different discount tiers based on subtotal
-    // This can be extended based on promo.tiers configuration
-    return subtotal;
+  const calculateBuyMoreSaveMoreDiscount = (
+    promo: any,
+    cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number }>
+  ): number => {
+    if (!promo.discountTiers || promo.discountTiers.length === 0) {
+      return 0;
+    }
+  
+    // Filter applicable items
+    const applicableItems = cartItems.filter((item) => {
+      // If applyToAllGroups is true, all items are applicable
+      if (promo.applyToAllGroups) {
+        return true;
+      }
+  
+      // Otherwise check if item's group is in applicableCategories
+      return item.groupTitle
+        ? (promo.applicableCategories?.includes(item.groupTitle) ?? false)
+        : false;
+    });
+  
+    // Calculate total quantity of applicable items
+    const totalQuantity = applicableItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+  
+    // Find the highest tier that applies
+    const sortedTiers = [...promo.discountTiers].sort(
+      (a, b) => b.minQuantity - a.minQuantity
+    );
+    const applicableTier = sortedTiers.find(
+      (tier) => totalQuantity >= tier.minQuantity
+    );
+  
+    if (!applicableTier) {
+      return 0;
+    }
+  
+    // Calculate total price of applicable items
+    const eligibleAmount = applicableItems.reduce(
+      (sum, item) => sum + (item.price * item.quantity),
+      0
+    );
+  
+    // Apply discount percentage from the tier
+    let discount = eligibleAmount * (applicableTier.discountPercentage / 100);
+  
+    // Apply max discount cap if set
+    if (promo.maxDiscountAmount && discount > promo.maxDiscountAmount) {
+      discount = promo.maxDiscountAmount;
+    }
+  
+    return discount;
   };
 
   // NEW: Calculate totals with promotions whenever items or promotions change
@@ -220,12 +268,19 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       restaurantSubtotals[restaurantId] += itemSubtotal;
     });
 
-    const cartItems = selectedItems.map(selected => ({
-      menuItemId: selected.item.id,
-      groupTitle: selected.item.groupTitle || '',
-      price: parseFloat(selected.item.price) + (selected.item.addonPrice || 0),
-      quantity: selected.quantity
-    }));
+    // Build cart items with proper quantity calculation
+    const cartItems = selectedItems.map(selected => {
+      const price = parseFloat(selected.item.price?.toString() || "0");
+      const discountPrice = parseFloat(selected.item.discountPrice?.toString() || "0");
+      const itemPrice = selected.item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      
+      return {
+        menuItemId: selected.item.id,
+        groupTitle: selected.item.groupTitle || '',
+        price: itemPrice,
+        quantity: selected.quantity
+      };
+    });
     // Calculate discount per restaurant
     Object.keys(restaurantSubtotals).forEach(restaurantId => {
       const subtotal = restaurantSubtotals[restaurantId];

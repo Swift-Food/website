@@ -34,7 +34,7 @@ export const PROMOTION_TYPES: PromotionTypeInfo[] = [
     description: 'Tiered discounts based on order quantity or amount',
     icon: '📊',
     available: true,
-    comingSoon: true,
+ 
   },
   {
     type: 'BOGO',
