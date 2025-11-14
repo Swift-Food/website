@@ -195,7 +195,7 @@ export function BuyMoreSaveMoreForm({
         </div>
 
         <div className="space-y-3">
-          {sortedTiers.map((tier, index) => {
+          {sortedTiers.map((tier, ) => {
             const originalIndex = formData.discountTiers.findIndex(
               t => t.minQuantity === tier.minQuantity && t.discountPercentage === tier.discountPercentage
             );

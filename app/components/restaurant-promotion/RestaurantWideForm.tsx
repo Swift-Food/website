@@ -1,7 +1,7 @@
 // app/components/restaurant-promotion/RestaurantWideForm.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Promotion } from "@/services/promotionServices";
 
 interface RestaurantWideFormProps {
