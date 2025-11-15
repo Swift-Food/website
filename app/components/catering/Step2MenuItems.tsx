@@ -113,13 +113,18 @@ export default function Step2MenuItems() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  // const [restaurantName, setRestaurantName] = useState("");
-  const [searchResults, setSearchResults] = useState<any[] | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
+
+  // Catalogue-level search (API-based)
+  const [catalogueSearchQuery, setCatalogueSearchQuery] = useState("");
+  const [catalogueSearchResults, setCatalogueSearchResults] = useState<MenuItem[] | null>(null);
+  const [isCatalogueSearchActive, setIsCatalogueSearchActive] = useState(false);
+
+  // Restaurant-level search (Frontend-based)
+  const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
+  const [restaurantMenuItems, setRestaurantMenuItems] = useState<MenuItem[]>([]);
+
   const [showCartMobile, setShowCartMobile] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
-  const [displayItems, setDisplayItems] = useState<MenuItem[]>([]);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
 
@@ -153,28 +158,16 @@ export default function Step2MenuItems() {
     }
   }, [searchParams]);
 
-  // Function to update restaurant ID in both state and URL
-  const updateSelectedRestaurant = (restaurantId: string | null) => {
-    setSelectedRestaurantId(restaurantId);
-
-    // Update URL params
-    const params = new URLSearchParams(searchParams.toString());
-    if (restaurantId) {
-      params.set("restaurantId", restaurantId);
-    } else {
-      params.delete("restaurantId");
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Fetch all restaurants on mount
+  // Fetch all restaurants and menu items on mount
   useEffect(() => {
     fetchRestaurants();
+    fetchAllMenuItems();
     getTotalPrice();
   }, []);
   useEffect(() => {
@@ -210,11 +203,6 @@ export default function Step2MenuItems() {
     setRestaurantPromotions(promotionsMap); // USE CONTEXT SETTER
   };
 
-  useEffect(() => {
-    if (!isSearching) {
-      fetchAllMenuItems();
-    }
-  }, [isSearching]);
   useEffect(() => {
     console.log("Selected Items:", selectedItems);
   }, [selectedItems]);
@@ -262,13 +250,15 @@ export default function Step2MenuItems() {
     }
   };
 
-  // Determine which items to display
-
+  // Populate restaurantMenuItems when a restaurant is selected
   useEffect(() => {
-    // Always sort items by restaurant so UI shows items grouped by restaurant
-    const source = isSearching ? searchResults || [] : menuItems;
-    setDisplayItems(sortByRestaurant(source));
-  }, [isSearching, searchResults, menuItems]);
+    if (selectedRestaurantId) {
+      const filtered = menuItems.filter(
+        (item) => item.restaurantId === selectedRestaurantId
+      );
+      setRestaurantMenuItems(sortByRestaurant(filtered));
+    }
+  }, [selectedRestaurantId, menuItems]);
 
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
@@ -454,7 +444,8 @@ export default function Step2MenuItems() {
     return warnings;
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  // CATALOGUE-LEVEL SEARCH (API-based)
+  const handleCatalogueSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     const hasNoFilters =
@@ -462,42 +453,114 @@ export default function Step2MenuItems() {
         filters.dietaryRestrictions.length === 0) &&
       (!filters.allergens || filters.allergens.length === 0);
 
-    if (!searchQuery.trim() && hasNoFilters) {
-      setIsSearching(false);
-      fetchAllMenuItems();
+    if (!catalogueSearchQuery.trim() && hasNoFilters) {
+      clearCatalogueSearch();
       return;
     }
 
-    setIsSearching(true);
+    setIsCatalogueSearchActive(true);
     setLoading(true);
 
     try {
-      const response = await cateringService.searchMenuItems(searchQuery, {
+      const response = await cateringService.searchMenuItems(catalogueSearchQuery, {
         page: 1,
         limit: 50,
         dietaryFilters: filters.dietaryRestrictions,
         allergens: filters.allergens,
       });
 
-      setSearchResults(response.menuItems || []);
+      setCatalogueSearchResults(response.menuItems || []);
     } catch (error) {
       console.error("Error searching menu items:", error);
-      setSearchResults([]);
+      setCatalogueSearchResults([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearSearch = () => {
-    setSearchQuery("");
-    setIsSearching(false);
-    setSearchResults(null);
-    fetchAllMenuItems();
+  const clearCatalogueSearch = () => {
+    setCatalogueSearchQuery("");
+    setIsCatalogueSearchActive(false);
+    setCatalogueSearchResults(null);
   };
 
-  // Wrapper to handle async search
-  const handleSearchWrapper = () => {
-    handleSearch();
+  // RESTAURANT-LEVEL SEARCH (Frontend-based)
+  const handleRestaurantSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (!selectedRestaurantId) return;
+
+    setLoading(true);
+
+    // Start with all items for this restaurant
+    let filtered = menuItems.filter(
+      (item) => item.restaurantId === selectedRestaurantId
+    );
+
+    // Apply text search
+    if (restaurantSearchQuery.trim()) {
+      const query = restaurantSearchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (item) =>
+          item.name.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query) ||
+          item.groupTitle?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply allergen filters (exclude items with selected allergens)
+    if (filters.allergens && filters.allergens.length > 0) {
+      filtered = filtered.filter(
+        (item) =>
+          !item.allergens?.some((allergen) =>
+            filters.allergens.includes(allergen as any)
+          )
+      );
+    }
+
+    // Apply dietary restriction filters
+    // Note: This assumes items have a dietary restrictions field
+    // Adjust based on your actual data structure
+    if (filters.dietaryRestrictions && filters.dietaryRestrictions.length > 0) {
+      // TODO: Implement dietary restriction filtering based on your data structure
+      // For now, we'll skip this as the data structure isn't clear from the code
+    }
+
+    setRestaurantMenuItems(sortByRestaurant(filtered));
+    setLoading(false);
+  };
+
+  const clearRestaurantSearch = () => {
+    setRestaurantSearchQuery("");
+    // Reset to all items for the selected restaurant
+    if (selectedRestaurantId) {
+      const filtered = menuItems.filter(
+        (item) => item.restaurantId === selectedRestaurantId
+      );
+      setRestaurantMenuItems(sortByRestaurant(filtered));
+    }
+  };
+
+  // Function to update restaurant ID in both state and URL
+  const updateSelectedRestaurant = (restaurantId: string | null) => {
+    setSelectedRestaurantId(restaurantId);
+
+    // If selecting a restaurant, clear catalogue search
+    if (restaurantId) {
+      clearCatalogueSearch();
+    } else {
+      // If deselecting restaurant, clear restaurant search
+      clearRestaurantSearch();
+    }
+
+    // Update URL params
+    const params = new URLSearchParams(searchParams.toString());
+    if (restaurantId) {
+      params.set("restaurantId", restaurantId);
+    } else {
+      params.delete("restaurantId");
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   // Re-run search when filters change
@@ -506,7 +569,20 @@ export default function Step2MenuItems() {
       filters.dietaryRestrictions.length > 0 ||
       filters.allergens.length > 0
     ) {
-      handleSearch();
+      if (selectedRestaurantId) {
+        // Restaurant view - use frontend filtering
+        handleRestaurantSearch();
+      } else {
+        // Catalogue view - use API search
+        handleCatalogueSearch();
+      }
+    } else {
+      // No filters active
+      if (selectedRestaurantId) {
+        clearRestaurantSearch();
+      } else {
+        clearCatalogueSearch();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
@@ -559,20 +635,6 @@ export default function Step2MenuItems() {
     setExpandedItemId(expandedItemId === item.id ? null : item.id);
   };
 
-  // Filter by selected restaurant if one is selected
-  useEffect(() => {
-    if (selectedRestaurantId && !isSearching) {
-      const filtered = menuItems.filter(
-        (item) => item.restaurantId === selectedRestaurantId
-      );
-      setDisplayItems(sortByRestaurant(filtered));
-      console.log("selected restaurant id", selectedRestaurantId, filtered);
-    } else {
-      const source = isSearching ? searchResults || [] : menuItems;
-      setDisplayItems(sortByRestaurant(source));
-    }
-  }, [selectedRestaurantId, isSearching, menuItems, searchResults]);
-
   return (
     <div className="min-h-screen bg-base-100">
       {/* Main Content */}
@@ -580,11 +642,12 @@ export default function Step2MenuItems() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Menu Items Grid */}
 
-          {selectedRestaurantId || searchResults !== null ? (
+          {catalogueSearchResults !== null ? (
+            // CATALOGUE SEARCH VIEW (API-based search results)
             <MenuCatalogue
-              displayItems={displayItems}
+              displayItems={catalogueSearchResults}
               loading={loading}
-              isSearching={isSearching}
+              isSearching={isCatalogueSearchActive}
               restaurants={restaurants}
               sortByRestaurant={sortByRestaurant}
               restaurantPromotions={restaurantPromotions}
@@ -596,25 +659,51 @@ export default function Step2MenuItems() {
               handleAddItem={handleAddItem}
               updateItemQuantity={updateItemQuantity}
               handleOrderPress={handleOrderPress}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onSearch={handleSearchWrapper}
-              onClearSearch={clearSearch}
+              searchQuery={catalogueSearchQuery}
+              onSearchChange={setCatalogueSearchQuery}
+              onSearch={handleCatalogueSearch}
+              onClearSearch={clearCatalogueSearch}
+              deliveryDate={deliveryDate}
+              deliveryTime={deliveryTime}
+              eventBudget={eventBudget}
+            />
+          ) : selectedRestaurantId ? (
+            // RESTAURANT MENU VIEW (Frontend-filtered menu)
+            <MenuCatalogue
+              displayItems={restaurantMenuItems}
+              loading={loading}
+              isSearching={false}
+              restaurants={restaurants}
+              sortByRestaurant={sortByRestaurant}
+              restaurantPromotions={restaurantPromotions}
+              filterModalOpen={filterModalOpen}
+              setFilterModalOpen={setFilterModalOpen}
+              expandedItemId={expandedItemId}
+              setExpandedItemId={setExpandedItemId}
+              getItemQuantity={getItemQuantity}
+              handleAddItem={handleAddItem}
+              updateItemQuantity={updateItemQuantity}
+              handleOrderPress={handleOrderPress}
+              searchQuery={restaurantSearchQuery}
+              onSearchChange={setRestaurantSearchQuery}
+              onSearch={handleRestaurantSearch}
+              onClearSearch={clearRestaurantSearch}
               deliveryDate={deliveryDate}
               deliveryTime={deliveryTime}
               eventBudget={eventBudget}
             />
           ) : (
+            // RESTAURANT CATALOGUE VIEW
             <RestaurantCatalogue
               restaurants={restaurants}
               restaurantsLoading={restaurantsLoading}
               selectedRestaurantId={selectedRestaurantId}
               setSelectedRestaurantId={updateSelectedRestaurant}
               restaurantPromotions={restaurantPromotions}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onSearch={handleSearchWrapper}
-              onClearSearch={clearSearch}
+              searchQuery={catalogueSearchQuery}
+              onSearchChange={setCatalogueSearchQuery}
+              onSearch={handleCatalogueSearch}
+              onClearSearch={clearCatalogueSearch}
               deliveryDate={deliveryDate}
               deliveryTime={deliveryTime}
               eventBudget={eventBudget}
@@ -638,7 +727,7 @@ export default function Step2MenuItems() {
                   className="w-full mb-4 px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
                   onClick={() => {
                     updateSelectedRestaurant(null);
-                    setSearchQuery("");
+                    clearRestaurantSearch();
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                 >
@@ -893,7 +982,7 @@ export default function Step2MenuItems() {
                 }`}
                 onClick={() => {
                   updateSelectedRestaurant(null);
-                  setSearchQuery("");
+                  clearRestaurantSearch();
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               >
