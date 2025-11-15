@@ -77,6 +77,7 @@ export interface MenuItem {
     restaurantId: string;
     menuGroupSettings?: Record<string, any>;
   };
+  dietaryFilters?: string[]; // Add this
 }
 
 export default function Step2MenuItems() {
@@ -116,12 +117,16 @@ export default function Step2MenuItems() {
 
   // Catalogue-level search (API-based)
   const [catalogueSearchQuery, setCatalogueSearchQuery] = useState("");
-  const [catalogueSearchResults, setCatalogueSearchResults] = useState<MenuItem[] | null>(null);
+  const [catalogueSearchResults, setCatalogueSearchResults] = useState<
+    MenuItem[] | null
+  >(null);
   const [isCatalogueSearchActive, setIsCatalogueSearchActive] = useState(false);
 
   // Restaurant-level search (Frontend-based)
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
-  const [restaurantMenuItems, setRestaurantMenuItems] = useState<MenuItem[]>([]);
+  const [restaurantMenuItems, setRestaurantMenuItems] = useState<MenuItem[]>(
+    []
+  );
 
   const [showCartMobile, setShowCartMobile] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
@@ -157,7 +162,6 @@ export default function Step2MenuItems() {
       setSelectedRestaurantId(restaurantIdFromUrl);
     }
   }, [searchParams]);
-
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -237,6 +241,7 @@ export default function Step2MenuItems() {
             restaurantId: item.restaurantId,
             menuGroupSettings: item.restaurant?.menuGroupSettings,
           },
+          dietaryFilters: item.dietaryFilters, // Add this
         };
       });
 
@@ -462,12 +467,15 @@ export default function Step2MenuItems() {
     setLoading(true);
 
     try {
-      const response = await cateringService.searchMenuItems(catalogueSearchQuery, {
-        page: 1,
-        limit: 50,
-        dietaryFilters: filters.dietaryRestrictions,
-        allergens: filters.allergens,
-      });
+      const response = await cateringService.searchMenuItems(
+        catalogueSearchQuery,
+        {
+          page: 1,
+          limit: 50,
+          dietaryFilters: filters.dietaryRestrictions,
+          allergens: filters.allergens,
+        }
+      );
 
       setCatalogueSearchResults(response.menuItems || []);
     } catch (error) {
@@ -519,16 +527,25 @@ export default function Step2MenuItems() {
     }
 
     // Apply dietary restriction filters
-    // Note: This assumes items have a dietary restrictions field
-    // Adjust based on your actual data structure
     if (filters.dietaryRestrictions && filters.dietaryRestrictions.length > 0) {
-      // TODO: Implement dietary restriction filtering based on your data structure
-      // For now, we'll skip this as the data structure isn't clear from the code
+      console.log(filters.dietaryRestrictions)
+      filtered = filtered.filter(
+        (item) =>
+          !filters.dietaryRestrictions ||
+          filters.dietaryRestrictions.length === 0 ||
+          filters.dietaryRestrictions.some((restriction) =>
+            item.dietaryFilters?.includes(restriction)
+          )
+      );
     }
 
     setRestaurantMenuItems(sortByRestaurant(filtered));
     setLoading(false);
   };
+
+  useEffect(() => {
+    handleRestaurantSearch();
+  }, [restaurantSearchQuery]);
 
   const clearRestaurantSearch = () => {
     setRestaurantSearchQuery("");
