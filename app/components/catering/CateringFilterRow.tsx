@@ -2,13 +2,9 @@
 
 import { useState, useRef } from "react";
 import CateringFilterModal from "./CateringFilterModal";
+import { useCatering } from "@/context/CateringContext";
 
 interface CateringFilterRowProps {
-  // Display values
-  date?: string;
-  time?: string;
-  budget?: string;
-
   // Search functionality
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -22,10 +18,25 @@ interface CateringFilterRowProps {
   filterModalOpen?: boolean;
 }
 
+// Generate hours from 6 AM to 11 PM (same as Step1EventDetails)
+const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => {
+  const hour24 = i + 6;
+  const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+  const ampm = hour24 >= 12 ? "PM" : "AM";
+  return {
+    label: `${hour12} ${ampm}`,
+    value: String(hour24).padStart(2, "0"),
+  };
+});
+
+const MINUTE_OPTIONS = [
+  { label: "00", value: "00" },
+  { label: "15", value: "15" },
+  { label: "30", value: "30" },
+  { label: "45", value: "45" },
+];
+
 export default function CateringFilterRow({
-  date = "Login To View",
-  time = "Login To View",
-  budget = "Not Set",
   searchQuery,
   onSearchChange,
   onSearch,
@@ -34,42 +45,110 @@ export default function CateringFilterRow({
   onFilterClick,
   filterModalOpen = false,
 }: CateringFilterRowProps) {
+  const { eventDetails, setEventDetails } = useCatering();
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchHovered, setSearchHovered] = useState(false);
   const [filterExpanded, setFilterExpanded] = useState(false);
   const closeButtonClickedRef = useRef(false);
 
+  // Separate state for hour and minute
+  const [selectedHour, setSelectedHour] = useState(() => {
+    if (eventDetails?.eventTime) {
+      return eventDetails.eventTime.split(":")[0];
+    }
+    return "";
+  });
+
+  const [selectedMinute, setSelectedMinute] = useState(() => {
+    if (eventDetails?.eventTime) {
+      return eventDetails.eventTime.split(":")[1];
+    }
+    return "";
+  });
+
+  // Update eventTime when hour or minute changes
+  const handleTimeChange = (hour: string, minute: string) => {
+    if (hour && minute) {
+      const timeValue = `${hour}:${minute}`;
+      setEventDetails({ ...eventDetails, eventTime: timeValue });
+    } else {
+      setEventDetails({ ...eventDetails, eventTime: "" });
+    }
+  };
+
+  const getMaxDate = () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + 2);
+    return date.toISOString().split("T")[0];
+  };
+
+  const getMinDate = () => {
+    const date = new Date();
+    return date.toISOString().split("T")[0];
+  };
+
   return (
     <>
       {/* Desktop Layout */}
       <div className="hidden md:flex md:sticky top-[100px] md:top-[110px] z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative bg-base-100/80 backdrop-blur-xs">
         <div className="flex items-center justify-center gap-4 relative w-full max-w-[100vw]">
-          {/* Date/Time/Budget Inputs */}
+          {/* Date/Time Inputs */}
           <div className="flex items-center gap-2 md:gap-3 bg-white rounded-full px-4 md:px-8 h-16 border border-base-200 min-w-0 flex-shrink">
             <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink">
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Date
               </label>
-              <p className="text-sm text-gray-600 whitespace-nowrap truncate">
-                {date}
-              </p>
+              <input
+                type="date"
+                value={eventDetails?.eventDate || ""}
+                onChange={(e) =>
+                  setEventDetails({ ...eventDetails, eventDate: e.target.value })
+                }
+                max={getMaxDate()}
+                min={getMinDate()}
+                className="text-sm text-gray-600 whitespace-nowrap truncate bg-transparent border-none focus:outline-none w-full"
+              />
             </div>
-            <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Time
-              </label>
-              <p className="text-sm text-gray-600 placeholder-gray-400 whitespace-nowrap truncate">
-                {time}
-              </p>
-            </div>
-            <div className="pr-2 md:pr-3 min-w-0 flex-shrink">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Budget
-              </label>
-              <p className="text-sm text-gray-600 whitespace-nowrap truncate">
-                {budget}
-              </p>
+            <div className="pr-2 md:pr-3 min-w-0 flex-shrink flex items-center gap-1">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Time
+                </label>
+                <div className="flex items-center gap-1">
+                  <select
+                    value={selectedHour}
+                    onChange={(e) => {
+                      setSelectedHour(e.target.value);
+                      handleTimeChange(e.target.value, selectedMinute);
+                    }}
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pr-0"
+                  >
+                    <option value="">Hour</option>
+                    {HOUR_OPTIONS.map((hour) => (
+                      <option key={hour.value} value={hour.value}>
+                        {hour.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-sm text-gray-400">:</span>
+                  <select
+                    value={selectedMinute}
+                    onChange={(e) => {
+                      setSelectedMinute(e.target.value);
+                      handleTimeChange(selectedHour, e.target.value);
+                    }}
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-0"
+                  >
+                    <option value="">Min</option>
+                    {MINUTE_OPTIONS.map((minute) => (
+                      <option key={minute.value} value={minute.value}>
+                        {minute.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -228,18 +307,18 @@ export default function CateringFilterRow({
         </div>
       </div>
 
-      {/* Mobile Layout - Date/Time/Budget */}
+      {/* Mobile Layout - Date/Time */}
       <section className="md:hidden mb-4">
         <div className="bg-white rounded-xl border-1 border-base-200">
           <div className="flex items-center gap-2 px-2">
-            <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
+            <div className="flex items-center gap-2 flex-1 px-4 py-3 border-r-1 border-gray-200">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-5 h-5 text-gray-600"
+                className="w-5 h-5 text-gray-600 flex-shrink-0"
               >
                 <path
                   strokeLinecap="round"
@@ -247,18 +326,25 @@ export default function CateringFilterRow({
                   d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
                 />
               </svg>
-              <span className="text-base text-base-content font-medium">
-                {date}
-              </span>
+              <input
+                type="date"
+                value={eventDetails?.eventDate || ""}
+                onChange={(e) =>
+                  setEventDetails({ ...eventDetails, eventDate: e.target.value })
+                }
+                max={getMaxDate()}
+                min={getMinDate()}
+                className="text-base text-base-content font-medium bg-transparent border-none focus:outline-none w-full"
+              />
             </div>
-            <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
+            <div className="flex items-center gap-2 flex-1 px-4 py-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-5 h-5 text-gray-600"
+                className="w-5 h-5 text-gray-600 flex-shrink-0"
               >
                 <path
                   strokeLinecap="round"
@@ -266,28 +352,39 @@ export default function CateringFilterRow({
                   d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="text-base text-gray-800 font-medium">
-                {time}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-5 h-5 text-gray-600"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"
-                />
-              </svg>
-              <span className="text-base text-gray-800 font-medium">
-                {budget}
-              </span>
+              <div className="flex items-center gap-1 flex-1">
+                <select
+                  value={selectedHour}
+                  onChange={(e) => {
+                    setSelectedHour(e.target.value);
+                    handleTimeChange(e.target.value, selectedMinute);
+                  }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none flex-1"
+                >
+                  <option value="">Hour</option>
+                  {HOUR_OPTIONS.map((hour) => (
+                    <option key={hour.value} value={hour.value}>
+                      {hour.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-base text-gray-400">:</span>
+                <select
+                  value={selectedMinute}
+                  onChange={(e) => {
+                    setSelectedMinute(e.target.value);
+                    handleTimeChange(selectedHour, e.target.value);
+                  }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none flex-1"
+                >
+                  <option value="">Min</option>
+                  {MINUTE_OPTIONS.map((minute) => (
+                    <option key={minute.value} value={minute.value}>
+                      {minute.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
