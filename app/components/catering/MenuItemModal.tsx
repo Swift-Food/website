@@ -529,26 +529,20 @@ export default function MenuItemModal({
 
       {/* Modal Content */}
       <div
-        className="relative bg-base-100 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        className="relative bg-base-100 rounded-xl max-w-lg w-full max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="sticky top-3 right-3 float-right w-8 h-8 flex items-center justify-center rounded-full bg-secondary hover:bg-primary transition-colors z-30"
-          style={{
-            position: "sticky",
-            top: "0.75rem",
-            right: "0.75rem",
-            marginLeft: "auto",
-          }}
+          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-secondary hover:bg-primary transition-colors z-30"
           aria-label="Close modal"
         >
           ✕
         </button>
 
-        {/* Modal Body */}
-        <div className="p-6">
+        {/* Scrollable Modal Body */}
+        <div className="p-6 overflow-y-auto flex-1">
           {item.image && (
             <div
               className="w-full h-full flex-shrink-0 mb-3"
@@ -954,61 +948,63 @@ export default function MenuItemModal({
                 </span>
               </div>
             </div>
-            {isEditMode ? (
-              <div className="space-y-2">
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-                >
-                  Save Changes
-                </button>
-                <button
-                  onClick={() => {
-                    if (onRemoveItem && editingIndex !== null) {
-                      onRemoveItem(editingIndex);
-                      onClose();
-                    }
-                  }}
-                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-                >
-                  Remove from Order
-                </button>
-              </div>
-            ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
-              <div className="space-y-2">
-                {hasModifiedQuantity && (
-                  <button
-                    onClick={() => {
-                      const newBackendQty =
-                        itemQuantity * BACKEND_QUANTITY_UNIT;
-                      onUpdateQuantity(item.id, newBackendQty);
-                      onClose();
-                    }}
-                    className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-                  >
-                    Save Order
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    onUpdateQuantity(item.id, 0);
-                    onClose();
-                  }}
-                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-                >
-                  Remove from Order
-                </button>
-              </div>
-            ) : (
+          </div>
+        </div>
+
+        {/* Sticky Action Buttons */}
+        <div className="sticky bottom-0 p-6 pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
+          {isEditMode ? (
+            <div className="space-y-2">
               <button
                 onClick={handleAddToCart}
                 className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
               >
-                Add to Order
+                Save Changes
               </button>
-            )}
-            {/* Show total with customizations - always show if quantity > 1 or addons selected */}
-          </div>
+              <button
+                onClick={() => {
+                  if (onRemoveItem && editingIndex !== null) {
+                    onRemoveItem(editingIndex);
+                    onClose();
+                  }
+                }}
+                className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+              >
+                Remove from Order
+              </button>
+            </div>
+          ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
+            <div className="space-y-2">
+              {hasModifiedQuantity && (
+                <button
+                  onClick={() => {
+                    const newBackendQty = itemQuantity * BACKEND_QUANTITY_UNIT;
+                    onUpdateQuantity(item.id, newBackendQty);
+                    onClose();
+                  }}
+                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Save Order
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  onUpdateQuantity(item.id, 0);
+                  onClose();
+                }}
+                className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+              >
+                Remove from Order
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+            >
+              Add to Order
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -30,7 +30,7 @@ class CateringService {
   ): Promise<SearchResponse> {
     const params = new URLSearchParams();
 
-    if (query) params.append("q", query);
+    params.append("q", query || "");
     if (filters?.page) params.append("page", filters.page.toString());
     if (filters?.limit) params.append("limit", filters.limit.toString());
     if (filters?.marketId) params.append("marketId", filters.marketId);
@@ -39,10 +39,28 @@ class CateringService {
       params.append("minRating", filters.minRating.toString());
     if (filters?.maxPrice)
       params.append("maxPrice", filters.maxPrice.toString());
+    // if (filters?.dietaryFilters && filters.dietaryFilters.length > 0) {
+    //   filters.dietaryFilters.forEach((filter) =>
+    //     params.append("dietaryFilters", filter)
+    //   );
+    // }
+    if (filters?.dietaryFilters)
+      params.append("dietaryFilters", filters.dietaryFilters.join(","));
+    if (filters?.allergens)
+      params.append("excludeAllergens", filters.allergens.join(","));
+    // if (filters?.allergens && filters.allergens.length > 0) {
+    //   filters.allergens.forEach((allergen) =>
+    //     params.append("allergens", allergen)
+    //   );
+    // }
+
+    console.log("Search payload: ", params);
 
     const response = await fetch(
       `${API_BASE_URL}/search?catering=true&${params.toString()}`
     );
+
+    console.log("Search response: ", response);
 
     if (!response.ok) {
       throw new Error("Failed to search menu items");
@@ -273,7 +291,6 @@ class CateringService {
       },
     };
 
-
     const response = await fetch(`${API_BASE_URL}/address`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -329,7 +346,6 @@ class CateringService {
       promoCodes,
     };
 
-    console.log(JSON.stringify(pricingData))
     const response = await fetch(
       `${API_BASE_URL}/pricing/catering-verify-cart`,
       {
@@ -544,7 +560,7 @@ class CateringService {
   }
 
   async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
-    console.log("dot is", dto)
+    console.log("dot is", dto);
     const response = await fetch(`${API_BASE_URL}/menu-item`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
