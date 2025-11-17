@@ -312,4 +312,70 @@ export const restaurantApi = {
     // console.log("Organization data: ", data);
     return data;
   },
+
+  // Inventory Management endpoints
+
+  // Get catering portions availability
+  getCateringPortionsAvailability: async (restaurantId: string): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-availability`
+    );
+    if (!response.ok) throw new Error("Failed to fetch catering portions availability");
+    return response.json();
+  },
+
+  // Update catering portions limit
+  updateCateringPortionsLimit: async (
+    restaurantId: string,
+    maximumCateringPortionsPerDay: number,
+    token: string
+  ): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ maximumCateringPortionsPerDay }),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to update catering portions limit");
+    return response.json();
+  },
+
+  // Update corporate inventory settings
+  updateCorporateInventory: async (
+    restaurantId: string,
+    data: {
+      sessionResetPeriod?: "daily" | "lunch_dinner" | null;
+      maxPortionsPerSession?: number | null;
+      limitedIngredientsPerSession?: { [key: string]: number } | null;
+    },
+    token: string
+  ): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/${restaurantId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to update corporate inventory");
+    return response.json();
+  },
+
+  // Get restaurant details (includes inventory settings)
+  getRestaurantDetails: async (restaurantId: string): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/${restaurantId}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch restaurant details");
+    return response.json();
+  },
 };

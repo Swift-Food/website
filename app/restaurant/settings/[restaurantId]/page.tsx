@@ -11,9 +11,12 @@ import {
   Upload,
   Clock,
   X,
+  User,
+  Package,
 } from "lucide-react";
 import Image from "next/image";
 import { cateringService } from "@/services/cateringServices";
+import { InventoryManagement } from "../components/InventoryManagement";
 
 const RestaurantSettingsPage = () => {
   const params = useParams();
@@ -31,7 +34,11 @@ const RestaurantSettingsPage = () => {
     restaurant_name: "",
     description: "",
     images: [] as string[],
+    isCatering: false,
+    isCorporate: false,
   });
+
+  const [activeTab, setActiveTab] = useState<"profile" | "inventory">("profile");
 
   useEffect(() => {
     loadRestaurantDetails();
@@ -54,6 +61,8 @@ const RestaurantSettingsPage = () => {
           restaurant_name: restaurantDetails.restaurant_name || "",
           description: restaurantDetails.restaurant_description || "",
           images: images,
+          isCatering: restaurantDetails.isCatering || false,
+          isCorporate: restaurantDetails.isCorporate || false,
         });
         setLoading(false);
         // Clear the cached data after using it
@@ -83,6 +92,8 @@ const RestaurantSettingsPage = () => {
         restaurant_name: restaurantDetails.restaurant_name || "",
         description: restaurantDetails.restaurant_description || "",
         images: images,
+        isCatering: restaurantDetails.isCatering || false,
+        isCorporate: restaurantDetails.isCorporate || false,
       });
     } catch (err: any) {
       setError(err.message || "Failed to load restaurant details");
@@ -357,8 +368,45 @@ const RestaurantSettingsPage = () => {
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSave} className="bg-white rounded-lg p-6">
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab("profile")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                  activeTab === "profile"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <User size={18} />
+                Restaurant Profile
+              </button>
+              <button
+                onClick={() => setActiveTab("inventory")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                  activeTab === "inventory"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <Package size={18} />
+                Inventory Management
+                {(formData.isCatering || formData.isCorporate) && (
+                  <span className="ml-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
+                    Active
+                  </span>
+                )}
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "profile" ? (
+          /* Form */
+          <form onSubmit={handleSave} className="bg-white rounded-lg p-6">
           <div className="space-y-6">
             {/* Restaurant Images */}
             <div>
@@ -504,6 +552,16 @@ const RestaurantSettingsPage = () => {
             </button>
           </div>
         </form>
+        ) : (
+          /* Inventory Management Tab */
+          <InventoryManagement
+            restaurantId={restaurantId}
+            token={typeof window !== "undefined" ? sessionStorage.getItem("restaurant_token") || "" : ""}
+            isCatering={formData.isCatering}
+            isCorporate={formData.isCorporate}
+            onUpdate={loadRestaurantDetails}
+          />
+        )}
 
         {/* Confirmation Modal */}
         {showConfirmModal && (
