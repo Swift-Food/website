@@ -1,4 +1,5 @@
-// app/restaurant/promotions/[restaurantId]/create/page.tsx
+// app/restaurant/promotions/[restaurantId]/create/page.tsx - UPDATE
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,6 +7,10 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader } from "lucide-react";
 import { promotionsServices } from "@/services/promotionServices";
 import { RestaurantWideForm } from "@/app/components/restaurant-promotion/RestaurantWideForm";
+import { GroupWideForm } from "@/app/components/restaurant-promotion/GroupWideForm";
+import { BuyMoreSaveMoreForm } from "@/app/components/restaurant-promotion/BuyMoreSaveMoreForm";
+import { BogoForm } from "@/app/components/restaurant-promotion/BOGOForm";
+
 
 export default function CreatePromotionPage() {
   const params = useParams();
@@ -29,7 +34,6 @@ export default function CreatePromotionPage() {
       await promotionsServices.createPromotion({
         ...formData,
         restaurantId,
-        type: promotionType,
       });
       
       alert("Promotion created successfully!");
@@ -46,12 +50,29 @@ export default function CreatePromotionPage() {
     switch (promotionType) {
       case "RESTAURANT_WIDE":
         return "Restaurant-Wide Discount";
-      case "GROUP_WIDE":
+      case "CATEGORY_SPECIFIC":
         return "Menu Group Discount";
       case "BUY_MORE_SAVE_MORE":
         return "Buy More Save More";
+      case "BOGO": // ADD THIS
+        return "Buy One Get One (BOGO)";
       default:
         return "Create Promotion";
+    }
+  };
+
+  const getPromotionDescription = () => {
+    switch (promotionType) {
+      case "RESTAURANT_WIDE":
+        return "Apply a percentage discount to the entire order";
+      case "CATEGORY_SPECIFIC":
+        return "Apply discounts to specific menu groups";
+      case "BUY_MORE_SAVE_MORE":
+        return "Offer tiered discounts based on quantity purchased";
+      case "BOGO": // ADD THIS
+        return "Buy one get one free or buy X get Y free deals";
+      default:
+        return "Set up your promotion details below";
     }
   };
 
@@ -80,7 +101,7 @@ export default function CreatePromotionPage() {
               {getPromotionTitle()}
             </h1>
             <p className="text-gray-600 mt-1">
-              Set up your promotion details below
+              {getPromotionDescription()}
             </p>
           </div>
         </div>
@@ -94,16 +115,32 @@ export default function CreatePromotionPage() {
           />
         )}
 
-        {promotionType === "GROUP_WIDE" && (
-          <div className="bg-white rounded-lg p-8 text-center">
-            <p className="text-gray-600">Menu Group Discount form coming soon...</p>
-          </div>
+        {promotionType === "CATEGORY_SPECIFIC" && (
+          <GroupWideForm
+            restaurantId={restaurantId}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            submitting={submitting}
+          />
         )}
 
         {promotionType === "BUY_MORE_SAVE_MORE" && (
-          <div className="bg-white rounded-lg p-8 text-center">
-            <p className="text-gray-600">Buy More Save More form coming soon...</p>
-          </div>
+          <BuyMoreSaveMoreForm
+            restaurantId={restaurantId}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            submitting={submitting}
+          />
+        )}
+
+        {/* ADD THIS */}
+        {promotionType === "BOGO" && (
+          <BogoForm
+            restaurantId={restaurantId}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push(`/restaurant/promotions/${restaurantId}`)}
+            submitting={submitting}
+          />
         )}
       </div>
     </div>

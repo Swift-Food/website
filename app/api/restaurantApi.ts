@@ -10,6 +10,11 @@ import {
 } from "@/types/restaurant.types";
 import { CateringOrder } from "@/app/types/catering.types";
 import { CorporateUser } from "@/types/catering.types";
+import {
+  UpdateCorporateInventoryDto,
+  UpdateCateringPortionsLimitDto,
+  CateringPortionsAvailabilityResponse,
+} from "@/types/inventory.types";
 
 const API_BASE_URL = "https://swiftfoods-32981ec7b5a4.herokuapp.com";
 
@@ -78,6 +83,12 @@ export const restaurantApi = {
       console.error("Stripe status error:", error);
       return null;
     }
+  },
+
+  async getMenuGroups(restaurantId: string): Promise<string[]> {
+    const response = await fetch(`${API_BASE_URL}/restaurant/${restaurantId}/menu-groups`);
+    if (!response.ok) throw new Error("Failed to get menu group titles");
+    return response.json();
   },
 
   refreshOnboardingLink: async (
@@ -305,5 +316,119 @@ export const restaurantApi = {
     const data = await response.json();
     // console.log("Organization data: ", data);
     return data;
+  },
+
+  // Inventory Management endpoints
+
+  // Get catering portions availability
+  getCateringPortionsAvailability: async (restaurantId: string): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-availability`
+    );
+    if (!response.ok) throw new Error("Failed to fetch catering portions availability");
+    return response.json();
+  },
+
+  // Update catering portions limit
+  updateCateringPortionsLimit: async (
+    restaurantId: string,
+    maximumCateringPortionsPerDay: number,
+    token: string
+  ): Promise<CateringPortionsAvailabilityResponse> => {
+    const payload: UpdateCateringPortionsLimitDto = { maximumCateringPortionsPerDay };
+
+    console.log("🟢 Catering Update Request:", {
+      restaurantId,
+      url: `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
+      payload,
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    console.log("🟢 Catering Response Status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("🟢 Catering Error:", errorText);
+      throw new Error(`Failed to update catering portions limit: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("🟢 Catering Success:", result);
+    return result;
+  },
+
+  // Get corporate inventory settings
+  getCorporateInventorySettings: async (restaurantId: string): Promise<any> => {
+    const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
+
+    console.log("🟣 Getting corporate inventory settings:", { restaurantId, url });
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("🟣 Failed to get corporate inventory:", errorText);
+      throw new Error(`Failed to get corporate inventory settings: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("🟣 Corporate inventory settings:", result);
+    return result;
+  },
+
+  // Update corporate inventory settings
+  updateCorporateInventory: async (
+    restaurantId: string,
+    data: UpdateCorporateInventoryDto,
+    token: string
+  ): Promise<any> => {
+    const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
+
+    console.log("🟣 Corporate Update Request:", {
+      restaurantId,
+      url,
+      payload: data,
+    });
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    console.log("🟣 Corporate Response Status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("🟣 Corporate Error Response:", errorText);
+      throw new Error(`Failed to update corporate inventory: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("🟣 Corporate Success Response:", result);
+    return result;
+  },
+
+  // Get restaurant details (includes inventory settings)
+  getRestaurantDetails: async (restaurantId: string): Promise<any> => {
+    const response = await fetch(
+      `${API_BASE_URL}/restaurant/${restaurantId}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch restaurant details");
+    return response.json();
   },
 };

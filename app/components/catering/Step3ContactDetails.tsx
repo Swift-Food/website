@@ -258,7 +258,7 @@ export default function Step3ContactInfo() {
       }
 
       setContactInfo(formData);
-
+      console.log(JSON.stringify(selectedItems))
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
@@ -335,6 +335,7 @@ export default function Step3ContactInfo() {
           acc[restaurantId].items.push({
             menuItemId: item.id,
             name: item.name,
+            groupTitle: item.groupTitle,
             quantity,
             unitPrice,
             addonPrice: addonPricePerUnit,

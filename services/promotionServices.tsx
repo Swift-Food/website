@@ -3,38 +3,70 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+export interface DiscountTier {
+  minQuantity: number;
+  discountPercentage: number;
+}
+
 export interface Promotion {
   id: string;
   restaurantId: string;
   name: string;
   description: string;
-  type: 'RESTAURANT_WIDE' | 'GROUP_WIDE' | 'BUY_MORE_SAVE_MORE' | 'BOGO' | 'BOGO_ITEM';
+  promotionType: 'RESTAURANT_WIDE' | 'ITEM_SPECIFIC' | 'CATEGORY_SPECIFIC' | 'BUY_MORE_SAVE_MORE' | 'BOGO';
   status: 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'EXPIRED';
   applicability: 'CATERING' | 'CORPORATE' | 'BOTH';
   discountPercentage: number;
-  maxDiscountAmount?: number;
-  minOrderAmount?: number;
+  maxDiscountAmount?: number | null;
+  minOrderAmount?: number | null;
   startDate: string;
   endDate: string;
+  applicableMenuItemIds?: string[] | null;
+  applicableCategories?: string[] | null;
   priority: number;
+  discountTiers?: DiscountTier[] | null;
+  applyToAllGroups?: boolean;
+  bogoItemIds?: string[] | null;
+  bogoType?: 'BUY_ONE_GET_ONE_FREE' | 'BUY_X_GET_Y_FREE' | null;
+  buyQuantity?: number | null;
+  getQuantity?: number | null;
   isStackable: boolean;
   createdAt: string;
   updatedAt: string;
+  
 }
 
 export interface CreatePromotionDto {
   restaurantId: string;
   name: string;
   description?: string;
-  type: 'RESTAURANT_WIDE' | 'GROUP_WIDE' | 'BUY_MORE_SAVE_MORE';
+  promotionType: 'RESTAURANT_WIDE' | 'ITEM_SPECIFIC' | 'CATEGORY_SPECIFIC' | 'BUY_MORE_SAVE_MORE';
   applicability: 'CATERING' | 'CORPORATE' | 'BOTH';
   discountPercentage: number;
-  maxDiscountAmount?: number;
-  minOrderAmount?: number;
+  maxDiscountAmount?: number | null;
+  minOrderAmount?: number | null;
   startDate: string;
   endDate: string;
+  applicableMenuItemIds?: string[];
+  applicableCategories?: string[];
+  discountTiers?: DiscountTier[];
+  applyToAllGroups?: boolean;
+  bogoItemIds?: string[];
+  bogoType?: 'BUY_ONE_GET_ONE_FREE' | 'BUY_X_GET_Y_FREE';
+  buyQuantity?: number;
+  getQuantity?: number;
   priority?: number;
   isStackable?: boolean;
+}
+
+export interface UpdatePromotionDto extends Partial<CreatePromotionDto> {
+  status?: 'ACTIVE' | 'INACTIVE' | 'SCHEDULED' | 'EXPIRED';
+}
+
+export interface PromotionValidationResult {
+  isValid: boolean;
+  discount: number;
+  message?: string;
 }
 
 export const promotionsServices = {
@@ -65,6 +97,7 @@ export const promotionsServices = {
 
   // Create promotion
   createPromotion: async (data: CreatePromotionDto) => {
+    // console.log("promotion dto", JSON.stringify(data))
     const response = await axios.post(`${API_BASE_URL}/promotions`, data);
     return response.data;
   },
@@ -104,4 +137,10 @@ export const promotionsServices = {
     });
     return response.data;
   },
+
+  async getPromotionById(promotionId: string): Promise<Promotion> {
+    const response = await axios.get(`${API_BASE_URL}/promotions/${promotionId}`);
+    return response.data;
+  },
+
 };

@@ -87,37 +87,253 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const [finalTotal, setFinalTotal] = useState(0);
   const [restaurantDiscounts, setRestaurantDiscounts] = useState<Record<string, { discount: number; promotion: any }>>({});
 
-  // NEW: Helper function to calculate promotion discount
   const calculatePromotionDiscount = (
     restaurantId: string,
-    subtotal: number
+    subtotal: number,
+    cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number; restaurantId: string }>
   ): { discount: number; promotion: any | null } => {
     const promos = restaurantPromotions[restaurantId];
+  
+    console.log(`\n🎯 calculatePromotionDiscount for restaurant ${restaurantId}:`, {
+      subtotal,
+      promosCount: promos?.length || 0,
+      cartItemsCount: cartItems.length
+    });
     
     if (!promos || promos.length === 0) {
+      console.log("❌ No promotions for this restaurant");
       return { discount: 0, promotion: null };
     }
-
-    const promo = promos[0];
-
+  
+    // CHANGED: Get ALL applicable promotions, not just the first one
+    const applicablePromos = promos
+      .filter(promo => {
+        const isApplicable = isPromotionApplicable(promo, subtotal);
+        console.log(`  ${promo.name} (${promo.promotionType}): ${isApplicable ? '✅' : '❌'}`);
+        return isApplicable;
+      })
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  
+    if (applicablePromos.length === 0) {
+      console.log("❌ No applicable promotions found");
+      return { discount: 0, promotion: null };
+    }
+  
+    console.log(`✅ Found ${applicablePromos.length} applicable promotions`);
+  
+    // Calculate discount from ALL applicable promotions
+    let totalDiscount = 0;
+    let primaryPromotion = applicablePromos[0]; // For display purposes
+  
+    applicablePromos.forEach(promo => {
+      console.log(`💵 Calculating discount for: ${promo.name} (${promo.promotionType})`);
+      const discount = calculateDiscountByType(promo, subtotal, cartItems);
+      console.log(`   Discount: £${discount}`);
+      totalDiscount += discount;
+    });
+  
+    console.log(`💰 Total discount from all promotions: £${totalDiscount}`);
+    
+    return { 
+      discount: Number(Number(totalDiscount).toFixed(2)), 
+      promotion: primaryPromotion 
+    };
+  };
+  
+  // Helper: Check if promotion is applicable
+  const isPromotionApplicable = (promo: any, subtotal: number): boolean => {
+    // Check date range
+    console.log(`🔍 Checking if ${promo.name} (${promo.promotionType}) is applicable:`, {
+      subtotal,
+      minOrderAmount: promo.minOrderAmount,
+      startDate: promo.startDate,
+      endDate: promo.endDate,
+      now: new Date().toISOString()
+    });
+    const now = new Date();
+    if (now < new Date(promo.startDate) || now > new Date(promo.endDate)) {
+      return false;
+    }
+  
     // Check minimum order amount
     if (promo.minOrderAmount && subtotal < promo.minOrderAmount) {
-      return { discount: 0, promotion: promo };
+      return false;
     }
-
+    console.log(`✅ Promotion is applicable`);
+    return true;
+  };
+  
+  const calculateDiscountByType = (
+    promo: any,
+    subtotal: number,
+    cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number }>
+  ): number => {
+    let eligibleAmount = 0;
+  
+    switch (promo.promotionType) {
+      case 'RESTAURANT_WIDE':
+        eligibleAmount = subtotal;
+        break;
+  
+      case 'CATEGORY_SPECIFIC':
+        eligibleAmount = cartItems
+          .filter(item => promo.applicableCategories?.includes(item.groupTitle))
+          .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        break;
+  
+      case 'ITEM_SPECIFIC':
+        eligibleAmount = cartItems
+          .filter(item => promo.applicableMenuItemIds?.includes(item.menuItemId))
+          .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        break;
+  
+      case 'BUY_MORE_SAVE_MORE':
+        return calculateBuyMoreSaveMoreDiscount(promo, cartItems);
+  
+      case 'BOGO': // ADD THIS CASE
+        return calculateBogoDiscount(promo, cartItems);
+  
+      default:
+        eligibleAmount = 0;
+    }
+  
     // Calculate percentage discount
-    let discount = subtotal * (promo.discountPercentage / 100);
-
+    let discount = eligibleAmount * (promo.discountPercentage / 100);
+    
     // Apply max discount cap if set
     if (promo.maxDiscountAmount && discount > promo.maxDiscountAmount) {
       discount = promo.maxDiscountAmount;
     }
+    
+    return discount;
+  };
+  
+  // Helper: For future BUY_MORE_SAVE_MORE type
+  const calculateBuyMoreSaveMoreDiscount = (
+    promo: any,
+    cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number }>
+  ): number => {
+    if (!promo.discountTiers || promo.discountTiers.length === 0) {
+      return 0;
+    }
+  
+    // Filter applicable items
+    const applicableItems = cartItems.filter((item) => {
+      // If applyToAllGroups is true, all items are applicable
+      if (promo.applyToAllGroups) {
+        return true;
+      }
+  
+      // Otherwise check if item's group is in applicableCategories
+      return item.groupTitle
+        ? (promo.applicableCategories?.includes(item.groupTitle) ?? false)
+        : false;
+    });
+  
+    // Calculate total quantity of applicable items
+    const totalQuantity = applicableItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+  
+    // Find the highest tier that applies
+    const sortedTiers = [...promo.discountTiers].sort(
+      (a, b) => b.minQuantity - a.minQuantity
+    );
+    const applicableTier = sortedTiers.find(
+      (tier) => totalQuantity >= tier.minQuantity
+    );
+  
+    if (!applicableTier) {
+      return 0;
+    }
+  
+    // Calculate total price of applicable items
+    const eligibleAmount = applicableItems.reduce(
+      (sum, item) => sum + (item.price * item.quantity),
+      0
+    );
+  
+    // Apply discount percentage from the tier
+    let discount = eligibleAmount * (applicableTier.discountPercentage / 100);
+  
+    // Apply max discount cap if set
+    if (promo.maxDiscountAmount && discount > promo.maxDiscountAmount) {
+      discount = promo.maxDiscountAmount;
+    }
+  
+    return discount;
+  };
 
-    return { discount: Number(Number(discount).toFixed(2)), promotion: promo };
+  const calculateBogoDiscount = (
+    promo: any,
+    cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number }>
+  ): number => {
+    console.log("🎁 BOGO Calculation Start:", {
+      promoName: promo.name,
+      bogoItemIds: promo.bogoItemIds,
+      buyQty: promo.buyQuantity,
+      getQty: promo.getQuantity,
+      cartItems: cartItems.map(i => ({ id: i.menuItemId, qty: i.quantity, price: i.price }))
+    });
+  
+    if (!promo.bogoItemIds || promo.bogoItemIds.length === 0) {
+      console.log("❌ No BOGO items defined");
+      return 0;
+    }
+  
+    let totalDiscount = 0;
+  
+    // Filter applicable items
+    const applicableItems = cartItems.filter((item) =>
+      promo.bogoItemIds.includes(item.menuItemId)
+    );
+  
+    console.log("✅ Applicable items:", applicableItems.length);
+  
+    applicableItems.forEach((item) => {
+      const buyQty = promo.buyQuantity || 1;
+      const getQty = promo.getQuantity || 1;
+      const setSize = buyQty + getQty;
+  
+      const completeSets = Math.floor(item.quantity / setSize);
+      const unitPrice = item.price;
+      const freeItemsCount = completeSets * getQty;
+      const discount = freeItemsCount * unitPrice;
+  
+      console.log(`  Item ${item.menuItemId}:`, {
+        quantity: item.quantity,
+        setSize,
+        completeSets,
+        unitPrice,
+        freeItemsCount,
+        discount
+      });
+  
+      totalDiscount += discount;
+    });
+  
+    console.log("💰 Total BOGO discount:", totalDiscount);
+  
+    if (promo.maxDiscountAmount && totalDiscount > promo.maxDiscountAmount) {
+      console.log(`⚠️ Capped at max: ${promo.maxDiscountAmount}`);
+      totalDiscount = promo.maxDiscountAmount;
+    }
+  
+    return totalDiscount;
   };
 
   // NEW: Calculate totals with promotions whenever items or promotions change
   useEffect(() => {
+    console.log("use effect", restaurantPromotions)
+    Object.entries(restaurantPromotions).forEach(([restaurantId, promos]) => {
+      console.log(`🏪 Restaurant ${restaurantId} promotions:`, promos.map(p => ({
+        name: p.name,
+        type: p.promotionType,
+        bogoItemIds: p.bogoItemIds,
+        status: p.status
+      })));
+    });
     const restaurantSubtotals: Record<string, number> = {};
     const newRestaurantDiscounts: Record<string, { discount: number; promotion: any }> = {};
     
@@ -149,10 +365,35 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       restaurantSubtotals[restaurantId] += itemSubtotal;
     });
 
+    // Build cart items with proper quantity calculation
+    const cartItems = selectedItems.map(selected => {
+      const price = parseFloat(selected.item.price?.toString() || "0");
+      const discountPrice = parseFloat(selected.item.discountPrice?.toString() || "0");
+      const itemPrice = selected.item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      
+      return {
+        menuItemId: selected.item.id,
+        groupTitle: selected.item.groupTitle || '',
+        price: itemPrice,
+        quantity: selected.quantity,
+        restaurantId: selected.item.restaurantId
+      };
+    });
+    console.log("🛒 Cart Items for discount calculation:", cartItems.map(item => ({
+      menuItemId: item.menuItemId,
+      groupTitle: item.groupTitle,
+      price: item.price,
+      quantity: item.quantity,
+      restuarantId: item.restaurantId
+    })));
     // Calculate discount per restaurant
     Object.keys(restaurantSubtotals).forEach(restaurantId => {
       const subtotal = restaurantSubtotals[restaurantId];
-      const { discount, promotion } = calculatePromotionDiscount(restaurantId, subtotal);
+      console.log(`\n💰 Processing restaurant ${restaurantId}, subtotal: £${subtotal}`);
+      
+      const { discount, promotion } = calculatePromotionDiscount(restaurantId, subtotal, cartItems);
+      console.log(`💵 Discount calculated: £${discount}`, promotion?.name);
+      
       newRestaurantDiscounts[restaurantId] = { discount, promotion };
     });
 

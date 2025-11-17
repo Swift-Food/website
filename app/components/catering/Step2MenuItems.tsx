@@ -246,7 +246,7 @@ export default function Step2MenuItems() {
       });
 
       setMenuItems(menuItemsOnly);
-      console.log("Processed menu items:", menuItemsOnly);
+
     } catch (error) {
       console.error("Error fetching all menu items:", error);
       setMenuItems([]);
@@ -386,66 +386,45 @@ export default function Step2MenuItems() {
   const getMinimumOrderWarnings = () => {
     const counts = getRestaurantItemCounts();
     const warnings: string[] = [];
-
-    // console.log('⚠️ Full counts object:', JSON.stringify(counts, null, 2));
-
+  
     Object.entries(counts).forEach(([, data]) => {
-      // console.log(`\n🔍 Checking ${data.name}`);
-      // console.log('  hasAnyItems:', data.hasAnyItems);
-      // console.log('  required:', data.required);
-
+     
       // Check REQUIRED sections - applies if ANY item from restaurant is ordered
       if (data.required) {
-        // console.log('  ✓ Has required rule');
-        // console.log('    count:', data.required.count);
-        // console.log('    minRequired:', data.required.minRequired);
-        // console.log('    hasAnyItems:', data.hasAnyItems);
-
-        if (
-          data.hasAnyItems &&
-          data.required.count < data.required.minRequired
-        ) {
+       
+        if (data.hasAnyItems && data.required.count < data.required.minRequired) {
           const shortage = data.required.minRequired - data.required.count;
           const sectionInfo =
             data.required.sections.length > 0
               ? ` from sections: ${data.required.sections.join(", ")}`
               : "";
           const warning = `${data.name}: Add ${shortage} more required item(s)${sectionInfo}`;
-          // console.log('    ⚠️ WARNING:', warning);
+        
           warnings.push(warning);
-        } else {
-          // console.log('    ✓ Required minimum met or no items ordered');
-        }
-      } else {
-        // console.log('  ✗ No required rule');
-      }
-
+        } 
+      } 
       // Check OPTIONAL sections
       if (data.optional) {
-        // console.log('  ✓ Has optional rules');
-        data.optional.forEach((rule) => {
-          // console.log(`    Rule:`, {
-          //   hasItems: rule.hasItems,
-          //   count: rule.count,
-          //   minRequired: rule.minRequired,
-          //   sections: rule.sections
-          // });
-
+       
+        data.optional.forEach((rule, index) => {
+          console.log(`    Rule ${index}:`, {
+            hasItems: rule.hasItems,
+            count: rule.count,
+            minRequired: rule.minRequired,
+            sections: rule.sections
+          });
+          
           if (rule.hasItems && rule.count < rule.minRequired) {
             const shortage = rule.minRequired - rule.count;
-            const warning = `${
-              data.name
-            }: Add ${shortage} more item(s) from sections: ${rule.sections.join(
-              ", "
-            )}`;
-            // console.log('      ⚠️ WARNING:', warning);
+            const warning = `${data.name}: Add ${shortage} more item(s) from sections: ${rule.sections.join(", ")}`;
+            
             warnings.push(warning);
           }
         });
       }
     });
-
-    // console.log('\n📋 Final warnings:', warnings);
+  
+  
     return warnings;
   };
 

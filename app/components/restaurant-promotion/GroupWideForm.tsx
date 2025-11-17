@@ -1,26 +1,30 @@
-// app/components/restaurant-promotion/RestaurantWideForm.tsx
+// app/components/restaurant-promotion/GroupWideForm.tsx (UPDATED)
 "use client";
 
-import { useState } from "react";
-import type { Promotion } from "@/services/promotionServices";
+import { useState, useEffect } from "react";
+import { restaurantApi } from "@/app/api/restaurantApi";
+import { Promotion } from "@/services/promotionServices";
 
-interface RestaurantWideFormProps {
+interface GroupWideFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
   submitting: boolean;
+  restaurantId: string;
   promotion?: Promotion; // Optional: for edit mode
   mode?: "create" | "edit"; // Optional: defaults to "create"
 }
 
-export function RestaurantWideForm({ 
+export function GroupWideForm({ 
   onSubmit, 
   onCancel, 
-  submitting,
+  submitting, 
+  restaurantId,
   promotion,
   mode = "create"
-}: RestaurantWideFormProps) {
+}: GroupWideFormProps) {
   const isEditMode = mode === "edit" && promotion;
-
+  const [groupTitles, setGroupTitles] = useState<string[]>([]);
+  
   const [formData, setFormData] = useState({
     name: promotion?.name || "",
     description: promotion?.description || "",
@@ -31,14 +35,36 @@ export function RestaurantWideForm({
     startDate: promotion ? formatDateTimeLocal(promotion.startDate) : "",
     endDate: promotion ? formatDateTimeLocal(promotion.endDate) : "",
     status: promotion?.status || "ACTIVE",
+    applicableCategories: promotion?.applicableCategories || [],
   });
+
+  useEffect(() => {
+    const fetchGroupTitles = async () => {
+      try {
+        const titles = await restaurantApi.getMenuGroups(restaurantId);
+        setGroupTitles(titles);
+      } catch (error) {
+        console.error("Failed to fetch group titles:", error);
+      }
+    };
+    fetchGroupTitles();
+  }, [restaurantId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       ...formData,
-      promotionType: "RESTAURANT_WIDE",
+      promotionType: "CATEGORY_SPECIFIC",
     });
+  };
+
+  const toggleGroupTitle = (groupTitle: string) => {
+    setFormData(prev => ({
+      ...prev,
+      applicableCategories: prev.applicableCategories.includes(groupTitle)
+        ? prev.applicableCategories.filter(title => title !== groupTitle)
+        : [...prev.applicableCategories, groupTitle]
+    }));
   };
 
   return (
@@ -88,6 +114,33 @@ export function RestaurantWideForm({
           </select>
         </div>
       )}
+
+      {/* Select Group Titles */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select Menu Groups * ({formData.applicableCategories.length} selected)
+        </label>
+        <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
+          {groupTitles.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">No menu groups found</p>
+          ) : (
+            groupTitles.map((groupTitle) => (
+              <label 
+                key={groupTitle} 
+                className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.applicableCategories.includes(groupTitle)}
+                  onChange={() => toggleGroupTitle(groupTitle)}
+                  className="mr-3 h-4 w-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="font-medium">{groupTitle}</span>
+              </label>
+            ))
+          )}
+        </div>
+      </div>
 
       {/* Discount Percentage */}
       <div>
@@ -198,7 +251,7 @@ export function RestaurantWideForm({
         </button>
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || formData.applicableCategories.length === 0}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
         >
           {submitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Promotion" : "Create Promotion")}
