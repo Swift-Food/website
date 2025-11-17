@@ -1,15 +1,14 @@
-// app/restaurant/withdrawal/page.tsx or wherever your main component is
+
 "use client";
 
 import { useAuth } from "@/app/hooks/useAuth";
-import { LoginPage } from "../login/LoginPage";
 import { RestaurantDashboard } from "./RestaurantDashboard";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+
 
 const RestaurantWithdrawalApp = () => {
   const router = useRouter();
-  const { user, token, login, logout, isAuthenticated } = useAuth();
+  const { user, token, logout} = useAuth();
 
 
 

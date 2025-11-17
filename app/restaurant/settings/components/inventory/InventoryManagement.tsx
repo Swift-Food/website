@@ -15,14 +15,12 @@ interface IngredientItem {
 
 interface InventoryManagementProps {
   restaurantId: string;
-  token: string;
   isCatering: boolean;
   isCorporate: boolean;
 }
 
 export const InventoryManagement = ({
   restaurantId,
-  token,
   isCatering,
   isCorporate,
 }: InventoryManagementProps) => {
@@ -152,8 +150,7 @@ export const InventoryManagement = ({
     try {
       await restaurantApi.updateCateringPortionsLimit(
         restaurantId,
-        maxCateringPortions,
-        token
+        maxCateringPortions
       );
 
       setSuccess("Catering portions limit updated successfully!");
@@ -205,7 +202,6 @@ export const InventoryManagement = ({
       await restaurantApi.updateCorporateInventory(
         restaurantId,
         payload,
-        token
       );
 
       setSuccess("Corporate inventory settings updated successfully!");

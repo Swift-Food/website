@@ -8,7 +8,6 @@ import { BalanceInfo } from "@/types/restaurant.types";
 
 interface WithdrawalFormProps {
   restaurantUserId: string;
-  token: string;
   balance: BalanceInfo | null;
   onSuccess: () => void;
   accountId: string
@@ -16,7 +15,6 @@ interface WithdrawalFormProps {
 
 export const WithdrawalForm = ({
   restaurantUserId,
-  token,
   balance,
   accountId,
   onSuccess,
@@ -59,7 +57,7 @@ export const WithdrawalForm = ({
           isInstantPayout: false,
           accountId: accountId
         },
-        token
+        
       );
 
       setSuccess(

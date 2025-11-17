@@ -1,40 +1,64 @@
-// services/cateringServices.ts - Add refund methods
-
-import apiClient from "@/app/api/client";
+// services/refundServices.ts
+import { fetchWithAuth, API_BASE_URL } from "@/app/api/client";
 import { RefundRequest } from "@/types/refund.types";
 
 class RefundService {
-  async createRefundRequest(data: {
-    orderType: 'catering' | 'corporate';
-    orderId: string;
-    refundItems?: { // Add this
-      menuItemId: string;
-      itemName: string;
-      quantity: number;
-      unitPrice: number;
-      totalPrice: number;
-    }[];
-    restaurantId: string;
-    reason: string;
-    additionalDetails?: string;
-    images?: string[];
-    requestedAmount: number;
-    },  
+  async createRefundRequest(
+    data: {
+      orderType: 'catering' | 'corporate';
+      orderId: string;
+      refundItems?: {
+        menuItemId: string;
+        itemName: string;
+        quantity: number;
+        unitPrice: number;
+        totalPrice: number;
+      }[];
+      restaurantId: string;
+      reason: string;
+      additionalDetails?: string;
+      images?: string[];
+      requestedAmount: number;
+    },
     userId: string
   ): Promise<RefundRequest> {
-    const response = await apiClient.post(`/refunds/${userId}`, data);
-    return response.data;
+    const response = await fetchWithAuth(`${API_BASE_URL}/refunds/${userId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create refund request');
+    }
+
+    return response.json();
   }
 
   async getOrderRefunds(orderId: string): Promise<RefundRequest[]> {
-    console.log("orderid", {orderId})
-    const response = await apiClient.get(`/refunds/order/${orderId}?orderType=catering`);
-    return response.data;
+    console.log("orderid", { orderId });
+    
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/refunds/order/${orderId}?orderType=catering`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch order refunds');
+    }
+
+    return response.json();
   }
 
   async getRestaurantRefundRequests(restaurantId: string): Promise<RefundRequest[]> {
-    const response = await apiClient.get(`/refunds/restaurant/${restaurantId}`);
-    return response.data;
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/refunds/restaurant/${restaurantId}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch restaurant refund requests');
+    }
+
+    return response.json();
   }
 
   async processRefund(
@@ -46,13 +70,21 @@ class RefundService {
       restaurantResponse?: string;
     }
   ): Promise<any> {
-    const response = await apiClient.post(
-      `/refunds/${refundId}/${restUserId}/process`, 
-      data
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/refunds/${refundId}/${restUserId}/process`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
     );
-    return response.data;
-  }
 
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to process refund');
+    }
+
+    return response.json();
+  }
 }
 
 export const refundService = new RefundService();

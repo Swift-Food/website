@@ -499,7 +499,6 @@ const handleProcessRefund = async (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <WithdrawalForm
                   restaurantUserId={restaurantUserId}
-                  token={token}
                   balance={balance}
                   onSuccess={fetchData}
                   accountId={selectedAccountId}

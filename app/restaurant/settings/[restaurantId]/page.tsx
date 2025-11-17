@@ -269,7 +269,6 @@ const RestaurantSettingsPage = () => {
     return (
       <InventorySection
         restaurantId={restaurantId}
-        token={typeof window !== "undefined" ? sessionStorage.getItem("restaurant_token") || "" : ""}
         isCatering={formData.isCatering}
         isCorporate={formData.isCorporate}
         onBack={() => setActiveSection(null)}

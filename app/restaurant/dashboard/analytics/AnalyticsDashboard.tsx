@@ -42,7 +42,7 @@ export const AnalyticsDashboard = ({
     setLoading(true);
     setError("");
     try {
-      const data = await restaurantApi.getAnalyticsDashboard(restaurantId, token);
+      const data = await restaurantApi.getAnalyticsDashboard(restaurantId);
       setAnalytics(data);
     } catch (err: any) {
       console.error("Analytics fetch error:", err);

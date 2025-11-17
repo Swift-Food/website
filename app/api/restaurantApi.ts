@@ -52,7 +52,7 @@ export const restaurantApi = {
     return response.json();
   },
 
-  getProfile: async (token: string): Promise<any> => {
+  getProfile: async (): Promise<any> => {
     const response = await fetchWithAuth(`${API_BASE_URL}/auth/profile`);
     if (!response.ok) throw new Error("Failed to fetch profile");
     return response.json();
@@ -150,7 +150,7 @@ export const restaurantApi = {
       isInstantPayout: boolean;
       accountId: string;
     },
-    token: string
+
   ): Promise<WithdrawalRequest> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/withdrawals/request`,
@@ -234,7 +234,6 @@ export const restaurantApi = {
   // Analytics endpoints
   getAnalyticsDashboard: async (
     restaurantId: string,
-    token: string
   ): Promise<AnalyticsDashboard> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant-analytics/${restaurantId}/dashboard`
@@ -246,8 +245,7 @@ export const restaurantApi = {
   getMonthlyAnalytics: async (
     restaurantId: string,
     year: number,
-    month: number,
-    token: string
+    month: number
   ): Promise<any> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant-analytics/${restaurantId}/monthly?year=${year}&month=${month}`
@@ -259,7 +257,6 @@ export const restaurantApi = {
   getYearlyAnalytics: async (
     restaurantId: string,
     year: number,
-    token: string
   ): Promise<any> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant-analytics/${restaurantId}/yearly?year=${year}`
@@ -301,15 +298,8 @@ export const restaurantApi = {
   updateCateringPortionsLimit: async (
     restaurantId: string,
     maximumCateringPortionsPerDay: number,
-    token: string
   ): Promise<CateringPortionsAvailabilityResponse> => {
     const payload: UpdateCateringPortionsLimitDto = { maximumCateringPortionsPerDay };
-
-    console.log("🟢 Catering Update Request:", {
-      restaurantId,
-      url: `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
-      payload,
-    });
 
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
@@ -355,7 +345,6 @@ export const restaurantApi = {
   updateCorporateInventory: async (
     restaurantId: string,
     data: UpdateCorporateInventoryDto,
-    token: string
   ): Promise<any> => {
     const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
 
@@ -370,7 +359,7 @@ export const restaurantApi = {
       body: JSON.stringify(data),
     });
 
-    console.log("🟣 Corporate Response Status:", response.status);
+
 
     if (!response.ok) {
       const errorText = await response.text();

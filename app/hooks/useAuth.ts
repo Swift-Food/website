@@ -32,7 +32,7 @@ export const useAuth = () => {
     localStorage.setItem("access_token", tokens.access_token);
     localStorage.setItem("refresh_token", tokens.refresh_token);
 
-    const profile = await restaurantApi.getProfile(tokens.access_token);
+    const profile = await restaurantApi.getProfile();
     localStorage.setItem("user", JSON.stringify(profile));
 
     setToken(tokens.access_token);

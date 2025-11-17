@@ -5,7 +5,6 @@ import { InventoryManagement } from "./InventoryManagement";
 
 interface InventorySectionProps {
   restaurantId: string;
-  token: string;
   isCatering: boolean;
   isCorporate: boolean;
   onBack: () => void;
@@ -13,7 +12,6 @@ interface InventorySectionProps {
 
 export const InventorySection = ({
   restaurantId,
-  token,
   isCatering,
   isCorporate,
   onBack,
@@ -41,7 +39,6 @@ export const InventorySection = ({
 
         <InventoryManagement
           restaurantId={restaurantId}
-          token={token}
           isCatering={isCatering}
           isCorporate={isCorporate}
         />
