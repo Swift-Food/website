@@ -155,7 +155,7 @@ export default function CateringFilterRow({
                         selectedPeriod
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pr-0 w-12"
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pr-0 w-12 appearance-none text-center"
                   >
                     <option value="">Hour</option>
                     {HOUR_12_OPTIONS.map((hour) => (
@@ -175,7 +175,7 @@ export default function CateringFilterRow({
                         selectedPeriod
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-0 w-12"
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-0 w-12 appearance-none text-center"
                   >
                     <option value="">Min</option>
                     {MINUTE_OPTIONS.map((minute) => (
@@ -194,7 +194,7 @@ export default function CateringFilterRow({
                         e.target.value
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-1 w-14"
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-1 w-14 appearance-none text-center"
                   >
                     <option value="AM">AM</option>
                     <option value="PM">PM</option>
@@ -423,8 +423,8 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none"
-                  style={{ width: '50px' }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none appearance-none text-center"
+                  style={{ width: "50px" }}
                 >
                   <option value="">Hour</option>
                   {HOUR_12_OPTIONS.map((hour) => (
@@ -444,8 +444,8 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none"
-                  style={{ width: '50px' }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none appearance-none text-center"
+                  style={{ width: "50px" }}
                 >
                   <option value="">Min</option>
                   {MINUTE_OPTIONS.map((minute) => (
@@ -464,8 +464,8 @@ export default function CateringFilterRow({
                       e.target.value
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none"
-                  style={{ width: '55px' }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none appearance-none text-center"
+                  style={{ width: "55px" }}
                 >
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>
