@@ -65,6 +65,13 @@ const MINUTE_OPTIONS = [
   { label: "45", value: "45" },
 ];
 
+// Below constants, add for hour, minute, and period
+const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({ label: `${i + 1}`, value: String(i + 1).padStart(2, '0') }));
+const PERIOD_OPTIONS = [
+  { label: 'AM', value: 'AM' },
+  { label: 'PM', value: 'PM' }
+];
+
 // UK Postcode validation regex
 // Matches formats like: SW1A 1AA, M1 1AE, B33 8TH, CR2 6XH, DN55 1PT
 const UK_POSTCODE_REGEX = /^([A-Z]{1,2}\d{1,2}[A-Z]?)\s?(\d[A-Z]{2})$/i;
@@ -350,25 +357,35 @@ export default function Step1EventDetails() {
     }
   }, [formData.eventDate, formData.eventTime, selectedRestaurants]);
 
-  // Separate state for hour and minute
+  // In state, track period and set on mount
   const [selectedHour, setSelectedHour] = useState(() => {
     if (eventDetails?.eventTime) {
-      return eventDetails.eventTime.split(":")[0];
+      const [h, m] = eventDetails.eventTime.split(":");
+      const period = Number(h) >= 12 ? "PM" : "AM";
+      const hour12 = Number(h) % 12 || 12;
+      return String(hour12).padStart(2, '0');
     }
     return "";
   });
-
   const [selectedMinute, setSelectedMinute] = useState(() => {
     if (eventDetails?.eventTime) {
       return eventDetails.eventTime.split(":")[1];
     }
     return "";
   });
-
-  // Update eventTime when hour or minute changes
-  const handleTimeChange = (hour: string, minute: string) => {
+  const [selectedPeriod, setSelectedPeriod] = useState(() => {
+    if (eventDetails?.eventTime) {
+      const hour = Number(eventDetails.eventTime.split(":")[0]);
+      return hour >= 12 ? "PM" : "AM";
+    }
+    return "AM";
+  });
+  const handleTimeChange = (hour: string, minute: string, period: string) => {
     if (hour && minute) {
-      const timeValue = `${hour}:${minute}`;
+      let hourNum = Number(hour) % 12;
+      if (period === 'PM') hourNum += 12;
+      if (period === 'AM' && hourNum === 12) hourNum = 0;
+      const timeValue = `${String(hourNum).padStart(2, '0')}:${minute}`;
       setFormData({ ...formData, eventTime: timeValue });
     } else {
       setFormData({ ...formData, eventTime: "" });
@@ -661,53 +678,46 @@ export default function Step1EventDetails() {
                 <select
                   required
                   value={selectedHour}
-                  onChange={(e) => {
+                  onChange={e => {
                     setSelectedHour(e.target.value);
-                    handleTimeChange(e.target.value, selectedMinute);
-                    setValidationErrors({
-                      ...validationErrors,
-                      eventTime: undefined,
-                    });
+                    handleTimeChange(e.target.value, selectedMinute, selectedPeriod);
+                    setValidationErrors({ ...validationErrors, eventTime: undefined });
                   }}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    validationErrors.eventTime
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  }`}
+                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
                 >
                   <option value="">Hour</option>
-                  {HOUR_OPTIONS.map((hour) => (
-                    <option key={hour.value} value={hour.value}>
-                      {hour.label}
-                    </option>
+                  {HOUR_12_OPTIONS.map(hour => (
+                    <option key={hour.value} value={hour.value}>{hour.label}</option>
                   ))}
                 </select>
-                <span className="flex items-center text-2xl font-bold text-gray-400">
-                  :
-                </span>
+                <span className="flex items-center text-2xl font-bold text-gray-400">:</span>
                 <select
                   required
                   value={selectedMinute}
-                  onChange={(e) => {
+                  onChange={e => {
                     setSelectedMinute(e.target.value);
-                    handleTimeChange(selectedHour, e.target.value);
-                    setValidationErrors({
-                      ...validationErrors,
-                      eventTime: undefined,
-                    });
+                    handleTimeChange(selectedHour, e.target.value, selectedPeriod);
+                    setValidationErrors({ ...validationErrors, eventTime: undefined });
                   }}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    validationErrors.eventTime
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  }`}
+                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
                 >
                   <option value="">Min</option>
-                  {MINUTE_OPTIONS.map((minute) => (
-                    <option key={minute.value} value={minute.value}>
-                      {minute.label}
-                    </option>
+                  {MINUTE_OPTIONS.map(minute => (
+                    <option key={minute.value} value={minute.value}>{minute.label}</option>
                   ))}
+                </select>
+                <select
+                  required
+                  value={selectedPeriod}
+                  onChange={e => {
+                    setSelectedPeriod(e.target.value);
+                    handleTimeChange(selectedHour, selectedMinute, e.target.value);
+                    setValidationErrors({ ...validationErrors, eventTime: undefined });
+                  }}
+                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
+                >
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
                 </select>
               </div>
               {validationErrors.eventTime && (

@@ -19,16 +19,10 @@ interface CateringFilterRowProps {
 }
 
 // Generate hours from 6 AM to 11 PM (same as Step1EventDetails)
-const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => {
-  const hour24 = i + 6;
-  const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-  const ampm = hour24 >= 12 ? "PM" : "AM";
-  return {
-    label: `${hour12} ${ampm}`,
-    value: String(hour24).padStart(2, "0"),
-  };
-});
-
+const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
+  label: `${i + 1}`,
+  value: String(i + 1).padStart(2, "0"),
+}));
 const MINUTE_OPTIONS = [
   { label: "00", value: "00" },
   { label: "15", value: "15" },
@@ -55,25 +49,52 @@ export default function CateringFilterRow({
   // Separate state for hour and minute
   const [selectedHour, setSelectedHour] = useState(() => {
     if (eventDetails?.eventTime) {
-      return eventDetails.eventTime.split(":")[0];
+      const h = eventDetails.eventTime.split(":")[0];
+      const hour12 = Number(h) % 12 || 12;
+      return String(hour12).padStart(2, "0");
     }
     return "";
   });
-
   const [selectedMinute, setSelectedMinute] = useState(() => {
     if (eventDetails?.eventTime) {
       return eventDetails.eventTime.split(":")[1];
     }
     return "";
   });
+  const [selectedPeriod, setSelectedPeriod] = useState(() => {
+    if (eventDetails?.eventTime) {
+      const hour = Number(eventDetails.eventTime.split(":")[0]);
+      return hour >= 12 ? "PM" : "AM";
+    }
+    return "AM";
+  });
 
   // Update eventTime when hour or minute changes
-  const handleTimeChange = (hour: string, minute: string) => {
+  const handleTimeChange = (hour: string, minute: string, period: string) => {
     if (hour && minute) {
-      const timeValue = `${hour}:${minute}`;
-      setEventDetails({ ...eventDetails, eventTime: timeValue });
+      let hourNum = Number(hour) % 12;
+      if (period === "PM") hourNum += 12;
+      if (period === "AM" && hourNum === 12) hourNum = 0;
+      const timeValue = `${String(hourNum).padStart(2, "0")}:${minute}`;
+      setEventDetails({
+        eventTime: timeValue,
+        eventType: eventDetails?.eventType ?? "",
+        eventDate: eventDetails?.eventDate ?? "",
+        guestCount: eventDetails?.guestCount ?? 0,
+        specialRequests: eventDetails?.specialRequests ?? "",
+        address: eventDetails?.address ?? "",
+        userType: eventDetails?.userType ?? "guest",
+      });
     } else {
-      setEventDetails({ ...eventDetails, eventTime: "" });
+      setEventDetails({
+        eventTime: "",
+        eventType: eventDetails?.eventType ?? "",
+        eventDate: eventDetails?.eventDate ?? "",
+        guestCount: eventDetails?.guestCount ?? 0,
+        specialRequests: eventDetails?.specialRequests ?? "",
+        address: eventDetails?.address ?? "",
+        userType: eventDetails?.userType ?? "guest",
+      });
     }
   };
 
@@ -103,7 +124,15 @@ export default function CateringFilterRow({
                 type="date"
                 value={eventDetails?.eventDate || ""}
                 onChange={(e) =>
-                  setEventDetails({ ...eventDetails, eventDate: e.target.value })
+                  setEventDetails({
+                    eventTime: eventDetails?.eventTime ?? "",
+                    eventType: eventDetails?.eventType ?? "",
+                    eventDate: e.target.value,
+                    guestCount: eventDetails?.guestCount ?? 0,
+                    specialRequests: eventDetails?.specialRequests ?? "",
+                    address: eventDetails?.address ?? "",
+                    userType: eventDetails?.userType ?? "guest",
+                  })
                 }
                 max={getMaxDate()}
                 min={getMinDate()}
@@ -120,12 +149,16 @@ export default function CateringFilterRow({
                     value={selectedHour}
                     onChange={(e) => {
                       setSelectedHour(e.target.value);
-                      handleTimeChange(e.target.value, selectedMinute);
+                      handleTimeChange(
+                        e.target.value,
+                        selectedMinute,
+                        selectedPeriod
+                      );
                     }}
                     className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pr-0"
                   >
                     <option value="">Hour</option>
-                    {HOUR_OPTIONS.map((hour) => (
+                    {HOUR_12_OPTIONS.map((hour) => (
                       <option key={hour.value} value={hour.value}>
                         {hour.label}
                       </option>
@@ -136,7 +169,11 @@ export default function CateringFilterRow({
                     value={selectedMinute}
                     onChange={(e) => {
                       setSelectedMinute(e.target.value);
-                      handleTimeChange(selectedHour, e.target.value);
+                      handleTimeChange(
+                        selectedHour,
+                        e.target.value,
+                        selectedPeriod
+                      );
                     }}
                     className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-0"
                   >
@@ -146,6 +183,21 @@ export default function CateringFilterRow({
                         {minute.label}
                       </option>
                     ))}
+                  </select>
+                  <select
+                    value={selectedPeriod}
+                    onChange={(e) => {
+                      setSelectedPeriod(e.target.value);
+                      handleTimeChange(
+                        selectedHour,
+                        selectedMinute,
+                        e.target.value
+                      );
+                    }}
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-0"
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
                   </select>
                 </div>
               </div>
@@ -330,7 +382,15 @@ export default function CateringFilterRow({
                 type="date"
                 value={eventDetails?.eventDate || ""}
                 onChange={(e) =>
-                  setEventDetails({ ...eventDetails, eventDate: e.target.value })
+                  setEventDetails({
+                    eventTime: eventDetails?.eventTime ?? "",
+                    eventType: eventDetails?.eventType ?? "",
+                    eventDate: e.target.value,
+                    guestCount: eventDetails?.guestCount ?? 0,
+                    specialRequests: eventDetails?.specialRequests ?? "",
+                    address: eventDetails?.address ?? "",
+                    userType: eventDetails?.userType ?? "guest",
+                  })
                 }
                 max={getMaxDate()}
                 min={getMinDate()}
@@ -357,12 +417,16 @@ export default function CateringFilterRow({
                   value={selectedHour}
                   onChange={(e) => {
                     setSelectedHour(e.target.value);
-                    handleTimeChange(e.target.value, selectedMinute);
+                    handleTimeChange(
+                      e.target.value,
+                      selectedMinute,
+                      selectedPeriod
+                    );
                   }}
                   className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none flex-1"
                 >
                   <option value="">Hour</option>
-                  {HOUR_OPTIONS.map((hour) => (
+                  {HOUR_12_OPTIONS.map((hour) => (
                     <option key={hour.value} value={hour.value}>
                       {hour.label}
                     </option>
@@ -373,7 +437,11 @@ export default function CateringFilterRow({
                   value={selectedMinute}
                   onChange={(e) => {
                     setSelectedMinute(e.target.value);
-                    handleTimeChange(selectedHour, e.target.value);
+                    handleTimeChange(
+                      selectedHour,
+                      e.target.value,
+                      selectedPeriod
+                    );
                   }}
                   className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none flex-1"
                 >
@@ -383,6 +451,21 @@ export default function CateringFilterRow({
                       {minute.label}
                     </option>
                   ))}
+                </select>
+                <select
+                  value={selectedPeriod}
+                  onChange={(e) => {
+                    setSelectedPeriod(e.target.value);
+                    handleTimeChange(
+                      selectedHour,
+                      selectedMinute,
+                      e.target.value
+                    );
+                  }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none flex-1"
+                >
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
                 </select>
               </div>
             </div>
