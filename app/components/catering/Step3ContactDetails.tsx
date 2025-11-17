@@ -2,10 +2,11 @@
 
 "use client";
 
-import { useState, FormEvent, useEffect, useRef } from "react";
+import { useState, FormEvent, useEffect, useRef, useMemo } from "react";
 import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/cateringServices";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
+import { PaymentMethodSelector } from "../PaymentMethodSelector";
 
 interface ValidationErrors {
   organization?: string;
@@ -28,7 +29,6 @@ export default function Step3ContactInfo() {
     setCurrentStep,
     eventDetails,
     selectedItems,
-    getTotalPrice,
     resetOrder,
     markOrderAsSubmitted,
     corporateUser,
@@ -66,11 +66,30 @@ export default function Step3ContactInfo() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [corporateUserId, setCorporateUserId] = useState<string>("");
   const [organizationId, setOrganizationId] = useState<string>("");
-  const [, setSelectedPaymentMethod] = useState<"wallet" | "card" | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"wallet" | "card" | null>(null);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [importantNotesOpen, setImportantNotesOpen] = useState(false);
+
+  // Calculate estimated total without triggering state updates
+  const estimatedTotal = useMemo(() => {
+    return selectedItems.reduce((total, { item, quantity }) => {
+      const price = parseFloat(item.price?.toString() || "0");
+      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+      const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+
+      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+      const addonPricePerUnit = (item.selectedAddons || []).reduce(
+        (addonTotal, { price, quantity }) => {
+          return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+        },
+        0
+      );
+
+      return total + unitPrice * quantity + addonPricePerUnit;
+    }, 0);
+  }, [selectedItems]);
 
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) {
@@ -251,37 +270,151 @@ export default function Step3ContactInfo() {
     setSubmitting(true);
 
     try {
+      console.log("=== SUBMIT ORDER START ===");
+      console.log("Payment Info:", JSON.stringify(paymentInfo, null, 2));
+      console.log("Corporate User ID:", corporateUserId);
+      console.log("Organization ID:", organizationId);
+      console.log("Pricing:", JSON.stringify(pricing, null, 2));
+
       if (!pricing) {
+        console.error("ERROR: Pricing not available");
         alert("Please wait for pricing calculation to complete");
         setSubmitting(false);
         return;
       }
 
       setContactInfo(formData);
-      console.log(JSON.stringify(selectedItems))
+      console.log("Contact Info:", JSON.stringify(formData, null, 2));
+      console.log("Selected Items:", JSON.stringify(selectedItems, null, 2));
+      console.log("Event Details:", JSON.stringify(eventDetails, null, 2));
+      console.log("Promo Codes:", promoCodes);
+      console.log("CC Emails:", ccEmails);
+
+      const paymentData = paymentInfo
+        ? {
+            corporateUserId,
+            organizationId,
+            ...paymentInfo,
+          }
+        : undefined;
+
+      console.log("Final Payment Data:", JSON.stringify(paymentData, null, 2));
+
       await cateringService.submitCateringOrder(
         eventDetails!,
         selectedItems,
         formData,
         promoCodes,
         ccEmails,
-        paymentInfo
-          ? {
-              corporateUserId,
-              organizationId,
-              ...paymentInfo,
-            }
-          : undefined
+        paymentData
       );
 
+      console.log("✅ Order submitted successfully");
       markOrderAsSubmitted();
       setSuccess(true);
       setShowPaymentModal(false);
-    } catch (error) {
-      console.error("Error submitting order:", error);
-      alert("Failed to submit order. Please try again.");
+    } catch (error: any) {
+      console.error("=== SUBMIT ORDER ERROR ===");
+      console.error("Error Type:", error?.name);
+      console.error("Error Message:", error?.message);
+      console.error("Error Stack:", error?.stack);
+      console.error("Full Error Object:", JSON.stringify(error, null, 2));
+
+      // Check if it's a network error
+      if (error?.message?.includes("fetch") || error?.message?.includes("network")) {
+        console.error("Network Error Detected");
+        alert("Network error: Please check your internet connection and try again.");
+      }
+      // Check if it's an API error with response
+      else if (error?.response) {
+        console.error("API Response Error:", JSON.stringify(error.response, null, 2));
+        console.error("Status Code:", error.response.status);
+        console.error("Status Text:", error.response.statusText);
+        console.error("Response Data:", JSON.stringify(error.response.data, null, 2));
+        alert(`Failed to submit order: ${error.response.data?.message || error.response.statusText || 'Unknown error'}`);
+      }
+      // Generic error
+      else {
+        console.error("Unknown Error Type");
+        alert(`Failed to submit order: ${error?.message || 'Please try again.'}`);
+      }
+
+      console.error("=== END ERROR LOG ===");
     } finally {
       setSubmitting(false);
+      console.log("=== SUBMIT ORDER END ===");
+    }
+  };
+
+  const handleWalletPayment = async () => {
+    console.log("=== WALLET PAYMENT INITIATED ===");
+    console.log("Organization ID:", organizationId);
+    console.log("Corporate User ID:", corporateUserId);
+    console.log("Amount:", pricing?.total);
+    console.log("Pricing Object:", JSON.stringify(pricing, null, 2));
+
+    // Validation
+    if (!organizationId || !corporateUserId) {
+      console.error("ERROR: Missing organization or user information");
+      console.error("- Organization ID:", organizationId);
+      console.error("- Corporate User ID:", corporateUserId);
+      alert("Missing organization or user information. Please try logging in again.");
+      return;
+    }
+
+    if (!pricing || !pricing.total) {
+      console.error("ERROR: Pricing information not available");
+      console.error("Pricing:", pricing);
+      alert("Pricing information not available. Please refresh and try again.");
+      return;
+    }
+
+    console.log("✅ Validation passed, submitting order with wallet payment");
+
+    try {
+      await submitOrder({ useOrganizationWallet: true });
+      console.log("✅ Wallet payment completed successfully");
+    } catch (error: any) {
+      console.error("=== WALLET PAYMENT ERROR ===");
+      console.error("Error:", error);
+      console.error("Error Message:", error?.message);
+      console.error("Error Stack:", error?.stack);
+      console.error("=== END WALLET PAYMENT ERROR ===");
+      // Error is already handled in submitOrder
+    }
+  };
+
+  const handleCardPaymentComplete = async (
+    paymentMethodId: string,
+    paymentIntentId: string
+  ) => {
+    console.log("=== CARD PAYMENT COMPLETED ===");
+    console.log("Payment Method ID:", paymentMethodId);
+    console.log("Payment Intent ID:", paymentIntentId);
+    console.log("Organization ID:", organizationId);
+    console.log("Corporate User ID:", corporateUserId);
+
+    // Validation
+    if (!paymentMethodId || !paymentIntentId) {
+      console.error("ERROR: Missing payment information");
+      console.error("- Payment Method ID:", paymentMethodId);
+      console.error("- Payment Intent ID:", paymentIntentId);
+      alert("Payment information missing. Please try again.");
+      return;
+    }
+
+    console.log("✅ Card payment validation passed, submitting order");
+
+    try {
+      await submitOrder({ paymentMethodId, paymentIntentId });
+      console.log("✅ Card payment order submitted successfully");
+    } catch (error: any) {
+      console.error("=== CARD PAYMENT ERROR ===");
+      console.error("Error:", error);
+      console.error("Error Message:", error?.message);
+      console.error("Error Stack:", error?.stack);
+      console.error("=== END CARD PAYMENT ERROR ===");
+      // Error is already handled in submitOrder
     }
   };
 
@@ -1359,7 +1492,7 @@ export default function Step3ContactInfo() {
                     Estimated Total:
                   </span>
                   <span className="font-bold text-xl text-base-content">
-                    £{getTotalPrice().toFixed(2)}
+                    £{estimatedTotal.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -1439,22 +1572,154 @@ export default function Step3ContactInfo() {
                 </button>
               </div>
 
-              <div className="bg-base-200/50 rounded-xl p-4 border border-base-300">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-base-content/70">Order Total</p>
-                  {(pricing?.totalDiscount ?? 0) > 0 && (
-                    <p className="text-xs text-green-600 font-semibold">
-                      Saved £{pricing!.totalDiscount!.toFixed(2)}
-                    </p>
-                  )}
-                </div>
-                <p className="text-2xl font-bold text-primary">
-                  £{pricing?.total.toFixed(2)}
-                </p>
-                {(pricing?.totalDiscount ?? 0) > 0 && (
-                  <p className="text-sm text-base-content/50 line-through mt-1">
-                    £{(pricing!.subtotal + pricing!.deliveryFee).toFixed(2)}
+              <div className="p-6 space-y-4">
+                <div className="bg-base-200/50 rounded-xl p-4 border border-base-300">
+                  <p className="text-sm text-base-content/70 mb-2">
+                    Order Total
                   </p>
+                  <p className="text-2xl font-bold text-primary">
+                    £{pricing?.total.toFixed(2)}
+                  </p>
+                </div>
+
+                {/* Payment Method Selection */}
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setSelectedPaymentMethod("wallet")}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedPaymentMethod === "wallet"
+                        ? "border-primary bg-primary/10"
+                        : "border-base-300 hover:border-base-content/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                          <svg
+                            className="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-base-content">
+                            Organization Wallet
+                          </p>
+                          <p className="text-sm text-base-content/60">
+                            Pay from your organization balance
+                          </p>
+                        </div>
+                      </div>
+                      {selectedPaymentMethod === "wallet" && (
+                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedPaymentMethod("card")}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedPaymentMethod === "card"
+                        ? "border-primary bg-primary/10"
+                        : "border-base-300 hover:border-base-content/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                          <svg
+                            className="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-base-content">
+                            Credit/Debit Card
+                          </p>
+                          <p className="text-sm text-base-content/60">
+                            Pay securely with Stripe
+                          </p>
+                        </div>
+                      </div>
+                      {selectedPaymentMethod === "card" && (
+                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+
+                {/* ONLY show PaymentMethodSelector for CARD payment */}
+                {selectedPaymentMethod === "card" && (
+                  <PaymentMethodSelector
+                    organizationId={organizationId}
+                    managerId={corporateUserId}
+                    amount={pricing?.total || 0}
+                    onPaymentComplete={handleCardPaymentComplete}
+                    onCancel={() => setShowPaymentModal(false)}
+                  />
+                )}
+
+                {/* Wallet Confirm Button - NO Stripe needed */}
+                {selectedPaymentMethod === "wallet" && (
+                  <button
+                    onClick={handleWalletPayment}
+                    disabled={submitting}
+                    className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        Processing Payment...
+                      </>
+                    ) : (
+                      `Pay £${pricing?.total.toFixed(2)} from Wallet`
+                    )}
+                  </button>
                 )}
               </div>
             </div>

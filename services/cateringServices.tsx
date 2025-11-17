@@ -95,7 +95,22 @@ class CateringService {
       paymentIntentId?: string;
     }
   ) {
-    const userId = await this.findOrCreateConsumerAccount(contactInfo);
+    console.log("=== CATERING SERVICE: Submit Order ===");
+    console.log("Event Details:", JSON.stringify(eventDetails, null, 2));
+    console.log("Selected Items Count:", selectedItems.length);
+    console.log("Contact Info:", JSON.stringify(contactInfo, null, 2));
+    console.log("Promo Codes:", promoCodes);
+    console.log("Payment Info:", JSON.stringify(paymentInfo, null, 2));
+
+    let userId;
+    try {
+      userId = await this.findOrCreateConsumerAccount(contactInfo);
+      console.log("✅ User ID obtained:", userId);
+    } catch (error: any) {
+      console.error("❌ Failed to find/create consumer account");
+      console.error("Error:", error);
+      throw new Error(`Failed to create user account: ${error.message}`);
+    }
 
 
     // Group items by restaurant
