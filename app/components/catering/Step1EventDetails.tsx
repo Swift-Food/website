@@ -47,16 +47,6 @@ const EVENT_TYPE_OPTIONS = [
   },
 ];
 
-// Generate hours from 6 AM to 11 PM
-const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => {
-  const hour24 = i + 6; // Start from 6 AM
-  const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-  const ampm = hour24 >= 12 ? "PM" : "AM";
-  return {
-    label: `${hour12} ${ampm}`,
-    value: String(hour24).padStart(2, "0"),
-  };
-});
 
 const MINUTE_OPTIONS = [
   { label: "00", value: "00" },
@@ -66,11 +56,11 @@ const MINUTE_OPTIONS = [
 ];
 
 // Below constants, add for hour, minute, and period
-const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({ label: `${i + 1}`, value: String(i + 1).padStart(2, '0') }));
-const PERIOD_OPTIONS = [
-  { label: 'AM', value: 'AM' },
-  { label: 'PM', value: 'PM' }
-];
+const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
+  label: `${i + 1}`,
+  value: String(i + 1).padStart(2, "0"),
+}));
+
 
 // UK Postcode validation regex
 // Matches formats like: SW1A 1AA, M1 1AE, B33 8TH, CR2 6XH, DN55 1PT
@@ -360,10 +350,10 @@ export default function Step1EventDetails() {
   // In state, track period and set on mount
   const [selectedHour, setSelectedHour] = useState(() => {
     if (eventDetails?.eventTime) {
-      const [h, m] = eventDetails.eventTime.split(":");
-      const period = Number(h) >= 12 ? "PM" : "AM";
+      const [h, ] = eventDetails.eventTime.split(":");
+      // const period = Number(h) >= 12 ? "PM" : "AM";
       const hour12 = Number(h) % 12 || 12;
-      return String(hour12).padStart(2, '0');
+      return String(hour12).padStart(2, "0");
     }
     return "";
   });
@@ -383,12 +373,14 @@ export default function Step1EventDetails() {
   const handleTimeChange = (hour: string, minute: string, period: string) => {
     if (hour && minute) {
       let hourNum = Number(hour) % 12;
-      if (period === 'PM') hourNum += 12;
-      if (period === 'AM' && hourNum === 12) hourNum = 0;
-      const timeValue = `${String(hourNum).padStart(2, '0')}:${minute}`;
+      if (period === "PM") hourNum += 12;
+      if (period === "AM" && hourNum === 12) hourNum = 0;
+      const timeValue = `${String(hourNum).padStart(2, "0")}:${minute}`;
       setFormData({ ...formData, eventTime: timeValue });
+      setEventDetails({ ...formData, eventTime: timeValue });
     } else {
       setFormData({ ...formData, eventTime: "" });
+      setEventDetails({ ...formData, eventTime: "" });
     }
   };
 
@@ -533,6 +525,23 @@ export default function Step1EventDetails() {
       zipcode: "",
     });
 
+    setEventDetails({
+      ...formData,
+      userType: "corporate",
+      // corporateUser: corporateAccount,
+    });
+
+    setContactInfo({
+      organization: organizationName,
+      fullName: corporateAccount.fullName || "",
+      email: corporateAccount.email || "",
+      phone: corporateAccount.phoneNumber || "",
+      addressLine1: "", // Corporate users may have delivery addresses that could be populated
+      addressLine2: "",
+      city: "",
+      zipcode: "",
+    });
+
     setLoginModalOpen(false);
   };
 
@@ -641,6 +650,7 @@ export default function Step1EventDetails() {
                   value={formData.eventDate}
                   onChange={(e) => {
                     setFormData({ ...formData, eventDate: e.target.value });
+                    setEventDetails({ ...formData, eventDate: e.target.value });
                     setValidationErrors({
                       ...validationErrors,
                       eventDate: undefined,
@@ -678,43 +688,82 @@ export default function Step1EventDetails() {
                 <select
                   required
                   value={selectedHour}
-                  onChange={e => {
+                  onChange={(e) => {
                     setSelectedHour(e.target.value);
-                    handleTimeChange(e.target.value, selectedMinute, selectedPeriod);
-                    setValidationErrors({ ...validationErrors, eventTime: undefined });
+                    handleTimeChange(
+                      e.target.value,
+                      selectedMinute,
+                      selectedPeriod
+                    );
+                    setValidationErrors({
+                      ...validationErrors,
+                      eventTime: undefined,
+                    });
                   }}
-                  className={`flex-[2] px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`flex-[2] px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.eventTime
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 >
                   <option value="">Hour</option>
-                  {HOUR_12_OPTIONS.map(hour => (
-                    <option key={hour.value} value={hour.value}>{hour.label}</option>
+                  {HOUR_12_OPTIONS.map((hour) => (
+                    <option key={hour.value} value={hour.value}>
+                      {hour.label}
+                    </option>
                   ))}
                 </select>
-                <span className="flex items-center text-2xl font-bold text-gray-400">:</span>
+                <span className="flex items-center text-2xl font-bold text-gray-400">
+                  :
+                </span>
                 <select
                   required
                   value={selectedMinute}
-                  onChange={e => {
+                  onChange={(e) => {
                     setSelectedMinute(e.target.value);
-                    handleTimeChange(selectedHour, e.target.value, selectedPeriod);
-                    setValidationErrors({ ...validationErrors, eventTime: undefined });
+                    handleTimeChange(
+                      selectedHour,
+                      e.target.value,
+                      selectedPeriod
+                    );
+                    setValidationErrors({
+                      ...validationErrors,
+                      eventTime: undefined,
+                    });
                   }}
-                  className={`flex-[2] px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`flex-[2] px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.eventTime
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 >
                   <option value="">Min</option>
-                  {MINUTE_OPTIONS.map(minute => (
-                    <option key={minute.value} value={minute.value}>{minute.label}</option>
+                  {MINUTE_OPTIONS.map((minute) => (
+                    <option key={minute.value} value={minute.value}>
+                      {minute.label}
+                    </option>
                   ))}
                 </select>
                 <select
                   required
                   value={selectedPeriod}
-                  onChange={e => {
+                  onChange={(e) => {
                     setSelectedPeriod(e.target.value);
-                    handleTimeChange(selectedHour, selectedMinute, e.target.value);
-                    setValidationErrors({ ...validationErrors, eventTime: undefined });
+                    handleTimeChange(
+                      selectedHour,
+                      selectedMinute,
+                      e.target.value
+                    );
+                    setValidationErrors({
+                      ...validationErrors,
+                      eventTime: undefined,
+                    });
                   }}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.eventTime
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 >
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>
@@ -743,6 +792,7 @@ export default function Step1EventDetails() {
                   key={option.value}
                   onClick={() => {
                     setFormData({ ...formData, eventType: option.value });
+                    setEventDetails({ ...formData, eventType: option.value });
                     setValidationErrors({
                       ...validationErrors,
                       eventType: undefined,
@@ -843,6 +893,10 @@ export default function Step1EventDetails() {
                     ...addressFormData,
                     addressLine1: e.target.value,
                   });
+                  setContactInfo({
+                    ...addressFormData,
+                    addressLine1: e.target.value,
+                  });
                   setValidationErrors({
                     ...validationErrors,
                     addressLine1: undefined,
@@ -896,6 +950,10 @@ export default function Step1EventDetails() {
                       ...addressFormData,
                       city: e.target.value,
                     });
+                    setContactInfo({
+                      ...addressFormData,
+                      city: e.target.value,
+                    });
                     setValidationErrors({
                       ...validationErrors,
                       city: undefined,
@@ -923,6 +981,10 @@ export default function Step1EventDetails() {
                   onChange={(e) => {
                     const newPostcode = e.target.value.toUpperCase();
                     setAddressFormData({
+                      ...addressFormData,
+                      zipcode: newPostcode,
+                    });
+                    setContactInfo({
                       ...addressFormData,
                       zipcode: newPostcode,
                     });
