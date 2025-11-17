@@ -362,9 +362,9 @@ export default function CateringFilterRow({
       {/* Mobile Layout - Date/Time */}
       <section className="md:hidden mb-4">
         <div className="bg-white rounded-xl border-1 border-base-200">
-          <div className="flex items-center gap-2 px-2">
-            <div className="flex items-center gap-2 flex-1 px-4 py-3 border-r-1 border-gray-200 w-auto min-w-0 max-w-min">
-              <svg
+          <div className="flex items-center justify-between w-full px-2">
+            <div className="flex items-center gap-2 flex-1 py-3 border-r-1 border-gray-200 justify-center">
+              {/* <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -377,7 +377,7 @@ export default function CateringFilterRow({
                   strokeLinejoin="round"
                   d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
                 />
-              </svg>
+              </svg> */}
               <input
                 type="date"
                 value={eventDetails?.eventDate || ""}
@@ -394,25 +394,11 @@ export default function CateringFilterRow({
                 }
                 max={getMaxDate()}
                 min={getMinDate()}
-                className="text-base text-base-content font-medium bg-transparent border-none focus:outline-none w-full"
+                className="text-base text-base-content font-medium bg-transparent border-none focus:outline-none"
               />
             </div>
-            <div className="flex items-center gap-2 flex-1 px-4 py-3 w-auto min-w-0 max-w-min">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-5 h-5 text-gray-600 flex-shrink-0"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="flex items-center gap-0.5 min-w-0 max-w-min">
+            <div className="flex items-center gap-2 flex-1 py-3 justify-evenly">
+              <div className="flex items-center gap-0.5 min-w-0 max-w-min flex-2">
                 <select
                   value={selectedHour}
                   onChange={(e) => {
@@ -423,9 +409,9 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none w-11 text-center"
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center"
                 >
-                  <option value="">Hour</option>
+                  <option value="">Hr</option>
                   {HOUR_12_OPTIONS.map((hour) => (
                     <option key={hour.value} value={hour.value}>
                       {hour.label}
@@ -443,7 +429,7 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none w-11 text-center"
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center flex-2"
                 >
                   <option value="">Min</option>
                   {MINUTE_OPTIONS.map((minute) => (
@@ -462,7 +448,7 @@ export default function CateringFilterRow({
                       e.target.value
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none w-12 text-center"
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center flex-1"
                 >
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>
