@@ -22,7 +22,6 @@ interface ValidationErrors {
 }
 
 export default function Step3ContactInfo() {
-
   const {
     contactInfo,
     setContactInfo,
@@ -67,12 +66,11 @@ export default function Step3ContactInfo() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [corporateUserId, setCorporateUserId] = useState<string>("");
   const [organizationId, setOrganizationId] = useState<string>("");
-  const [, setSelectedPaymentMethod] = useState<
-    "wallet" | "card" | null
-  >(null);
+  const [, setSelectedPaymentMethod] = useState<"wallet" | "card" | null>(null);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [importantNotesOpen, setImportantNotesOpen] = useState(false);
 
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) {
@@ -287,7 +285,6 @@ export default function Step3ContactInfo() {
     }
   };
 
-
   const calculatePricing = async () => {
     setCalculatingPricing(true);
     try {
@@ -375,8 +372,6 @@ export default function Step3ContactInfo() {
         orderItems,
         promoCodes
       );
-
-    
 
       if (!pricingResult.isValid) {
         alert(pricingResult.error || "Unable to calculate pricing");
@@ -783,51 +778,52 @@ export default function Step3ContactInfo() {
               })}
             </div>
 
-{pricing && (
-  <div className="space-y-2 pt-4 border-t border-base-300">
-    {/* Subtotal */}
-    <div className="flex justify-between text-sm text-base-content/70">
-      <span>Subtotal</span>
-      <span>£{pricing.subtotal.toFixed(2)}</span>
-    </div>
-    
-    {/* Restaurant Promotion Discount - FROM BACKEND */}
-    {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
-      <div className="flex justify-between text-sm text-green-600 font-semibold">
-        <span>Restaurant Promotion</span>
-        <span>-£{pricing.restaurantPromotionDiscount!.toFixed(2)}</span>
-      </div>
-    )}
-    
-    {/* Delivery fee */}
-    <div className="flex justify-between text-sm text-base-content/70">
-      <span>Delivery Cost</span>
-      <span>£{pricing.deliveryFee.toFixed(2)}</span>
-    </div>
-    
-    {/* Promo code discount */}
-    {(pricing.promoDiscount ?? 0) > 0 && (
-      <div className="flex justify-between text-sm text-success font-medium">
-        <span>Promo Code Discount</span>
-        <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
-      </div>
-    )}
-    
-    {/* Total - Now correct from backend */}
-    <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
-      <span>Total</span>
-      <div className="text-right">
-        <p className="">£{pricing.total.toFixed(2)}</p>
-        {(pricing.totalDiscount ?? 0) > 0 && (
-          <p className="text-xs line-through text-base-content/50">
-            £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
-          </p>
-        )}
-      </div>
-    </div>
+            {pricing && (
+              <div className="space-y-2 pt-4 border-t border-base-300">
+                {/* Subtotal */}
+                <div className="flex justify-between text-sm text-base-content/70">
+                  <span>Subtotal</span>
+                  <span>£{pricing.subtotal.toFixed(2)}</span>
+                </div>
 
-  </div>
-)}
+                {/* Restaurant Promotion Discount - FROM BACKEND */}
+                {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-green-600 font-semibold">
+                    <span>Restaurant Promotion</span>
+                    <span>
+                      -£{pricing.restaurantPromotionDiscount!.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Delivery fee */}
+                <div className="flex justify-between text-sm text-base-content/70">
+                  <span>Delivery Cost</span>
+                  <span>£{pricing.deliveryFee.toFixed(2)}</span>
+                </div>
+
+                {/* Promo code discount */}
+                {(pricing.promoDiscount ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-success font-medium">
+                    <span>Promo Code Discount</span>
+                    <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Total - Now correct from backend */}
+                <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
+                  <span>Total</span>
+                  <div className="text-right">
+                    <p className="">£{pricing.total.toFixed(2)}</p>
+                    {(pricing.totalDiscount ?? 0) > 0 && (
+                      <p className="text-xs line-through text-base-content/50">
+                        £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1109,18 +1105,50 @@ export default function Step3ContactInfo() {
               <h4 className="font-bold mb-4 text-base-content">Your List</h4>
 
               {/* Important Notes */}
-              <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 mb-4">
-                <p className="text-xs font-semibold text-warning mb-2">
-                  Important Notes
-                </p>
-                <p className="text-xs text-base-content/80 leading-relaxed">
-                  For accurate allergen information, please contact stalls or
-                  restaurants directly.
-                </p>
-                <p className="text-xs text-base-content/80 leading-relaxed">
-                  For any last-minute changes, please contact us at least two
-                  days before your event.
-                </p>
+              <div className="mb-4">
+                <button
+                  type="button"
+                  className="w-full bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-center justify-between focus:outline-none group"
+                  onClick={() => setImportantNotesOpen((open) => !open)}
+                  aria-expanded={importantNotesOpen}
+                  aria-controls="important-notes-content"
+                >
+                  <span className="text-xs font-semibold text-warning">
+                    Important Notes
+                  </span>
+                  <span className="ml-2 text-warning group-hover:underline flex items-center">
+                    <svg
+                      className={`transition-transform duration-200 w-4 h-4 ${
+                        importantNotesOpen ? "rotate-180" : "rotate-0"
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </span>
+                </button>
+                {importantNotesOpen && (
+                  <div
+                    id="important-notes-content"
+                    className="mt-2 text-xs text-base-content/80 leading-relaxed"
+                  >
+                    <p>
+                      For accurate allergen information, please contact stalls
+                      or restaurants directly.
+                    </p>
+                    <p>
+                      For any last-minute changes, please contact us at least
+                      two days before your event.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Promo Code Section */}
@@ -1282,7 +1310,7 @@ export default function Step3ContactInfo() {
                     <span>Subtotal</span>
                     <span>£{subtotalBeforeDiscount.toFixed(2)}</span>
                   </div>
-                  
+
                   {/* Show promotion discount if active */}
                   {promotionDiscount > 0 && (
                     <div className="flex justify-between text-sm text-green-600 font-semibold">
@@ -1290,13 +1318,13 @@ export default function Step3ContactInfo() {
                       <span>-£{promotionDiscount.toFixed(2)}</span>
                     </div>
                   )}
-                  
+
                   {/* Delivery fee */}
                   <div className="flex justify-between text-sm text-base-content/70">
                     <span>Delivery Cost</span>
                     <span>£{pricing.deliveryFee.toFixed(2)}</span>
                   </div>
-                  
+
                   {/* Promo code discount */}
                   {(pricing.promoDiscount ?? 0) > 0 && (
                     <div className="flex justify-between text-sm text-success font-medium">
@@ -1304,15 +1332,19 @@ export default function Step3ContactInfo() {
                       <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
                     </div>
                   )}
-                  
+
                   {/* Total */}
                   <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
                     <span>Total</span>
                     <div className="text-right">
                       <p className="">£{pricing.total.toFixed(2)}</p>
-                      {(promotionDiscount > 0 || (pricing.promoDiscount ?? 0) > 0) && (
+                      {(promotionDiscount > 0 ||
+                        (pricing.promoDiscount ?? 0) > 0) && (
                         <p className="text-xs line-through text-base-content/50">
-                          £{(subtotalBeforeDiscount + pricing.deliveryFee).toFixed(2)}
+                          £
+                          {(
+                            subtotalBeforeDiscount + pricing.deliveryFee
+                          ).toFixed(2)}
                         </p>
                       )}
                     </div>
