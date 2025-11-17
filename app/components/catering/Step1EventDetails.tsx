@@ -683,7 +683,7 @@ export default function Step1EventDetails() {
                     handleTimeChange(e.target.value, selectedMinute, selectedPeriod);
                     setValidationErrors({ ...validationErrors, eventTime: undefined });
                   }}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`flex-[2] px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
                 >
                   <option value="">Hour</option>
                   {HOUR_12_OPTIONS.map(hour => (
@@ -699,7 +699,7 @@ export default function Step1EventDetails() {
                     handleTimeChange(selectedHour, e.target.value, selectedPeriod);
                     setValidationErrors({ ...validationErrors, eventTime: undefined });
                   }}
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`flex-[2] px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.eventTime ? 'border-red-500' : 'border-gray-300'}`}
                 >
                   <option value="">Min</option>
                   {MINUTE_OPTIONS.map(minute => (
