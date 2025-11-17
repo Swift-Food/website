@@ -235,9 +235,6 @@ export default function MenuCatalogue({
   return (
     <div className="flex-1">
       <CateringFilterRow
-        date={deliveryDate}
-        time={deliveryTime}
-        budget={eventBudget}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
         onSearch={onSearch}
