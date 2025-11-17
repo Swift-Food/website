@@ -21,6 +21,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
 
     try {
       await onLogin(email, password);
+
     } catch (err: any) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {

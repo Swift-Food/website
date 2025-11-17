@@ -2,25 +2,22 @@
 "use client";
 
 import { useAuth } from "@/app/hooks/useAuth";
-import { LoginPage } from "./LoginPage";
+import { LoginPage } from "../login/LoginPage";
 import { RestaurantDashboard } from "./RestaurantDashboard";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const RestaurantWithdrawalApp = () => {
   const router = useRouter();
   const { user, token, login, logout, isAuthenticated } = useAuth();
 
+
+
   const handleLogout = () => {
     logout();
-    // Clear URL parameters by navigating to clean path
-    router.push("/restaurant/dashboard");
+    router.push('/restaurant/login');
   };
-
-  if (!isAuthenticated || !user || !token) {
-    return <LoginPage onLogin={login} />;
-  }
-  console.log("USER: ", user);
-
+  if (token)
   return (
     <RestaurantDashboard
       userId={user.id}

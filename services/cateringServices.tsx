@@ -1,4 +1,5 @@
 // services/catering.service.ts
+import { fetchWithAuth } from "@/app/api/client";
 import {
   SearchResponse,
   SearchFilters,
@@ -396,8 +397,6 @@ class CateringService {
     }
   }
 
-  // services/catering.service.ts - Add these methods to the CateringService class
-
   async getOrderByToken(token: string): Promise<CateringOrderDetails> {
     const response = await fetch(
       `${API_BASE_URL}/catering-orders/view/${token}`
@@ -522,15 +521,13 @@ class CateringService {
     return response.json();
   }
 
-  // MENU MANAGEMENT METHODS
-
   async getRestaurantMenuItems(
     restaurantId: string
   ): Promise<MenuItemDetails[]> {
     const url = `${API_BASE_URL}/menu-item/admin/restaurant/${restaurantId}`;
     console.log("Fetching menu items from:", url);
 
-    const response = await fetch(url);
+    const response = await fetchWithAuth(url);
 
     console.log("Response status:", response.status);
 
@@ -560,10 +557,9 @@ class CateringService {
   }
 
   async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
-    console.log("dot is", dto);
-    const response = await fetch(`${API_BASE_URL}/menu-item`, {
+    console.log("dto is", dto);
+    const response = await fetchWithAuth(`${API_BASE_URL}/menu-item`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dto),
     });
 
@@ -579,9 +575,8 @@ class CateringService {
     itemId: string,
     dto: UpdateMenuItemDto
   ): Promise<MenuItemDetails> {
-    const response = await fetch(`${API_BASE_URL}/menu-item/${itemId}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/${itemId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dto),
     });
 
@@ -594,7 +589,7 @@ class CateringService {
   }
 
   async deleteMenuItem(itemId: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/menu-item/${itemId}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/${itemId}`, {
       method: "DELETE",
     });
 
@@ -650,12 +645,13 @@ class CateringService {
     return response.json();
   }
 
+
   async reorderGroups(
     restaurantId: string,
     groupSettings: { [groupTitle: string]: { displayOrder: number } }
   ): Promise<void> {
     console.log("groupSettings", groupSettings);
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/menu/reorder-groups/${restaurantId}`,
       {
         method: "PATCH",

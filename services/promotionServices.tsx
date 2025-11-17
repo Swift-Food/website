@@ -1,7 +1,5 @@
 // app/api/promotionsApi.ts
-import axios from 'axios';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { fetchWithAuth, API_BASE_URL } from '@/app/api/client'
 
 export interface DiscountTier {
   minQuantity: number;
@@ -33,7 +31,6 @@ export interface Promotion {
   isStackable: boolean;
   createdAt: string;
   updatedAt: string;
-  
 }
 
 export interface CreatePromotionDto {
@@ -72,54 +69,100 @@ export interface PromotionValidationResult {
 export const promotionsServices = {
   // Get all promotions for a restaurant
   getRestaurantPromotions: async (restaurantId: string, status?: string) => {
-    const params = status ? { status } : {};
-    const response = await axios.get(
-      `${API_BASE_URL}/promotions/restaurant/${restaurantId}`,
-      { params }
-    );
-    return response.data;
+    const url = status 
+      ? `${API_BASE_URL}/promotions/restaurant/${restaurantId}?status=${status}`
+      : `${API_BASE_URL}/promotions/restaurant/${restaurantId}`;
+    
+    const response = await fetchWithAuth(url);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch restaurant promotions');
+    }
+    
+    return response.json();
   },
 
-  // Get active promotions (customer view)
+  // Get active promotions (customer view) - Public endpoint
   getActivePromotions: async (restaurantId: string, orderType: 'CATERING' | 'CORPORATE') => {
-    const response = await axios.get(
-      `${API_BASE_URL}/promotions/restaurant/${restaurantId}/active`,
-      { params: { orderType } }
+    const response = await fetch(
+      `${API_BASE_URL}/promotions/restaurant/${restaurantId}/active?orderType=${orderType}`
     );
-    return response.data;
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch active promotions');
+    }
+    
+    return response.json();
   },
 
   // Get single promotion
   getPromotion: async (id: string) => {
-    const response = await axios.get(`${API_BASE_URL}/promotions/${id}`);
-    return response.data;
+    const response = await fetchWithAuth(`${API_BASE_URL}/promotions/${id}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch promotion');
+    }
+    
+    return response.json();
   },
 
   // Create promotion
   createPromotion: async (data: CreatePromotionDto) => {
-    // console.log("promotion dto", JSON.stringify(data))
-    const response = await axios.post(`${API_BASE_URL}/promotions`, data);
-    return response.data;
+    const response = await fetchWithAuth(`${API_BASE_URL}/promotions`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create promotion');
+    }
+    
+    return response.json();
   },
 
   // Update promotion
   updatePromotion: async (id: string, data: Partial<CreatePromotionDto>) => {
-    const response = await axios.put(`${API_BASE_URL}/promotions/${id}`, data);
-    return response.data;
+    const response = await fetchWithAuth(`${API_BASE_URL}/promotions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update promotion');
+    }
+    
+    return response.json();
   },
 
   // Update status
   updatePromotionStatus: async (id: string, status: 'ACTIVE' | 'INACTIVE') => {
-    const response = await axios.put(`${API_BASE_URL}/promotions/${id}/status`, {
-      status,
+    const response = await fetchWithAuth(`${API_BASE_URL}/promotions/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
     });
-    return response.data;
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update promotion status');
+    }
+    
+    return response.json();
   },
 
   // Delete promotion
   deletePromotion: async (id: string) => {
-    const response = await axios.delete(`${API_BASE_URL}/promotions/${id}`);
-    return response.data;
+    const response = await fetchWithAuth(`${API_BASE_URL}/promotions/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete promotion');
+    }
+    
+    return response.json();
   },
 
   // Validate promotion
@@ -129,18 +172,31 @@ export const promotionsServices = {
     orderSubtotal: number,
     orderType: 'CATERING' | 'CORPORATE'
   ) => {
-    const response = await axios.post(`${API_BASE_URL}/promotions/validate`, {
-      promotionId,
-      restaurantId,
-      orderSubtotal,
-      orderType,
+    const response = await fetchWithAuth(`${API_BASE_URL}/promotions/validate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        promotionId,
+        restaurantId,
+        orderSubtotal,
+        orderType,
+      }),
     });
-    return response.data;
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to validate promotion');
+    }
+    
+    return response.json();
   },
 
   async getPromotionById(promotionId: string): Promise<Promotion> {
-    const response = await axios.get(`${API_BASE_URL}/promotions/${promotionId}`);
-    return response.data;
+    const response = await fetchWithAuth(`${API_BASE_URL}/promotions/${promotionId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch promotion by ID');
+    }
+    
+    return response.json();
   },
-
 };

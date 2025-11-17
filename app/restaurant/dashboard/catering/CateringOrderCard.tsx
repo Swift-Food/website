@@ -128,7 +128,7 @@ export const CateringOrderCard = ({
   };
 
   const toggleItems = () => setExpandedItems(!expandedItems);
-
+  const orderItem = order.orderItems[0]
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       <div className="w-full flex justify-center mb-3">
@@ -213,22 +213,38 @@ export const CateringOrderCard = ({
           </span>
         </div>
         <div className="sm:text-right">
-          <div className="mb-1">
-            <p className="text-xs text-gray-600 font-medium">Your Earnings</p>
-            <p className="font-bold text-xl sm:text-2xl text-green-600">
-              {formatCurrency(order.restaurantTotalCost)}
-            </p>
-          </div>
-          <div className="mb-2">
-            <p className="text-sm text-gray-600">
-              Customer Paid:{" "}
-              {formatCurrency(order.orderItems[0].totalPrice ?? 0)}
-            </p>
-          </div>
-          <p className="text-xs text-gray-500">
-            Event: {formatDate(order.eventDate)}
+        <div className="mb-1">
+          <p className="text-xs text-gray-600 font-medium">Your Earnings</p>
+          <p className="font-bold text-xl sm:text-2xl text-green-600">
+            {formatCurrency(order.restaurantTotalCost)}
           </p>
         </div>
+        
+        {/* Show pricing breakdown */}
+        <div className="mb-2 space-y-1">
+          {order.promotionDiscount && Number(order.promotionDiscount) > 0 ? (
+            <>
+              <p className="text-sm text-gray-600">
+                Subtotal: {formatCurrency(orderItem.totalPrice)}
+              </p>
+              <p className="text-sm text-green-600 font-medium">
+                Promotion Savings: -{formatCurrency(orderItem.promotionDiscount)}
+              </p>
+              <p className="text-sm text-gray-900 font-semibold">
+                Customer Paid: {formatCurrency((orderItem.totalPrice || 0) - orderItem.promotionDiscount)}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-600">
+              Customer Paid: {formatCurrency(order.finalTotal)}
+            </p>
+          )}
+        </div>
+        
+        <p className="text-xs text-gray-500">
+          Event: {formatDate(order.eventDate)}
+        </p>
+      </div>
       </div>
 
       {/* 👁️ View / 💾 Download Receipt Buttons */}
@@ -306,7 +322,8 @@ export const CateringOrderCard = ({
           </span>
         </p>
       </div>
-
+      {/* Applied Promotions */}
+   
       {/* Order Items - Expandable */}
       <div className="border-t border-gray-200 pt-4">
         <button

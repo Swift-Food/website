@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from "@/app/hooks/useAuth";
-import { LoginPage } from "../../dashboard/LoginPage";
+import { LoginPage } from "../../login/LoginPage";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { LogOut, Loader } from "lucide-react";

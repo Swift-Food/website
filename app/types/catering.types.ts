@@ -12,6 +12,8 @@ export interface CateringOrderItem {
     cateringQuantityUnit?: number;
     feedsPerUnit?: number;
   }[];
+  appliedPromotions?: any[]
+  promotionDiscount: number,
   specialInstructions?: string;
   totalPrice?: number;
 }
@@ -41,4 +43,6 @@ export interface CateringOrder {
   createdAt: string;
   restaurantReviews: string[];
   restaurantPayoutDetails: any;
+  appliedPromotions: any[];
+  promotionDiscount: number;
 }

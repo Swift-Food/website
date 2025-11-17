@@ -15,11 +15,10 @@ import {
   UpdateCateringPortionsLimitDto,
   CateringPortionsAvailabilityResponse,
 } from "@/types/inventory.types";
-
-const API_BASE_URL = "https://swiftfoods-32981ec7b5a4.herokuapp.com";
+import { fetchWithAuth, API_BASE_URL } from "./client";
 
 export const restaurantApi = {
-  // Auth endpoints
+  // Auth endpoints - Keep using regular fetch (no auth needed)
   login: async (credentials: SignInDto): Promise<TokenPair> => {
     const response = await fetch(`${API_BASE_URL}/auth/login-consumer`, {
       method: "POST",
@@ -40,9 +39,7 @@ export const restaurantApi = {
       body: JSON.stringify(credentials),
     });
     if (!response.ok) throw new Error("Corporate login failed");
-    const data = await response.json();
-    // console.log("Corporate login response data: ", data);
-    return data;
+    return response.json();
   },
 
   refreshToken: async (refreshToken: string): Promise<TokenPair> => {
@@ -56,9 +53,7 @@ export const restaurantApi = {
   },
 
   getProfile: async (token: string): Promise<any> => {
-    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetchWithAuth(`${API_BASE_URL}/auth/profile`);
     if (!response.ok) throw new Error("Failed to fetch profile");
     return response.json();
   },
@@ -72,7 +67,7 @@ export const restaurantApi = {
       const url = accountId
         ? `${API_BASE_URL}/restaurant-user/${userId}/stripe-status?accountId=${accountId}`
         : `${API_BASE_URL}/restaurant-user/${userId}/stripe-status`;
-      const response = await fetch(url);
+      const response = await fetchWithAuth(url);
 
       if (!response.ok) {
         console.warn("Stripe status fetch failed:", response.status);
@@ -86,7 +81,9 @@ export const restaurantApi = {
   },
 
   async getMenuGroups(restaurantId: string): Promise<string[]> {
-    const response = await fetch(`${API_BASE_URL}/restaurant/${restaurantId}/menu-groups`);
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant/${restaurantId}/menu-groups`
+    );
     if (!response.ok) throw new Error("Failed to get menu group titles");
     return response.json();
   },
@@ -96,14 +93,10 @@ export const restaurantApi = {
     token: string,
     accountId?: string
   ): Promise<{ onboardingUrl: string }> => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant-user/${userId}/stripe-refresh`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: accountId ? JSON.stringify({ accountId }) : undefined,
       }
     );
@@ -121,9 +114,7 @@ export const restaurantApi = {
       const url = accountId
         ? `${API_BASE_URL}/withdrawals/balance/${userId}/restaurant?accountId=${accountId}`
         : `${API_BASE_URL}/withdrawals/balance/${userId}/restaurant`;
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(url);
       if (!response.ok) {
         console.warn("Balance fetch failed:", response.status);
         return null;
@@ -139,7 +130,7 @@ export const restaurantApi = {
     restaurantUserId: string
   ): Promise<PaymentAccounts | null> => {
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}/restaurant-user/${restaurantUserId}/payment-accounts`
       );
       if (!response.ok) return null;
@@ -161,14 +152,13 @@ export const restaurantApi = {
     },
     token: string
   ): Promise<WithdrawalRequest> => {
-    const response = await fetch(`${API_BASE_URL}/withdrawals/request`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/withdrawals/request`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
     if (!response.ok) throw new Error("Failed to request withdrawal");
     return response.json();
   },
@@ -181,9 +171,7 @@ export const restaurantApi = {
     const url = accountId
       ? `${API_BASE_URL}/withdrawals/history/${userId}/restaurant?accountId=${accountId}`
       : `${API_BASE_URL}/withdrawals/history/${userId}/restaurant`;
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetchWithAuth(url);
     if (!response.ok) throw new Error("Failed to fetch withdrawal history");
     return response.json();
   },
@@ -197,7 +185,7 @@ export const restaurantApi = {
       ? `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}?accountId=${selectedAccountId}`
       : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;
     
-    const response = await fetch(url);
+    const response = await fetchWithAuth(url);
     if (!response.ok) throw new Error("Failed to fetch catering orders");
     return response.json();
   },
@@ -209,14 +197,10 @@ export const restaurantApi = {
     token: string,
     selectedAccountId?: string
   ): Promise<CateringOrder> => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           restaurantId,
           accepted,
@@ -233,13 +217,10 @@ export const restaurantApi = {
     restaurantId: string,
     selectedAccountId: string,
   ): Promise<CateringOrder> => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/claim`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           restaurantId,
           selectedAccountId,
@@ -255,11 +236,8 @@ export const restaurantApi = {
     restaurantId: string,
     token: string
   ): Promise<AnalyticsDashboard> => {
-    const response = await fetch(
-      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/dashboard`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/dashboard`
     );
     if (!response.ok) throw new Error("Failed to fetch analytics dashboard");
     return response.json();
@@ -271,11 +249,8 @@ export const restaurantApi = {
     month: number,
     token: string
   ): Promise<any> => {
-    const response = await fetch(
-      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/monthly?year=${year}&month=${month}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/monthly?year=${year}&month=${month}`
     );
     if (!response.ok) throw new Error("Failed to fetch monthly analytics");
     return response.json();
@@ -286,11 +261,8 @@ export const restaurantApi = {
     year: number,
     token: string
   ): Promise<any> => {
-    const response = await fetch(
-      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/yearly?year=${year}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant-analytics/${restaurantId}/yearly?year=${year}`
     );
     if (!response.ok) throw new Error("Failed to fetch yearly analytics");
     return response.json();
@@ -298,31 +270,27 @@ export const restaurantApi = {
 
   // Corporate user endpoints
   getCorporateUser: async (corporateUserId: string): Promise<CorporateUser> => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/corporate-users/${corporateUserId}`
     );
     if (!response.ok) throw new Error("Failed to fetch corporate user");
-    const data = await response.json();
-    // console.log("Corporate user data: ", data);
-    return data;
+    return response.json();
   },
 
   // Organization endpoints
   getOrganization: async (organizationId: string): Promise<any> => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/organizations/${organizationId}`
     );
     if (!response.ok) throw new Error("Failed to fetch organization");
-    const data = await response.json();
-    // console.log("Organization data: ", data);
-    return data;
+    return response.json();
   },
 
   // Inventory Management endpoints
 
   // Get catering portions availability
   getCateringPortionsAvailability: async (restaurantId: string): Promise<any> => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-availability`
     );
     if (!response.ok) throw new Error("Failed to fetch catering portions availability");
@@ -343,14 +311,10 @@ export const restaurantApi = {
       payload,
     });
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
       {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(payload),
       }
     );
@@ -374,7 +338,7 @@ export const restaurantApi = {
 
     console.log("🟣 Getting corporate inventory settings:", { restaurantId, url });
 
-    const response = await fetch(url);
+    const response = await fetchWithAuth(url);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -401,12 +365,8 @@ export const restaurantApi = {
       payload: data,
     });
 
-    const response = await fetch(url, {
+    const response = await fetchWithAuth(url, {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(data),
     });
 
@@ -425,7 +385,7 @@ export const restaurantApi = {
 
   // Get restaurant details (includes inventory settings)
   getRestaurantDetails: async (restaurantId: string): Promise<any> => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/${restaurantId}`
     );
     if (!response.ok) throw new Error("Failed to fetch restaurant details");
