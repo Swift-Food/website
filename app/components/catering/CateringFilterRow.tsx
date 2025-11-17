@@ -144,7 +144,7 @@ export default function CateringFilterRow({
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Time
                 </label>
-                <div className="flex items-center gap-0.5 min-w-0 max-w-min">
+                <div className="flex items-center px-3 py-1.5 gap-1">
                   <select
                     value={selectedHour}
                     onChange={(e) => {
@@ -155,16 +155,21 @@ export default function CateringFilterRow({
                         selectedPeriod
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none w-11 text-center"
+                    className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-8 text-center font-mono cursor-pointer appearance-none"
+                    style={{
+                      backgroundImage: "none",
+                      WebkitAppearance: "none",
+                      MozAppearance: "none",
+                    }}
                   >
-                    <option value="">Hr</option>
+                    <option value="">12</option>
                     {HOUR_12_OPTIONS.map((hour) => (
                       <option key={hour.value} value={hour.value}>
                         {hour.label}
                       </option>
                     ))}
                   </select>
-                  <span className="text-sm text-gray-400">:</span>
+                  <span className="text-sm text-gray-400 font-mono">:</span>
                   <select
                     value={selectedMinute}
                     onChange={(e) => {
@@ -175,15 +180,21 @@ export default function CateringFilterRow({
                         selectedPeriod
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none w-11 text-center"
+                    className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-8 text-center font-mono cursor-pointer appearance-none"
+                    style={{
+                      backgroundImage: "none",
+                      WebkitAppearance: "none",
+                      MozAppearance: "none",
+                    }}
                   >
-                    <option value="">Min</option>
+                    <option value="">00</option>
                     {MINUTE_OPTIONS.map((minute) => (
                       <option key={minute.value} value={minute.value}>
                         {minute.label}
                       </option>
                     ))}
                   </select>
+                  <div className="w-px h-4 bg-gray-300 mx-1"></div>
                   <select
                     value={selectedPeriod}
                     onChange={(e) => {
@@ -194,7 +205,12 @@ export default function CateringFilterRow({
                         e.target.value
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none w-12 text-center"
+                    className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-10 text-center cursor-pointer appearance-none"
+                    style={{
+                      backgroundImage: "none",
+                      WebkitAppearance: "none",
+                      MozAppearance: "none",
+                    }}
                   >
                     <option value="AM">AM</option>
                     <option value="PM">PM</option>
@@ -360,10 +376,10 @@ export default function CateringFilterRow({
       </div>
 
       {/* Mobile Layout - Date/Time */}
-      <section className="md:hidden mb-4">
-        <div className="bg-white rounded-xl border-1 border-base-200">
+      <section className="md:hidden mb-2">
+        <div className="bg-white rounded-2xl border-1 border-base-200">
           <div className="flex items-center justify-between w-full px-2">
-            <div className="flex items-center gap-2 flex-1 py-3 border-r-1 border-gray-200 justify-center">
+            <div className="flex items-center gap-2 flex-1 py-1 border-r-1 border-gray-200 justify-center">
               {/* <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -397,8 +413,8 @@ export default function CateringFilterRow({
                 className="text-base text-base-content font-medium bg-transparent border-none focus:outline-none"
               />
             </div>
-            <div className="flex items-center gap-2 flex-1 py-3 justify-evenly">
-              <div className="flex items-center gap-0.5 min-w-0 max-w-min flex-2">
+            <div className="flex items-center gap-2 flex-1 py-2 justify-center">
+              <div className="flex items-center px-4 py-2 gap-1.5">
                 <select
                   value={selectedHour}
                   onChange={(e) => {
@@ -409,16 +425,23 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center"
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center font-mono cursor-pointer appearance-none w-9"
+                  style={{
+                    backgroundImage: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    textAlign: "center",
+                    textAlignLast: "center",
+                  }}
                 >
-                  <option value="">Hr</option>
+                  <option value="">12</option>
                   {HOUR_12_OPTIONS.map((hour) => (
                     <option key={hour.value} value={hour.value}>
                       {hour.label}
                     </option>
                   ))}
                 </select>
-                <span className="text-base text-gray-400">:</span>
+                <span className="text-base text-gray-400 font-mono">:</span>
                 <select
                   value={selectedMinute}
                   onChange={(e) => {
@@ -429,15 +452,23 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center flex-2"
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center font-mono cursor-pointer appearance-none w-9"
+                  style={{
+                    backgroundImage: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    textAlign: "center",
+                    textAlignLast: "center",
+                  }}
                 >
-                  <option value="">Min</option>
+                  <option value="">00</option>
                   {MINUTE_OPTIONS.map((minute) => (
                     <option key={minute.value} value={minute.value}>
                       {minute.label}
                     </option>
                   ))}
                 </select>
+                <div className="w-px h-5 bg-gray-300 mx-1"></div>
                 <select
                   value={selectedPeriod}
                   onChange={(e) => {
@@ -448,7 +479,14 @@ export default function CateringFilterRow({
                       e.target.value
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center flex-1"
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none text-center cursor-pointer appearance-none w-11"
+                  style={{
+                    backgroundImage: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    textAlign: "center",
+                    textAlignLast: "center",
+                  }}
                 >
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>

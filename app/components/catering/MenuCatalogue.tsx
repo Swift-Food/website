@@ -224,9 +224,6 @@ export default function MenuCatalogue({
   onSearchChange,
   onSearch,
   onClearSearch,
-  deliveryDate,
-  deliveryTime,
-  eventBudget,
   filterModalOpen,
   setFilterModalOpen,
 }: MenuCatalogueProps) {

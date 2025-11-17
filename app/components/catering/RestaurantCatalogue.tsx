@@ -88,9 +88,6 @@ export default function RestaurantCatalogue({
   onSearchChange,
   onSearch,
   onClearSearch,
-  deliveryDate,
-  deliveryTime,
-  eventBudget,
   hasActiveFilters,
   onFilterClick,
   filterModalOpen,
@@ -98,9 +95,6 @@ export default function RestaurantCatalogue({
   return (
     <div className="flex-1">
       <CateringFilterRow
-        date={deliveryDate}
-        time={deliveryTime}
-        budget={eventBudget}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
         onSearch={onSearch}
