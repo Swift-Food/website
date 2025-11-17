@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { restaurantApi } from "@/app/api/restaurantApi";
 import { Promotion } from "@/services/promotionServices";
 import { cateringService } from "@/services/cateringServices";
 
