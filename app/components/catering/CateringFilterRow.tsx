@@ -116,7 +116,7 @@ export default function CateringFilterRow({
         <div className="flex items-center justify-center gap-4 relative w-full max-w-[100vw]">
           {/* Date/Time Inputs */}
           <div className="flex items-center gap-2 md:gap-3 bg-white rounded-full px-4 md:px-8 h-16 border border-base-200 min-w-0 flex-shrink">
-            <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink">
+            <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink w-auto px-0">
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Date
               </label>
@@ -139,12 +139,12 @@ export default function CateringFilterRow({
                 className="text-sm text-gray-600 whitespace-nowrap truncate bg-transparent border-none focus:outline-none w-full"
               />
             </div>
-            <div className="pr-2 md:pr-3 min-w-0 flex-shrink flex items-center gap-1">
+            <div className="pr-2 md:pr-3 min-w-0 flex-shrink flex items-center gap-1 max-w-min">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Time
                 </label>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5 min-w-0 max-w-min">
                   <select
                     value={selectedHour}
                     onChange={(e) => {
@@ -155,9 +155,9 @@ export default function CateringFilterRow({
                         selectedPeriod
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pr-0 w-12 appearance-none text-center"
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none w-11 text-center"
                   >
-                    <option value="">Hour</option>
+                    <option value="">Hr</option>
                     {HOUR_12_OPTIONS.map((hour) => (
                       <option key={hour.value} value={hour.value}>
                         {hour.label}
@@ -175,7 +175,7 @@ export default function CateringFilterRow({
                         selectedPeriod
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-0 w-12 appearance-none text-center"
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none w-11 text-center"
                   >
                     <option value="">Min</option>
                     {MINUTE_OPTIONS.map((minute) => (
@@ -194,7 +194,7 @@ export default function CateringFilterRow({
                         e.target.value
                       );
                     }}
-                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none pl-1 w-14 appearance-none text-center"
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none w-12 text-center"
                   >
                     <option value="AM">AM</option>
                     <option value="PM">PM</option>
@@ -363,7 +363,7 @@ export default function CateringFilterRow({
       <section className="md:hidden mb-4">
         <div className="bg-white rounded-xl border-1 border-base-200">
           <div className="flex items-center gap-2 px-2">
-            <div className="flex items-center gap-2 flex-1 px-4 py-3 border-r-1 border-gray-200">
+            <div className="flex items-center gap-2 flex-1 px-4 py-3 border-r-1 border-gray-200 w-auto min-w-0 max-w-min">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -397,7 +397,7 @@ export default function CateringFilterRow({
                 className="text-base text-base-content font-medium bg-transparent border-none focus:outline-none w-full"
               />
             </div>
-            <div className="flex items-center gap-2 flex-1 px-4 py-3">
+            <div className="flex items-center gap-2 flex-1 px-4 py-3 w-auto min-w-0 max-w-min">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -412,7 +412,7 @@ export default function CateringFilterRow({
                   d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <div className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-0.5 min-w-0 max-w-min">
                 <select
                   value={selectedHour}
                   onChange={(e) => {
@@ -423,8 +423,7 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none appearance-none text-center"
-                  style={{ width: "50px" }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none w-11 text-center"
                 >
                   <option value="">Hour</option>
                   {HOUR_12_OPTIONS.map((hour) => (
@@ -444,8 +443,7 @@ export default function CateringFilterRow({
                       selectedPeriod
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none appearance-none text-center"
-                  style={{ width: "50px" }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none w-11 text-center"
                 >
                   <option value="">Min</option>
                   {MINUTE_OPTIONS.map((minute) => (
@@ -464,8 +462,7 @@ export default function CateringFilterRow({
                       e.target.value
                     );
                   }}
-                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none appearance-none text-center"
-                  style={{ width: "55px" }}
+                  className="text-base text-gray-800 font-medium bg-transparent border-none focus:outline-none w-12 text-center"
                 >
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>
