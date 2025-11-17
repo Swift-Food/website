@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Package, Clock, Loader, AlertCircle } from "lucide-react";
 
 interface CateringPortionsCardProps {
@@ -19,17 +19,12 @@ export const CateringPortionsCard = ({
   saving,
 }: CateringPortionsCardProps) => {
   const [validationError, setValidationError] = useState("");
-  const [initialMaxPortions, setInitialMaxPortions] = useState(maxPortions);
-
-  useEffect(() => {
-    setInitialMaxPortions(maxPortions);
-  }, [currentData]);
-
-  const hasChanges = initialMaxPortions !== maxPortions;
 
   const handleSave = () => {
     if (maxPortions < 10) {
-      setValidationError("Minimum portion limit is 10. Please enter at least 10 portions.");
+      setValidationError(
+        "Minimum portion limit is 10. Please enter at least 10 portions."
+      );
       return;
     }
     setValidationError("");
@@ -66,7 +61,10 @@ export const CateringPortionsCard = ({
                 </div>
                 <div className="text-2xl font-bold text-gray-900">
                   {currentData.cateringPortionsToday}
-                  <span className="text-lg text-gray-500 font-normal"> / {currentData.maximumCateringPortionsPerDay}</span>
+                  <span className="text-lg text-gray-500 font-normal">
+                    {" "}
+                    / {currentData.maximumCateringPortionsPerDay}
+                  </span>
                 </div>
               </div>
               <div className="text-right">
@@ -84,15 +82,23 @@ export const CateringPortionsCard = ({
               <div className="w-full bg-white rounded-full h-2.5 overflow-hidden shadow-inner">
                 <div
                   className={`h-2.5 rounded-full transition-all duration-500 ${
-                    (currentData.cateringPortionsToday / currentData.maximumCateringPortionsPerDay) * 100 > 90
+                    (currentData.cateringPortionsToday /
+                      currentData.maximumCateringPortionsPerDay) *
+                      100 >
+                    90
                       ? "bg-gradient-to-r from-red-500 to-red-600"
-                      : (currentData.cateringPortionsToday / currentData.maximumCateringPortionsPerDay) * 100 > 70
+                      : (currentData.cateringPortionsToday /
+                          currentData.maximumCateringPortionsPerDay) *
+                          100 >
+                        70
                       ? "bg-gradient-to-r from-yellow-400 to-yellow-500"
                       : "bg-gradient-to-r from-green-500 to-green-600"
                   }`}
                   style={{
                     width: `${Math.min(
-                      (currentData.cateringPortionsToday / currentData.maximumCateringPortionsPerDay) * 100,
+                      (currentData.cateringPortionsToday /
+                        currentData.maximumCateringPortionsPerDay) *
+                        100,
                       100
                     )}%`,
                   }}
@@ -100,7 +106,12 @@ export const CateringPortionsCard = ({
               </div>
               <div className="flex justify-end mt-2">
                 <span className="text-xs font-medium text-gray-600">
-                  {Math.round((currentData.cateringPortionsToday / currentData.maximumCateringPortionsPerDay) * 100)}% capacity
+                  {Math.round(
+                    (currentData.cateringPortionsToday /
+                      currentData.maximumCateringPortionsPerDay) *
+                      100
+                  )}
+                  % capacity
                 </span>
               </div>
             </div>
@@ -129,12 +140,19 @@ export const CateringPortionsCard = ({
               }`}
               placeholder="150"
             />
-            <span className="text-sm font-medium text-gray-600">portions per day</span>
+            <span className="text-sm font-medium text-gray-600">
+              portions per day
+            </span>
           </div>
           {validationError ? (
             <div className="flex items-start gap-2 mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-red-700 font-medium">{validationError}</p>
+              <AlertCircle
+                size={16}
+                className="text-red-600 mt-0.5 flex-shrink-0"
+              />
+              <p className="text-xs text-red-700 font-medium">
+                {validationError}
+              </p>
             </div>
           ) : (
             <p className="text-xs text-gray-500 mt-2 ml-0.5">
@@ -147,7 +165,8 @@ export const CateringPortionsCard = ({
         <div className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-lg border border-gray-200">
           <Clock size={16} className="text-gray-600 mt-0.5 flex-shrink-0" />
           <div className="text-xs text-gray-700">
-            <span className="font-semibold text-gray-900">Auto-reset:</span> Every day at 12:00 AM (midnight) UTC
+            <span className="font-semibold text-gray-900">Auto-reset:</span>{" "}
+            Every day at 12:00 AM (midnight) UTC
           </div>
         </div>
 
