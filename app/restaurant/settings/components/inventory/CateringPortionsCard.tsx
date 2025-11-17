@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, Clock, Loader, AlertCircle } from "lucide-react";
 
 interface CateringPortionsCardProps {
@@ -19,6 +19,13 @@ export const CateringPortionsCard = ({
   saving,
 }: CateringPortionsCardProps) => {
   const [validationError, setValidationError] = useState("");
+  const [initialMaxPortions, setInitialMaxPortions] = useState(maxPortions);
+
+  useEffect(() => {
+    setInitialMaxPortions(maxPortions);
+  }, [currentData]);
+
+  const hasChanges = initialMaxPortions !== maxPortions;
 
   const handleSave = () => {
     if (maxPortions < 10) {
