@@ -81,37 +81,54 @@ export const InventoryManagement = ({
 
       // Load corporate data
       if (isCorporate) {
-        const restaurantDetails = await restaurantApi.getRestaurantDetails(
-          restaurantId
-        );
+        try {
+          const corporateSettings = await restaurantApi.getCorporateInventorySettings(
+            restaurantId
+          );
 
-        // Reset period
-        setSessionResetPeriod(restaurantDetails.sessionResetPeriod ?? null);
+          console.log("📥 Loaded corporate inventory data from backend:", {
+            sessionResetPeriod: corporateSettings.sessionResetPeriod,
+            maxPortionsPerSession: corporateSettings.maxPortionsPerSession,
+            limitedIngredientsPerSession: corporateSettings.limitedIngredientsPerSession,
+            limitedIngredientsRemaining: corporateSettings.limitedIngredientsRemaining,
+          });
 
-        // Portion limit
-        if (restaurantDetails.maxPortionsPerSession !== null) {
-          setEnablePortionLimit(true);
-          setMaxPortionsPerSession(restaurantDetails.maxPortionsPerSession);
-        } else {
+          // Reset period
+          setSessionResetPeriod(corporateSettings.sessionResetPeriod ?? null);
+
+          // Portion limit
+          if (corporateSettings.maxPortionsPerSession !== null && corporateSettings.maxPortionsPerSession !== undefined) {
+            setEnablePortionLimit(true);
+            setMaxPortionsPerSession(corporateSettings.maxPortionsPerSession);
+          } else {
+            setEnablePortionLimit(false);
+            setMaxPortionsPerSession(0);
+          }
+
+          // Ingredient tracking
+          if (corporateSettings.limitedIngredientsPerSession) {
+            setEnableIngredientTracking(true);
+
+            const ingList: IngredientItem[] = Object.entries(
+              corporateSettings.limitedIngredientsPerSession
+            ).map(([name, max], index) => ({
+              id: `ingredient-${index}`,
+              name,
+              maxPerSession: max as number,
+              remaining: corporateSettings.limitedIngredientsRemaining?.[name],
+            }));
+
+            setIngredients(ingList);
+          } else {
+            setEnableIngredientTracking(false);
+            setIngredients([]);
+          }
+        } catch (err) {
+          console.warn("Corporate inventory data not available:", err);
+          // Set default values if the endpoint doesn't exist or fails
+          setSessionResetPeriod(null);
           setEnablePortionLimit(false);
           setMaxPortionsPerSession(0);
-        }
-
-        // Ingredient tracking
-        if (restaurantDetails.limitedIngredientsPerSession) {
-          setEnableIngredientTracking(true);
-
-          const ingList: IngredientItem[] = Object.entries(
-            restaurantDetails.limitedIngredientsPerSession
-          ).map(([name, max], index) => ({
-            id: `ingredient-${index}`,
-            name,
-            maxPerSession: max as number,
-            remaining: restaurantDetails.limitedIngredientsRemaining?.[name],
-          }));
-
-          setIngredients(ingList);
-        } else {
           setEnableIngredientTracking(false);
           setIngredients([]);
         }
@@ -165,15 +182,29 @@ export const InventoryManagement = ({
           }, {} as Record<string, number>)
         : null;
 
+      const payload = {
+        sessionResetPeriod,
+        maxPortionsPerSession: enablePortionLimit
+          ? maxPortionsPerSession
+          : null,
+        limitedIngredientsPerSession,
+      };
+
+      console.log("📤 Frontend sending corporate inventory update:", {
+        restaurantId,
+        payload,
+        state: {
+          sessionResetPeriod,
+          enablePortionLimit,
+          maxPortionsPerSession,
+          enableIngredientTracking,
+          ingredients,
+        },
+      });
+
       await restaurantApi.updateCorporateInventory(
         restaurantId,
-        {
-          sessionResetPeriod,
-          maxPortionsPerSession: enablePortionLimit
-            ? maxPortionsPerSession
-            : null,
-          limitedIngredientsPerSession,
-        },
+        payload,
         token
       );
 
@@ -181,6 +212,7 @@ export const InventoryManagement = ({
       setTimeout(() => setSuccess(""), 3000);
       await loadInventoryData();
     } catch (err: any) {
+      console.error("❌ Corporate inventory update failed:", err);
       setError(err.message || "Failed to update corporate inventory settings");
     } finally {
       setSaving(false);

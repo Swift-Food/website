@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TrendingUp, Loader, Info, Plus, X, HelpCircle } from "lucide-react";
 
 interface IngredientItem {
@@ -51,24 +51,14 @@ export const CorporateInventoryCard = ({
   onSave,
   saving,
 }: CorporateInventoryCardProps) => {
-  // Track initial state to detect changes
-  const [initialState, setInitialState] = useState({
+  // Track initial state to detect changes - only set once on mount
+  const [initialState] = useState({
     sessionResetPeriod,
     maxPortionsPerSession,
     enablePortionLimit,
     enableIngredientTracking,
     ingredients: JSON.stringify(ingredients),
   });
-
-  useEffect(() => {
-    setInitialState({
-      sessionResetPeriod,
-      maxPortionsPerSession,
-      enablePortionLimit,
-      enableIngredientTracking,
-      ingredients: JSON.stringify(ingredients),
-    });
-  }, [sessionResetPeriod, maxPortionsPerSession, enablePortionLimit, enableIngredientTracking, ingredients]);
 
   const hasChanges =
     initialState.sessionResetPeriod !== sessionResetPeriod ||
