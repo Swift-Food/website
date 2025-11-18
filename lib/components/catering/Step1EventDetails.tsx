@@ -11,7 +11,8 @@ import {
   CorporateUserRole,
   EventDetails,
 } from "@/types/catering.types";
-import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
+import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
+import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
 
 // Load Google Maps script
 declare global {
@@ -167,20 +168,6 @@ export default function Step1EventDetails() {
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
-    const loadGoogleMapsScript = () => {
-      if (window.google?.maps?.places) {
-        initializeAutocomplete();
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=${GOOGLE_MAPS_CONFIG.LIBRARIES.join(',')}`;
-      script.async = true;
-      script.defer = true;
-      script.onload = initializeAutocomplete;
-      document.head.appendChild(script);
-    };
-
     const initializeAutocomplete = () => {
       if (!inputRef.current || !window.google?.maps?.places) return;
 
@@ -195,7 +182,7 @@ export default function Step1EventDetails() {
       autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
     };
 
-    loadGoogleMapsScript();
+    loadGoogleMapsScript().then(initializeAutocomplete);
 
     return () => {
       if (autocompleteRef.current) {

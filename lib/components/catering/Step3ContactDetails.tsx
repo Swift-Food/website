@@ -7,7 +7,8 @@ import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/api/catering.api";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 import { PaymentMethodSelector } from "../PaymentMethodSelector";
-import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
+import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
+import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
 
 interface ValidationErrors {
   organization?: string;
@@ -685,47 +686,27 @@ export default function Step3ContactInfo() {
   };
 
   useEffect(() => {
-    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-      if (window.google) {
-        initAutocomplete();
+    const initAutocomplete = () => {
+      if (!inputRef.current || !window.google?.maps?.places) {
+        console.error("Google Maps Places not available");
+        return;
       }
-      return;
-    }
 
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=${GOOGLE_MAPS_CONFIG.LIBRARIES.join(',')}`;
-    script.async = true;
-    script.defer = true;
+      autocompleteRef.current = new google.maps.places.Autocomplete(
+        inputRef.current,
+        {
+          // Remove types restriction or use "geocode" instead of "address"
+          componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
+          fields: GOOGLE_MAPS_CONFIG.FIELDS,
+        }
+      );
 
-    script.onload = () => {
-      initAutocomplete();
+      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
     };
 
-    script.onerror = () => {
-      console.error("Failed to load Google Maps script");
-    };
-
-    document.head.appendChild(script);
+    loadGoogleMapsScript().then(initAutocomplete);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const initAutocomplete = () => {
-    if (!inputRef.current || !window.google?.maps?.places) {
-      console.error("Google Maps Places not available");
-      return;
-    }
-
-    autocompleteRef.current = new google.maps.places.Autocomplete(
-      inputRef.current,
-      {
-        // Remove types restriction or use "geocode" instead of "address"
-        componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
-        fields: GOOGLE_MAPS_CONFIG.FIELDS,
-      }
-    );
-
-    autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
-  };
 
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current?.getPlace();

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ContactFormData } from '../types/contact-form.dto';
-import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_CONFIG } from '@/lib/constants/google-maps';
+import { GOOGLE_MAPS_CONFIG } from '@/lib/constants/google-maps';
+import { loadGoogleMapsScript } from '@/lib/utils/google-maps-loader';
 
 interface AddressAutocompleteResult {
   addressLine1: string;
@@ -17,45 +18,23 @@ export function useAddressAutocomplete(
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check if script already loaded
-    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-      if (window.google) {
-        initAutocomplete();
+    const initAutocomplete = () => {
+      if (!inputRef.current || !window.google?.maps?.places) {
+        console.error('Google Maps Places not available');
+        return;
       }
-      return;
-    }
 
-    // Load Google Maps script
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=${GOOGLE_MAPS_CONFIG.LIBRARIES.join(',')}`;
-    script.async = true;
-    script.defer = true;
+      autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+        componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
+        fields: GOOGLE_MAPS_CONFIG.FIELDS,
+      });
 
-    script.onload = () => {
-      initAutocomplete();
+      autocompleteRef.current.addListener('place_changed', handlePlaceSelect);
     };
 
-    script.onerror = () => {
-      console.error('Failed to load Google Maps script');
-    };
-
-    document.head.appendChild(script);
+    loadGoogleMapsScript().then(initAutocomplete);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const initAutocomplete = () => {
-    if (!inputRef.current || !window.google?.maps?.places) {
-      console.error('Google Maps Places not available');
-      return;
-    }
-
-    autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
-      componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
-      fields: GOOGLE_MAPS_CONFIG.FIELDS,
-    });
-
-    autocompleteRef.current.addListener('place_changed', handlePlaceSelect);
-  };
 
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current?.getPlace();
