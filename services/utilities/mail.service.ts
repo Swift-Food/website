@@ -4,7 +4,7 @@ interface FormData {
   [key: string]: any;
 }
 
-class MailService {
+export class MailService {
   private apiUrl: string;
 
   constructor() {

@@ -1,6 +1,10 @@
 "use client";
 
-import MultiStepDriverForm from "@/lib/components/rider_form";
+import dynamic from 'next/dynamic';
+
+const MultiStepDriverForm = dynamic(() => import("@/lib/components/rider_form"), {
+  ssr: false,
+});
 
 export default function RegisterPage() {
   // const handleFormSubmit = async (formData: any) => {
