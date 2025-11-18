@@ -1,5 +1,5 @@
 import { cateringService } from '@/services/api/catering.api';
-import { ContactFormData, OrderSubmissionData } from '../types/contact-form.dto';
+import { ContactFormData, OrderSubmissionData } from '@/features/contact-details/types/contact-form.dto';
 import { EventDetails } from '@/types/catering.types';
 
 interface SelectedItem {

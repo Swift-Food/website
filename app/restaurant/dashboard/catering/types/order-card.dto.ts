@@ -3,13 +3,13 @@
  * Clear, typed interfaces with no business logic
  */
 
-import { CateringOrder } from "@/types/catering.types";
+import { CateringOrderDetails } from "@/types/catering.types";
 
 /**
  * Props for the main CateringOrderCard component
  */
 export interface CateringOrderCardProps {
-  order: CateringOrder & { isUnassigned?: boolean };
+  order: CateringOrderDetails & { isUnassigned?: boolean };
   restaurantId: string;
   onReview: (orderId: string, accepted: boolean) => Promise<void>;
   reviewing: string | null;

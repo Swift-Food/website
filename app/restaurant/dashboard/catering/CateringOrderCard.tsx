@@ -9,10 +9,10 @@ import {
   ChevronUp,
   EyeIcon,
 } from "lucide-react";
-import { CateringOrder } from "@/types/catering.types";
+import { CateringOrderDetails } from "@/types/catering.types";
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 interface CateringOrderCardProps {
-  order: CateringOrder & { isUnassigned?: boolean };
+  order: CateringOrderDetails & { isUnassigned?: boolean };
   restaurantId: string;
   onReview: (orderId: string, accepted: boolean) => Promise<void>;
   reviewing: string | null;
@@ -282,7 +282,7 @@ export const CateringOrderCard = ({
                 Promotion Savings: -{formatCurrency(orderItem.promotionDiscount)}
               </p>
               <p className="text-sm text-gray-900 font-semibold">
-                Customer Paid: {formatCurrency((orderItem.totalPrice || 0) - orderItem.promotionDiscount)}
+                Customer Paid: {formatCurrency((orderItem.totalPrice || 0) - (orderItem.promotionDiscount || 0))}
               </p>
             </>
           ) : (

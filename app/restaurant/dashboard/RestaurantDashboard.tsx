@@ -12,7 +12,7 @@ import {
   StripeOnboardingStatus,
   // PaymentAccounts,
 } from "@/types/restaurant.types";
-import { CateringOrder } from "@/types/catering.types";
+import { CateringOrderDetails } from "@/types/catering.types";
 import { PaymentAccountSelector } from "./shared/PaymentAccountSelector";
 import { StripeOnboardingRequired } from "./shared/StripeOnboardingRequired";
 import { BalanceCards } from "./withdrawals/BalanceCards";
@@ -49,7 +49,7 @@ export const RestaurantDashboard = ({
     useState<StripeOnboardingStatus | null>(null);
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
-  const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
+  const [cateringOrders, setCateringOrders] = useState<CateringOrderDetails[]>([]);
   const [activeTab, setActiveTab] = useState<"withdrawals" | "catering" | "refunds">(
     "withdrawals"
   );
@@ -74,7 +74,7 @@ export const RestaurantDashboard = ({
       if (statusData) setStripeStatus(statusData);
       if (balanceData) setBalance(balanceData);
       setHistory(historyData || []);
-      setCateringOrders(cateringData || []);
+      setCateringOrders((cateringData || []) as unknown as CateringOrderDetails[]);
       setRefunds(refundsData || []); // Add this
     } catch (err: any) {
       console.error("Fetch error:", err);

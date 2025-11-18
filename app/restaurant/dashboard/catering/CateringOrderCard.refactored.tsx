@@ -65,7 +65,7 @@ export const CateringOrderCard = ({
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       {/* Order Reference */}
-      <OrderHeader orderId={order.id} status={order.status} />
+      <OrderHeader orderId={order.id} />
 
       {/* Account Assignment Alert (if needed) */}
       {shouldShowAccountAssignment && (
@@ -82,7 +82,7 @@ export const CateringOrderCard = ({
       {/* Earnings Summary */}
       <EarningsSummary
         status={order.status}
-        restaurantTotalCost={order.restaurantTotalCost}
+        restaurantTotalCost={order.restaurantTotalCost || 0}
         promotionDiscount={order.promotionDiscount}
         orderItemTotalPrice={orderItem?.totalPrice}
         orderItemPromotionDiscount={orderItem?.promotionDiscount}

@@ -44,7 +44,7 @@ export default function Step3ContactInfo() {
     handleBlur,
     validateForm,
     updateFormData,
-  } = useContactForm(contactInfo);
+  } = useContactForm(contactInfo || undefined);
 
   // CC Emails state
   const {
@@ -57,6 +57,7 @@ export default function Step3ContactInfo() {
 
   // Promo code state
   const {
+    promoCodes,
     promoInput,
     validatingPromo,
     promoError,

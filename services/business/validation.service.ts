@@ -11,17 +11,7 @@ import {
   validateMinLength,
 } from '@/lib/utils/validation.utils';
 import { ValidationErrorDto } from '@/types/shared/common.dto';
-
-export interface ContactFormData {
-  fullName: string;
-  email: string;
-  phone: string;
-  organization?: string;
-  addressLine1?: string;
-  addressLine2?: string;
-  city?: string;
-  zipcode?: string;
-}
+import { ContactFormData } from '@/features/contact-details/types/contact-form.dto';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -36,6 +26,12 @@ class ValidationService {
    */
   validateContactDetails(formData: ContactFormData): Record<string, string> {
     const errors: Record<string, string> = {};
+
+    // Organization
+    const orgError = validateRequired(formData.organization, 'Organization');
+    if (orgError) {
+      errors.organization = orgError;
+    }
 
     // Full name
     const nameError = validateRequired(formData.fullName, 'Full name');
@@ -64,6 +60,26 @@ class ValidationService {
       errors.phone = 'Please enter a valid UK phone number';
     }
 
+    // Address Line 1
+    const addressError = validateRequired(formData.addressLine1, 'Address');
+    if (addressError) {
+      errors.addressLine1 = addressError;
+    }
+
+    // City
+    const cityError = validateRequired(formData.city, 'City');
+    if (cityError) {
+      errors.city = cityError;
+    }
+
+    // Zipcode
+    const zipcodeError = validateRequired(formData.zipcode, 'Postcode');
+    if (zipcodeError) {
+      errors.zipcode = zipcodeError;
+    } else if (!isValidUKPostcode(formData.zipcode)) {
+      errors.zipcode = 'Please enter a valid UK postcode';
+    }
+
     return errors;
   }
 
@@ -74,6 +90,12 @@ class ValidationService {
     const errors: Record<string, string> = {};
 
     switch (field) {
+      case 'organization':
+        const orgError = validateRequired(formData.organization, 'Organization');
+        if (orgError) {
+          errors.organization = orgError;
+        }
+        break;
       case 'fullName':
         const nameError = validateRequired(formData.fullName, 'Full name');
         if (nameError) {
@@ -100,6 +122,31 @@ class ValidationService {
         } else if (!isValidUKPhone(formData.phone)) {
           errors.phone = 'Please enter a valid UK phone number';
         }
+        break;
+      case 'addressLine1':
+        const addressError = validateRequired(formData.addressLine1, 'Address');
+        if (addressError) {
+          errors.addressLine1 = addressError;
+        }
+        break;
+      case 'city':
+        const cityError = validateRequired(formData.city, 'City');
+        if (cityError) {
+          errors.city = cityError;
+        }
+        break;
+      case 'zipcode':
+        const zipcodeError = validateRequired(formData.zipcode, 'Postcode');
+        if (zipcodeError) {
+          errors.zipcode = zipcodeError;
+        } else if (!isValidUKPostcode(formData.zipcode)) {
+          errors.zipcode = 'Please enter a valid UK postcode';
+        }
+        break;
+      case 'addressLine2':
+      case 'latitude':
+      case 'longitude':
+        // Optional fields - no validation needed
         break;
     }
 

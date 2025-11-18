@@ -82,6 +82,8 @@ export interface SearchFilters {
   categoryId?: string;
   minRating?: number;
   maxPrice?: number;
+  dietaryFilters?: string[];
+  allergens?: string[];
 }
 
 export enum CorporateUserRole {
@@ -203,15 +205,24 @@ export interface OrderItemDto {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    customerTotalPrice?: number; // New pricing format field
     selectedAddons?: SelectedAddon[];
     addonPrice?: number;
     cateringQuantityUnit?: number;
     feedsPerUnit?: number;
+    // New pricing fields
+    restaurantNetAmount?: number;
+    commissionPrice?: number;
+    restaurantBaseTotalPrice?: number;
+    restaurantBaseUnitPrice?: number;
+    commissionRate?: number;
+    priceForRestaurant?: number;
   }[];
   status: string;
   restaurantCost: number;
   totalPrice: number;
   specialInstructions?: string;
+  promotionDiscount?: number; // Promotion discount applied
 }
 
 // NEW CLEAR PRICING API TYPES
@@ -441,6 +452,17 @@ export interface CateringOrderDetails {
   platformCommissionRevenue?: number;
   restaurantsTotalGross?: number;
   restaurantsTotalNet?: number;
+
+  // Restaurant payout details
+  restaurantPayoutDetails?: Record<string, {
+    accountId: string;
+    accountName: string;
+  }>;
+
+  // Legacy fields for backwards compatibility
+  restaurantTotalCost?: number;
+  promotionDiscount?: number;
+  isUnassigned?: boolean; // Flag for unassigned orders
 }
 
 export enum SharedAccessRole {

@@ -5,5 +5,4 @@
 
 export * from './catering.api';
 export * from './promotion.api';
-export * from './menu.api';
 export * from './refund.api';
