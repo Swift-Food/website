@@ -31,7 +31,10 @@ export interface RefundRequest {
     menuItemId: string;
     itemName: string;
     quantity: number;
-    unitPrice: number;
-    totalPrice: number;
+    unitPrice: number; // Legacy field
+    totalPrice: number; // Legacy field
+    // NEW: Clear pricing fields (optional, for future migration)
+    customerUnitPrice?: number;
+    customerTotalPrice?: number;
   }[];
 }

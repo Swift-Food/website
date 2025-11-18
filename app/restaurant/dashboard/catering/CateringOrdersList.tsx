@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
-import { CateringOrder } from "@/app/types/catering.types";
-import { restaurantApi } from "@/app/api/restaurantApi";
+import { CateringOrder } from "@/types/catering.types";
+import { restaurantApi } from "@/services/api/restaurant.api";
 import { CateringOrderCard } from "./CateringOrderCard";
 
 interface CateringOrdersListProps {

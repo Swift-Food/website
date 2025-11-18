@@ -1,6 +1,6 @@
 "use client";
 
-import MultiStepDriverForm from "../components/rider_form";
+import MultiStepDriverForm from "@/lib/components/rider_form";
 
 export default function RegisterPage() {
   // const handleFormSubmit = async (formData: any) => {

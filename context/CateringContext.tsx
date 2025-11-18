@@ -13,7 +13,7 @@ import {
   ContactInfo,
   CorporateUser,
 } from "@/types/catering.types";
-import { Restaurant } from "@/app/components/catering/Step2MenuItems";
+import { Restaurant } from "@/lib/components/catering/Step2MenuItems";
 
 interface CateringContextType {
   currentStep: number;

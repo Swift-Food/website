@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { AlertCircle, CheckCircle, Loader } from "lucide-react";
-import { restaurantApi } from "@/app/api/restaurantApi";
+import { restaurantApi } from "@/services/api/restaurant.api";
 import { BalanceInfo } from "@/types/restaurant.types";
 
 interface WithdrawalFormProps {

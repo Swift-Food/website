@@ -15,7 +15,7 @@ import {
   Package,
   Users,
 } from "lucide-react";
-import { restaurantApi } from "@/app/api/restaurantApi";
+import { restaurantApi } from "@/services/api/restaurant.api";
 import { AnalyticsDashboard as AnalyticsData } from "@/types/restaurant.types";
 
 interface AnalyticsDashboardProps {

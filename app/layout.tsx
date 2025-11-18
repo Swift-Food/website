@@ -1,6 +1,6 @@
 import "./globals.css";
-import Navbar from "./components/navbar";
-import Footer from "./components/footer";
+import Navbar from "@/lib/components/navbar";
+import Footer from "@/lib/components/footer";
 import { IBM_Plex_Mono } from "next/font/google";
 import type { Metadata } from "next";
 

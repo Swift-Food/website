@@ -149,7 +149,7 @@ export const RefundRequestsList = ({ refunds, onProcessRefund }: RefundRequestsL
                       <span className="text-gray-500">x{item.quantity}</span>
                     </span>
                     <span className="font-medium text-gray-900 whitespace-nowrap">
-                      £{item.totalPrice.toFixed(2)}
+                      £{(item.customerTotalPrice ?? item.totalPrice).toFixed(2)}
                     </span>
                   </div>
                 ))}

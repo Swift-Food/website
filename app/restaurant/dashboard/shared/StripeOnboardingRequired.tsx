@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { AlertCircle, ExternalLink, Loader, CheckCircle } from "lucide-react";
-import { restaurantApi } from "@/app/api/restaurantApi";
+import { restaurantApi } from "@/services/api/restaurant.api";
 import { PaymentAccounts } from "@/types/restaurant.types";
 
 interface StripeOnboardingRequiredProps {

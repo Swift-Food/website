@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useAuth } from "@/app/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { RestaurantDashboard } from "./RestaurantDashboard";
 import { useRouter } from "next/navigation";
 

@@ -17,7 +17,8 @@ import {
   Save,
   X,
 } from "lucide-react";
-import { cateringService } from "@/services/cateringServices";
+import { cateringService } from "@/services/api/catering.api";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { MenuItemDetails } from "@/types/catering.types";
 
 const MenuListPage = () => {
@@ -115,7 +116,7 @@ const MenuListPage = () => {
   const fetchRestaurantData = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/restaurant/${restaurantId}`
+        `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(restaurantId)}`
       );
       if (response.ok) {
         const data = await response.json();
