@@ -74,6 +74,7 @@ export const restaurantApi = {
         console.warn("Stripe status fetch failed:", response.status);
         return null;
       }
+      
       return response.json();
     } catch (error) {
       console.error("Stripe status error:", error);

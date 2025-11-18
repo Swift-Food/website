@@ -62,22 +62,49 @@ export const RestaurantDashboard = ({
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statusData, balanceData, historyData, cateringData, refundsData] =
-        await Promise.all([
-          restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
-          restaurantApi.getBalance(restaurantUserId, token, selectedAccountId),
-          restaurantApi.getWithdrawalHistory(restaurantUserId, token, selectedAccountId),
-          restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
-          refundService.getRestaurantRefundRequests(restaurantId)
-        ]);
-
-      if (statusData) setStripeStatus(statusData);
-      if (balanceData) setBalance(balanceData);
-      setHistory(historyData || []);
-      setCateringOrders((cateringData || []) as unknown as CateringOrderDetails[]);
-      setRefunds(refundsData || []); // Add this
+      const results = await Promise.allSettled([
+        restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
+        restaurantApi.getBalance(restaurantUserId, token, selectedAccountId),
+        restaurantApi.getWithdrawalHistory(restaurantUserId, token, selectedAccountId),
+        restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
+        refundService.getRestaurantRefundRequests(restaurantId)
+      ]);
+  
+      // Extract successful results
+      const [statusResult, balanceResult, historyResult, cateringResult, refundsResult] = results;
+  
+      console.log("status data is", statusResult.status === "fulfilled" ? statusResult.value : null);
+      
+      if (statusResult.status === "fulfilled" && statusResult.value) {
+        setStripeStatus(statusResult.value);
+      }
+      
+      if (balanceResult.status === "fulfilled" && balanceResult.value) {
+        setBalance(balanceResult.value);
+      }
+      
+      if (historyResult.status === "fulfilled") {
+        setHistory(historyResult.value || []);
+      }
+      
+      if (cateringResult.status === "fulfilled") {
+        setCateringOrders((cateringResult.value || []) as unknown as CateringOrderDetails[]);
+      }
+      
+      if (refundsResult.status === "fulfilled") {
+        setRefunds(refundsResult.value || []);
+      }
+  
+      // Optional: Log any failures
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          const apiNames = ["checkStripeStatus", "getBalance", "getWithdrawalHistory", "getCateringOrders", "getRefundRequests"];
+          console.error(`${apiNames[index]} failed:`, result.reason);
+        }
+      });
+  
     } catch (err: any) {
-      console.error("Fetch error:", err);
+      console.error("Unexpected error:", err);
     } finally {
       setLoading(false);
     }
