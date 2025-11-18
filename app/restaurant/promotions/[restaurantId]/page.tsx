@@ -4,9 +4,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Loader } from "lucide-react";
-import { Promotion, promotionsServices } from "@/services/promotionServices";
-import { PromotionsList } from "@/app/components/restaurant-promotion/PromotiontsList";
-import { PromotionTypeSelector } from "@/app/components/restaurant-promotion/PromotionTypeSelector";
+import { Promotion, promotionsServices } from "@/services/api/promotion.api";
+import { PromotionsList } from "@/lib/components/restaurant-promotion/PromotiontsList";
+import { PromotionTypeSelector } from "@/lib/components/restaurant-promotion/PromotionTypeSelector";
 
 export default function PromotionsPage() {
   const params = useParams();

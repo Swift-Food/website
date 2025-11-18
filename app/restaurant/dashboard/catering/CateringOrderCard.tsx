@@ -9,10 +9,10 @@ import {
   ChevronUp,
   EyeIcon,
 } from "lucide-react";
-import { CateringOrder } from "@/app/types/catering.types";
+import { CateringOrderDetails } from "@/types/catering.types";
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 interface CateringOrderCardProps {
-  order: CateringOrder & { isUnassigned?: boolean };
+  order: CateringOrderDetails & { isUnassigned?: boolean };
   restaurantId: string;
   onReview: (orderId: string, accepted: boolean) => Promise<void>;
   reviewing: string | null;
@@ -97,6 +97,57 @@ export const CateringOrderCard = ({
       completed: "bg-blue-100 text-blue-800 border-blue-300",
     };
     return colors[status] || "bg-gray-100 text-gray-800 border-gray-300";
+  };
+
+  /**
+   * Helper to get restaurant net earnings for an item
+   * Uses new clear API if available, otherwise falls back to legacy
+   */
+  const getItemNetEarnings = (item: any) => {
+    // NEW API: restaurantNetAmount is what restaurant actually receives
+    if (item.restaurantNetAmount !== undefined) {
+      return item.restaurantNetAmount;
+    }
+    // LEGACY: commissionPrice (what restaurant gets per unit)
+    if (item.commissionPrice !== undefined) {
+      return item.commissionPrice * item.quantity;
+    }
+    // Fallback
+    return 0;
+  };
+
+  /**
+   * Helper to get gross price (before commission) for an item
+   * Uses new clear API if available, otherwise falls back to legacy
+   */
+  const getItemGrossPrice = (item: any) => {
+    // NEW API: restaurantBaseTotalPrice is before commission
+    if (item.restaurantBaseTotalPrice !== undefined) {
+      return item.restaurantBaseTotalPrice;
+    }
+    // LEGACY: priceForRestaurant (unclear if gross or net)
+    if (item.priceForRestaurant !== undefined) {
+      return item.priceForRestaurant * item.quantity;
+    }
+    // Fallback
+    return 0;
+  };
+
+  /**
+   * Helper to get customer price for an item
+   * Uses new clear API if available, otherwise falls back to legacy
+   */
+  const getItemCustomerPrice = (item: any) => {
+    // NEW API: customerTotalPrice is what customer pays
+    if (item.customerTotalPrice !== undefined) {
+      return item.customerTotalPrice;
+    }
+    // LEGACY: totalPrice
+    if (item.totalPrice !== undefined) {
+      return item.totalPrice;
+    }
+    // Fallback
+    return 0;
   };
 
   const getStatusLabel = (status: string) => {
@@ -231,7 +282,7 @@ export const CateringOrderCard = ({
                 Promotion Savings: -{formatCurrency(orderItem.promotionDiscount)}
               </p>
               <p className="text-sm text-gray-900 font-semibold">
-                Customer Paid: {formatCurrency((orderItem.totalPrice || 0) - orderItem.promotionDiscount)}
+                Customer Paid: {formatCurrency((orderItem.totalPrice || 0) - (orderItem.promotionDiscount || 0))}
               </p>
             </>
           ) : (
@@ -363,44 +414,74 @@ export const CateringOrderCard = ({
                           Qty: {item.quantity}
                         </p>
                       </div>
-                      {item.commissionPrice && item.priceForRestaurant && (
-                        <div className="flex flex-col gap-1.5 ml-2">
-                          <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
-                            <p className="text-[10px] text-green-700 font-medium leading-tight">
-                              YOUR EARNINGS
-                            </p>
-                            <p className="text-[10px] text-green-600 leading-tight">
-                              Unit Commission:{" "}
-                              {formatCurrency(item.commissionPrice)}
-                            </p>
-                            <p className="text-[10px] text-green-600 leading-tight">
-                              Quantity: {item.quantity}
-                            </p>
-                            <p className="text-sm font-bold text-green-800 leading-tight mt-0.5">
-                              {formatCurrency(
-                                item.commissionPrice * item.quantity
-                              )}
-                            </p>
-                          </div>
-                          <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
-                            <p className="text-xs text-gray-900 font-medium leading-tight">
-                              TOTAL PRICE
-                            </p>
-                            <p className="text-[10px] text-gray-600 leading-tight">
-                              Unit Price:{" "}
-                              {formatCurrency(item.priceForRestaurant)}
-                            </p>
-                            <p className="text-[10px] text-gray-600 leading-tight">
-                              Quantity: {item.quantity}
-                            </p>
-                            <p className="text-sm font-semibold text-gray-700 leading-tight mt-0.5">
-                              {formatCurrency(
-                                item.priceForRestaurant * item.quantity
-                              )}
-                            </p>
-                          </div>
+                      <div className="flex flex-col gap-1.5 ml-2">
+                        {/* Restaurant Net Earnings (what they receive after commission) */}
+                        <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
+                          <p className="text-[10px] text-green-700 font-medium leading-tight">
+                            YOUR NET EARNINGS
+                          </p>
+                          {item.restaurantNetAmount !== undefined ? (
+                            <>
+                              <p className="text-[10px] text-green-600 leading-tight">
+                                Per unit: {formatCurrency(item.restaurantNetAmount / item.quantity)}
+                              </p>
+                              <p className="text-[10px] text-green-600 leading-tight">
+                                Qty: {item.quantity}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-[10px] text-green-600 leading-tight">
+                                Unit Commission: {formatCurrency(item.commissionPrice || 0)}
+                              </p>
+                              <p className="text-[10px] text-green-600 leading-tight">
+                                Qty: {item.quantity}
+                              </p>
+                            </>
+                          )}
+                          <p className="text-sm font-bold text-green-800 leading-tight mt-0.5">
+                            {formatCurrency(getItemNetEarnings(item))}
+                          </p>
                         </div>
-                      )}
+
+                        {/* Gross Price (before commission) */}
+                        <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
+                          <p className="text-xs text-gray-900 font-medium leading-tight">
+                            GROSS PRICE
+                          </p>
+                          {item.restaurantBaseTotalPrice !== undefined ? (
+                            <>
+                              <p className="text-[10px] text-gray-600 leading-tight">
+                                Per unit: {formatCurrency(item.restaurantBaseUnitPrice || 0)}
+                              </p>
+                              {item.commissionRate && (
+                                <p className="text-[10px] text-gray-600 leading-tight">
+                                  Commission: {item.commissionRate}%
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-[10px] text-gray-600 leading-tight">
+                                Unit Price: {formatCurrency(item.priceForRestaurant || 0)}
+                              </p>
+                              <p className="text-[10px] text-gray-600 leading-tight">
+                                Qty: {item.quantity}
+                              </p>
+                            </>
+                          )}
+                          <p className="text-sm font-semibold text-gray-700 leading-tight mt-0.5">
+                            {formatCurrency(getItemGrossPrice(item))}
+                          </p>
+                        </div>
+
+                        {/* Customer Price (what customer paid) */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 min-h-[32px] flex flex-col justify-center">
+                          <p className="text-[10px] text-blue-700 font-medium leading-tight">
+                            Customer Paid: {formatCurrency(getItemCustomerPrice(item))}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

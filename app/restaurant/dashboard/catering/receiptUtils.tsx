@@ -1,3 +1,5 @@
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
+
 export interface ReceiptSummary {
   totalPortions: number;
   averageOrderValue: number;
@@ -47,8 +49,7 @@ export async function fetchReceiptJson(
   restaurantId: string,
   token?: string
 ): Promise<ReceiptResponse> {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
-  const url = `${API_BASE_URL}/catering-orders/${orderId}/restaurant/${restaurantId}/receipt-calc?style=MENU_ITEM`;
+  const url = `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDER_RECEIPT(orderId, restaurantId)}`;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

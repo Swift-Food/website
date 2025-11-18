@@ -4,15 +4,15 @@
 import { useState, useEffect } from "react";
 import { LogOut, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { restaurantApi } from "@/app/api/restaurantApi";
-import { cateringService } from "@/services/cateringServices";
+import { restaurantApi } from "@/services/api/restaurant.api";
+import { cateringService } from "@/services/api/catering.api";
 import {
   BalanceInfo,
   WithdrawalRequest,
   StripeOnboardingStatus,
   // PaymentAccounts,
 } from "@/types/restaurant.types";
-import { CateringOrder } from "@/app/types/catering.types";
+import { CateringOrderDetails } from "@/types/catering.types";
 import { PaymentAccountSelector } from "./shared/PaymentAccountSelector";
 import { StripeOnboardingRequired } from "./shared/StripeOnboardingRequired";
 import { BalanceCards } from "./withdrawals/BalanceCards";
@@ -20,7 +20,7 @@ import { WithdrawalForm } from "./withdrawals/WithdrawalForm";
 import { WithdrawalHistory } from "./withdrawals/WithdrawalHistory";
 import { CateringOrdersList } from "./catering/CateringOrdersList";
 import { RefundRequest } from "@/types/refund.types";
-import { refundService } from "@/services/refundServices";
+import { refundService } from "@/services/api/refund.api";
 import { RefundRequestsList } from "./refunds/refundRequestList";
 
 interface RestaurantDashboardProps {
@@ -49,7 +49,7 @@ export const RestaurantDashboard = ({
     useState<StripeOnboardingStatus | null>(null);
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
-  const [cateringOrders, setCateringOrders] = useState<CateringOrder[]>([]);
+  const [cateringOrders, setCateringOrders] = useState<CateringOrderDetails[]>([]);
   const [activeTab, setActiveTab] = useState<"withdrawals" | "catering" | "refunds">(
     "withdrawals"
   );
@@ -74,7 +74,7 @@ export const RestaurantDashboard = ({
       if (statusData) setStripeStatus(statusData);
       if (balanceData) setBalance(balanceData);
       setHistory(historyData || []);
-      setCateringOrders(cateringData || []);
+      setCateringOrders((cateringData || []) as unknown as CateringOrderDetails[]);
       setRefunds(refundsData || []); // Add this
     } catch (err: any) {
       console.error("Fetch error:", err);

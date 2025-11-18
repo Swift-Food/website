@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Package, AlertCircle, Loader } from "lucide-react";
-import { restaurantApi } from "@/app/api/restaurantApi";
+import { restaurantApi } from "@/services/api/restaurant.api";
 import { CateringPortionsCard } from "./CateringPortionsCard";
 import { CorporateInventoryCard } from "./CorporateInventoryCard";
 

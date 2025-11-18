@@ -1,6 +1,6 @@
 // types/catering.types.ts - COMPLETE MERGED VERSION
 
-import { MenuItem } from "@/app/components/catering/Step2MenuItems";
+import { MenuItem } from "@/lib/components/catering/Step2MenuItems";
 
 export interface SelectedAddon {
   name: string;
@@ -195,6 +195,7 @@ export interface CateringOrder {
   contactInfo: ContactInfo;
 }
 
+// Legacy OrderItemDto - still used for order submission
 export interface OrderItemDto {
   restaurantId: string;
   restaurantName: string;
@@ -204,15 +205,135 @@ export interface OrderItemDto {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    customerTotalPrice?: number; // New pricing format field
     selectedAddons?: SelectedAddon[];
     addonPrice?: number;
     cateringQuantityUnit?: number;
     feedsPerUnit?: number;
+    // New pricing fields
+    restaurantNetAmount?: number;
+    commissionPrice?: number;
+    restaurantBaseTotalPrice?: number;
+    restaurantBaseUnitPrice?: number;
+    commissionRate?: number;
+    priceForRestaurant?: number;
   }[];
   status: string;
   restaurantCost: number;
   totalPrice: number;
   specialInstructions?: string;
+  promotionDiscount?: number; // Promotion discount applied
+}
+
+// NEW CLEAR PRICING API TYPES
+
+export interface PricingAddonDto {
+  name: string;
+  price: number;
+  quantity: number;
+  groupTitle: string;
+}
+
+export interface PricingMenuItemDto {
+  menuItemId: string;
+  name: string;
+  quantity: number;
+
+  // Customer Layer - What customer pays
+  customerUnitPrice: number;
+  customerTotalPrice: number;
+
+  // Restaurant Layer - Before commission
+  restaurantBaseUnitPrice: number;
+  restaurantBaseTotalPrice: number;
+
+  // Commission
+  commissionRate: number;
+  commissionAmount: number;
+  restaurantNetAmount: number;
+
+  // Discount Info
+  isDiscounted: boolean;
+  originalUnitPrice?: number;
+  discountAmount?: number;
+  discountType?: "PLATFORM_ABSORBED" | "RESTAURANT_ABSORBED";
+
+  // Platform Layer
+  platformCommissionRevenue: number;
+  platformAbsorbedDiscount: number;
+  platformNetRevenue: number;
+
+  // Additional Info
+  selectedAddons: PricingAddonDto[];
+  cateringQuantityUnit?: number;
+  feedsPerUnit?: number;
+  restaurantId: string;
+}
+
+export interface PricingOrderItemDto {
+  restaurantId: string;
+  restaurantName: string;
+  status: string;
+  menuItems: PricingMenuItemDto[];
+
+  // Commission info
+  commissionRate: number;
+
+  // Customer totals
+  customerTotal: number;
+  customerTotalAfterPromotions: number;
+
+  // Restaurant totals
+  restaurantBaseTotal: number;
+  restaurantPromotionDiscount: number;
+  restaurantBaseTotalAfterPromotions: number;
+  restaurantCommissionTotal: number;
+  restaurantNetEarning: number;
+
+  // Platform totals
+  platformCommissionRevenue: number;
+  platformAbsorbedDiscountTotal: number;
+  platformNetRevenue: number;
+
+  // Discount summary
+  totalDiscountAmount: number;
+  discountedItemsCount: number;
+  totalItemsCount: number;
+  appliedPromotions: any[];
+}
+
+export interface PricingBreakdownDto {
+  orderId: string;
+  orderType: "CATERING" | "CORPORATE";
+
+  // Customer totals
+  customerSubtotal: number;
+  customerDeliveryFee: number;
+  customerServiceCharge: number;
+  promoCodeDiscount: number;
+  customerFinalTotal: number;
+
+  // Promo code info
+  promoCode?: string;
+  promoCodeAbsorbedBy?: "PLATFORM" | "RESTAURANT";
+
+  // Per-restaurant breakdown
+  restaurants: PricingOrderItemDto[];
+}
+
+export interface RestaurantPayoutDto {
+  restaurantName: string;
+  grossAmount: number;
+  commissionRate: number;
+  commissionAmount: number;
+  netAmount: number;
+  menuItems: {
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    addon: string;
+  }[];
 }
 
 export interface CreateCateringOrderDto {
@@ -299,7 +420,8 @@ export interface CateringOrderDetails {
   eventType: string;
   deliveryAddress: string;
   specialRequirements?: string;
-  orderItems: OrderItemDto[];
+  orderItems: OrderItemDto[]; // Legacy format still returned by some endpoints
+  restaurants?: PricingOrderItemDto[]; // NEW: Clear pricing format returned by new endpoints
   estimatedTotal: number;
   finalTotal: number;
   depositAmount: number;
@@ -324,6 +446,23 @@ export interface CateringOrderDetails {
   deliveryTimeChangedBy?: string;
   createdAt: string;
   updatedAt: string;
+
+  // NEW: Clear pricing totals
+  customerFinalTotal?: number;
+  platformCommissionRevenue?: number;
+  restaurantsTotalGross?: number;
+  restaurantsTotalNet?: number;
+
+  // Restaurant payout details
+  restaurantPayoutDetails?: Record<string, {
+    accountId: string;
+    accountName: string;
+  }>;
+
+  // Legacy fields for backwards compatibility
+  restaurantTotalCost?: number;
+  promotionDiscount?: number;
+  isUnassigned?: boolean; // Flag for unassigned orders
 }
 
 export enum SharedAccessRole {

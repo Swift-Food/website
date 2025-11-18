@@ -13,7 +13,8 @@ import {
   AlertCircle,
   Edit2,
 } from "lucide-react";
-import { cateringService } from "@/services/cateringServices";
+import { cateringService } from "@/services/api/catering.api";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import {
   CreateMenuItemDto,
   MenuCategory,
@@ -21,7 +22,7 @@ import {
   MenuItemStyle,
   MenuItemAddon,
 } from "@/types/catering.types";
-import { ALLERGENS, PREP_TIMES } from "@/constants/allergens";
+import { ALLERGENS, PREP_TIMES } from "@/lib/constants/allergens";
 
 const NewMenuItemPage = () => {
   const params = useParams();
@@ -232,8 +233,7 @@ const NewMenuItemPage = () => {
       // IMPORTANT: Field name must be "upload" (singular) as per backend service configuration
       formDataUpload.append("upload", file);
 
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-      const uploadUrl = `${API_BASE_URL}/image-upload`;
+      const uploadUrl = `${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`;
 
       console.log("=== IMAGE UPLOAD DEBUG ===");
       console.log("API_BASE_URL:", API_BASE_URL);

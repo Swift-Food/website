@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
-import { cateringService } from "@/services/cateringServices";
+import { cateringService } from "@/services/api/catering.api";
 import { SettingsMenu } from "../components/SettingsMenu";
 import { ProfileForm } from "../components/profile/ProfileForm";
 import { InventorySection } from "../components/inventory/InventorySection";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 
 type ActiveSection = "menu" | "profile" | "inventory" | null;
 
@@ -93,8 +94,7 @@ const RestaurantSettingsPage = () => {
   };
 
   const updateRestaurant = async (id: string, updates: Record<string, any>) => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_BASE_URL}/restaurant/${id}`, {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
@@ -128,8 +128,7 @@ const RestaurantSettingsPage = () => {
       const formDataUpload = new FormData();
       formDataUpload.append("upload", file);
 
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_BASE_URL}/image-upload`, {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`, {
         method: "POST",
         body: formDataUpload,
       });

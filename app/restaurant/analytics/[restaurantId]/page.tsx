@@ -1,12 +1,12 @@
 // app/restaurant/analytics/[restaurantId]/page.tsx
 "use client";
 
-import { useAuth } from "@/app/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { LoginPage } from "../../login/LoginPage";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { LogOut, Loader } from "lucide-react";
-import { restaurantApi } from "@/app/api/restaurantApi";
+import { restaurantApi } from "@/services/api/restaurant.api";
 import { StripeOnboardingStatus } from "@/types/restaurant.types";
 import { StripeOnboardingRequired } from "../../dashboard/shared/StripeOnboardingRequired";
 import { AnalyticsDashboard } from "../../dashboard/analytics/AnalyticsDashboard";

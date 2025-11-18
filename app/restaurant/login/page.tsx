@@ -2,7 +2,7 @@
 "use client";
 
 import { LoginPage } from "./LoginPage";
-import { useAuth } from "@/app/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

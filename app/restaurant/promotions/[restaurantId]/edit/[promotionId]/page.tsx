@@ -5,12 +5,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Loader } from "lucide-react";
-import { promotionsServices } from "@/services/promotionServices";
-import { RestaurantWideForm } from "@/app/components/restaurant-promotion/RestaurantWideForm";
-import { GroupWideForm } from "@/app/components/restaurant-promotion/GroupWideForm";
-import { BuyMoreSaveMoreForm } from "@/app/components/restaurant-promotion/BuyMoreSaveMoreForm";
-import { BogoForm } from "@/app/components/restaurant-promotion/BOGOForm";
-import { Promotion } from "@/services/promotionServices";
+import { promotionsServices } from "@/services/api/promotion.api";
+import { RestaurantWideForm } from "@/lib/components/restaurant-promotion/RestaurantWideForm";
+import { GroupWideForm } from "@/lib/components/restaurant-promotion/GroupWideForm";
+import { BuyMoreSaveMoreForm } from "@/lib/components/restaurant-promotion/BuyMoreSaveMoreForm";
+import { BogoForm } from "@/lib/components/restaurant-promotion/BOGOForm";
+import { Promotion } from "@/services/api/promotion.api";
 
 export default function EditPromotionPage() {
   const params = useParams();
