@@ -121,6 +121,7 @@ export const StripeOnboardingRequired = ({
     selectedAccountId && paymentAccounts?.[selectedAccountId]
       ? paymentAccounts[selectedAccountId].name
       : "Main Account";
+  console.log("account name", accountName)
 
   return (
     <div className="max-w-2xl mx-auto">
