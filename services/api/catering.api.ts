@@ -3,24 +3,29 @@ import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import {
   SearchResponse,
   SearchFilters,
-  CreateCateringOrderDto,
-  OrderItemDto,
   EventDetails,
   SelectedMenuItem,
   ContactInfo,
   CateringPricingResult,
   PromoCodeValidation,
-  UpdateDeliveryTimeDto,
   CateringOrderDetails,
-  AddSharedAccessDto,
-  RemoveSharedAccessDto,
-  UpdatePickupContactDto,
-  UpdateSharedAccessRoleDto,
+  OrderItemDto, // Still used for pricing/validation endpoints
   CreateMenuItemDto,
   MenuItemDetails,
   UpdateMenuItemDto,
   MenuCategory,
 } from "@/types/catering.types";
+import {
+  CreateCateringOrderRequest,
+  CateringRestaurantOrderRequest,
+  CateringMenuItemRequest,
+  CateringAddonRequest,
+  AddSharedAccessRequest,
+  RemoveSharedAccessRequest,
+  UpdatePickupContactRequest,
+  UpdateDeliveryTimeRequest,
+  UpdateSharedAccessRoleRequest,
+} from "@/types/api";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
 
 class CateringService {
@@ -172,33 +177,35 @@ class CateringService {
       >
     );
 
-    // Transform to OrderItemDto format
-    const orderItems: OrderItemDto[] = Object.values(groupedByRestaurant).map(
+    // Transform to CateringRestaurantOrderRequest format (backend will calculate pricing)
+    const orderItems: CateringRestaurantOrderRequest[] = Object.values(groupedByRestaurant).map(
       (group: any) => {
-        const restaurantTotal = group.items.reduce(
-          (sum: any, item: any) => sum + item.totalPrice,
-          0
-        );
-
         return {
           restaurantId: group.restaurantId,
-          restaurantName: group.restaurantName,
-
-          menuItems: group.items,
-          status: "pending",
-          restaurantCost: restaurantTotal,
-          totalPrice: restaurantTotal,
+          menuItems: group.items.map((item: any) => ({
+            menuItemId: item.menuItemId,
+            quantity: item.quantity,
+            selectedAddons: item.selectedAddons,
+            groupTitle: item.groupTitle,
+          } as CateringMenuItemRequest)),
           specialInstructions: eventDetails.specialRequests || "",
         };
       }
     );
 
-    const estimatedTotal = orderItems.reduce(
-      (sum, order) => sum + order.totalPrice,
+    // Calculate rough estimated total for display (backend will recalculate)
+    const estimatedTotal = Object.values(groupedByRestaurant).reduce(
+      (sum: number, group: any) => {
+        const groupTotal = group.items.reduce(
+          (itemSum: number, item: any) => itemSum + (item.totalPrice || 0),
+          0
+        );
+        return sum + groupTotal;
+      },
       0
     );
 
-    const createDto: CreateCateringOrderDto = {
+    const createDto: CreateCateringOrderRequest = {
       userId,
       organization: contactInfo.organization,
       customerName: contactInfo.fullName,
@@ -432,7 +439,7 @@ class CateringService {
   }
 
   async addSharedAccess(
-    dto: AddSharedAccessDto
+    dto: AddSharedAccessRequest
   ): Promise<CateringOrderDetails> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/add`,
@@ -452,7 +459,7 @@ class CateringService {
   }
 
   async updateSharedAccessRole(
-    dto: UpdateSharedAccessRoleDto
+    dto: UpdateSharedAccessRoleRequest
   ): Promise<CateringOrderDetails> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/update-role`,
@@ -472,7 +479,7 @@ class CateringService {
   }
 
   async removeSharedAccess(
-    dto: RemoveSharedAccessDto
+    dto: RemoveSharedAccessRequest
   ): Promise<CateringOrderDetails> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/remove`,
@@ -492,7 +499,7 @@ class CateringService {
   }
 
   async updatePickupContact(
-    dto: UpdatePickupContactDto
+    dto: UpdatePickupContactRequest
   ): Promise<CateringOrderDetails> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/pickup-contact`,
@@ -512,7 +519,7 @@ class CateringService {
   }
 
   async updateDeliveryTime(
-    dto: UpdateDeliveryTimeDto
+    dto: UpdateDeliveryTimeRequest
   ): Promise<CateringOrderDetails> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/delivery-time`,

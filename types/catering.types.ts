@@ -1,4 +1,20 @@
-// types/catering.types.ts - COMPLETE MERGED VERSION
+/**
+ * LEGACY CATERING TYPES
+ *
+ * ⚠️ IMPORTANT: This file contains MIXED types:
+ *
+ * 1. **Frontend-only types** (✅ USE THESE):
+ *    - EventDetails, SelectedMenuItem, ContactInfo
+ *    - SearchResult, SearchResponse, SearchFilters
+ *    - DTOs for SENDING to backend (CreateCateringOrderDto, OrderItemDto)
+ *
+ * 2. **API Response types** (⚠️ PREFER types/api/ instead):
+ *    - CateringOrderDetails, PricingOrderItemDto, etc.
+ *    - For NEW code, use types from @/types/api/catering.api.types
+ *    - These are kept for backwards compatibility only
+ *
+ * See: /types/api/README.md for migration guide
+ */
 
 import { MenuItem } from "@/lib/components/catering/Step2MenuItems";
 
@@ -195,7 +211,16 @@ export interface CateringOrder {
   contactInfo: ContactInfo;
 }
 
-// Legacy OrderItemDto - still used for order submission
+/**
+ * @deprecated This is the OLD format - DO NOT use for new order creation!
+ *
+ * Still temporarily used ONLY for:
+ * - Pricing verification (POST /pricing/catering-verify-cart)
+ * - Promo validation (POST /promotions/validate-catering)
+ *
+ * For ORDER CREATION, use CateringRestaurantOrderRequest from @/types/api instead.
+ * The backend will migrate these pricing endpoints to use the new format soon.
+ */
 export interface OrderItemDto {
   restaurantId: string;
   restaurantName: string;
@@ -225,8 +250,18 @@ export interface OrderItemDto {
   promotionDiscount?: number; // Promotion discount applied
 }
 
-// NEW CLEAR PRICING API TYPES
+// ============================================================================
+// DEPRECATED API RESPONSE TYPES - Use types from @/types/api/ instead
+// ============================================================================
+// These types are kept for backwards compatibility but should not be used
+// in new code. For API responses, prefer:
+// - @/types/api/pricing.api.types for pricing types
+// - @/types/api/catering.api.types for catering order responses
+// ============================================================================
 
+/**
+ * @deprecated Use PricingAddon from @/types/api/pricing.api.types instead
+ */
 export interface PricingAddonDto {
   name: string;
   price: number;
@@ -234,6 +269,9 @@ export interface PricingAddonDto {
   groupTitle: string;
 }
 
+/**
+ * @deprecated Use PricingMenuItem from @/types/api/pricing.api.types instead
+ */
 export interface PricingMenuItemDto {
   menuItemId: string;
   name: string;
@@ -270,6 +308,9 @@ export interface PricingMenuItemDto {
   restaurantId: string;
 }
 
+/**
+ * @deprecated Use PricingOrderItem from @/types/api/pricing.api.types instead
+ */
 export interface PricingOrderItemDto {
   restaurantId: string;
   restaurantName: string;
@@ -302,6 +343,9 @@ export interface PricingOrderItemDto {
   appliedPromotions: any[];
 }
 
+/**
+ * @deprecated Legacy type - use types from @/types/api/ instead
+ */
 export interface PricingBreakdownDto {
   orderId: string;
   orderType: "CATERING" | "CORPORATE";
@@ -404,6 +448,12 @@ export enum CateringOrderStatus {
   COMPLETED = "completed",
 }
 
+/**
+ * @deprecated Use CateringOrderResponse from @/types/api/catering.api.types instead
+ *
+ * This legacy type has field name mismatches with backend DTOs.
+ * For API responses, use the strict types from @/types/api/ to prevent bugs.
+ */
 export interface CateringOrderDetails {
   id: string;
   userId: string;
