@@ -551,7 +551,7 @@ export default function Step1EventDetails() {
     setAddressFormData({
       ...addressFormData,
       addressLine1: building.addressLine1,
-      addressLine2: building.name,
+      addressLine2: building.name + ", UCL",
       city: building.city,
       zipcode: building.zipcode,
     });
@@ -559,7 +559,7 @@ export default function Step1EventDetails() {
     setContactInfo({
       ...addressFormData,
       addressLine1: building.addressLine1,
-      addressLine2: building.name,
+      addressLine2: building.name + ", UCL",
       city: building.city,
       zipcode: building.zipcode,
     });
