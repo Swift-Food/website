@@ -9,6 +9,7 @@ import { ProfileForm } from "../components/profile/ProfileForm";
 import { InventorySection } from "../components/inventory/InventorySection";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 type ActiveSection = "menu" | "profile" | "inventory" | null;
 
@@ -94,7 +95,7 @@ const RestaurantSettingsPage = () => {
   };
 
   const updateRestaurant = async (id: string, updates: Record<string, any>) => {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),

@@ -56,7 +56,7 @@ class CateringService {
 
     console.log("Search payload: ", params);
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/search?catering=true&${params.toString()}`
     );
 
@@ -72,7 +72,7 @@ class CateringService {
   async getMenuItems() {
     const fullUrl = `${API_BASE_URL}/menu-item`;
     console.log("🌐 Fetching menu items from:", fullUrl);
-    const response = await fetch(`${API_BASE_URL}/menu-item/catering`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/catering`);
     console.log("📡 Response status:", response.status);
     if (!response.ok) {
       throw new Error("Failed to search menu items");
@@ -112,9 +112,8 @@ class CateringService {
       throw new Error(`Failed to create user account: ${error.message}`);
     }
 
-
     // Group items by restaurant
-    const groupedByRestaurant =   selectedItems.reduce(
+    const groupedByRestaurant = selectedItems.reduce(
       (acc, { item, quantity }) => {
         const restaurantId =
           item.restaurant?.restaurantId || item.restaurantId || "unknown";
@@ -173,7 +172,6 @@ class CateringService {
       >
     );
 
-
     // Transform to OrderItemDto format
     const orderItems: OrderItemDto[] = Object.values(groupedByRestaurant).map(
       (group: any) => {
@@ -185,7 +183,7 @@ class CateringService {
         return {
           restaurantId: group.restaurantId,
           restaurantName: group.restaurantName,
-        
+
           menuItems: group.items,
           status: "pending",
           restaurantCost: restaurantTotal,
@@ -225,8 +223,7 @@ class CateringService {
       paymentIntentId: paymentInfo?.paymentIntentId,
     };
 
-
-    const response = await fetch(`${API_BASE_URL}/catering-orders`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -245,7 +242,7 @@ class CateringService {
     // Step 1: Check if user exists by email
     console.log("contact info being sent", JSON.stringify(contactInfo));
     try {
-      const checkResponse = await fetch(
+      const checkResponse = await fetchWithAuth(
         `${API_BASE_URL}/users/email/${encodeURIComponent(contactInfo.email)}`
       );
 
@@ -275,7 +272,7 @@ class CateringService {
       },
     };
     console.log("consumer create data", JSON.stringify(createConsumerDto));
-    const response = await fetch(`${API_BASE_URL}/consumer-user`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/consumer-user`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(createConsumerDto),
@@ -306,7 +303,7 @@ class CateringService {
       },
     };
 
-    const response = await fetch(`${API_BASE_URL}/address`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/address`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(createAddressDto),
@@ -330,7 +327,7 @@ class CateringService {
   ): Promise<{ latitude: number; longitude: number }> {
     const encodedAddress = encodeURIComponent(address);
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`
     );
 
@@ -360,7 +357,7 @@ class CateringService {
       promoCodes,
     };
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/pricing/catering-verify-cart`,
       {
         method: "POST",
@@ -384,7 +381,7 @@ class CateringService {
   ): Promise<PromoCodeValidation> {
     // Use POST request with body instead of GET with query params
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}/promotions/validate-catering`,
         {
           method: "POST",
@@ -411,7 +408,7 @@ class CateringService {
   }
 
   async getOrderByToken(token: string): Promise<CateringOrderDetails> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/view/${token}`
     );
 
@@ -423,7 +420,7 @@ class CateringService {
   }
 
   async getOrdersByUserId(userId: string): Promise<CateringOrderDetails[]> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/user/${userId}`
     );
 
@@ -437,7 +434,7 @@ class CateringService {
   async addSharedAccess(
     dto: AddSharedAccessDto
   ): Promise<CateringOrderDetails> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/add`,
       {
         method: "POST",
@@ -457,7 +454,7 @@ class CateringService {
   async updateSharedAccessRole(
     dto: UpdateSharedAccessRoleDto
   ): Promise<CateringOrderDetails> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/update-role`,
       {
         method: "PATCH",
@@ -477,7 +474,7 @@ class CateringService {
   async removeSharedAccess(
     dto: RemoveSharedAccessDto
   ): Promise<CateringOrderDetails> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/remove`,
       {
         method: "DELETE",
@@ -497,7 +494,7 @@ class CateringService {
   async updatePickupContact(
     dto: UpdatePickupContactDto
   ): Promise<CateringOrderDetails> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/pickup-contact`,
       {
         method: "PATCH",
@@ -517,7 +514,7 @@ class CateringService {
   async updateDeliveryTime(
     dto: UpdateDeliveryTimeDto
   ): Promise<CateringOrderDetails> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/delivery-time`,
       {
         method: "PATCH",
@@ -588,10 +585,13 @@ class CateringService {
     itemId: string,
     dto: UpdateMenuItemDto
   ): Promise<MenuItemDetails> {
-    const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/${itemId}`, {
-      method: "PATCH",
-      body: JSON.stringify(dto),
-    });
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/menu-item/${itemId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(dto),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
@@ -602,9 +602,12 @@ class CateringService {
   }
 
   async deleteMenuItem(itemId: string): Promise<void> {
-    const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/${itemId}`, {
-      method: "DELETE",
-    });
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/menu-item/${itemId}`,
+      {
+        method: "DELETE",
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
@@ -649,7 +652,7 @@ class CateringService {
   }
 
   async getCategories(): Promise<MenuCategory[]> {
-    const response = await fetch(`${API_BASE_URL}/categories`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/categories`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch categories");
@@ -657,7 +660,6 @@ class CateringService {
 
     return response.json();
   }
-
 
   async reorderGroups(
     restaurantId: string,
@@ -682,7 +684,7 @@ class CateringService {
   }
 
   async getRestaurant(restaurantId: string): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/restaurant/${restaurantId}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/restaurant/${restaurantId}`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch restaurant");
@@ -700,7 +702,7 @@ class CateringService {
   async getCateringOrderPricingBreakdown(
     orderId: string
   ): Promise<import("@/types/catering.types").PricingBreakdownDto> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/pricing-breakdown`
     );
 
@@ -717,8 +719,10 @@ class CateringService {
    */
   async getCateringOrderRestaurantPayouts(
     orderId: string
-  ): Promise<Record<string, import("@/types/catering.types").RestaurantPayoutDto>> {
-    const response = await fetch(
+  ): Promise<
+    Record<string, import("@/types/catering.types").RestaurantPayoutDto>
+  > {
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/restaurant-payouts`
     );
 
@@ -736,7 +740,7 @@ class CateringService {
   async getCorporateOrderPricingBreakdown(
     orderId: string
   ): Promise<import("@/types/catering.types").PricingBreakdownDto> {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/corporate-orders/${orderId}/pricing-breakdown`
     );
 
@@ -753,8 +757,10 @@ class CateringService {
    */
   async getCorporateOrderRestaurantPayouts(
     orderId: string
-  ): Promise<Record<string, import("@/types/catering.types").RestaurantPayoutDto>> {
-    const response = await fetch(
+  ): Promise<
+    Record<string, import("@/types/catering.types").RestaurantPayoutDto>
+  > {
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/corporate-orders/${orderId}/restaurant-payouts`
     );
 

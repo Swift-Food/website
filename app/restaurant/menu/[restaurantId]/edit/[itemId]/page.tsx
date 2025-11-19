@@ -23,6 +23,7 @@ import {
   MenuItemAddon,
 } from "@/types/catering.types";
 import { ALLERGENS, PREP_TIMES } from "@/lib/constants/allergens";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 const EditMenuItemPage = () => {
   const params = useParams();
@@ -273,7 +274,7 @@ const EditMenuItemPage = () => {
       });
       console.log("FormData field name: 'upload'");
 
-      const response = await fetch(uploadUrl, {
+      const response = await fetchWithAuth(uploadUrl, {
         method: "POST",
         body: formDataUpload,
       });

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { API_BASE_URL, API_ENDPOINTS } from '@/lib/constants/api';
+import { fetchWithAuth } from '@/lib/api-client/auth-client';
 import { STRIPE_PUBLISHABLE_KEY } from '@/lib/constants/stripe';
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -118,7 +119,7 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
       setIsLoading(true);
       setError('');
   
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}${API_ENDPOINTS.CORPORATE_WALLET_PAYMENT_INTENT(props.organizationId)}`,
         {
           method: 'POST',

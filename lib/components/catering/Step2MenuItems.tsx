@@ -8,6 +8,7 @@ import RestaurantCatalogue from "./RestaurantCatalogue";
 import MenuCatalogue from "./MenuCatalogue";
 import { useCateringFilters } from "@/context/CateringFilterContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 export interface Restaurant {
   id: string;
@@ -269,7 +270,7 @@ export default function Step2MenuItems() {
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_CATERING}`
       );
       const data = await response.json();

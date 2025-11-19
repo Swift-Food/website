@@ -84,7 +84,7 @@ export const promotionsServices = {
 
   // Get active promotions (customer view) - Public endpoint
   getActivePromotions: async (restaurantId: string, orderType: 'CATERING' | 'CORPORATE') => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/promotions/restaurant/${restaurantId}/active?orderType=${orderType}`
     );
     

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Loader, ArrowLeft, Save, AlertCircle, Clock } from "lucide-react";
 import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 enum DaysOfWeek {
   MONDAY = "Monday",
@@ -159,7 +160,7 @@ const OpeningHoursPage = () => {
   };
 
   const updateRestaurant = async (id: string, updates: Record<string, any>) => {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),

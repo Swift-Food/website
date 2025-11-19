@@ -20,6 +20,7 @@ import {
 import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { MenuItemDetails } from "@/types/catering.types";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 const MenuListPage = () => {
   const params = useParams();
@@ -115,7 +116,7 @@ const MenuListPage = () => {
 
   const fetchRestaurantData = async () => {
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(restaurantId)}`
       );
       if (response.ok) {
