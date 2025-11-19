@@ -9,7 +9,6 @@ import {
   CateringPricingResult,
   PromoCodeValidation,
   CateringOrderDetails,
-  OrderItemDto, // Still used for pricing/validation endpoints
   CreateMenuItemDto,
   MenuItemDetails,
   UpdateMenuItemDto,
@@ -356,7 +355,7 @@ class CateringService {
   }
 
   async calculateCateringPricing(
-    orderItems: OrderItemDto[],
+    orderItems: CateringRestaurantOrderRequest[],
     promoCodes?: string[]
   ): Promise<CateringPricingResult> {
     const pricingData = {
@@ -384,7 +383,7 @@ class CateringService {
 
   async validatePromoCode(
     promoCode: string,
-    orderItems: OrderItemDto[]
+    orderItems: CateringRestaurantOrderRequest[]
   ): Promise<PromoCodeValidation> {
     // Use POST request with body instead of GET with query params
     try {

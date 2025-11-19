@@ -5,7 +5,7 @@
 
 import { SelectedMenuItem } from '@/types/catering.types';
 import { cateringService } from '@/services/api/catering.api';
-import { OrderItemDto } from '@/types/catering.types';
+import { CateringRestaurantOrderRequest } from '@/types/api/catering.request.types';
 
 interface GroupedRestaurantItems {
   restaurantId: string;
@@ -96,20 +96,23 @@ class ContactDetailsPricingService {
 
   /**
    * Build order items from grouped items
+   * Uses minimal format - backend calculates all pricing
    */
-  private buildOrderItems(groupedItems: Record<string, GroupedRestaurantItems>): OrderItemDto[] {
-    return Object.values(groupedItems).map((group) => {
-      const restaurantTotal = group.items.reduce((sum, item) => sum + item.totalPrice, 0);
-
-      return {
-        restaurantId: group.restaurantId,
-        restaurantName: group.restaurantName,
-        menuItems: group.items,
-        status: 'pending',
-        restaurantCost: restaurantTotal,
-        totalPrice: restaurantTotal,
-      };
-    });
+  private buildOrderItems(groupedItems: Record<string, GroupedRestaurantItems>): CateringRestaurantOrderRequest[] {
+    return Object.values(groupedItems).map((group) => ({
+      restaurantId: group.restaurantId,
+      menuItems: group.items.map((item) => ({
+        menuItemId: item.menuItemId,
+        quantity: item.quantity,
+        selectedAddons: item.selectedAddons?.map((addon: any) => ({
+          addonId: addon.addonId,
+          name: addon.name,
+          quantity: addon.quantity,
+          groupTitle: addon.groupTitle,
+        })),
+        groupTitle: item.groupTitle,
+      })),
+    }));
   }
 
   /**

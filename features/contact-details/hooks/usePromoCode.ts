@@ -1,14 +1,6 @@
 import { useState } from 'react';
 import { cateringService } from '@/services/api/catering.api';
-
-interface OrderItemForPromo {
-  restaurantId: string;
-  restaurantName: string;
-  menuItems: any[];
-  status: string;
-  restaurantCost: number;
-  totalPrice: number;
-}
+import { CateringRestaurantOrderRequest } from '@/types/api';
 
 export function usePromoCode() {
   const [promoCodes, setPromoCodes] = useState<string[]>([]);
@@ -17,7 +9,7 @@ export function usePromoCode() {
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
 
-  const handleApplyPromoCode = async (orderItems: OrderItemForPromo[]) => {
+  const handleApplyPromoCode = async (orderItems: CateringRestaurantOrderRequest[]) => {
     if (!promoInput.trim()) return;
 
     setValidatingPromo(true);

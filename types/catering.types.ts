@@ -380,6 +380,13 @@ export interface RestaurantPayoutDto {
   }[];
 }
 
+/**
+ * @deprecated Use CreateCateringOrderRequest from @/types/api/catering.request.types instead
+ *
+ * This legacy type uses OrderItemDto which includes client-calculated prices.
+ * The new format uses CateringRestaurantOrderRequest with minimal data (IDs and quantities only).
+ * Backend calculates all pricing server-side for accuracy.
+ */
 export interface CreateCateringOrderDto {
   userId: string;
   organization: string;
@@ -404,6 +411,13 @@ export interface CreateCateringOrderDto {
   paymentIntentId?: string;
 }
 
+/**
+ * @deprecated No longer used - pricing endpoints now accept CateringRestaurantOrderRequest[]
+ *
+ * The backend pricing endpoints have been updated to accept minimal format
+ * (CateringRestaurantOrderRequest with just IDs and quantities).
+ * Backend calculates all pricing from database.
+ */
 export interface CateringPricingData {
   orderItems: OrderItemDto[];
   deliveryAddressId: string;
