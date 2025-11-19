@@ -1,12 +1,17 @@
 // components/catering/PaymentMethodSelector.tsx
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { API_BASE_URL, API_ENDPOINTS } from '@/lib/constants/api';
-import { fetchWithAuth } from '@/lib/api-client/auth-client';
-import { STRIPE_PUBLISHABLE_KEY } from '@/lib/constants/stripe';
+import { useState, useEffect } from "react";
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
+import { STRIPE_PUBLISHABLE_KEY } from "@/lib/constants/stripe";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
@@ -26,7 +31,7 @@ function PaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,36 +41,37 @@ function PaymentForm({
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const { error: submitError } = await elements.submit();
       if (submitError) {
-        setError(submitError.message || 'Payment failed');
+        setError(submitError.message || "Payment failed");
         setIsLoading(false);
         return;
       }
 
-      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: window.location.href,
-        },
-        redirect: 'if_required',
-      });
+      const { error: confirmError, paymentIntent } =
+        await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url: window.location.href,
+          },
+          redirect: "if_required",
+        });
 
       if (confirmError) {
-        setError(confirmError.message || 'Payment failed');
+        setError(confirmError.message || "Payment failed");
         setIsLoading(false);
         return;
       }
 
-      if (paymentIntent && paymentIntent.status === 'succeeded') {
+      if (paymentIntent && paymentIntent.status === "succeeded") {
         const paymentMethodId = paymentIntent.payment_method as string;
         onPaymentComplete(paymentMethodId, paymentIntent.id);
       }
     } catch (err: any) {
-      setError(err.message || 'Payment failed');
+      setError(err.message || "Payment failed");
       setIsLoading(false);
     }
   };
@@ -73,9 +79,9 @@ function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-base-200/30 rounded-lg p-4 border border-base-300">
-        <PaymentElement 
+        <PaymentElement
           options={{
-            layout: 'tabs',
+            layout: "tabs",
           }}
         />
       </div>
@@ -106,9 +112,9 @@ function PaymentForm({
 
 // Outer component that fetches clientSecret and wraps with Elements
 export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
-  const [clientSecret, setClientSecret] = useState('');
+  const [clientSecret, setClientSecret] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     createPaymentIntent();
@@ -117,14 +123,16 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
   const createPaymentIntent = async () => {
     try {
       setIsLoading(true);
-      setError('');
-  
+      setError("");
+
       const response = await fetchWithAuth(
-        `${API_BASE_URL}${API_ENDPOINTS.CORPORATE_WALLET_PAYMENT_INTENT(props.organizationId)}`,
+        `${API_BASE_URL}${API_ENDPOINTS.CORPORATE_WALLET_PAYMENT_INTENT(
+          props.organizationId
+        )}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             amount: props.amount,
@@ -133,16 +141,15 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
         }
       );
 
-  
       if (!response.ok) {
-        throw new Error('Failed to create payment intent');
+        throw new Error("Failed to create payment intent");
       }
-  
+
       const data = await response.json();
       setClientSecret(data.clientSecret);
     } catch (err: any) {
-      console.error('Payment intent creation error:', err);
-      setError(err.message || 'Failed to initialize payment');
+      console.error("Payment intent creation error:", err);
+      setError(err.message || "Failed to initialize payment");
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +159,9 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary/20 border-t-primary"></div>
-        <p className="text-base-content/60 mt-4 text-sm">Initializing payment...</p>
+        <p className="text-base-content/60 mt-4 text-sm">
+          Initializing payment...
+        </p>
       </div>
     );
   }
@@ -178,15 +187,15 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
   const options = {
     clientSecret,
     appearance: {
-      theme: 'stripe' as const,
+      theme: "stripe" as const,
       variables: {
-        colorPrimary: '#FA43AD',
-        colorBackground: '#ffffff',
-        colorText: '#1a1a1a',
-        colorDanger: '#ef4444',
-        fontFamily: 'system-ui, sans-serif',
-        spacingUnit: '4px',
-        borderRadius: '12px',
+        colorPrimary: "#FA43AD",
+        colorBackground: "#ffffff",
+        colorText: "#1a1a1a",
+        colorDanger: "#ef4444",
+        fontFamily: "system-ui, sans-serif",
+        spacingUnit: "4px",
+        borderRadius: "12px",
       },
     },
   };

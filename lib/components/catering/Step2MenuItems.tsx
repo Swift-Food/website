@@ -248,7 +248,6 @@ export default function Step2MenuItems() {
       });
 
       setMenuItems(menuItemsOnly);
-
     } catch (error) {
       console.error("Error fetching all menu items:", error);
       setMenuItems([]);
@@ -388,45 +387,48 @@ export default function Step2MenuItems() {
   const getMinimumOrderWarnings = () => {
     const counts = getRestaurantItemCounts();
     const warnings: string[] = [];
-  
+
     Object.entries(counts).forEach(([, data]) => {
-     
       // Check REQUIRED sections - applies if ANY item from restaurant is ordered
       if (data.required) {
-       
-        if (data.hasAnyItems && data.required.count < data.required.minRequired) {
+        if (
+          data.hasAnyItems &&
+          data.required.count < data.required.minRequired
+        ) {
           const shortage = data.required.minRequired - data.required.count;
           const sectionInfo =
             data.required.sections.length > 0
               ? ` from sections: ${data.required.sections.join(", ")}`
               : "";
           const warning = `${data.name}: Add ${shortage} more required item(s)${sectionInfo}`;
-        
+
           warnings.push(warning);
-        } 
-      } 
+        }
+      }
       // Check OPTIONAL sections
       if (data.optional) {
-       
         data.optional.forEach((rule, index) => {
           console.log(`    Rule ${index}:`, {
             hasItems: rule.hasItems,
             count: rule.count,
             minRequired: rule.minRequired,
-            sections: rule.sections
+            sections: rule.sections,
           });
-          
+
           if (rule.hasItems && rule.count < rule.minRequired) {
             const shortage = rule.minRequired - rule.count;
-            const warning = `${data.name}: Add ${shortage} more item(s) from sections: ${rule.sections.join(", ")}`;
-            
+            const warning = `${
+              data.name
+            }: Add ${shortage} more item(s) from sections: ${rule.sections.join(
+              ", "
+            )}`;
+
             warnings.push(warning);
           }
         });
       }
     });
-  
-  
+
     return warnings;
   };
 
@@ -509,7 +511,7 @@ export default function Step2MenuItems() {
 
     // Apply dietary restriction filters
     if (filters.dietaryRestrictions && filters.dietaryRestrictions.length > 0) {
-      console.log(filters.dietaryRestrictions)
+      console.log(filters.dietaryRestrictions);
       filtered = filtered.filter(
         (item) =>
           !filters.dietaryRestrictions ||
