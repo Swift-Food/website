@@ -13,6 +13,7 @@ import {
 } from "@/types/catering.types";
 import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
 import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
+import uclBuildings from "@/public/data/ucl-buildings.json";
 
 // Load Google Maps script
 declare global {
@@ -49,7 +50,6 @@ const EVENT_TYPE_OPTIONS = [
   },
 ];
 
-
 const MINUTE_OPTIONS = [
   { label: "00", value: "00" },
   { label: "15", value: "15" },
@@ -62,7 +62,6 @@ const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   label: `${i + 1}`,
   value: String(i + 1).padStart(2, "0"),
 }));
-
 
 // UK Postcode validation regex
 // Matches formats like: SW1A 1AA, M1 1AE, B33 8TH, CR2 6XH, DN55 1PT
@@ -101,6 +100,10 @@ export default function Step1EventDetails() {
 
   // State for address validation
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+
+  // State for UCL building selection
+  const [showUCLBuildings, setShowUCLBuildings] = useState(false);
+  const [uclSearchQuery, setUclSearchQuery] = useState("");
 
   // Google Places Autocomplete refs
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -175,7 +178,9 @@ export default function Step1EventDetails() {
         inputRef.current,
         {
           types: ["geocode"],
-          componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
+          componentRestrictions: {
+            country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION,
+          },
         }
       );
 
@@ -338,7 +343,7 @@ export default function Step1EventDetails() {
   // In state, track period and set on mount
   const [selectedHour, setSelectedHour] = useState(() => {
     if (eventDetails?.eventTime) {
-      const [h, ] = eventDetails.eventTime.split(":");
+      const [h] = eventDetails.eventTime.split(":");
       // const period = Number(h) >= 12 ? "PM" : "AM";
       const hour12 = Number(h) % 12 || 12;
       return String(hour12).padStart(2, "0");
@@ -541,6 +546,49 @@ export default function Step1EventDetails() {
       // corporateUser: null,
     });
   };
+
+  const handleUCLBuildingSelect = (building: (typeof uclBuildings)[0]) => {
+    setAddressFormData({
+      ...addressFormData,
+      addressLine1: building.addressLine1,
+      addressLine2: building.name,
+      city: building.city,
+      zipcode: building.zipcode,
+    });
+
+    setContactInfo({
+      ...addressFormData,
+      addressLine1: building.addressLine1,
+      addressLine2: building.name,
+      city: building.city,
+      zipcode: building.zipcode,
+    });
+
+    const fullAddress = `${building.addressLine1}, ${building.city}, ${building.zipcode}`;
+    setFormData({
+      ...formData,
+      address: fullAddress,
+    });
+
+    setShowUCLBuildings(false);
+    setUclSearchQuery("");
+    setValidationErrors({
+      ...validationErrors,
+      addressLine1: undefined,
+      city: undefined,
+      zipcode: undefined,
+      addressValidation: undefined,
+    });
+  };
+
+  const filteredUCLBuildings = uclBuildings.filter(
+    (building) =>
+      building.name.toLowerCase().includes(uclSearchQuery.toLowerCase()) ||
+      building.addressLine1
+        .toLowerCase()
+        .includes(uclSearchQuery.toLowerCase()) ||
+      building.zipcode.toLowerCase().includes(uclSearchQuery.toLowerCase())
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 bg-base-100">
@@ -862,9 +910,119 @@ export default function Step1EventDetails() {
                     </p>
                   </div>
                 )}
-              {/* <p className="text-xs text-base-content/60 mt-2">
-              Select from dropdown to autofill, or enter manually below
-            </p> */}
+            </div>
+
+            {/* UCL Buildings Quick Select */}
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={() => setShowUCLBuildings(!showUCLBuildings)}
+                className="w-full py-3 px-4 bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/30 rounded-xl font-semibold text-primary hover:from-primary/20 hover:to-primary/10 hover:border-primary/50 transition-all flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+                {showUCLBuildings ? "Hide" : "Select"} UCL Building
+              </button>
+
+              {showUCLBuildings && (
+                <div className="mt-4 border-2 border-primary/20 rounded-xl overflow-hidden bg-white shadow-lg">
+                  {/* Search Bar */}
+                  <div className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-b border-primary/20">
+                    <input
+                      type="text"
+                      value={uclSearchQuery}
+                      onChange={(e) => setUclSearchQuery(e.target.value)}
+                      placeholder="Search UCL buildings by name, address, or postcode..."
+                      className="w-full px-4 py-2 border border-primary/30 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-600 mt-2">
+                      {filteredUCLBuildings.length} building
+                      {filteredUCLBuildings.length !== 1 ? "s" : ""} found
+                    </p>
+                  </div>
+
+                  {/* Buildings List */}
+                  <div className="max-h-96 overflow-y-auto">
+                    {filteredUCLBuildings.length > 0 ? (
+                      <div className="divide-y divide-gray-200">
+                        {filteredUCLBuildings
+                          .slice(0, 50)
+                          .map((building, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleUCLBuildingSelect(building)}
+                              className="w-full p-4 text-left hover:bg-primary/5 transition-colors group"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
+                                    {building.name}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {building.addressLine1}
+                                  </p>
+                                  <div className="flex gap-2 mt-1">
+                                    <span className="text-xs text-gray-500">
+                                      {building.city}
+                                    </span>
+                                    <span className="text-xs text-primary font-medium">
+                                      {building.zipcode}
+                                    </span>
+                                  </div>
+                                </div>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 5l7 7-7 7"
+                                  />
+                                </svg>
+                              </div>
+                            </button>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center text-gray-500">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-12 w-12 mx-auto mb-2 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                        <p>No buildings found matching your search</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Address Line 1 */}
