@@ -228,7 +228,7 @@ class CateringService {
       useOrganizationWallet: paymentInfo?.useOrganizationWallet,
       paymentMethodId: paymentInfo?.paymentMethodId,
       paymentIntentId: paymentInfo?.paymentIntentId,
-      paymentMethod: paymentInfo?.useOrganizationWallet ? 'wallet' : 'stripe_direct',
+      paymentMethod: 'stripe_direct',
     };
 
     const response = await fetchWithAuth(`${API_BASE_URL}/catering-orders`, {
