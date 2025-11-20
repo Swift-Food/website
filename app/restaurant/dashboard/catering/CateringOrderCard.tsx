@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { CateringOrderDetails } from "@/types/catering.types";
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
+import { formatDeliveryAddress } from "./utils/address.utils";
+
 interface CateringOrderCardProps {
   order: CateringOrderDetails & { isUnassigned?: boolean };
   restaurantId: string;
@@ -22,7 +24,7 @@ interface CateringOrderCardProps {
   loadingAccounts: boolean;
   token?: string;
   onClaim: (orderId: string) => Promise<void>; 
-  claiming: string | null; 
+  claiming: string | null;
 }
 
 export const CateringOrderCard = ({
@@ -373,7 +375,7 @@ export const CateringOrderCard = ({
         <p className="text-sm text-gray-600 mt-2">
           Delivery:{" "}
           <span className="text-gray-900 font-medium">
-            {order.deliveryAddress}
+            {formatDeliveryAddress(order.deliveryAddress)}
           </span>
         </p>
       </div>

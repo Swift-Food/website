@@ -2,6 +2,7 @@
 import React from 'react';
 import { CateringOrderDetails } from '@/types/catering.types';
 import { Calendar, Clock, MapPin, FileText } from 'lucide-react';
+import { formatDeliveryAddress } from '@/app/restaurant/dashboard/catering/utils/address.utils';
 
 interface OrderDetailsProps {
   order: CateringOrderDetails;
@@ -48,7 +49,7 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
           <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500 mt-1 flex-shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-xs sm:text-sm text-gray-600">Delivery Address</p>
-            <p className="font-semibold text-sm sm:text-base text-gray-900 break-words">{order.deliveryAddress}</p>
+            <p className="font-semibold text-sm sm:text-base text-gray-900 break-words">{formatDeliveryAddress(order.deliveryAddress)}</p>
           </div>
         </div>
 
