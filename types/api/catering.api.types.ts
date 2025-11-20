@@ -70,7 +70,7 @@ export interface CateringOrderResponse {
   pickupContactEmail?: string;
 
   // Additional info
-  specialInstructions?: string;
+  specialRequirements?: string;
   accessToken?: string;
   sharedAccessUsers?: Array<{
     userId: string;
