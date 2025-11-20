@@ -49,7 +49,7 @@ export function OrderItemsList({ orderItems }: OrderItemsListProps) {
                     <MenuItemPricingCard
                       key={itemIdx}
                       pricing={pricing}
-                      itemName={item.name}
+                      itemName={item.menuItemName || item.name}
                       hasNewPricingData={hasNewPricingData}
                     />
                   );
