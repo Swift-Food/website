@@ -158,7 +158,7 @@ export default function CateringDashboardPage() {
                   orderType="catering"
                   orderCompletedAt={order.updatedAt}
                   totalAmount={order.finalTotal}
-                  orderItems={order.orderItems}
+                  orderItems={order.restaurants || order.orderItems || []}
                   canRequestRefund={true}
                   onRefundRequested={loadOrder}
                   userId={order.userId}
