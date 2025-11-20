@@ -273,7 +273,7 @@ export const CateringOrderCard = ({
         <div className="mb-1">
           <p className="text-xs text-gray-600 font-medium">Your Earnings</p>
           <p className="font-bold text-xl sm:text-2xl text-green-600">
-            {formatCurrency(order.restaurantTotalCost)}
+            {formatCurrency(order.restaurantsTotalNet || order.restaurantTotalCost || 0)}
           </p>
         </div>
         
