@@ -151,10 +151,11 @@ class CateringService {
         // Total price includes both item price and addon price
         const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
 
-        // Transform addon quantities for backend
+        // Transform addons for backend (remove price - backend calculates it)
         const transformedAddons = (item.selectedAddons || []).map((addon) => ({
-          ...addon,
+          name: addon.name,
           quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
+          groupTitle: addon.groupTitle,
         }));
 
         acc[restaurantId].items.push({
