@@ -184,7 +184,6 @@ export const CateringOrderCard = ({
 
   // Support both new (restaurants) and legacy (orderItems) formats
   const restaurantsData = order.restaurants || order.orderItems || [];
-  const firstRestaurant = restaurantsData[0];
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
