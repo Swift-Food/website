@@ -76,7 +76,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
                         </p>
                       </div>
                       <p className="font-bold text-pink-600 text-sm sm:text-base whitespace-nowrap self-end sm:self-auto">
-                        £{Number(item.customerTotalPrice ?? (item as any).totalPrice ?? 0).toFixed(2)}
+                        £{Number(item.customerTotalPrice ?? ('totalPrice' in item ? item.totalPrice : 0)).toFixed(2)}
                       </p>
                     </div>
 
@@ -102,12 +102,12 @@ export default function OrderItems({ order }: OrderItemsProps) {
               })}
             </div>
 
-            {(restaurant as any).specialInstructions && (
+            {'specialInstructions' in restaurant && restaurant.specialInstructions && (
               <div className="mt-3 sm:mt-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg p-2 sm:p-3">
                 <p className="text-xs font-semibold text-yellow-900 mb-1 uppercase tracking-wide">
                   Special Instructions:
                 </p>
-                <p className="text-xs sm:text-sm text-yellow-800 whitespace-pre-wrap break-words">{(restaurant as any).specialInstructions}</p>
+                <p className="text-xs sm:text-sm text-yellow-800 whitespace-pre-wrap break-words">{restaurant.specialInstructions}</p>
               </div>
             )}
             </div>
