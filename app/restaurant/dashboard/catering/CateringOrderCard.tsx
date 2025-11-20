@@ -179,7 +179,11 @@ export const CateringOrderCard = ({
   };
 
   const toggleItems = () => setExpandedItems(!expandedItems);
-  const orderItem = order.orderItems[0]
+
+  // Support both new (restaurants) and legacy (orderItems) formats
+  const restaurantsData = order.restaurants || order.orderItems || [];
+  const firstRestaurant = restaurantsData[0];
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       <div className="w-full flex justify-center mb-3">
@@ -273,16 +277,16 @@ export const CateringOrderCard = ({
         
         {/* Show pricing breakdown */}
         <div className="mb-2 space-y-1">
-          {order.promotionDiscount && Number(order.promotionDiscount) > 0 ? (
+          {order.promoDiscount && Number(order.promoDiscount) > 0 ? (
             <>
               <p className="text-sm text-gray-600">
-                Subtotal: {formatCurrency(orderItem.totalPrice)}
+                Subtotal: {formatCurrency(order.subtotal || order.estimatedTotal)}
               </p>
               <p className="text-sm text-green-600 font-medium">
-                Promotion Savings: -{formatCurrency(orderItem.promotionDiscount)}
+                Promotion Savings: -{formatCurrency(order.promoDiscount)}
               </p>
               <p className="text-sm text-gray-900 font-semibold">
-                Customer Paid: {formatCurrency((orderItem.totalPrice || 0) - (orderItem.promotionDiscount || 0))}
+                Customer Paid: {formatCurrency(order.finalTotal)}
               </p>
             </>
           ) : (
@@ -383,7 +387,7 @@ export const CateringOrderCard = ({
         >
           <span>
             Order Items (
-            {order.orderItems.reduce(
+            {restaurantsData.reduce(
               (total, restaurant) => total + restaurant.menuItems.length,
               0
             )}{" "}
@@ -398,7 +402,7 @@ export const CateringOrderCard = ({
 
         {expandedItems && (
           <div>
-            {order.orderItems.map((restaurant, idx) => (
+            {restaurantsData.map((restaurant, idx) => (
               <div key={idx} className="mb-3">
                 <div className="space-y-2">
                   {restaurant.menuItems.map((item, itemIdx) => (
@@ -432,7 +436,7 @@ export const CateringOrderCard = ({
                           ) : (
                             <>
                               <p className="text-[10px] text-green-600 leading-tight">
-                                Unit Commission: {formatCurrency(item.commissionPrice || 0)}
+                                Total Net: {formatCurrency(getItemNetEarnings(item))}
                               </p>
                               <p className="text-[10px] text-green-600 leading-tight">
                                 Qty: {item.quantity}
@@ -463,7 +467,7 @@ export const CateringOrderCard = ({
                           ) : (
                             <>
                               <p className="text-[10px] text-gray-600 leading-tight">
-                                Unit Price: {formatCurrency(item.priceForRestaurant || 0)}
+                                Total Gross: {formatCurrency(getItemGrossPrice(item))}
                               </p>
                               <p className="text-[10px] text-gray-600 leading-tight">
                                 Qty: {item.quantity}
