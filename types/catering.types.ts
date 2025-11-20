@@ -28,7 +28,7 @@ export interface SelectedAddon {
 export interface SearchResult {
   type: "restaurant" | "menu_item";
   id: string;
-  name: string;
+  menuItemName: string;
   description?: string;
   image?: string;
   price: string;
@@ -274,7 +274,7 @@ export interface PricingAddonDto {
  */
 export interface PricingMenuItemDto {
   menuItemId: string;
-  name: string;
+  menuItemName: string;
   quantity: number;
 
   // Customer Layer - What customer pays

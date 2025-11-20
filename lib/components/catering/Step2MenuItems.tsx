@@ -50,7 +50,7 @@ export interface Addon {
 
 export interface MenuItem {
   id: string;
-  name: string;
+  menuItemName: string;
   description?: string;
   price: string;
   discountPrice?: string;
@@ -222,7 +222,7 @@ export default function Step2MenuItems() {
       const menuItemsOnly = (response || []).map((item: any) => {
         return {
           id: item.id,
-          name: item.name,
+          menuItemName: item.name,
           description: item.description,
           price: item.price?.toString() || "0",
           discountPrice: item.discountPrice?.toString(),
@@ -493,7 +493,7 @@ export default function Step2MenuItems() {
       const query = restaurantSearchQuery.toLowerCase();
       filtered = filtered.filter(
         (item) =>
-          item.name.toLowerCase().includes(query) ||
+          item.menuItemName.toLowerCase().includes(query) ||
           item.description?.toLowerCase().includes(query) ||
           item.groupTitle?.toLowerCase().includes(query)
       );
@@ -806,13 +806,13 @@ export default function Step2MenuItems() {
                           {item.image && (
                             <img
                               src={item.image}
-                              alt={item.name}
+                              alt={item.menuItemName}
                               className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
                             />
                           )}
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-xs text-base-content mb-0.5 truncate">
-                              {item.name}
+                              {item.menuItemName}
                             </h4>
 
                             {/* Addons - Compact */}
@@ -1097,13 +1097,13 @@ export default function Step2MenuItems() {
                         {item.image && (
                           <img
                             src={item.image}
-                            alt={item.name}
+                            alt={item.menuItemName}
                             className="w-16 h-16 object-cover rounded-lg"
                           />
                         )}
                         <div className="flex-1">
                           <h4 className="font-semibold text-sm text-base-content mb-1">
-                            {item.name}
+                            {item.menuItemName}
                           </h4>
                           {item.selectedAddons &&
                             item.selectedAddons.length > 0 && (

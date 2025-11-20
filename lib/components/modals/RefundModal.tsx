@@ -84,7 +84,7 @@ export function RefundModal({
           restaurantId: restaurant.restaurantId,
           restaurantName: restaurant.restaurantName,
           menuItemId: menuItem.menuItemId,
-          itemName: menuItem.name,
+          itemName: menuItem.menuItemName,
           unitPrice: unitPrice,
           quantity: Number(menuItem.quantity) || 0,
           totalPrice: totalPrice,
@@ -227,7 +227,7 @@ export function RefundModal({
                           className="w-4 h-4 text-pink-600 rounded focus:ring-2 focus:ring-pink-500"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{menuItem.name}</p>
+                          <p className="text-sm font-medium text-gray-900">{menuItem.menuItemName}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-gray-600">Qty: {menuItem.quantity}</span>
                             <span className="text-xs text-gray-400">•</span>

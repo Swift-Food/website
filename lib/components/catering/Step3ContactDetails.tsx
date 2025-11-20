@@ -469,7 +469,7 @@ export default function Step3ContactInfo() {
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
-            name: item.name,
+            menuItemName: item.menuItemName,
             groupTitle: item.groupTitle,
             quantity,
             unitPrice,
@@ -615,7 +615,7 @@ export default function Step3ContactInfo() {
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
-            name: item.name,
+            menuItemName: item.menuItemName,
             quantity,
             unitPrice,
             addonPrice: addonPricePerUnit,
@@ -858,13 +858,13 @@ export default function Step3ContactInfo() {
                     {item.image && (
                       <img
                         src={item.image}
-                        alt={item.name}
+                        alt={item.menuItemName}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base-content truncate">
-                        {item.name}
+                        {item.menuItemName}
                       </p>
                       {item.selectedAddons &&
                         item.selectedAddons.length > 0 && (
@@ -1373,13 +1373,13 @@ export default function Step3ContactInfo() {
                       {item.image && (
                         <img
                           src={item.image}
-                          alt={item.name}
+                          alt={item.menuItemName}
                           className="w-12 h-12 object-cover rounded-lg"
                         />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-base-content truncate">
-                          {item.name}
+                          {item.menuItemName}
                         </p>
                         {item.selectedAddons &&
                           item.selectedAddons.length > 0 && (

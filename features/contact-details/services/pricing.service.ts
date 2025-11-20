@@ -79,7 +79,7 @@ class ContactDetailsPricingService {
 
         acc[restaurantId].items.push({
           menuItemId: item.id,
-          name: item.name,
+          menuItemName: item.menuItemName,
           groupTitle: item.groupTitle,
           quantity,
           unitPrice,

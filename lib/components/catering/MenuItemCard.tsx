@@ -75,7 +75,7 @@ export default function MenuItemCard({
               <div>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1 line-clamp-1">
-                    {item.name}
+                    {item.menuItemName}
                   </h3>
                 </div>
 
@@ -238,7 +238,7 @@ export default function MenuItemCard({
             <div className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0">
               <img
                 src={item.image}
-                alt={item.name}
+                alt={item.menuItemName}
                 className="w-full h-full object-cover"
               />
             </div>

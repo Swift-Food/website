@@ -2,7 +2,7 @@ import { EventDetails } from '@/types/catering.types';
 import { CateringPricingResult } from '@/types/catering.types';
 
 interface MenuItem {
-  name: string;
+  menuItemName: string;
   image?: string;
   price: string | number;
   discountPrice?: string | number;
@@ -123,12 +123,12 @@ export function SuccessScreen({
                   {item.image && (
                     <img
                       src={item.image}
-                      alt={item.name}
+                      alt={item.menuItemName}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-base-content truncate">{item.name}</p>
+                    <p className="font-semibold text-base-content truncate">{item.menuItemName}</p>
                     {item.selectedAddons && item.selectedAddons.length > 0 && (
                       <p className="text-xs text-base-content/50 mb-1">
                         {item.selectedAddons.map((addon, idx) => (
