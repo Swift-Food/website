@@ -69,7 +69,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
                   <div key={itemIdx} className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                       <div className="flex-1 sm:pr-4">
-                        <p className="font-semibold text-sm sm:text-base text-gray-900 mb-1 break-words">{(item as any).menuItemName || item.name}</p>
+                        <p className="font-semibold text-sm sm:text-base text-gray-900 mb-1 break-words">{'menuItemName' in item ? item.menuItemName : item.name}</p>
                         <p className="text-xs sm:text-sm text-gray-600">
                           {Math.round(numUnits)} portion{Math.round(numUnits) !== 1 ? 's' : ''} •
                           Serves ~{Math.round(totalFeeds)} people

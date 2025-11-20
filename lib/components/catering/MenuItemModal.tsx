@@ -552,13 +552,13 @@ export default function MenuItemModal({
             >
               <img
                 src={item.image}
-                alt={item.name}
+                alt={item.menuItemName}
                 className="w-full h-full object-cover rounded-2xl"
               />
             </div>
           )}
           <h2 className="font-bold text-xl md:text-2xl text-base-content mb-4 pr-8">
-            {item.name}
+            {item.menuItemName}
           </h2>
 
           <div className="space-y-4 mt-2">
