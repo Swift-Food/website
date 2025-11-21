@@ -958,7 +958,7 @@ export default function Step1EventDetails() {
                     {filteredUCLBuildings.length > 0 ? (
                       <div className="divide-y divide-gray-200">
                         {filteredUCLBuildings
-                          .slice(0, 50)
+                          // .slice(0, 50)
                           .map((building, idx) => (
                             <button
                               key={idx}
