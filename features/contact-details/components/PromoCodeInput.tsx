@@ -27,12 +27,6 @@ export function PromoCodeInput({
           type="text"
           value={promoInput}
           onChange={(e) => onPromoInputChange(e.target.value.toUpperCase())}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              onApplyPromoCode();
-            }
-          }}
           placeholder="Add discount code or voucher"
           className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-xs"
         />
