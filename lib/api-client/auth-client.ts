@@ -39,6 +39,18 @@ export const fetchWithAuth = async (
     headers,
   });
 
+  // Handle 429 Too Many Requests
+  if (response.status === 429) {
+    const retryAfter = response.headers.get('Retry-After');
+    const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default 60s
+
+    // Show user-friendly error message
+    console.warn(`Rate limit exceeded. Retry after ${waitTime / 1000} seconds`);
+
+    // Throw error with retry information
+    throw new Error(`Rate limit exceeded. Please try again in ${Math.ceil(waitTime / 1000)} seconds.`);
+  }
+
   // If 401 and not already retrying, attempt refresh
   if (response.status === 401 && !(options as any)._retry) {
     // Skip refresh for login and refresh endpoints
