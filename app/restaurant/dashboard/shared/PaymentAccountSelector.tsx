@@ -19,6 +19,12 @@ export const PaymentAccountSelector = ({
   }
 
   const accounts = Object.entries(paymentAccounts);
+  const hasMultipleAccounts = accounts.length > 1;
+
+  // If only one account, don't show the selector at all
+  if (accounts.length === 1) {
+    return null;
+  }
 
   return (
     <div className="mb-6">
@@ -27,16 +33,18 @@ export const PaymentAccountSelector = ({
           Select Branch
         </label>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => onSelectAccount(null)}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              selectedAccountId === null
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            All Branches
-          </button>
+          {hasMultipleAccounts && (
+            <button
+              onClick={() => onSelectAccount(null)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                selectedAccountId === null
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              All Branches
+            </button>
+          )}
           {accounts.map(([accountId, account]) => (
             <button
               key={accountId}
