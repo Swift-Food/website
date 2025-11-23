@@ -55,9 +55,10 @@ export const WithdrawalForm = ({
           amount,
           notes: notes.trim() || undefined,
           isInstantPayout: false,
-          accountId: accountId
+          // Don't send accountId for legacy single-account restaurants
+          accountId: accountId === 'legacy' ? undefined : accountId
         },
-        
+
       );
 
       setSuccess(
