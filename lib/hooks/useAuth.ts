@@ -12,6 +12,7 @@ const UserRole = {
 export const useAuth = () => {
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("access_token");
@@ -20,6 +21,7 @@ export const useAuth = () => {
       setToken(storedToken);
       setUser(JSON.parse(storedUser).user);
     }
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -47,5 +49,5 @@ export const useAuth = () => {
     setUser(null);
   };
 
-  return { user, token, login, logout, isAuthenticated: !!token };
+  return { user, token, login, logout, isAuthenticated: !!token, loading };
 };
