@@ -48,18 +48,20 @@ export const WithdrawalForm = ({
     setSubmitting(true);
 
     try {
-      await restaurantApi.requestWithdrawal(
-        {
-          userId: restaurantUserId,
-          userType: "restaurant",
-          amount,
-          notes: notes.trim() || undefined,
-          isInstantPayout: false,
-          // Don't send accountId for legacy single-account restaurants
-          accountId: accountId === 'legacy' ? undefined : accountId
-        },
+      const withdrawalRequest: any = {
+        userId: restaurantUserId,
+        userType: "restaurant",
+        amount,
+        notes: notes.trim() || undefined,
+        isInstantPayout: false,
+      };
 
-      );
+      // Only include accountId if not legacy
+      if (accountId !== 'legacy') {
+        withdrawalRequest.accountId = accountId;
+      }
+
+      await restaurantApi.requestWithdrawal(withdrawalRequest);
 
       setSuccess(
         "Withdrawal request submitted successfully! Pending admin approval."
