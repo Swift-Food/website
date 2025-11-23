@@ -49,27 +49,29 @@ export const RestaurantDashboard = ({
     useState<StripeOnboardingStatus | null>(null);
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
-  const [cateringOrders, setCateringOrders] = useState<CateringOrderDetails[]>([]);
-  const [activeTab, setActiveTab] = useState<"withdrawals" | "catering" | "refunds">(
-    "withdrawals"
+  const [cateringOrders, setCateringOrders] = useState<CateringOrderDetails[]>(
+    []
   );
+  const [activeTab, setActiveTab] = useState<
+    "withdrawals" | "catering" | "refunds"
+  >("withdrawals");
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     null
   );
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
 
   // Auto-select account if there's only one OR set to 'legacy' for old single-account restaurants
-  useEffect(() => {
-    if (restaurantUser?.paymentAccounts) {
-      const accounts = Object.keys(restaurantUser.paymentAccounts);
-      if (accounts.length === 1 && selectedAccountId === null) {
-        setSelectedAccountId(accounts[0]);
-      }
-    } else if (restaurantUser && selectedAccountId === null) {
-      // Legacy restaurant with single stripeAccountId (no paymentAccounts map)
-      setSelectedAccountId('legacy');
-    }
-  }, [restaurantUser, selectedAccountId]);
+  // useEffect(() => {
+  //   if (restaurantUser?.paymentAccounts) {
+  //     const accounts = Object.keys(restaurantUser.paymentAccounts);
+  //     if (accounts.length === 1 && selectedAccountId === null) {
+  //       setSelectedAccountId(accounts[0]);
+  //     }
+  //   } else if (restaurantUser && selectedAccountId === null) {
+  //     // Legacy restaurant with single stripeAccountId (no paymentAccounts map)
+  //     setSelectedAccountId("legacy");
+  //   }
+  // }, [restaurantUser, selectedAccountId]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -77,51 +79,70 @@ export const RestaurantDashboard = ({
       const results = await Promise.allSettled([
         restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
         restaurantApi.getBalance(restaurantUserId, token, selectedAccountId),
-        restaurantApi.getWithdrawalHistory(restaurantUserId, token, selectedAccountId),
+        restaurantApi.getWithdrawalHistory(
+          restaurantUserId,
+          token,
+          selectedAccountId
+        ),
         restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
-        refundService.getRestaurantRefundRequests(restaurantId)
+        refundService.getRestaurantRefundRequests(restaurantId),
       ]);
-  
+
       // Extract successful results
-      const [statusResult, balanceResult, historyResult, cateringResult, refundsResult] = results;
-  
-      console.log("status data is", statusResult.status === "fulfilled" ? statusResult.value : null);
-      
+      const [
+        statusResult,
+        balanceResult,
+        historyResult,
+        cateringResult,
+        refundsResult,
+      ] = results;
+
+      console.log(
+        "status data is",
+        statusResult.status === "fulfilled" ? statusResult.value : null
+      );
+
       if (statusResult.status === "fulfilled" && statusResult.value) {
         setStripeStatus(statusResult.value);
       }
-      
+
       if (balanceResult.status === "fulfilled" && balanceResult.value) {
         setBalance(balanceResult.value);
       }
-      
+
       if (historyResult.status === "fulfilled") {
         setHistory(historyResult.value || []);
       }
-      
+
       if (cateringResult.status === "fulfilled") {
-        setCateringOrders((cateringResult.value || []) as unknown as CateringOrderDetails[]);
+        setCateringOrders(
+          (cateringResult.value || []) as unknown as CateringOrderDetails[]
+        );
       }
-      
+
       if (refundsResult.status === "fulfilled") {
         setRefunds(refundsResult.value || []);
       }
-  
+
       // Optional: Log any failures
       results.forEach((result, index) => {
         if (result.status === "rejected") {
-          const apiNames = ["checkStripeStatus", "getBalance", "getWithdrawalHistory", "getCateringOrders", "getRefundRequests"];
+          const apiNames = [
+            "checkStripeStatus",
+            "getBalance",
+            "getWithdrawalHistory",
+            "getCateringOrders",
+            "getRefundRequests",
+          ];
           console.error(`${apiNames[index]} failed:`, result.reason);
         }
       });
-  
     } catch (err: any) {
       console.error("Unexpected error:", err);
     } finally {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchData();
@@ -131,47 +152,54 @@ export const RestaurantDashboard = ({
 
   // RestaurantDashboard.tsx - Fix handleProcessRefund
 
-const handleProcessRefund = async (
-  refundId: string,
-  data: {
-    status: 'approved' | 'rejected';
-    approvedAmount?: number;
-    restaurantResponse?: string;
-  }
-) => {
-  try {
-    await refundService.processRefund(refundId, restaurantUserId, data);
-    
-    // Show success message
-    if (data.status === 'approved') {
-      alert('Refund approved successfully');
-    } else {
-      alert('Refund rejected successfully');
+  const handleProcessRefund = async (
+    refundId: string,
+    data: {
+      status: "approved" | "rejected";
+      approvedAmount?: number;
+      restaurantResponse?: string;
     }
-    
-    // Refresh data
-    await fetchData();
-  } catch (error: any) {
-    console.error('Failed to process refund:', error);
-    const errorMessage = error.response?.data?.message || 'Failed to process refund. Please try again.';
-    alert(errorMessage);
-    throw error;
-  }
-};
+  ) => {
+    try {
+      await refundService.processRefund(refundId, restaurantUserId, data);
+
+      // Show success message
+      if (data.status === "approved") {
+        alert("Refund approved successfully");
+      } else {
+        alert("Refund rejected successfully");
+      }
+
+      // Refresh data
+      await fetchData();
+    } catch (error: any) {
+      console.error("Failed to process refund:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to process refund. Please try again.";
+      alert(errorMessage);
+      throw error;
+    }
+  };
 
   const handleNavigateToSettings = async () => {
     setLoadingSettings(true);
     try {
       // Fetch full restaurant details using cateringService
-      const fullRestaurantDetails = await cateringService.getRestaurant(restaurantId);
+      const fullRestaurantDetails = await cateringService.getRestaurant(
+        restaurantId
+      );
 
       // Store full restaurant data in sessionStorage for the settings page to use
-      sessionStorage.setItem('restaurantData', JSON.stringify(fullRestaurantDetails));
+      sessionStorage.setItem(
+        "restaurantData",
+        JSON.stringify(fullRestaurantDetails)
+      );
 
       // Navigate to settings page
       router.push(`/restaurant/settings/${restaurantId}`);
     } catch (error) {
-      console.error('Failed to load restaurant details:', error);
+      console.error("Failed to load restaurant details:", error);
       // Navigate anyway - the settings page will fetch the data itself
       router.push(`/restaurant/settings/${restaurantId}`);
     } finally {
@@ -295,7 +323,7 @@ const handleProcessRefund = async (
 
   const hasMultipleBranches =
     !!restaurantUser?.paymentAccounts &&
-    Object.keys(restaurantUser.paymentAccounts).length > 0;
+    Object.keys(restaurantUser.paymentAccounts).length > 1;
   const showAllBranches = hasMultipleBranches && selectedAccountId === null;
 
   return (
@@ -392,9 +420,13 @@ const handleProcessRefund = async (
             >
               <div className="flex items-center justify-between h-full">
                 <div>
-                  <h3 className="text-lg font-bold mb-1">Restaurant Settings</h3>
+                  <h3 className="text-lg font-bold mb-1">
+                    Restaurant Settings
+                  </h3>
                   <p className="text-sm text-white/90">
-                    {loadingSettings ? "Loading..." : "Manage your restaurant profile and settings"}
+                    {loadingSettings
+                      ? "Loading..."
+                      : "Manage your restaurant profile and settings"}
                   </p>
                 </div>
                 <div className="bg-white/20 rounded-full p-3">
@@ -429,36 +461,36 @@ const handleProcessRefund = async (
         </div>
 
         <div>
-            <a
-              href={`/restaurant/promotions/${restaurantId}`}
-              className="block h-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg p-4 mb-4 transition-all hover:shadow-lg"
-            >
-              <div className="flex items-center justify-between h-full">
-                <div>
-                  <h3 className="text-lg font-bold mb-1">Promotions</h3>
-                  <p className="text-sm text-white/90">
-                    Create and manage discounts and special offers
-                  </p>
-                </div>
-                <div className="bg-white/20 rounded-full p-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                    />
-                  </svg>
-                </div>
+          <a
+            href={`/restaurant/promotions/${restaurantId}`}
+            className="block h-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg p-4 mb-4 transition-all hover:shadow-lg"
+          >
+            <div className="flex items-center justify-between h-full">
+              <div>
+                <h3 className="text-lg font-bold mb-1">Promotions</h3>
+                <p className="text-sm text-white/90">
+                  Create and manage discounts and special offers
+                </p>
               </div>
-            </a>
-          </div>
+              <div className="bg-white/20 rounded-full p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </a>
+        </div>
         {/* Payment Account Selector */}
         <PaymentAccountSelector
           paymentAccounts={restaurantUser?.paymentAccounts}
@@ -523,9 +555,10 @@ const handleProcessRefund = async (
                     }`}
                   >
                     Refund Requests
-                    {refunds.filter(r => r.status === 'pending').length > 0 && (
+                    {refunds.filter((r) => r.status === "pending").length >
+                      0 && (
                       <span className="ml-2 bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs">
-                        {refunds.filter(r => r.status === 'pending').length}
+                        {refunds.filter((r) => r.status === "pending").length}
                       </span>
                     )}
                   </button>
@@ -561,14 +594,15 @@ const handleProcessRefund = async (
               </div>
             ) : (
               <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Refund Requests</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">
+                  Refund Requests
+                </h2>
                 <RefundRequestsList
                   refunds={refunds}
                   onProcessRefund={handleProcessRefund}
                 />
               </div>
-            )
-            }
+            )}
           </>
         )}
       </div>

@@ -48,7 +48,10 @@ export const PaymentAccountSelector = ({
           {accounts.map(([accountId, account]) => (
             <button
               key={accountId}
-              onClick={() => onSelectAccount(accountId)}
+              onClick={() => {
+                console.log("Selecting account: ", accountId);
+                onSelectAccount(accountId);
+              }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                 selectedAccountId === accountId
                   ? "bg-blue-600 text-white"
