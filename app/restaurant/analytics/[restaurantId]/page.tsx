@@ -15,7 +15,7 @@ const RestaurantAnalyticsPage = () => {
   const router = useRouter();
   const params = useParams();
   const restaurantId = params.restaurantId as string;
-  const { user, token, login, logout, isAuthenticated } = useAuth();
+  const { user, token, login, logout, isAuthenticated, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [stripeStatus, setStripeStatus] =
@@ -56,6 +56,17 @@ const RestaurantAnalyticsPage = () => {
       fetchData();
     }
   }, [user, token, selectedAccountId]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user || !token) {
     return <LoginPage onLogin={login} />;
