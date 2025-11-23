@@ -61,17 +61,17 @@ export const RestaurantDashboard = ({
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
 
   // Auto-select account if there's only one OR set to 'legacy' for old single-account restaurants
-  // useEffect(() => {
-  //   if (restaurantUser?.paymentAccounts) {
-  //     const accounts = Object.keys(restaurantUser.paymentAccounts);
-  //     if (accounts.length === 1 && selectedAccountId === null) {
-  //       setSelectedAccountId(accounts[0]);
-  //     }
-  //   } else if (restaurantUser && selectedAccountId === null) {
-  //     // Legacy restaurant with single stripeAccountId (no paymentAccounts map)
-  //     setSelectedAccountId("legacy");
-  //   }
-  // }, [restaurantUser, selectedAccountId]);
+  useEffect(() => {
+    if (restaurantUser?.paymentAccounts) {
+      const accounts = Object.keys(restaurantUser.paymentAccounts);
+      if (accounts.length === 1 && selectedAccountId === null) {
+        setSelectedAccountId(accounts[0]);
+      }
+    } else if (restaurantUser && selectedAccountId === null) {
+      // Legacy restaurant with single stripeAccountId (no paymentAccounts map)
+      setSelectedAccountId("legacy");
+    }
+  }, [restaurantUser, selectedAccountId]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -575,7 +575,7 @@ export const RestaurantDashboard = ({
                   onSuccess={fetchData}
                   accountId={selectedAccountId}
                 />
-                <WithdrawalHistory history={history} /> f
+                <WithdrawalHistory history={history} />
               </div>
             ) : activeTab == "catering" ? (
               <div className="bg-white rounded-lg p-6">
