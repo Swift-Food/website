@@ -2,11 +2,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CateringOrderDetails } from '@/types/catering.types';
+import { CateringOrderResponse } from '@/types/api';
 import { ChefHat, Package, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface OrderItemsProps {
-  order: CateringOrderDetails;
+  order: CateringOrderResponse;
 }
 
 export default function OrderItems({ order }: OrderItemsProps) {
@@ -69,14 +69,14 @@ export default function OrderItems({ order }: OrderItemsProps) {
                   <div key={itemIdx} className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                       <div className="flex-1 sm:pr-4">
-                        <p className="font-semibold text-sm sm:text-base text-gray-900 mb-1 break-words">{'menuItemName' in item ? item.menuItemName : item.name}</p>
+                        <p className="font-semibold text-sm sm:text-base text-gray-900 mb-1 break-words">{item.menuItemName || item.name}</p>
                         <p className="text-xs sm:text-sm text-gray-600">
                           {Math.round(numUnits)} portion{Math.round(numUnits) !== 1 ? 's' : ''} •
                           Serves ~{Math.round(totalFeeds)} people
                         </p>
                       </div>
                       <p className="font-bold text-pink-600 text-sm sm:text-base whitespace-nowrap self-end sm:self-auto">
-                        £{Number(item.customerTotalPrice ?? ('totalPrice' in item ? item.totalPrice : 0)).toFixed(2)}
+                        £{Number(item.customerTotalPrice || 0).toFixed(2)}
                       </p>
                     </div>
 
@@ -90,7 +90,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
                                 • {addon.name} <span className="text-gray-500">x {addon.quantity}</span>
                               </span>
                               <span className="text-pink-600 font-semibold whitespace-nowrap">
-                                +£{((addon.customerUnitPrice ?? addon.price ?? 0) * addon.quantity).toFixed(2)}
+                                +£{(addon.customerUnitPrice * addon.quantity).toFixed(2)}
                               </span>
                             </div>
                           ))}
@@ -131,7 +131,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
               <span className="font-semibold">£{Number(order.deliveryFee).toFixed(2)}</span>
             </div>
             
-            {order.promoDiscount > 0 && (
+            {order.promoDiscount && order.promoDiscount > 0 && (
               <div className="flex justify-between text-green-600 text-sm sm:text-base">
                 <span className="font-semibold">Promo Discount:</span>
                 <span className="font-bold">-£{Number(order.promoDiscount).toFixed(2)}</span>
@@ -158,7 +158,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
               </span>
             </div>
 
-            {order.depositAmount > 0 && (
+            {order.depositAmount && order.depositAmount > 0 && (
               <div className="pt-2 sm:pt-3 border-t border-gray-300">
                 <div className="flex justify-between text-gray-700 text-sm sm:text-base">
                   <span className="font-medium">Deposit Amount:</span>

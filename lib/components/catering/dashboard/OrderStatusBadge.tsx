@@ -1,10 +1,11 @@
 // app/components/catering/dashboard/OrderStatusBadge.tsx
 import React from 'react';
 import { CateringOrderStatus } from '@/types/catering.types';
+import { CateringOrderStatus as ApiCateringOrderStatus } from '@/types/api';
 import { CheckCircle, Clock, Package, XCircle, Eye, CreditCard } from 'lucide-react';
 
 interface OrderStatusBadgeProps {
-  status: CateringOrderStatus;
+  status: CateringOrderStatus | ApiCateringOrderStatus;
 }
 
 const statusConfig = {

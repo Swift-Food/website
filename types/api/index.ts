@@ -8,6 +8,9 @@
 // Pricing types (responses)
 export * from './pricing.api.types';
 
+// Pricing breakdown types (responses)
+export * from './pricing-breakdown.api.types';
+
 // Catering order types (responses)
 export * from './catering.api.types';
 

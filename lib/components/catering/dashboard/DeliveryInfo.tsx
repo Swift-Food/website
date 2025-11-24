@@ -1,10 +1,10 @@
 // app/components/catering/dashboard/DeliveryInfo.tsx
 import React from 'react';
-import { CateringOrderDetails } from '@/types/catering.types';
+import { CateringOrderResponse } from '@/types/api';
 import { User, Mail, Phone, Clock, Building } from 'lucide-react';
 
 interface DeliveryInfoProps {
-  order: CateringOrderDetails;
+  order: CateringOrderResponse;
 }
 
 export default function DeliveryInfo({ order }: DeliveryInfoProps) {

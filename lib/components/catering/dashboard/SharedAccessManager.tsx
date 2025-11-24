@@ -2,12 +2,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CateringOrderDetails, AddSharedAccessDto, RemoveSharedAccessDto, SharedAccessRole, UpdateSharedAccessRoleDto } from '@/types/catering.types';
+import { AddSharedAccessDto, RemoveSharedAccessDto, SharedAccessRole, UpdateSharedAccessRoleDto } from '@/types/catering.types';
+import { CateringOrderResponse } from '@/types/api';
 import { cateringService } from '@/services/api/catering.api';
 import { Users, Trash2, Plus, X, Eye, Shield, Edit } from 'lucide-react';
 
 interface SharedAccessManagerProps {
-  order: CateringOrderDetails;
+  order: CateringOrderResponse;
   onUpdate: () => void;
   currentUserRole: SharedAccessRole | null;
 }

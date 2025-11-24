@@ -4,7 +4,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { cateringService } from "@/services/api/catering.api";
-import { CateringOrderDetails, SharedAccessRole } from "@/types/catering.types";
+import { SharedAccessRole } from "@/types/catering.types";
+import { CateringOrderResponse } from "@/types/api";
 import OrderStatusBadge from "@/lib/components/catering/dashboard/OrderStatusBadge";
 import OrderDetails from "@/lib/components/catering/dashboard/OrderDetails";
 import OrderItems from "@/lib/components/catering/dashboard/OrderItems";
@@ -23,7 +24,7 @@ export default function CateringDashboardPage() {
   const token = params.token as string;
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
   const [, setLoadingRefunds] = useState(false);
-  const [order, setOrder] = useState<CateringOrderDetails | null>(null);
+  const [order, setOrder] = useState<CateringOrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] =

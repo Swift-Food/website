@@ -8,7 +8,6 @@ import {
   ContactInfo,
   CateringPricingResult,
   PromoCodeValidation,
-  CateringOrderDetails,
   CreateMenuItemDto,
   MenuItemDetails,
   UpdateMenuItemDto,
@@ -24,6 +23,9 @@ import {
   UpdatePickupContactRequest,
   UpdateDeliveryTimeRequest,
   UpdateSharedAccessRoleRequest,
+  CateringOrderResponse,
+  OrderPricingBreakdown,
+  RestaurantPayoutsResponse,
 } from "@/types/api";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
 
@@ -415,7 +417,7 @@ class CateringService {
     }
   }
 
-  async getOrderByToken(token: string): Promise<CateringOrderDetails> {
+  async getOrderByToken(token: string): Promise<CateringOrderResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/view/${token}`
     );
@@ -427,7 +429,7 @@ class CateringService {
     return response.json();
   }
 
-  async getOrdersByUserId(userId: string): Promise<CateringOrderDetails[]> {
+  async getOrdersByUserId(userId: string): Promise<CateringOrderResponse[]> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/user/${userId}`
     );
@@ -441,7 +443,7 @@ class CateringService {
 
   async addSharedAccess(
     dto: AddSharedAccessRequest
-  ): Promise<CateringOrderDetails> {
+  ): Promise<CateringOrderResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/add`,
       {
@@ -461,7 +463,7 @@ class CateringService {
 
   async updateSharedAccessRole(
     dto: UpdateSharedAccessRoleRequest
-  ): Promise<CateringOrderDetails> {
+  ): Promise<CateringOrderResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/update-role`,
       {
@@ -481,7 +483,7 @@ class CateringService {
 
   async removeSharedAccess(
     dto: RemoveSharedAccessRequest
-  ): Promise<CateringOrderDetails> {
+  ): Promise<CateringOrderResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/shared-access/remove`,
       {
@@ -501,7 +503,7 @@ class CateringService {
 
   async updatePickupContact(
     dto: UpdatePickupContactRequest
-  ): Promise<CateringOrderDetails> {
+  ): Promise<CateringOrderResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/pickup-contact`,
       {
@@ -521,7 +523,7 @@ class CateringService {
 
   async updateDeliveryTime(
     dto: UpdateDeliveryTimeRequest
-  ): Promise<CateringOrderDetails> {
+  ): Promise<CateringOrderResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/delivery-time`,
       {
@@ -701,15 +703,15 @@ class CateringService {
     return response.json();
   }
 
-  // NEW PRICING API METHODS
+  // PRICING API METHODS
 
   /**
    * Get detailed pricing breakdown for a catering order
-   * Uses new clear pricing API with explicit field names
+   * Returns complete pricing calculation from the pricing engine
    */
   async getCateringOrderPricingBreakdown(
     orderId: string
-  ): Promise<import("@/types/catering.types").PricingBreakdownDto> {
+  ): Promise<OrderPricingBreakdown> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/pricing-breakdown`
     );
@@ -727,9 +729,7 @@ class CateringService {
    */
   async getCateringOrderRestaurantPayouts(
     orderId: string
-  ): Promise<
-    Record<string, import("@/types/catering.types").RestaurantPayoutDto>
-  > {
+  ): Promise<RestaurantPayoutsResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/restaurant-payouts`
     );
@@ -743,11 +743,11 @@ class CateringService {
 
   /**
    * Get detailed pricing breakdown for a corporate order
-   * Uses new clear pricing API with explicit field names
+   * Returns complete pricing calculation from the pricing engine
    */
   async getCorporateOrderPricingBreakdown(
     orderId: string
-  ): Promise<import("@/types/catering.types").PricingBreakdownDto> {
+  ): Promise<OrderPricingBreakdown> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/corporate-orders/${orderId}/pricing-breakdown`
     );
@@ -765,9 +765,7 @@ class CateringService {
    */
   async getCorporateOrderRestaurantPayouts(
     orderId: string
-  ): Promise<
-    Record<string, import("@/types/catering.types").RestaurantPayoutDto>
-  > {
+  ): Promise<RestaurantPayoutsResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/corporate-orders/${orderId}/restaurant-payouts`
     );

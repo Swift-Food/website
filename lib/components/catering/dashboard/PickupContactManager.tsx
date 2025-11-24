@@ -2,12 +2,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CateringOrderDetails, UpdatePickupContactDto } from '@/types/catering.types';
+import { UpdatePickupContactDto } from '@/types/catering.types';
+import { CateringOrderResponse } from '@/types/api';
 import { cateringService } from '@/services/api/catering.api';
 import { User, Mail, Phone, Edit2 } from 'lucide-react';
 
 interface PickupContactManagerProps {
-  order: CateringOrderDetails;
+  order: CateringOrderResponse;
   onUpdate: () => void;
   accessToken: string;
 }

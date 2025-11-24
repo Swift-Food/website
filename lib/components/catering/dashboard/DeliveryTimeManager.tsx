@@ -2,12 +2,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CateringOrderDetails, UpdateDeliveryTimeDto } from '@/types/catering.types';
+import { UpdateDeliveryTimeDto } from '@/types/catering.types';
+import { CateringOrderResponse } from '@/types/api';
 import { cateringService } from '@/services/api/catering.api';
 import { Clock, AlertCircle } from 'lucide-react';
 
 interface DeliveryTimeManagerProps {
-  order: CateringOrderDetails;
+  order: CateringOrderResponse;
   onUpdate: () => void;
   accessToken: string;
 }
