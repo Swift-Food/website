@@ -69,6 +69,10 @@ export interface CateringOrderResponse {
   pickupContactPhone?: string;
   pickupContactEmail?: string;
 
+  // Delivery time tracking
+  deliveryTimeChangedAt?: string | Date;
+  deliveryTimeChangedBy?: string;
+
   // Additional info
   specialInstructions?: string;
   accessToken?: string;

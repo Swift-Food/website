@@ -202,14 +202,14 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
                       <option value={SharedAccessRole.MANAGER}>Manager</option>
                     </select>
                   ) : (
-                    <span 
+                    <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold w-fit ${
-                        user.role === SharedAccessRole.MANAGER
+                        user.role === 'editor'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-blue-100 text-blue-700'
                       }`}
                     >
-                      {user.role === SharedAccessRole.MANAGER ? (
+                      {user.role === 'editor' ? (
                         <>
                           <Shield className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           Manager

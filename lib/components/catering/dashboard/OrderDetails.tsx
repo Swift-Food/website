@@ -53,10 +53,10 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
           </div>
         </div>
 
-        {order.specialRequirements && (
+        {order.specialInstructions && (
           <div className="sm:col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
             <p className="text-xs sm:text-sm font-semibold text-yellow-900 mb-2">📋 Special Requirements</p>
-            <p className="text-xs sm:text-sm text-yellow-800 whitespace-pre-wrap break-words">{order.specialRequirements}</p>
+            <p className="text-xs sm:text-sm text-yellow-800 whitespace-pre-wrap break-words">{order.specialInstructions}</p>
           </div>
         )}
 

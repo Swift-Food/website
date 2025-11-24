@@ -156,12 +156,12 @@ export default function CateringDashboardPage() {
                 <RefundRequestButton
                   orderId={order.id}
                   orderType="catering"
-                  orderCompletedAt={order.updatedAt}
-                  totalAmount={order.finalTotal}
+                  orderCompletedAt={typeof order.updatedAt === 'string' ? order.updatedAt : order.updatedAt.toISOString()}
+                  totalAmount={order.finalTotal ?? 0}
                   orderItems={order.restaurants || order.orderItems || []}
                   canRequestRefund={true}
                   onRefundRequested={loadOrder}
-                  userId={order.userId}
+                  userId={order.userId ?? ''}
                 />
               </div>
               )}
