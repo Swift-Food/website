@@ -20,7 +20,8 @@ import { MenuItem } from "@/lib/components/catering/Step2MenuItems";
 
 export interface SelectedAddon {
   name: string;
-  price: number;
+  price: number; // Legacy field - kept for backwards compatibility
+  customerUnitPrice?: number; // New field matching backend DTO
   quantity: number;
   groupTitle: string;
 }
@@ -264,9 +265,10 @@ export interface OrderItemDto {
  */
 export interface PricingAddonDto {
   name: string;
-  price: number;
+  price?: number; // Legacy field - kept for backwards compatibility
+  customerUnitPrice: number; // New field matching backend DTO
   quantity: number;
-  groupTitle: string;
+  groupTitle?: string;
 }
 
 /**

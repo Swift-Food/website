@@ -90,7 +90,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
                                 • {addon.name} <span className="text-gray-500">x {addon.quantity}</span>
                               </span>
                               <span className="text-pink-600 font-semibold whitespace-nowrap">
-                                +£{(addon.price * addon.quantity).toFixed(2)}
+                                +£{((addon.customerUnitPrice ?? addon.price ?? 0) * addon.quantity).toFixed(2)}
                               </span>
                             </div>
                           ))}
