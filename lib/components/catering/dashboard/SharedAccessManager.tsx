@@ -10,22 +10,22 @@ import { Users, Trash2, Plus, X, Eye, Shield, Edit } from 'lucide-react';
 interface SharedAccessManagerProps {
   order: CateringOrderResponse;
   onUpdate: () => void;
-  currentUserRole: SharedAccessRole | null;
+  currentUserRole: 'viewer' | 'editor' | null;
 }
 
 export default function SharedAccessManager({ order, onUpdate, currentUserRole }: SharedAccessManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    email: '', 
-    role: SharedAccessRole.VIEWER as SharedAccessRole 
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: SharedAccessRole.VIEWER as SharedAccessRole
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<string | null>(null);
 
   const sharedUsers = order.sharedAccessUsers || [];
-  const isManager = currentUserRole === SharedAccessRole.MANAGER;
+  const isManager = currentUserRole === 'editor';
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();

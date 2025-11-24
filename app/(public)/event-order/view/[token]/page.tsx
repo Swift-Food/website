@@ -4,7 +4,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { cateringService } from "@/services/api/catering.api";
-import { SharedAccessRole } from "@/types/catering.types";
 import { CateringOrderResponse } from "@/types/api";
 import OrderStatusBadge from "@/lib/components/catering/dashboard/OrderStatusBadge";
 import OrderDetails from "@/lib/components/catering/dashboard/OrderDetails";
@@ -28,7 +27,7 @@ export default function CateringDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] =
-    useState<SharedAccessRole | null>(null);
+    useState<'viewer' | 'editor' | null>(null);
 
     useEffect(() => {
       loadOrder();
@@ -104,7 +103,7 @@ export default function CateringDashboardPage() {
     );
   }
 
-  const isManager = currentUserRole === SharedAccessRole.MANAGER;
+  const isManager = currentUserRole === 'editor';
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
