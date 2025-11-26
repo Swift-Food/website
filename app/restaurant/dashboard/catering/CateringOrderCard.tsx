@@ -23,7 +23,7 @@ interface CateringOrderCardProps {
   onAccountSelect: (orderId: string, accountId: string) => void;
   loadingAccounts: boolean;
   token?: string;
-  onClaim: (orderId: string) => Promise<void>; 
+  onClaim: (orderId: string) => Promise<void>;
   claiming: string | null;
 }
 
@@ -38,13 +38,20 @@ export const CateringOrderCard = ({
   loadingAccounts,
   token,
   onClaim, // Add new prop
-  claiming, 
+  claiming,
 }: CateringOrderCardProps) => {
   const [expandedItems, setExpandedItems] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState(false);
   const isUnassigned = order.isUnassigned === true;
-  const isPaidOrder = order.status === 'paid' || order.status === 'confirmed';
-  console.log('Order:', order.id, 'isUnassigned:', isUnassigned, 'status:', order.status);
+  const isPaidOrder = order.status === "paid" || order.status === "confirmed";
+  console.log(
+    "Order:",
+    order.id,
+    "isUnassigned:",
+    isUnassigned,
+    "status:",
+    order.status
+  );
   // 🔍 View receipt in new tab (no print)
   const viewReceipt = async () => {
     if (!token) {
@@ -60,7 +67,12 @@ export const CateringOrderCard = ({
           : null;
 
       const data = await fetchReceiptJson(order.id, restaurantId, token);
-      const html = buildReceiptHTML(data, order.id, order.eventDate, branchName);
+      const html = buildReceiptHTML(
+        data,
+        order.id,
+        order.eventDate,
+        branchName
+      );
       const w = window.open("", "_blank");
       if (!w) {
         alert("Popup blocked. Please allow popups to view receipt.");
@@ -80,7 +92,7 @@ export const CateringOrderCard = ({
       setViewingReceipt(false);
     }
   };
-  
+
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -184,6 +196,7 @@ export const CateringOrderCard = ({
 
   // Support both new (restaurants) and legacy (orderItems) formats
   const restaurantsData = order.restaurants || order.orderItems || [];
+  console.log("Restaurant data: ", restaurantsData);
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
@@ -197,15 +210,19 @@ export const CateringOrderCard = ({
       {isUnassigned && isPaidOrder && (
         <div className="mb-4 bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+            <AlertCircle
+              className="text-yellow-600 flex-shrink-0 mt-0.5"
+              size={20}
+            />
             <div className="flex-1">
               <p className="font-semibold text-yellow-900 mb-2">
                 ⚠️ Action Required: Assign Payment Account
               </p>
               <p className="text-sm text-yellow-800 mb-3">
-                This order has been paid by the customer. Please select which branch/account should receive the payout.
+                This order has been paid by the customer. Please select which
+                branch/account should receive the payout.
               </p>
-              
+
               {/* Account Selector */}
               <div className="mb-3">
                 <label className="block text-xs font-semibold text-yellow-900 mb-2">
@@ -249,7 +266,8 @@ export const CateringOrderCard = ({
               <p className="text-xs text-yellow-700 mt-2">
                 💰 Once assigned, earnings will be transferred to:{" "}
                 <strong>
-                  {selectedAccounts[order.id] && availableAccounts[selectedAccounts[order.id]]?.name}
+                  {selectedAccounts[order.id] &&
+                    availableAccounts[selectedAccounts[order.id]]?.name}
                 </strong>
               </p>
             </div>
@@ -269,38 +287,41 @@ export const CateringOrderCard = ({
           </span>
         </div>
         <div className="sm:text-right">
-        <div className="mb-1">
-          <p className="text-xs text-gray-600 font-medium">Your Earnings</p>
-          <p className="font-bold text-xl sm:text-2xl text-green-600">
-            {formatCurrency(order.restaurantsTotalNet || order.restaurantTotalCost || 0)}
-          </p>
-        </div>
-        
-        {/* Show pricing breakdown */}
-        <div className="mb-2 space-y-1">
-          {order.promoDiscount && Number(order.promoDiscount) > 0 ? (
-            <>
+          <div className="mb-1">
+            <p className="text-xs text-gray-600 font-medium">Your Earnings</p>
+            <p className="font-bold text-xl sm:text-2xl text-green-600">
+              {formatCurrency(
+                order.restaurantsTotalNet || order.restaurantTotalCost || 0
+              )}
+            </p>
+          </div>
+
+          {/* Show pricing breakdown */}
+          <div className="mb-2 space-y-1">
+            {order.promoDiscount && Number(order.promoDiscount) > 0 ? (
+              <>
+                <p className="text-sm text-gray-600">
+                  Subtotal:{" "}
+                  {formatCurrency(order.subtotal || order.estimatedTotal)}
+                </p>
+                <p className="text-sm text-green-600 font-medium">
+                  Promotion Savings: -{formatCurrency(order.promoDiscount)}
+                </p>
+                <p className="text-sm text-gray-900 font-semibold">
+                  Customer Paid: {formatCurrency(order.finalTotal)}
+                </p>
+              </>
+            ) : (
               <p className="text-sm text-gray-600">
-                Subtotal: {formatCurrency(order.subtotal || order.estimatedTotal)}
-              </p>
-              <p className="text-sm text-green-600 font-medium">
-                Promotion Savings: -{formatCurrency(order.promoDiscount)}
-              </p>
-              <p className="text-sm text-gray-900 font-semibold">
                 Customer Paid: {formatCurrency(order.finalTotal)}
               </p>
-            </>
-          ) : (
-            <p className="text-sm text-gray-600">
-              Customer Paid: {formatCurrency(order.finalTotal)}
-            </p>
-          )}
+            )}
+          </div>
+
+          <p className="text-xs text-gray-500">
+            Event: {formatDate(order.eventDate)}
+          </p>
         </div>
-        
-        <p className="text-xs text-gray-500">
-          Event: {formatDate(order.eventDate)}
-        </p>
-      </div>
       </div>
 
       {/* 👁️ View / 💾 Download Receipt Buttons */}
@@ -330,7 +351,7 @@ export const CateringOrderCard = ({
           className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
           type="button"
         > */}
-          {/* {downloadingReceipt ? (
+        {/* {downloadingReceipt ? (
             <>
               <Loader size={14} className="animate-spin" />
               Generating...
@@ -379,7 +400,7 @@ export const CateringOrderCard = ({
         </p>
       </div>
       {/* Applied Promotions */}
-   
+
       {/* Order Items - Expandable */}
       <div className="border-t border-gray-200 pt-4">
         <button
@@ -406,89 +427,154 @@ export const CateringOrderCard = ({
             {restaurantsData.map((restaurant, idx) => (
               <div key={idx} className="mb-3">
                 <div className="space-y-2">
-                  {restaurant.menuItems.map((item, itemIdx) => (
-                    <div
-                      key={itemIdx}
-                      className="flex justify-between items-center bg-gray-50 p-2 sm:p-3 rounded"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-sm truncate">
-                          {(item as any).menuItemName || (item as any).name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Qty: {item.quantity}
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-1.5 ml-2">
-                        {/* Restaurant Net Earnings (what they receive after commission) */}
-                        <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
-                          <p className="text-[10px] text-green-700 font-medium leading-tight">
-                            YOUR NET EARNINGS
-                          </p>
-                          {item.restaurantNetAmount !== undefined ? (
-                            <>
-                              <p className="text-[10px] text-green-600 leading-tight">
-                                Per unit: {formatCurrency(item.restaurantNetAmount / item.quantity)}
-                              </p>
-                              <p className="text-[10px] text-green-600 leading-tight">
-                                Qty: {item.quantity}
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-[10px] text-green-600 leading-tight">
-                                Total Net: {formatCurrency(getItemNetEarnings(item))}
-                              </p>
-                              <p className="text-[10px] text-green-600 leading-tight">
-                                Qty: {item.quantity}
-                              </p>
-                            </>
-                          )}
-                          <p className="text-sm font-bold text-green-800 leading-tight mt-0.5">
-                            {formatCurrency(getItemNetEarnings(item))}
-                          </p>
-                        </div>
+                  {restaurant.menuItems.map((item, itemIdx) => {
+                    // Group addons by groupTitle
+                    const addonGroups: Record<string, any[]> = {};
+                    if (
+                      (item as any).addons &&
+                      Array.isArray((item as any).addons)
+                    ) {
+                      (item as any).addons.forEach((addon: any) => {
+                        const groupTitle = addon.groupTitle || "Other";
+                        if (!addonGroups[groupTitle]) {
+                          addonGroups[groupTitle] = [];
+                        }
+                        addonGroups[groupTitle].push(addon);
+                      });
+                    }
 
-                        {/* Gross Price (before commission) */}
-                        <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
-                          <p className="text-xs text-gray-900 font-medium leading-tight">
-                            GROSS PRICE
-                          </p>
-                          {item.restaurantBaseTotalPrice !== undefined ? (
-                            <>
-                              <p className="text-[10px] text-gray-600 leading-tight">
-                                Per unit: {formatCurrency(item.restaurantBaseUnitPrice || 0)}
+                    return (
+                      <div key={itemIdx} className="space-y-2">
+                        <div className="flex justify-between items-center bg-gray-50 p-2 sm:p-3 rounded">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 text-sm truncate">
+                              {(item as any).menuItemName || (item as any).name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Qty: {item.quantity}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-1.5 ml-2">
+                            {/* Restaurant Net Earnings (what they receive after commission) */}
+                            <div className="bg-green-100 border border-green-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
+                              <p className="text-[10px] text-green-700 font-medium leading-tight">
+                                YOUR NET EARNINGS
                               </p>
-                              {item.commissionRate && (
-                                <p className="text-[10px] text-gray-600 leading-tight">
-                                  Commission: {item.commissionRate}%
-                                </p>
+                              {item.restaurantNetAmount !== undefined ? (
+                                <>
+                                  <p className="text-[10px] text-green-600 leading-tight">
+                                    Per unit:{" "}
+                                    {formatCurrency(
+                                      item.restaurantNetAmount / item.quantity
+                                    )}
+                                  </p>
+                                  <p className="text-[10px] text-green-600 leading-tight">
+                                    Qty: {item.quantity}
+                                  </p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-[10px] text-green-600 leading-tight">
+                                    Total Net:{" "}
+                                    {formatCurrency(getItemNetEarnings(item))}
+                                  </p>
+                                  <p className="text-[10px] text-green-600 leading-tight">
+                                    Qty: {item.quantity}
+                                  </p>
+                                </>
                               )}
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-[10px] text-gray-600 leading-tight">
-                                Total Gross: {formatCurrency(getItemGrossPrice(item))}
+                              <p className="text-sm font-bold text-green-800 leading-tight mt-0.5">
+                                {formatCurrency(getItemNetEarnings(item))}
                               </p>
-                              <p className="text-[10px] text-gray-600 leading-tight">
-                                Qty: {item.quantity}
+                            </div>
+
+                            {/* Gross Price (before commission) */}
+                            <div className="bg-gray-100 border border-gray-300 rounded-md px-2 py-0.5 min-h-[42px] flex flex-col justify-center">
+                              <p className="text-xs text-gray-900 font-medium leading-tight">
+                                GROSS PRICE
                               </p>
-                            </>
-                          )}
-                          <p className="text-sm font-semibold text-gray-700 leading-tight mt-0.5">
-                            {formatCurrency(getItemGrossPrice(item))}
-                          </p>
+                              {item.restaurantBaseTotalPrice !== undefined ? (
+                                <>
+                                  <p className="text-[10px] text-gray-600 leading-tight">
+                                    Per unit:{" "}
+                                    {formatCurrency(
+                                      item.restaurantBaseUnitPrice || 0
+                                    )}
+                                  </p>
+                                  {item.commissionRate && (
+                                    <p className="text-[10px] text-gray-600 leading-tight">
+                                      Commission: {item.commissionRate}%
+                                    </p>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-[10px] text-gray-600 leading-tight">
+                                    Total Gross:{" "}
+                                    {formatCurrency(getItemGrossPrice(item))}
+                                  </p>
+                                  <p className="text-[10px] text-gray-600 leading-tight">
+                                    Qty: {item.quantity}
+                                  </p>
+                                </>
+                              )}
+                              <p className="text-sm font-semibold text-gray-700 leading-tight mt-0.5">
+                                {formatCurrency(getItemGrossPrice(item))}
+                              </p>
+                            </div>
+
+                            {/* Customer Price (what customer paid) */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 min-h-[32px] flex flex-col justify-center">
+                              <p className="text-[10px] text-blue-700 font-medium leading-tight">
+                                Customer Paid:{" "}
+                                {formatCurrency(getItemCustomerPrice(item))}
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Customer Price (what customer paid) */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 min-h-[32px] flex flex-col justify-center">
-                          <p className="text-[10px] text-blue-700 font-medium leading-tight">
-                            Customer Paid: {formatCurrency(getItemCustomerPrice(item))}
-                          </p>
-                        </div>
+                        {/* Addons grouped by groupTitle */}
+                        {Object.keys(addonGroups).length > 0 && (
+                          <div className="space-y-2">
+                            {Object.entries(addonGroups).map(
+                              ([groupTitle, addons]) => (
+                                <div
+                                  key={groupTitle}
+                                  className="bg-purple-50 border border-purple-200 rounded p-2"
+                                >
+                                  <p className="text-xs font-semibold text-purple-900 mb-1">
+                                    {groupTitle}:
+                                  </p>
+                                  <div className="space-y-1">
+                                    {addons.map((addon, addonIdx) => (
+                                      <div
+                                        key={addonIdx}
+                                        className="flex justify-between items-center text-xs"
+                                      >
+                                        <span className="text-purple-800">
+                                          {addon.name} × {addon.quantity}
+                                        </span>
+                                        {addon.customerUnitPrice !==
+                                          undefined &&
+                                          addon.customerUnitPrice > 0 && (
+                                            <span className="text-purple-700 font-medium">
+                                              {formatCurrency(
+                                                addon.customerUnitPrice *
+                                                  addon.quantity
+                                              )}
+                                            </span>
+                                          )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
