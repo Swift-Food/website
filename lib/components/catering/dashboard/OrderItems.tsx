@@ -60,16 +60,20 @@ export default function OrderItems({ order }: OrderItemsProps) {
               <div className="p-3 sm:p-5">
             <div className="space-y-2 sm:space-y-3">
               {restaurant.menuItems.map((item, itemIdx) => {
-                const cateringUnit = item.cateringQuantityUnit || 7;
+                const cateringUnit = item.cateringQuantityUnit || 1;
                 const feedsPerUnit = item.feedsPerUnit || 10;
+                
                 const numUnits = item.quantity / cateringUnit;
+                console.log("items", item.menuItemName, item.quantity, cateringUnit)
                 const totalFeeds = numUnits * feedsPerUnit;
 
                 return (
                   <div key={itemIdx} className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                       <div className="flex-1 sm:pr-4">
-                        <p className="font-semibold text-sm sm:text-base text-gray-900 mb-1 break-words">{item.menuItemName || item.name}</p>
+                        <p className="font-semibold text-sm sm:text-base text-gray-900 mb-1 break-words">
+                          {item.menuItemName || item.name}
+                        </p>
                         <p className="text-xs sm:text-sm text-gray-600">
                           {Math.round(numUnits)} portion{Math.round(numUnits) !== 1 ? 's' : ''} •
                           Serves ~{Math.round(totalFeeds)} people
@@ -154,7 +158,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
             <div className="flex justify-between text-lg sm:text-xl font-bold text-gray-900 pt-2 sm:pt-3 border-t-2 border-gray-300">
               <span>Total:</span>
               <span className="text-pink-600">
-                £{Number(order.customerFinalTotal ?? order.finalTotal ?? order.estimatedTotal).toFixed(2)}
+                £{Number(order.finalTotal ?? order.estimatedTotal).toFixed(2)}
               </span>
             </div>
 
