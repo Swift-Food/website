@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
-import { CateringOrderDetails } from "@/types/catering.types";
+import { CateringOrderDetails, CateringOrderStatus } from "@/types/catering.types";
 import { restaurantApi } from "@/services/api/restaurant.api";
 import { CateringOrderCard } from "./CateringOrderCard";
 
@@ -39,6 +39,16 @@ export const CateringOrdersList = ({
     Record<string, any>
   >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const processedOrders = orders.map(order => {
+    // Check if this restaurant has reviewed the order
+    if (
+      order.restaurantReviews?.includes(restaurantId) && 
+      order.status === "admin_reviewed"
+    ) {
+      return { ...order, status: CateringOrderStatus.RESTAURANT_REVIEWED };
+    }
+    return order;
+  });
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -131,14 +141,14 @@ export const CateringOrdersList = ({
     }
   };
 
-  const ordersByStatus = orders.reduce((acc, order) => {
+  const ordersByStatus = processedOrders.reduce((acc, order) => {
     const status = order.status;
     if (!acc[status]) acc[status] = [];
     acc[status].push(order);
     return acc;
   }, {} as Record<string, CateringOrderDetails[]>);
 
-  const unassignedOrders = orders.filter(
+  const unassignedOrders = processedOrders.filter(
     (order) => order.isUnassigned === true
   );
   const showOnlyPendingReview =

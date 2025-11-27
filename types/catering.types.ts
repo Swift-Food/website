@@ -497,6 +497,7 @@ export interface CateringOrderDetails {
   paymentLinkSentAt?: string;
   paidAt?: string;
   adminNotes?: string;
+  restaurantReviews?: string[];
   reviewedBy?: string;
   reviewedAt?: string;
   promoCodes: string[];
