@@ -138,25 +138,21 @@ class CateringService {
         const unitPrice =
           item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-        // Calculate addon price
-        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-        const addonPricePerUnit = (item.selectedAddons || []).reduce(
-          (addonTotal, { price, quantity }) => {
-            return (
-              addonTotal +
-              (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-            );
+        // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+        const addonTotal = (item.selectedAddons || []).reduce(
+          (sum, { price, quantity }) => {
+            return sum + (price || 0) * (quantity || 0);
           },
           0
         );
 
         // Total price includes both item price and addon price
-        const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
+        const itemTotalPrice = unitPrice * quantity + addonTotal;
 
-        // Transform addons for backend (remove price - backend calculates it)
+        // Send addons as-is to backend (no quantity transformation needed)
         const transformedAddons = (item.selectedAddons || []).map((addon) => ({
           name: addon.name,
-          quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
+          quantity: addon.quantity || 0,
           groupTitle: addon.groupTitle,
         }));
 
@@ -166,7 +162,7 @@ class CateringService {
           groupTitle: item.groupTitle,
           quantity,
           unitPrice,
-          addonPrice: addonPricePerUnit,
+          addonPrice: addonTotal,
           selectedAddons: transformedAddons,
           totalPrice: itemTotalPrice,
         });

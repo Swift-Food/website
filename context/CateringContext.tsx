@@ -340,24 +340,21 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     // Calculate subtotal per restaurant
     selectedItems.forEach(({ item, quantity }) => {
       const restaurantId = item.restaurantId;
-      const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-      
+
       const price = parseFloat(item.price?.toString() || "0");
       const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
       const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-      
-      // FIXED: Calculate addon price correctly
-      const addonPricePerPortion = (item.selectedAddons || []).reduce(
-        (addonTotal, { price, quantity }) => {
-          return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+
+      // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+      const addonTotal = (item.selectedAddons || []).reduce(
+        (total, { price, quantity }) => {
+          return total + (price || 0) * (quantity || 0);
         },
         0
       );
-      
-      const numPortions = quantity / BACKEND_QUANTITY_UNIT;
-      const totalAddonPrice = addonPricePerPortion * numPortions;
-      const itemSubtotal = (itemPrice * quantity) + totalAddonPrice;
+
+      // Item subtotal = (unitPrice × quantity) + addonTotal
+      const itemSubtotal = (itemPrice * quantity) + addonTotal;
       
       if (!restaurantSubtotals[restaurantId]) {
         restaurantSubtotals[restaurantId] = 0;
@@ -601,32 +598,22 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       optionalSelectedItems.length > 0 ? optionalSelectedItems : selectedItems;
     const newTotalPrice = usedSelectedItems.reduce(
       (total, { item, quantity }) => {
-        const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-  
         const price = parseFloat(item.price?.toString() || "0");
         const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
         const unitPrice =
           item.isDiscount && discountPrice > 0 ? discountPrice : price;
-  
+
         const itemPrice = unitPrice * quantity;
-        
-        // FIXED: Calculate addon price per portion, then multiply by number of portions
-        const addonPricePerPortion = (item.selectedAddons || []).reduce(
-          (addonTotal, { price, quantity }) => {
-            return (
-              addonTotal +
-              (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-            );
+
+        // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+        const addonTotal = (item.selectedAddons || []).reduce(
+          (sum, { price, quantity }) => {
+            return sum + (price || 0) * (quantity || 0);
           },
           0
         );
-        
-        // Calculate how many portions
-        const numPortions = quantity / BACKEND_QUANTITY_UNIT;
-        const totalAddonPrice = addonPricePerPortion * numPortions;
-  
-        return total + itemPrice + totalAddonPrice;
+
+        return total + itemPrice + addonTotal;
       },
       0
     );

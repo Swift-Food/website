@@ -6,6 +6,7 @@ export interface ReceiptSummary {
   grossSales: number;
   totalDeductions: number;
   totalSwiftCommissions: number;
+  promoDiscount?: number;
   netEarnings: number;
 }
 
@@ -15,6 +16,8 @@ export interface ByMenuItemRow {
   unitPrice: number;
   grossSales: number;
   swiftCommission: number;
+  restaurantGross: number;
+  promoDeduction: number;
   totalNet: number;
   orderStatus: string;
 }
@@ -127,7 +130,7 @@ export function buildReceiptHTML(
       <table style="width:100%;border-collapse:collapse;font-size:14px;color:#333;">
         <tr><td style="padding:8px 0;color:#666;">Gross Sales:</td><td style="text-align:right;font-weight:600;font-size:15px;">${fmt(summary.grossSales)}</td></tr>
         <tr><td style="padding:8px 0;color:#666;">Swift Commission:</td><td style="text-align:right;font-weight:600;">-${fmt(summary.totalSwiftCommissions)}</td></tr>
-        ${summary.totalDeductions ? `<tr><td style="padding:8px 0;color:#666;">Promo / Deductions:</td><td style="text-align:right;font-weight:600;">-${fmt(summary.totalDeductions)}</td></tr>` : ""}
+        ${summary.promoDiscount ? `<tr><td style="padding:8px 0;color:#999;font-size:13px;font-style:italic;">Customer Promo (Swift absorbed):</td><td style="text-align:right;color:#999;font-size:13px;">-${fmt(summary.promoDiscount)}</td></tr>` : ""}
         <tr style="border-top:2px solid #e0e0e0;"><td style="padding:14px 0;font-weight:700;font-size:15px;">Net Earnings:</td><td style="text-align:right;font-weight:700;font-size:18px;">${fmt(summary.netEarnings)}</td></tr>
       </table>
     </div>
@@ -143,7 +146,7 @@ export function buildReceiptHTML(
           <td style="padding:14px 12px;text-align:right;border-bottom:1px solid #f0f0f0;">${fmt(r.unitPrice)}</td>
           <td style="padding:14px 12px;text-align:right;border-bottom:1px solid #f0f0f0;">${fmt(r.grossSales)}</td>
           <td style="padding:14px 12px;text-align:right;border-bottom:1px solid #f0f0f0;">${fmt(r.swiftCommission)}</td>
-          <td style="padding:14px 12px;text-align:right;border-bottom:1px solid #f0f0f0;font-weight:700;color:#2e7d32;">${fmt(r.totalNet)}</td>
+          <td style="padding:14px 12px;text-align:right;border-bottom:1px solid #f0f0f0;font-weight:700;color:#2e7d32;">${fmt(r.restaurantGross)}</td>
         </tr>
       `).join("");
       return `
@@ -155,9 +158,9 @@ export function buildReceiptHTML(
                 <th style="text-align:left;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Item</th>
                 <th style="text-align:center;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Qty</th>
                 <th style="text-align:right;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Unit</th>
-                <th style="text-align:right;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Gross</th>
+                <th style="text-align:right;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Customer Gross</th>
                 <th style="text-align:right;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Commission</th>
-                <th style="text-align:right;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Net</th>
+                <th style="text-align:right;padding:12px;border-bottom:2px solid #ddd;font-weight:700;">Restaurant Net</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>

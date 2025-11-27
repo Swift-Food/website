@@ -31,17 +31,17 @@ export function OrderItemsList({ selectedItems }: OrderItemsListProps) {
         const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
         const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
         const displayFeeds = quantity / BACKEND_QUANTITY_UNIT;
 
-        const addonPrice = (item.selectedAddons || []).reduce(
-          (addonTotal, { price, quantity }) => {
-            return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+        // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+        const addonTotal = (item.selectedAddons || []).reduce(
+          (sum, { price, quantity }) => {
+            return sum + (price || 0) * (quantity || 0);
           },
           0
         );
 
-        const subtotal = itemPrice * quantity + addonPrice;
+        const subtotal = itemPrice * quantity + addonTotal;
 
         return (
           <div key={index} className="flex items-center gap-3">

@@ -770,7 +770,6 @@ export default function Step2MenuItems() {
                     {selectedItems.map(({ item, quantity }, index) => {
                       const BACKEND_QUANTITY_UNIT =
                         item.cateringQuantityUnit || 7;
-                      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                       const price = parseFloat(item.price?.toString() || "0");
                       const discountPrice = parseFloat(
                         item.discountPrice?.toString() || "0"
@@ -780,22 +779,16 @@ export default function Step2MenuItems() {
                           ? discountPrice
                           : price;
 
-                      // FIXED: Calculate addon price correctly
-                      const addonPricePerPortion = (
-                        item.selectedAddons || []
-                      ).reduce((addonTotal, { price, quantity }) => {
-                        return (
-                          addonTotal +
-                          (price || 0) *
-                            (quantity || 0) *
-                            DISPLAY_FEEDS_PER_UNIT
-                        );
-                      }, 0);
+                      // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+                      const addonTotal = (item.selectedAddons || []).reduce(
+                        (total, { price, quantity }) => {
+                          return total + (price || 0) * (quantity || 0);
+                        },
+                        0
+                      );
 
                       const numPortions = quantity / BACKEND_QUANTITY_UNIT;
-                      const totalAddonPrice =
-                        addonPricePerPortion * numPortions;
-                      const lineTotal = itemPrice * quantity + totalAddonPrice;
+                      const lineTotal = itemPrice * quantity + addonTotal;
                       const displayQuantity = numPortions;
 
                       return (
@@ -1057,7 +1050,6 @@ export default function Step2MenuItems() {
                   {selectedItems.map(({ item, quantity }, index) => {
                     const BACKEND_QUANTITY_UNIT =
                       item.cateringQuantityUnit || 7;
-                    const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
                     const price = parseFloat(item.price?.toString() || "0");
                     const discountPrice = parseFloat(
                       item.discountPrice?.toString() || "0"
@@ -1067,21 +1059,18 @@ export default function Step2MenuItems() {
                         ? discountPrice
                         : price;
 
-                    // FIXED: Calculate addon price correctly per portion, then multiply by number of portions
-                    const addonPricePerPortion = (
-                      item.selectedAddons || []
-                    ).reduce((addonTotal, { price, quantity }) => {
-                      return (
-                        addonTotal +
-                        (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT
-                      );
-                    }, 0);
+                    // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+                    const addonTotal = (item.selectedAddons || []).reduce(
+                      (total, { price, quantity }) => {
+                        return total + (price || 0) * (quantity || 0);
+                      },
+                      0
+                    );
 
                     const numPortions = quantity / BACKEND_QUANTITY_UNIT;
-                    const totalAddonPrice = addonPricePerPortion * numPortions;
 
-                    // CORRECT CALCULATION: Item price + addon price for all portions
-                    const lineTotal = itemPrice * quantity + totalAddonPrice;
+                    // Line total = (unitPrice × quantity) + addonTotal
+                    const lineTotal = itemPrice * quantity + addonTotal;
 
                     const displayQuantity = numPortions;
 

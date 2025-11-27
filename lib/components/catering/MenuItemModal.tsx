@@ -192,18 +192,19 @@ export default function MenuItemModal({
     if (isNaN(basePrice)) basePrice = 0;
 
     // Calculate addon costs
+    // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
     let addonCost = 0;
     Object.entries(addonGroups).forEach(([groupTitle, group]) => {
       group.items.forEach((addon) => {
         if (selectedAddons[groupTitle]?.[addon.name]) {
           const addonPrice = parseFloat(addon.price) || 0;
           if (group.selectionType === "single") {
-            // For single selection: multiply by specific addon quantity
+            // For single selection: use the specific addon quantity
             const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
-            addonCost += addonPrice * qty * DISPLAY_FEEDS_PER_UNIT;
+            addonCost += addonPrice * qty;
           } else {
-            // For multiple selection: multiply by total item quantity (applies to all portions)
-            addonCost += addonPrice * itemQuantity * DISPLAY_FEEDS_PER_UNIT;
+            // For multiple selection: use itemQuantity as the addon quantity
+            addonCost += addonPrice * itemQuantity;
           }
         }
       });
@@ -215,7 +216,6 @@ export default function MenuItemModal({
     selectedAddons,
     addonQuantities,
     addonGroups,
-    DISPLAY_FEEDS_PER_UNIT,
     BACKEND_QUANTITY_UNIT,
   ]);
 
@@ -781,11 +781,7 @@ export default function MenuItemModal({
                               </span>
                               {parseFloat(addon.price) > 0 && (
                                 <span className="text-xs font-medium text-primary">
-                                  +£
-                                  {(
-                                    parseFloat(addon.price) *
-                                    DISPLAY_FEEDS_PER_UNIT
-                                  ).toFixed(2)}
+                                  +£{parseFloat(addon.price).toFixed(2)}
                                 </span>
                               )}
                             </div>
@@ -922,12 +918,7 @@ export default function MenuItemModal({
                             </div>
                             {parseFloat(addon.price) > 0 && (
                               <span className="text-sm font-medium text-primary">
-                                +£
-                                {(
-                                  parseFloat(addon.price) *
-                                  DISPLAY_FEEDS_PER_UNIT *
-                                  itemQuantity
-                                ).toFixed(2)}
+                                +£{(parseFloat(addon.price) * itemQuantity).toFixed(2)}
                               </span>
                             )}
                           </button>

@@ -72,19 +72,20 @@ export class ContactDetailsPricingService {
         const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
         const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-        const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-        const addonPricePerUnit = (item.selectedAddons || []).reduce(
-          (addonTotal, { price, quantity }) => {
-            return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+        // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+        const addonTotal = (item.selectedAddons || []).reduce(
+          (sum, { price, quantity }) => {
+            return sum + (price || 0) * (quantity || 0);
           },
           0
         );
 
-        const itemTotalPrice = unitPrice * quantity + addonPricePerUnit;
+        const itemTotalPrice = unitPrice * quantity + addonTotal;
 
+        // Send addons as-is to backend (no quantity transformation needed)
         const transformedAddons = (item.selectedAddons || []).map((addon) => ({
           ...addon,
-          quantity: (addon.quantity || 0) * DISPLAY_FEEDS_PER_UNIT,
+          quantity: addon.quantity || 0,
         }));
 
         acc[restaurantId].items.push({
@@ -93,7 +94,7 @@ export class ContactDetailsPricingService {
           groupTitle: item.groupTitle,
           quantity,
           unitPrice,
-          addonPrice: addonPricePerUnit,
+          addonPrice: addonTotal,
           selectedAddons: transformedAddons,
           totalPrice: itemTotalPrice,
         });
@@ -130,15 +131,15 @@ export class ContactDetailsPricingService {
       const discountPrice = parseFloat(item.discountPrice?.toString() || '0');
       const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-      const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
-      const addonPricePerUnit = (item.selectedAddons || []).reduce(
-        (addonTotal, { price, quantity }) => {
-          return addonTotal + (price || 0) * (quantity || 0) * DISPLAY_FEEDS_PER_UNIT;
+      // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
+      const addonTotal = (item.selectedAddons || []).reduce(
+        (sum, { price, quantity }) => {
+          return sum + (price || 0) * (quantity || 0);
         },
         0
       );
 
-      return total + unitPrice * quantity + addonPricePerUnit;
+      return total + unitPrice * quantity + addonTotal;
     }, 0);
   }
 }
