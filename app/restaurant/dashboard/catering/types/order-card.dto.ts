@@ -57,8 +57,8 @@ export interface MenuItemPricingDto {
  * Event information display data
  */
 export interface EventInfoDto {
-  eventDate: string;
-  collectionTime: string;
-  deliveryAddress: string;
+  eventDate: string | Date;
+  collectionTime?: string;
+  deliveryAddress?: string;
   payoutAccountName: string | null;
 }

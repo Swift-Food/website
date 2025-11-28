@@ -6,10 +6,10 @@
 import { formatDate, formatEventTime } from "../utils/format.utils";
 
 interface EventInformationProps {
-  eventDate: string;
+  eventDate: string | Date;
   eventTime: string;
   collectionTime?: string;
-  deliveryAddress: string;
+  deliveryAddress?: string | { street: string; city: string; postcode: string; country: string; };
   payoutAccountName: string | null;
 }
 
@@ -47,7 +47,11 @@ export function EventInformation({
       </div>
       <p className="text-sm text-gray-600 mt-2">
         Delivery:{" "}
-        <span className="text-gray-900 font-medium">{deliveryAddress}</span>
+        <span className="text-gray-900 font-medium">
+          {typeof deliveryAddress === 'object'
+            ? `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.postcode}`
+            : deliveryAddress || 'Not specified'}
+        </span>
       </p>
     </div>
   );

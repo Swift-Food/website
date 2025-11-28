@@ -70,7 +70,7 @@ export const CateringOrderCard = ({
       const html = buildReceiptHTML(
         data,
         order.id,
-        order.eventDate,
+        String(order.eventDate),
         branchName
       );
       const w = window.open("", "_blank");
@@ -93,7 +93,7 @@ export const CateringOrderCard = ({
     }
   };
 
-  const formatDate = (date: string) =>
+  const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",

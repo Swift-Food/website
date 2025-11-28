@@ -39,30 +39,94 @@ export interface CateringRestaurantOrderRequest {
   specialInstructions?: string;
 }
 
+// ============================================================================
+// MEAL SESSION REQUEST TYPES (Multi-meal order support)
+// ============================================================================
+
+/**
+ * Meal session request for multi-meal orders
+ * Backend: MealSessionDto
+ *
+ * Each session represents a distinct meal (breakfast, lunch, dinner, etc.)
+ * within a single catering order submission.
+ */
+export interface MealSessionRequest {
+  // Session identification
+  sessionName: string; // "Breakfast", "Lunch", "Dinner", "Main Event", etc.
+  sessionOrder?: number; // 1, 2, 3... for sorting (auto-assigned if not provided)
+
+  // Session date & time
+  sessionDate: string; // ISO date string - date of this specific meal
+  eventTime: string; // "09:00" - when the event/meal starts
+  collectionTime?: string; // "08:00" - when restaurant should prepare/deliver
+
+  // Session details
+  guestCount?: number; // Guest count for this specific meal (overrides order-level)
+  specialRequirements?: string; // Meal-specific requirements
+
+  // Order items for this session
+  orderItems: CateringRestaurantOrderRequest[];
+
+  // Promo codes specific to this session (optional)
+  promoCodes?: string[];
+}
+
 /**
  * Create catering order request
  * This is what you send to POST /catering-orders
+ *
+ * Supports two modes:
+ * 1. Single-meal (backward compatible): Use orderItems + eventDate/eventTime
+ * 2. Multi-meal (new): Use mealSessions array
+ *
+ * If mealSessions is provided, it takes precedence and orderItems/eventDate/eventTime
+ * at the top level are ignored. The backend will create MealSession entities for each.
  */
 export interface CreateCateringOrderRequest {
   userId: string;
-  organization?: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
   ccEmails?: string[];
-  eventDate: string;
-  eventTime: string;
+  organization?: string;
+
+  // ============================================================
+  // TOP-LEVEL EVENT DETAILS (for backward compatibility)
+  // For single-meal orders, these are used directly
+  // For multi-meal orders, these are taken from the first session
+  // ============================================================
+  eventDate?: string; // Optional if mealSessions provided
+  eventTime?: string; // Optional if mealSessions provided
   collectionTime?: string;
+  eventId?: string; // Link to Event entity if applicable
   guestCount?: number;
   eventType?: string;
   deliveryAddress: string;
-  specialRequirements?: string;
-  orderItems: CateringRestaurantOrderRequest[];
+  specialRequirements?: string; // General requirements (applies to all sessions)
+
+  // Corporate/Organization
+  organizationId?: string;
+  corporateUserId?: string;
+  useOrganizationWallet?: boolean;
+
+  // ============================================================
+  // ORDER ITEMS (for backward compatibility - single meal)
+  // Required if mealSessions is not provided
+  // ============================================================
+  orderItems?: CateringRestaurantOrderRequest[];
+
+  // ============================================================
+  // MEAL SESSIONS (for multi-meal orders)
+  // If provided, orderItems/eventDate/eventTime at top level are ignored
+  // Backend creates MealSession entities for each session
+  // ============================================================
+  mealSessions?: MealSessionRequest[];
+
+  // ============================================================
+  // PRICING & PAYMENT
+  // ============================================================
   estimatedTotal?: number;
   promoCodes?: string[];
-  corporateUserId?: string;
-  organizationId?: string;
-  useOrganizationWallet?: boolean;
   paymentMethodId?: string;
   paymentIntentId?: string;
   paymentMethod?: 'wallet' | 'stripe_direct';

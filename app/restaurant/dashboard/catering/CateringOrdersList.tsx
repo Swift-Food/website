@@ -40,6 +40,7 @@ export const CateringOrdersList = ({
     Record<string, any>
   >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
+  
   const processedOrders = orders.map(order => {
     // Check if this restaurant has reviewed the order
     if (
