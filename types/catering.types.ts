@@ -17,6 +17,7 @@
  */
 
 import { MenuItem } from "@/lib/components/catering/Step2MenuItems";
+import { PricingMenuItem } from "./api";
 
 export interface SelectedAddon {
   name: string;
@@ -317,7 +318,7 @@ export interface PricingOrderItemDto {
   restaurantId: string;
   restaurantName: string;
   status: string;
-  menuItems: PricingMenuItemDto[];
+  menuItems: PricingMenuItem[];
 
   // Commission info
   commissionRate: number;
@@ -453,6 +454,71 @@ export interface SharedAccessUser {
   role: SharedAccessRole;
 }
 
+// ============================================================================
+// MEAL SESSION TYPES (Multi-meal order support)
+// ============================================================================
+
+export interface AppliedPromotion {
+  id: string;
+  name: string;
+  type: string;
+  discountAmount: number;
+}
+
+export interface AppliedPromotionsMap {
+  [restaurantId: string]: AppliedPromotion[];
+}
+
+/**
+ * Represents a single meal session within a catering order
+ * Supports multi-meal orders (e.g., breakfast, lunch, dinner in one submission)
+ */
+export interface MealSession {
+  id: string;
+  cateringOrderId: string;
+
+  // Session identification
+  sessionName: string; // "Breakfast", "Lunch", "Dinner", "Main Event", etc.
+  sessionOrder: number; // 1, 2, 3... for sorting
+
+  // Session date & time
+  sessionDate: string; // Date of this specific meal (ISO string)
+  eventTime: string; // "09:00" - when the event/meal starts
+  collectionTime: string; // "08:00" - when restaurant should prepare/deliver
+
+  // Session details
+  guestCount?: number; // Guest count for this specific meal
+  specialRequirements?: string; // Meal-specific requirements
+
+  // Order items for this session
+  orderItems: PricingOrderItemDto[];
+
+  // Session pricing
+  subtotal: number;
+  deliveryFee: number;
+  serviceCharge: number;
+  promoDiscount: number;
+  promotionDiscount: number;
+  sessionTotal: number;
+
+  // Applied promotions for this session
+  appliedPromotions?: AppliedPromotionsMap;
+
+  // Restaurant coordination for this session
+  restaurantReviews?: string[]; // Restaurant IDs that have reviewed this session
+  restaurantRejections?: string[]; // Restaurant IDs that have rejected this session
+
+  // Session status tracking
+  reminder24HourSent: boolean;
+  reminder1HourSent: boolean;
+  deliveryTimeChangedAt?: string;
+  deliveryTimeChangedBy?: string;
+
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+}
+
 export enum CateringOrderStatus {
   PENDING_REVIEW = "pending_review",
   ADMIN_REVIEWED = "admin_reviewed",
@@ -478,7 +544,10 @@ export interface CateringOrderDetails {
   customerPhone: string;
   organization?: string;
   publicNote?: string;
+  internalNote?: string;
   ccEmails: string[];
+
+  // Event details (represents primary/first meal session for backward compatibility)
   eventDate: string;
   eventTime: string;
   collectionTime: string;
@@ -486,31 +555,82 @@ export interface CateringOrderDetails {
   eventType: string;
   deliveryAddress: string;
   specialRequirements?: string;
+
+  // ============================================================
+  // MEAL SESSIONS (Multi-meal order support)
+  // For SINGLE-MEAL orders: mealSessions will have 1 item or be undefined
+  // For MULTI-MEAL orders: mealSessions contains all meals (breakfast, lunch, dinner, etc.)
+  // ============================================================
+  mealSessions?: MealSession[];
+
+  // Order items (kept for backward compatibility)
+  // For SINGLE-MEAL orders: contains the actual order items
+  // For MULTI-MEAL orders: aggregated view of all meal sessions
   orderItems: OrderItemDto[]; // Legacy format still returned by some endpoints
   restaurants?: PricingOrderItemDto[]; // NEW: Clear pricing format returned by new endpoints
+
+  // Restaurant coordination (aggregated across all sessions for multi-meal)
+  restaurantReviews?: string[];
+  restaurantRejections?: string[];
+
+  // Pricing (Grand totals across all meal sessions)
   estimatedTotal: number;
   finalTotal: number;
   depositAmount: number;
-  status: CateringOrderStatus;
-  paymentId?: string;
-  paymentLinkUrl?: string;
-  paymentLinkSentAt?: string;
-  paidAt?: string;
-  adminNotes?: string;
-  restaurantReviews?: string[];
-  reviewedBy?: string;
-  reviewedAt?: string;
-  promoCodes: string[];
-  promoDiscount: number;
   subtotal: number;
   serviceCharge: number;
   deliveryFee: number;
+  promoDiscount: number;
+  promotionDiscount?: number;
+  promoCodes: string[];
+  appliedPromotions?: AppliedPromotionsMap;
+
+  // Status & payment
+  status: CateringOrderStatus;
+  paymentId?: string;
+  stripePaymentIntentId?: string;
+  stripeChargeId?: string;
+  paymentLinkUrl?: string;
+  paymentLinkSentAt?: string;
+  paidAt?: string;
+
+  // Admin & review
+  adminNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  reminder24HourSent?: boolean;
+  reminder1HourSent?: boolean;
+
+  // Shared access
   sharedAccessUsers?: SharedAccessUser[];
+
+  // Pickup contact
   pickupContactName?: string;
   pickupContactPhone?: string;
   pickupContactEmail?: string;
+
+  // Delivery time tracking
   deliveryTimeChangedAt?: string;
   deliveryTimeChangedBy?: string;
+
+  // Transfer management
+  scheduledTransferDate?: string;
+  transfersCompleted?: boolean;
+  transferFailureReason?: string;
+  transferRetryCount?: number;
+
+  // Corporate/Organization
+  organizationId?: string;
+  corporateUserId?: string;
+
+  // Wallet payment
+  isPaidWithWallet?: boolean;
+  walletAmountUsed?: number;
+
+  // Event relationship
+  eventId?: string | null;
+
+  // Timestamps
   createdAt: string;
   updatedAt: string;
 
@@ -522,13 +642,16 @@ export interface CateringOrderDetails {
 
   // Restaurant payout details
   restaurantPayoutDetails?: Record<string, {
-    accountId: string;
-    accountName: string;
+    accountId?: string;
+    accountName?: string;
+    selectedAccountId?: string;
+    stripeAccountId?: string;
+    earningsAmount?: number;
+    selectedAt?: string;
   }>;
 
   // Legacy fields for backwards compatibility
   restaurantTotalCost?: number;
-  promotionDiscount?: number;
   isUnassigned?: boolean; // Flag for unassigned orders
 }
 
