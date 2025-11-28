@@ -9,7 +9,7 @@ import { fetchReceiptJson, buildReceiptHTML } from "../receiptUtils";
 interface UseReceiptViewerParams {
   orderId: string;
   restaurantId: string;
-  eventDate: string;
+  eventDate: string | Date;
   token?: string;
   selectedAccountId?: string;
   availableAccounts?: Record<string, any>;
@@ -39,7 +39,7 @@ export function useReceiptViewer({
           : null;
 
       const data = await fetchReceiptJson(orderId, restaurantId, token);
-      const html = buildReceiptHTML(data, orderId, eventDate, branchName);
+      const html = buildReceiptHTML(data, orderId, String(eventDate), branchName);
 
       const w = window.open("", "_blank");
       if (!w) {

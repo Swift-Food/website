@@ -59,7 +59,7 @@ export const CateringOrderCard = ({
   });
 
   // Derived data
-  const orderItem = order.orderItems[0];
+  const orderItem = order.orderItems?.[0];
   const payoutAccountName = order.restaurantPayoutDetails?.[restaurantId]?.accountName || null;
 
   return (

@@ -8,7 +8,6 @@ import {
   AnalyticsDashboard,
   PaymentAccounts,
 } from "@/types/restaurant.types";
-import { CateringOrder } from "@/types/catering.types";
 import { CorporateUser } from "@/types/catering.types";
 import {
   UpdateCorporateInventoryDto,
@@ -17,6 +16,7 @@ import {
 } from "@/types/inventory.types";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { API_BASE_URL } from "@/lib/constants";
+import { CateringOrderResponse } from "@/types/api";
 
 export const restaurantApi = {
   // Auth endpoints - Keep using regular fetch (no auth needed)
@@ -74,7 +74,7 @@ export const restaurantApi = {
         console.warn("Stripe status fetch failed:", response.status);
         return null;
       }
-      
+
       return response.json();
     } catch (error) {
       console.error("Stripe status error:", error);
@@ -143,17 +143,14 @@ export const restaurantApi = {
     }
   },
 
-  requestWithdrawal: async (
-    data: {
-      userId: string;
-      userType: string;
-      amount: number;
-      notes?: string;
-      isInstantPayout: boolean;
-      accountId: string;
-    },
-
-  ): Promise<WithdrawalRequest> => {
+  requestWithdrawal: async (data: {
+    userId: string;
+    userType: string;
+    amount: number;
+    notes?: string;
+    isInstantPayout: boolean;
+    accountId: string;
+  }): Promise<WithdrawalRequest> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/withdrawals/request`,
       {
@@ -182,12 +179,13 @@ export const restaurantApi = {
   getCateringOrders: async (
     restaurantId: string,
     selectedAccountId?: string | null
-  ): Promise<CateringOrder[]> => {
+  ): Promise<CateringOrderResponse[]> => {
     const url = selectedAccountId
       ? `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}?accountId=${selectedAccountId}`
       : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;
-    
+
     const response = await fetchWithAuth(url);
+    console.log("Getting catering orders: ", response);
     if (!response.ok) throw new Error("Failed to fetch catering orders");
     return response.json();
   },
@@ -198,7 +196,7 @@ export const restaurantApi = {
     accepted: boolean,
     token: string,
     selectedAccountId?: string
-  ): Promise<CateringOrder> => {
+  ): Promise<CateringOrderResponse> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`,
       {
@@ -217,8 +215,8 @@ export const restaurantApi = {
   claimCateringOrder: async (
     orderId: string,
     restaurantId: string,
-    selectedAccountId: string,
-  ): Promise<CateringOrder> => {
+    selectedAccountId: string
+  ): Promise<CateringOrderResponse> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/claim`,
       {
@@ -235,7 +233,7 @@ export const restaurantApi = {
 
   // Analytics endpoints
   getAnalyticsDashboard: async (
-    restaurantId: string,
+    restaurantId: string
   ): Promise<AnalyticsDashboard> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant-analytics/${restaurantId}/dashboard`
@@ -258,7 +256,7 @@ export const restaurantApi = {
 
   getYearlyAnalytics: async (
     restaurantId: string,
-    year: number,
+    year: number
   ): Promise<any> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant-analytics/${restaurantId}/yearly?year=${year}`
@@ -288,20 +286,25 @@ export const restaurantApi = {
   // Inventory Management endpoints
 
   // Get catering portions availability
-  getCateringPortionsAvailability: async (restaurantId: string): Promise<any> => {
+  getCateringPortionsAvailability: async (
+    restaurantId: string
+  ): Promise<any> => {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-availability`
     );
-    if (!response.ok) throw new Error("Failed to fetch catering portions availability");
+    if (!response.ok)
+      throw new Error("Failed to fetch catering portions availability");
     return response.json();
   },
 
   // Update catering portions limit
   updateCateringPortionsLimit: async (
     restaurantId: string,
-    maximumCateringPortionsPerDay: number,
+    maximumCateringPortionsPerDay: number
   ): Promise<CateringPortionsAvailabilityResponse> => {
-    const payload: UpdateCateringPortionsLimitDto = { maximumCateringPortionsPerDay };
+    const payload: UpdateCateringPortionsLimitDto = {
+      maximumCateringPortionsPerDay,
+    };
 
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
@@ -316,7 +319,9 @@ export const restaurantApi = {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("🟢 Catering Error:", errorText);
-      throw new Error(`Failed to update catering portions limit: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Failed to update catering portions limit: ${response.status} - ${errorText}`
+      );
     }
 
     const result = await response.json();
@@ -328,14 +333,19 @@ export const restaurantApi = {
   getCorporateInventorySettings: async (restaurantId: string): Promise<any> => {
     const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
 
-    console.log("🟣 Getting corporate inventory settings:", { restaurantId, url });
+    console.log("🟣 Getting corporate inventory settings:", {
+      restaurantId,
+      url,
+    });
 
     const response = await fetchWithAuth(url);
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("🟣 Failed to get corporate inventory:", errorText);
-      throw new Error(`Failed to get corporate inventory settings: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Failed to get corporate inventory settings: ${response.status} - ${errorText}`
+      );
     }
 
     const result = await response.json();
@@ -346,7 +356,7 @@ export const restaurantApi = {
   // Update corporate inventory settings
   updateCorporateInventory: async (
     restaurantId: string,
-    data: UpdateCorporateInventoryDto,
+    data: UpdateCorporateInventoryDto
   ): Promise<any> => {
     const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
 
@@ -361,12 +371,12 @@ export const restaurantApi = {
       body: JSON.stringify(data),
     });
 
-
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error("🟣 Corporate Error Response:", errorText);
-      throw new Error(`Failed to update corporate inventory: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Failed to update corporate inventory: ${response.status} - ${errorText}`
+      );
     }
 
     const result = await response.json();

@@ -9,14 +9,14 @@ import { MenuItemPricingCard } from "./MenuItemPricingCard";
 import { calculateMenuItemPricing } from "../utils/pricing.utils";
 
 interface OrderItemsListProps {
-  orderItems: any[];
+  orderItems?: any[];
 }
 
-export function OrderItemsList({ orderItems }: OrderItemsListProps) {
+export function OrderItemsList({ orderItems = [] }: OrderItemsListProps) {
   const [expandedItems, setExpandedItems] = useState(false);
 
   const totalItems = orderItems.reduce(
-    (total, restaurant) => total + restaurant.menuItems.length,
+    (total, restaurant) => total + (restaurant.menuItems?.length || 0),
     0
   );
 

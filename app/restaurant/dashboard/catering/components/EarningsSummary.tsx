@@ -12,8 +12,8 @@ interface EarningsSummaryProps {
   promotionDiscount?: number;
   orderItemTotalPrice?: number;
   orderItemPromotionDiscount?: number;
-  finalTotal: number;
-  eventDate: string;
+  finalTotal?: number;
+  eventDate: string | Date;
 }
 
 export function EarningsSummary({
@@ -64,7 +64,7 @@ export function EarningsSummary({
             </>
           ) : (
             <p className="text-sm text-gray-600">
-              Customer Paid: {formatCurrency(finalTotal)}
+              Customer Paid: {formatCurrency(finalTotal || 0)}
             </p>
           )}
         </div>

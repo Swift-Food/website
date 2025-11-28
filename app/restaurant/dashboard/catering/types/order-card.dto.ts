@@ -3,13 +3,13 @@
  * Clear, typed interfaces with no business logic
  */
 
-import { CateringOrderDetails } from "@/types/catering.types";
+import { CateringOrderResponse } from "@/types/api";
 
 /**
  * Props for the main CateringOrderCard component
  */
 export interface CateringOrderCardProps {
-  order: CateringOrderDetails & { isUnassigned?: boolean };
+  order: CateringOrderResponse & { isUnassigned?: boolean };
   restaurantId: string;
   onReview: (orderId: string, accepted: boolean) => Promise<void>;
   reviewing: string | null;
@@ -57,8 +57,8 @@ export interface MenuItemPricingDto {
  * Event information display data
  */
 export interface EventInfoDto {
-  eventDate: string;
-  collectionTime: string;
-  deliveryAddress: string;
+  eventDate: string | Date;
+  collectionTime?: string;
+  deliveryAddress?: string;
   payoutAccountName: string | null;
 }

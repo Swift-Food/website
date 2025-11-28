@@ -6,7 +6,7 @@
 /**
  * Format date to GB locale
  */
-export function formatDate(date: string): string {
+export function formatDate(date: string | Date): string {
   return new Date(date).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",

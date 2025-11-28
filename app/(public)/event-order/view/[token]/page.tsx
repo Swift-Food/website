@@ -27,7 +27,7 @@ export default function CateringDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] =
-    useState<'viewer' | 'editor' | null>(null);
+    useState<'viewer' | 'editor' | 'manager' | null>(null);
 
     useEffect(() => {
       loadOrder();

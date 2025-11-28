@@ -24,6 +24,84 @@ export type CateringOrderStatus =
   | 'cancelled'
   | 'completed';
 
+// ============================================================================
+// APPLIED PROMOTIONS TYPES
+// ============================================================================
+
+/**
+ * Applied promotion details
+ * Backend: Used in appliedPromotions JSONB field
+ */
+export interface AppliedPromotion {
+  id: string;
+  name: string;
+  type: string;
+  discountAmount: number;
+}
+
+/**
+ * Map of restaurant IDs to their applied promotions
+ */
+export interface AppliedPromotionsMap {
+  [restaurantId: string]: AppliedPromotion[];
+}
+
+// ============================================================================
+// MEAL SESSION TYPES (Multi-meal order support)
+// ============================================================================
+
+/**
+ * Represents a single meal session within a catering order
+ * Backend: MealSession entity (src/shared/entities/orders/mealSessions.entity.ts)
+ *
+ * Supports multi-meal orders (e.g., breakfast, lunch, dinner in one submission)
+ */
+export interface MealSessionResponse {
+  id: string;
+  cateringOrderId: string;
+
+  // Session identification
+  sessionName: string; // "Breakfast", "Lunch", "Dinner", "Main Event", etc.
+  sessionOrder: number; // 1, 2, 3... for sorting
+
+  // Session date & time
+  sessionDate: string | Date; // Date of this specific meal
+  eventTime: string; // "09:00" - when the event/meal starts
+  collectionTime: string; // "08:00" - when restaurant should prepare/deliver
+
+  // Session details
+  guestCount?: number; // Guest count for this specific meal
+  specialRequirements?: string; // Meal-specific requirements
+
+  // Order items for this session
+  orderItems: PricingOrderItem[];
+
+  // Session pricing
+  subtotal: number;
+  deliveryFee: number;
+  serviceCharge: number;
+  promoDiscount: number;
+  promotionDiscount: number;
+  sessionTotal: number;
+
+  // Applied promotions for this session
+  appliedPromotions?: AppliedPromotionsMap;
+
+  // Restaurant coordination for this session
+  restaurantReviews?: string[]; // Restaurant IDs that have reviewed this session
+  restaurantRejections?: string[]; // Restaurant IDs that have rejected this session
+
+  // Session status tracking
+  reminder24HourSent: boolean;
+  reminder1HourSent: boolean;
+  deliveryTimeChangedAt?: string | Date;
+  deliveryTimeChangedBy?: string;
+
+  // Timestamps
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 /**
  * Complete catering order response with pricing breakdown
  * Backend: CateringOrderResponseDto
@@ -33,15 +111,63 @@ export type CateringOrderStatus =
  */
 export interface CateringOrderResponse {
   id: string;
-  orderReference: string;
-  eventDate: string | Date;
-  deliveryDate: string | Date; // Alias for eventDate
-  eventTime: string;
-  deliveryTime: string; // Alias for eventTime
-  status: CateringOrderStatus;
+  orderReference?: string;
+  userId?: string;
 
-  // Clear pricing breakdown
+  // Customer contact information
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  organization?: string;
+  publicNote?: string;
+  internalNote?: string;
+  ccEmails?: string[];
+
+  // Event details (represents primary/first meal session for backward compatibility)
+  eventDate: string | Date;
+  deliveryDate?: string | Date; // Alias for eventDate
+  eventTime: string;
+  deliveryTime?: string; // Alias for eventTime
+  collectionTime?: string;
+  guestCount?: number;
+  eventType?: string;
+  deliveryAddress?: string | {
+    street: string;
+    city: string;
+    postcode: string;
+    country: string;
+  };
+  specialRequirements?: string;
+  specialInstructions?: string; // Alias for specialRequirements
+
+  // ============================================================
+  // MEAL SESSIONS (Multi-meal order support)
+  // For SINGLE-MEAL orders: mealSessions will have 1 item or be undefined
+  // For MULTI-MEAL orders: mealSessions contains all meals
+  // ============================================================
+  mealSessions?: MealSessionResponse[];
+
+  // Order items (kept for backward compatibility)
+  // For SINGLE-MEAL orders: contains the actual order items
+  // For MULTI-MEAL orders: aggregated view of all meal sessions
   restaurants: PricingOrderItem[];
+  orderItems?: any[]; // Legacy format
+
+  // Restaurant coordination (aggregated across all sessions for multi-meal)
+  restaurantReviews?: string[];
+  restaurantRejections?: string[];
+
+  // Pricing (Grand totals across all meal sessions)
+  subtotal?: number;
+  serviceCharge?: number;
+  deliveryFee?: number;
+  promoDiscount?: number;
+  promotionDiscount?: number;
+  depositAmount?: number;
+  estimatedTotal?: number;
+  finalTotal?: number;
+  promoCodes?: string[];
+  appliedPromotions?: AppliedPromotionsMap;
 
   // Order totals
   customerFinalTotal: number;
@@ -49,22 +175,36 @@ export interface CateringOrderResponse {
   restaurantsTotalGross: number;
   restaurantsTotalNet: number;
 
-  // Customer info
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  eventType?: string;
-  guestCount?: number;
+  // Status & payment
+  status: CateringOrderStatus;
+  paid: boolean;
+  paymentId?: string;
+  stripePaymentIntentId?: string;
+  stripeChargeId?: string;
+  paymentLinkUrl?: string;
+  paymentLinkSentAt?: string | Date;
+  paidAt?: string | Date;
 
-  // Delivery info
-  deliveryAddress?: string | {
-    street: string;
-    city: string;
-    postcode: string;
-    country: string;
-  };
+  // Admin & review
+  adminNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string | Date;
+  reminder24HourSent?: boolean;
+  reminder1HourSent?: boolean;
 
-  // Pickup info
+  // Shared access
+  accessToken?: string;
+  sharedAccessUsers?: Array<{
+    userId?: string;
+    email: string;
+    role: 'viewer' | 'editor' | 'manager';
+    accessToken?: string;
+    name?: string;
+    addedAt?: string | Date;
+    addedBy?: string;
+  }>;
+
+  // Pickup contact
   pickupContactName?: string;
   pickupContactPhone?: string;
   pickupContactEmail?: string;
@@ -73,55 +213,40 @@ export interface CateringOrderResponse {
   deliveryTimeChangedAt?: string | Date;
   deliveryTimeChangedBy?: string;
 
-  // Additional info
-  specialInstructions?: string;
-  accessToken?: string;
-  sharedAccessUsers?: Array<{
-    userId: string;
-    email: string;
-    role: 'viewer' | 'editor';
-    accessToken?: string;
-    name?: string;
-    addedAt?: string | Date;
-    addedBy?: string;
-  }>;
+  // Transfer management
+  scheduledTransferDate?: string | Date;
+  transfersCompleted?: boolean;
+  transferFailureReason?: string;
+  transferRetryCount?: number;
 
-  // Payment info
-  stripePaymentIntentId?: string;
-  paid: boolean;
-  paymentLinkUrl?: string;
-  paymentLinkSentAt?: string | Date;
-  paidAt?: string | Date;
-  adminNotes?: string;
-  reviewedBy?: string;
-  reviewedAt?: string | Date;
-  subtotal?: number;
-  serviceCharge?: number;
-  deliveryFee?: number;
-  promoDiscount?: number;
-  depositAmount?: number;
-  estimatedTotal?: number;
-  finalTotal?: number;
+  // Corporate/Organization
+  organizationId?: string;
+  corporateUserId?: string;
+
+  // Wallet payment
+  isPaidWithWallet?: boolean;
+  walletAmountUsed?: number;
+
+  // Event relationship
+  eventId?: string | null;
 
   // Timestamps
   createdAt: string | Date;
   updatedAt: string | Date;
 
-  // Legacy/internal fields (may be present in some endpoints)
-  userId?: string;
-  ccEmails?: string[];
-  collectionTime?: string;
-  promoCodes?: string[];
-  organization?: string;
-  publicNote?: string;
-  orderItems?: any[]; // Legacy format
-  restaurantTotalCost?: number; // Legacy field
-  isUnassigned?: boolean; // Restaurant endpoint only
+  // Restaurant payout details
   restaurantPayoutDetails?: Record<string, {
-    accountId: string;
-    accountName: string;
+    accountId?: string;
+    accountName?: string;
+    selectedAccountId?: string;
+    stripeAccountId?: string;
+    earningsAmount?: number;
+    selectedAt?: string;
   }>;
-  promotionDiscount?: number; // Legacy field name (use promoDiscount)
+
+  // Legacy fields for backwards compatibility
+  restaurantTotalCost?: number;
+  isUnassigned?: boolean; // Restaurant endpoint only
 }
 
 /**
@@ -130,9 +255,9 @@ export interface CateringOrderResponse {
  */
 export interface CateringOrderSummary {
   id: string;
-  orderReference: string;
+  orderReference?: string;
   eventDate: string | Date;
-  deliveryDate: string | Date; // Alias
+  deliveryDate?: string | Date; // Alias
   eventTime?: string;
   status: CateringOrderStatus;
   customerFinalTotal: number;
@@ -142,4 +267,8 @@ export interface CateringOrderSummary {
   eventType?: string;
   paid: boolean;
   createdAt: string | Date;
+
+  // Multi-meal order info
+  mealSessionCount?: number; // Number of meal sessions (1 for single-meal, >1 for multi-meal)
+  isMultiMeal?: boolean; // Quick check if this is a multi-meal order
 }
