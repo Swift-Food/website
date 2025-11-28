@@ -9,12 +9,12 @@ import {
   ChevronUp,
   EyeIcon,
 } from "lucide-react";
-import { CateringOrderDetails } from "@/types/catering.types";
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 import { formatDeliveryAddress } from "./utils/address.utils";
+import { CateringOrderResponse } from "@/types/api";
 
 interface CateringOrderCardProps {
-  order: CateringOrderDetails & { isUnassigned?: boolean };
+  order: CateringOrderResponse & { isUnassigned?: boolean };
   restaurantId: string;
   onReview: (orderId: string, accepted: boolean) => Promise<void>;
   reviewing: string | null;

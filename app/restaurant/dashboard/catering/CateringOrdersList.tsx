@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
-import { CateringOrderDetails, CateringOrderStatus } from "@/types/catering.types";
+import { CateringOrderStatus } from "@/types/catering.types";
 import { restaurantApi } from "@/services/api/restaurant.api";
 import { CateringOrderCard } from "./CateringOrderCard";
+import { CateringOrderResponse } from "@/types/api";
 
 interface CateringOrdersListProps {
-  orders: CateringOrderDetails[];
+  orders: CateringOrderResponse[];
   restaurantId: string;
   restaurantUserId: string;
   token: string;
@@ -146,7 +147,7 @@ export const CateringOrdersList = ({
     if (!acc[status]) acc[status] = [];
     acc[status].push(order);
     return acc;
-  }, {} as Record<string, CateringOrderDetails[]>);
+  }, {} as Record<string, CateringOrderResponse[]>);
 
   const unassignedOrders = processedOrders.filter(
     (order) => order.isUnassigned === true

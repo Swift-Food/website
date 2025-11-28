@@ -12,7 +12,6 @@ import {
   StripeOnboardingStatus,
   // PaymentAccounts,
 } from "@/types/restaurant.types";
-import { CateringOrderDetails } from "@/types/catering.types";
 import { PaymentAccountSelector } from "./shared/PaymentAccountSelector";
 import { StripeOnboardingRequired } from "./shared/StripeOnboardingRequired";
 import { BalanceCards } from "./withdrawals/BalanceCards";
@@ -22,6 +21,7 @@ import { CateringOrdersList } from "./catering/CateringOrdersList";
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import { RefundRequestsList } from "./refunds/refundRequestList";
+import { CateringOrderResponse } from "@/types/api";
 
 interface RestaurantDashboardProps {
   userId: string;
@@ -49,7 +49,7 @@ export const RestaurantDashboard = ({
     useState<StripeOnboardingStatus | null>(null);
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
-  const [cateringOrders, setCateringOrders] = useState<CateringOrderDetails[]>(
+  const [cateringOrders, setCateringOrders] = useState<CateringOrderResponse[]>(
     []
   );
   const [activeTab, setActiveTab] = useState<
@@ -97,6 +97,7 @@ export const RestaurantDashboard = ({
         refundsResult,
       ] = results;
 
+      console.log("Catering result: ", cateringResult)
       console.log(
         "status data is",
         statusResult.status === "fulfilled" ? statusResult.value : null
@@ -116,7 +117,7 @@ export const RestaurantDashboard = ({
 
       if (cateringResult.status === "fulfilled") {
         setCateringOrders(
-          (cateringResult.value || []) as unknown as CateringOrderDetails[]
+          (cateringResult.value || []) as unknown as CateringOrderResponse[]
         );
       }
 

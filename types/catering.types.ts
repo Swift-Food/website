@@ -18,6 +18,7 @@
 
 import { MenuItem } from "@/lib/components/catering/Step2MenuItems";
 import { PricingMenuItem } from "./api";
+import { deprecate } from "util";
 
 export interface SelectedAddon {
   name: string;
@@ -207,6 +208,9 @@ export interface ContactInfo {
   longitude?: number;
 }
 
+/**
+ * @deprecated This is the OLD format - DO NOT use for new order creation!
+ */
 export interface CateringOrder {
   eventDetails: EventDetails;
   selectedItems: SelectedMenuItem[];
@@ -641,14 +645,17 @@ export interface CateringOrderDetails {
   restaurantsTotalNet?: number;
 
   // Restaurant payout details
-  restaurantPayoutDetails?: Record<string, {
-    accountId?: string;
-    accountName?: string;
-    selectedAccountId?: string;
-    stripeAccountId?: string;
-    earningsAmount?: number;
-    selectedAt?: string;
-  }>;
+  restaurantPayoutDetails?: Record<
+    string,
+    {
+      accountId?: string;
+      accountName?: string;
+      selectedAccountId?: string;
+      stripeAccountId?: string;
+      earningsAmount?: number;
+      selectedAt?: string;
+    }
+  >;
 
   // Legacy fields for backwards compatibility
   restaurantTotalCost?: number;
@@ -751,7 +758,6 @@ export interface MenuItemDetails extends CreateMenuItemDto {
   updatedAt?: string;
   averageRating: string;
   categories?: MenuCategory[];
-
 }
 
 export interface UpdateMenuItemDto {
