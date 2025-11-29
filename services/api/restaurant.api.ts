@@ -44,7 +44,7 @@ export const restaurantApi = {
   },
 
   refreshToken: async (refreshToken: string): Promise<TokenPair> => {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh-consumer`, {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: refreshToken }),

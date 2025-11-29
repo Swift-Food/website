@@ -96,7 +96,7 @@ export const fetchWithAuth = async (
     try {
       // Call refresh endpoint
       const refreshResponse = await fetch(
-        `${API_BASE_URL}/auth/refresh-consumer`,
+        `${API_BASE_URL}/auth/refresh`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
