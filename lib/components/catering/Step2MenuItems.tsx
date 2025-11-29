@@ -209,15 +209,11 @@ export default function Step2MenuItems() {
     setRestaurantPromotions(promotionsMap); // USE CONTEXT SETTER
   };
 
-  useEffect(() => {
-    console.log("Selected Items:", selectedItems);
-  }, [selectedItems]);
 
   const fetchAllMenuItems = async () => {
     setLoading(true);
     try {
       const response = await cateringService.getMenuItems();
-      console.log("All menu items response:", response);
 
       const menuItemsOnly = (response || []).map((item: any) => {
         return {
@@ -408,12 +404,12 @@ export default function Step2MenuItems() {
       // Check OPTIONAL sections
       if (data.optional) {
         data.optional.forEach((rule, index) => {
-          console.log(`    Rule ${index}:`, {
-            hasItems: rule.hasItems,
-            count: rule.count,
-            minRequired: rule.minRequired,
-            sections: rule.sections,
-          });
+          // console.log(`    Rule ${index}:`, {
+          //   hasItems: rule.hasItems,
+          //   count: rule.count,
+          //   minRequired: rule.minRequired,
+          //   sections: rule.sections,
+          // });
 
           if (rule.hasItems && rule.count < rule.minRequired) {
             const shortage = rule.minRequired - rule.count;
@@ -511,7 +507,6 @@ export default function Step2MenuItems() {
 
     // Apply dietary restriction filters
     if (filters.dietaryRestrictions && filters.dietaryRestrictions.length > 0) {
-      console.log(filters.dietaryRestrictions);
       filtered = filtered.filter(
         (item) =>
           !filters.dietaryRestrictions ||
@@ -603,14 +598,6 @@ export default function Step2MenuItems() {
     const portionQuantity = item.portionQuantity || 1;
     // Calculate total backend quantity based on portions
     const totalBackendQuantity = backendQuantityUnit * portionQuantity;
-    console.log(
-      "Adding item to cart:",
-      item,
-      "Portions:",
-      portionQuantity,
-      "Backend Quantity:",
-      totalBackendQuantity
-    );
 
     // Check if we're editing an existing item
     if (editingItemIndex !== null) {

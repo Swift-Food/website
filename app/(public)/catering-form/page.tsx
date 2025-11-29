@@ -127,7 +127,6 @@ export default function CateringForm({ searchParams }: { searchParams: Promise<{
     if (dietaryRequirement === item) setValue("dietaryRequirement", "");
     else setValue("dietaryRequirement", item);
   }
-  console.log(errors);
   return (
     <div className="flex flex-col justify-between items-center">
       <StepperButtonGroup steps={stepperConfig} activeItemIds={activeSteps} />

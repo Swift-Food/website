@@ -526,7 +526,6 @@ const MultiStepRestaurantForm: React.FC<MultiStepFormProps> = ({
       ))}
     </div>
   );
-  console.log(errors);
   return (
     <div className={`h-full ${className}`}>
       <section className="flex w-full h-full gap-4 max-lg:flex-col">

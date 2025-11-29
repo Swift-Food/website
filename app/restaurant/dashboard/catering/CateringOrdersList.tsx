@@ -28,7 +28,6 @@ export const CateringOrdersList = ({
   hasMultipleBranches,
   selectedAccountId,
 }: CateringOrdersListProps) => {
-  console.log("Selected account id: ", selectedAccountId);
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [claiming, setClaiming] = useState<string | null>(null);
@@ -138,12 +137,6 @@ export const CateringOrdersList = ({
   };
 
   const handleClaim = async (orderId: string) => {
-    console.log(
-      "Claiming order:",
-      orderId,
-      "with account:",
-      selectedAccounts[orderId]
-    ); // Add logging
 
     setClaiming(orderId);
     setError("");
@@ -161,7 +154,6 @@ export const CateringOrdersList = ({
         selectedAccountId
       );
 
-      console.log("Order claimed successfully"); // Add logging
       await onRefresh();
     } catch (err: any) {
       console.error("Claim error:", err); // Add logging

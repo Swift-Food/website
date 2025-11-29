@@ -272,11 +272,6 @@ export default function Step3ContactInfo() {
     setSubmitting(true);
 
     try {
-      console.log("=== SUBMIT ORDER START ===");
-      console.log("Payment Info:", JSON.stringify(paymentInfo, null, 2));
-      console.log("Corporate User ID:", corporateUserId);
-      console.log("Organization ID:", organizationId);
-      console.log("Pricing:", JSON.stringify(pricing, null, 2));
 
       if (!pricing) {
         console.error("ERROR: Pricing not available");
@@ -286,11 +281,6 @@ export default function Step3ContactInfo() {
       }
 
       setContactInfo(formData);
-      console.log("Contact Info:", JSON.stringify(formData, null, 2));
-      console.log("Selected Items:", JSON.stringify(selectedItems, null, 2));
-      console.log("Event Details:", JSON.stringify(eventDetails, null, 2));
-      console.log("Promo Codes:", promoCodes);
-      console.log("CC Emails:", ccEmails);
 
       const paymentData = paymentInfo
         ? {
@@ -300,7 +290,6 @@ export default function Step3ContactInfo() {
           }
         : undefined;
 
-      console.log("Final Payment Data:", JSON.stringify(paymentData, null, 2));
 
       await cateringService.submitCateringOrder(
         eventDetails!,
@@ -311,7 +300,6 @@ export default function Step3ContactInfo() {
         paymentData
       );
 
-      console.log("✅ Order submitted successfully");
       markOrderAsSubmitted();
       setSuccess(true);
       setShowPaymentModal(false);
@@ -344,16 +332,10 @@ export default function Step3ContactInfo() {
       console.error("=== END ERROR LOG ===");
     } finally {
       setSubmitting(false);
-      console.log("=== SUBMIT ORDER END ===");
     }
   };
 
   const handleWalletPayment = async () => {
-    console.log("=== WALLET PAYMENT INITIATED ===");
-    console.log("Organization ID:", organizationId);
-    console.log("Corporate User ID:", corporateUserId);
-    console.log("Amount:", pricing?.total);
-    console.log("Pricing Object:", JSON.stringify(pricing, null, 2));
 
     // Validation
     if (!organizationId || !corporateUserId) {
@@ -371,11 +353,9 @@ export default function Step3ContactInfo() {
       return;
     }
 
-    console.log("✅ Validation passed, submitting order with wallet payment");
 
     try {
       await submitOrder({ useOrganizationWallet: true });
-      console.log("✅ Wallet payment completed successfully");
     } catch (error: any) {
       console.error("=== WALLET PAYMENT ERROR ===");
       console.error("Error:", error);
@@ -390,11 +370,6 @@ export default function Step3ContactInfo() {
     paymentMethodId: string,
     paymentIntentId: string
   ) => {
-    console.log("=== CARD PAYMENT COMPLETED ===");
-    console.log("Payment Method ID:", paymentMethodId);
-    console.log("Payment Intent ID:", paymentIntentId);
-    console.log("Organization ID:", organizationId);
-    console.log("Corporate User ID:", corporateUserId);
 
     // Validation
     if (!paymentMethodId || !paymentIntentId) {
@@ -405,11 +380,9 @@ export default function Step3ContactInfo() {
       return;
     }
 
-    console.log("✅ Card payment validation passed, submitting order");
 
     try {
       await submitOrder({ paymentMethodId, paymentIntentId });
-      console.log("✅ Card payment order submitted successfully");
     } catch (error: any) {
       console.error("=== CARD PAYMENT ERROR ===");
       console.error("Error:", error);
@@ -742,7 +715,6 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
-    console.log("pricing", JSON.stringify(pricing));
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
         <div className="max-w-2xl mx-auto text-center">

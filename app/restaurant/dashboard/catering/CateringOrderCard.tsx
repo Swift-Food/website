@@ -44,16 +44,6 @@ export const CateringOrderCard = ({
   const [viewingReceipt, setViewingReceipt] = useState(false);
   const isUnassigned = item.isUnassigned === true;
   const isPaidOrder = item.status === "paid" || item.status === "confirmed";
-  console.log(
-    "Item:",
-    item.displayId,
-    "isUnassigned:",
-    isUnassigned,
-    "status:",
-    item.status,
-    "isMealSession:",
-    item.isMealSession
-  );
   // 🔍 View receipt in new tab (no print)
   const viewReceipt = async () => {
     if (!token) {
@@ -199,7 +189,6 @@ export const CateringOrderCard = ({
 
   // Use orderItems from flattened item (already resolved from session or order)
   const restaurantsData = item.orderItems || [];
-  console.log("Restaurant data: ", restaurantsData);
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">

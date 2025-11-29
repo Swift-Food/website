@@ -49,7 +49,6 @@ export const PaymentAccountSelector = ({
             <button
               key={accountId}
               onClick={() => {
-                console.log("Selecting account: ", accountId);
                 onSelectAccount(accountId);
               }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
