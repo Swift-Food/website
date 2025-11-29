@@ -110,7 +110,6 @@ const ComplaintForm = () => {
 
       await mailService.sendFormResponse(complaintData);
       
-      console.log('Complaint sent successfully');
       setIsSuccess(true);
       
       // Reset form after success

@@ -59,9 +59,7 @@ export default function CateringDashboardPage() {
   };
 
   const loadRefunds = async () => {
-    console.log("loading refunds")
     if (!order) return;
-    console.log("past condiiton")
     setLoadingRefunds(true);
     try {
       const data = await refundService.getOrderRefunds(order.id);

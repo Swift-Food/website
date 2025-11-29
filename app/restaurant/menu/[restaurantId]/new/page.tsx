@@ -139,8 +139,6 @@ const NewMenuItemPage = () => {
         ...itemGroups.filter((g) => !settingsGroups.includes(g)),
       ];
 
-      console.log("Menu Groups from restaurant: ", menuGroupSettings);
-      console.log("All groups (settings + items): ", allGroups);
 
       setExistingGroups(allGroups);
     } catch (err: any) {
@@ -155,7 +153,6 @@ const NewMenuItemPage = () => {
       // Calculate next display order from the latest backend data
       const maxOrder = existingGroups.length;
 
-      console.log("Current Settings: ", existingGroups);
 
       const currentSettings = existingGroups.reduce((acc, group, idx) => {
         acc[group] = { displayOrder: idx + 1 };
@@ -182,7 +179,7 @@ const NewMenuItemPage = () => {
       setSuccess("Group created successfully");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setError("Failed to create group");
     }
   };
@@ -190,16 +187,9 @@ const NewMenuItemPage = () => {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-      console.log("No file selected");
       return;
     }
 
-    console.log("File selected:", {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      sizeInMB: (file.size / 1024 / 1024).toFixed(2) + "MB",
-    });
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
@@ -236,29 +226,15 @@ const NewMenuItemPage = () => {
 
       const uploadUrl = `${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`;
 
-      console.log("=== IMAGE UPLOAD DEBUG ===");
-      console.log("API_BASE_URL:", API_BASE_URL);
-      console.log("Upload URL:", uploadUrl);
-      console.log("File details:", {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        lastModified: file.lastModified,
-      });
-      console.log("FormData field name: 'upload'");
 
       const response = await fetchWithAuth(uploadUrl, {
         method: "POST",
         body: formDataUpload,
       });
 
-      console.log("=== RESPONSE DEBUG ===");
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
 
       // Get response text
       const responseText = await response.text();
-      console.log("Response text (raw):", responseText);
 
       if (!response.ok) {
         console.error("=== UPLOAD FAILED ===");
@@ -272,8 +248,6 @@ const NewMenuItemPage = () => {
       let imageUrl: string;
       try {
         imageUrl = JSON.parse(responseText);
-        console.log("=== SUCCESS ===");
-        console.log("Image URL:", imageUrl);
       } catch (parseError) {
         console.error("=== PARSE ERROR ===");
         console.error("Failed to parse response:", parseError);
@@ -290,7 +264,6 @@ const NewMenuItemPage = () => {
       // Store the uploaded image URL
       setImage(imageUrl);
 
-      console.log("Image uploaded successfully:", imageUrl);
 
       setSuccess("Image uploaded successfully!");
       setTimeout(() => setSuccess(""), 3000);

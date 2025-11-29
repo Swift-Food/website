@@ -36,7 +36,6 @@ class RefundService {
   }
 
   async getOrderRefunds(orderId: string): Promise<RefundRequest[]> {
-    console.log("orderid", { orderId });
     
     const response = await fetchWithAuth(
       `${API_BASE_URL}/refunds/order/${orderId}?orderType=catering`

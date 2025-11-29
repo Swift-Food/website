@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/api/catering.api";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
@@ -25,6 +26,7 @@ interface ValidationErrors {
 }
 
 export default function Step3ContactInfo() {
+  const router = useRouter();
   const {
     contactInfo,
     setContactInfo,
@@ -68,7 +70,9 @@ export default function Step3ContactInfo() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [corporateUserId, setCorporateUserId] = useState<string>("");
   const [organizationId, setOrganizationId] = useState<string>("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"wallet" | "card" | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    "wallet" | "card" | null
+  >(null);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +83,8 @@ export default function Step3ContactInfo() {
     return selectedItems.reduce((total, { item, quantity }) => {
       const price = parseFloat(item.price?.toString() || "0");
       const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-      const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      const unitPrice =
+        item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
       // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
       const addonTotal = (item.selectedAddons || []).reduce(
@@ -272,12 +277,6 @@ export default function Step3ContactInfo() {
     setSubmitting(true);
 
     try {
-      console.log("=== SUBMIT ORDER START ===");
-      console.log("Payment Info:", JSON.stringify(paymentInfo, null, 2));
-      console.log("Corporate User ID:", corporateUserId);
-      console.log("Organization ID:", organizationId);
-      console.log("Pricing:", JSON.stringify(pricing, null, 2));
-
       if (!pricing) {
         console.error("ERROR: Pricing not available");
         alert("Please wait for pricing calculation to complete");
@@ -286,11 +285,6 @@ export default function Step3ContactInfo() {
       }
 
       setContactInfo(formData);
-      console.log("Contact Info:", JSON.stringify(formData, null, 2));
-      console.log("Selected Items:", JSON.stringify(selectedItems, null, 2));
-      console.log("Event Details:", JSON.stringify(eventDetails, null, 2));
-      console.log("Promo Codes:", promoCodes);
-      console.log("CC Emails:", ccEmails);
 
       const paymentData = paymentInfo
         ? {
@@ -300,21 +294,29 @@ export default function Step3ContactInfo() {
           }
         : undefined;
 
-      console.log("Final Payment Data:", JSON.stringify(paymentData, null, 2));
+      const createCateringOrderResponse =
+        await cateringService.submitCateringOrder(
+          eventDetails!,
+          selectedItems,
+          formData,
+          promoCodes,
+          ccEmails,
+          paymentData
+        );
 
-      await cateringService.submitCateringOrder(
-        eventDetails!,
-        selectedItems,
-        formData,
-        promoCodes,
-        ccEmails,
-        paymentData
-      );
+      console.log("Catering order response: ", createCateringOrderResponse);
 
-      console.log("✅ Order submitted successfully");
       markOrderAsSubmitted();
-      setSuccess(true);
       setShowPaymentModal(false);
+
+      // Navigate to the order view page using the access token
+      const accessToken = createCateringOrderResponse?.sharedAccessUsers?.[0]?.accessToken;
+      if (accessToken) {
+        router.push(`/event-order/view/${accessToken}`);
+      } else {
+        // Fallback to success screen if no token available
+        setSuccess(true);
+      }
     } catch (error: any) {
       console.error("=== SUBMIT ORDER ERROR ===");
       console.error("Error Type:", error?.name);
@@ -323,44 +325,58 @@ export default function Step3ContactInfo() {
       console.error("Full Error Object:", JSON.stringify(error, null, 2));
 
       // Check if it's a network error
-      if (error?.message?.includes("fetch") || error?.message?.includes("network")) {
+      if (
+        error?.message?.includes("fetch") ||
+        error?.message?.includes("network")
+      ) {
         console.error("Network Error Detected");
-        alert("Network error: Please check your internet connection and try again.");
+        alert(
+          "Network error: Please check your internet connection and try again."
+        );
       }
       // Check if it's an API error with response
       else if (error?.response) {
-        console.error("API Response Error:", JSON.stringify(error.response, null, 2));
+        console.error(
+          "API Response Error:",
+          JSON.stringify(error.response, null, 2)
+        );
         console.error("Status Code:", error.response.status);
         console.error("Status Text:", error.response.statusText);
-        console.error("Response Data:", JSON.stringify(error.response.data, null, 2));
-        alert(`Failed to submit order: ${error.response.data?.message || error.response.statusText || 'Unknown error'}`);
+        console.error(
+          "Response Data:",
+          JSON.stringify(error.response.data, null, 2)
+        );
+        alert(
+          `Failed to submit order: ${
+            error.response.data?.message ||
+            error.response.statusText ||
+            "Unknown error"
+          }`
+        );
       }
       // Generic error
       else {
         console.error("Unknown Error Type");
-        alert(`Failed to submit order: ${error?.message || 'Please try again.'}`);
+        alert(
+          `Failed to submit order: ${error?.message || "Please try again."}`
+        );
       }
 
       console.error("=== END ERROR LOG ===");
     } finally {
       setSubmitting(false);
-      console.log("=== SUBMIT ORDER END ===");
     }
   };
 
   const handleWalletPayment = async () => {
-    console.log("=== WALLET PAYMENT INITIATED ===");
-    console.log("Organization ID:", organizationId);
-    console.log("Corporate User ID:", corporateUserId);
-    console.log("Amount:", pricing?.total);
-    console.log("Pricing Object:", JSON.stringify(pricing, null, 2));
-
     // Validation
     if (!organizationId || !corporateUserId) {
       console.error("ERROR: Missing organization or user information");
       console.error("- Organization ID:", organizationId);
       console.error("- Corporate User ID:", corporateUserId);
-      alert("Missing organization or user information. Please try logging in again.");
+      alert(
+        "Missing organization or user information. Please try logging in again."
+      );
       return;
     }
 
@@ -371,11 +387,8 @@ export default function Step3ContactInfo() {
       return;
     }
 
-    console.log("✅ Validation passed, submitting order with wallet payment");
-
     try {
       await submitOrder({ useOrganizationWallet: true });
-      console.log("✅ Wallet payment completed successfully");
     } catch (error: any) {
       console.error("=== WALLET PAYMENT ERROR ===");
       console.error("Error:", error);
@@ -390,12 +403,6 @@ export default function Step3ContactInfo() {
     paymentMethodId: string,
     paymentIntentId: string
   ) => {
-    console.log("=== CARD PAYMENT COMPLETED ===");
-    console.log("Payment Method ID:", paymentMethodId);
-    console.log("Payment Intent ID:", paymentIntentId);
-    console.log("Organization ID:", organizationId);
-    console.log("Corporate User ID:", corporateUserId);
-
     // Validation
     if (!paymentMethodId || !paymentIntentId) {
       console.error("ERROR: Missing payment information");
@@ -405,11 +412,8 @@ export default function Step3ContactInfo() {
       return;
     }
 
-    console.log("✅ Card payment validation passed, submitting order");
-
     try {
       await submitOrder({ paymentMethodId, paymentIntentId });
-      console.log("✅ Card payment order submitted successfully");
     } catch (error: any) {
       console.error("=== CARD PAYMENT ERROR ===");
       console.error("Error:", error);
@@ -688,7 +692,9 @@ export default function Step3ContactInfo() {
         inputRef.current,
         {
           // Remove types restriction or use "geocode" instead of "address"
-          componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
+          componentRestrictions: {
+            country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION,
+          },
           fields: GOOGLE_MAPS_CONFIG.FIELDS,
         }
       );
@@ -742,7 +748,6 @@ export default function Step3ContactInfo() {
   };
 
   if (success) {
-    console.log("pricing", JSON.stringify(pricing));
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
         <div className="max-w-2xl mx-auto text-center">

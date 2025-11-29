@@ -94,14 +94,8 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   ): { discount: number; promotion: any | null } => {
     const promos = restaurantPromotions[restaurantId];
   
-    console.log(`\n🎯 calculatePromotionDiscount for restaurant ${restaurantId}:`, {
-      subtotal,
-      promosCount: promos?.length || 0,
-      cartItemsCount: cartItems.length
-    });
     
     if (!promos || promos.length === 0) {
-      console.log("❌ No promotions for this restaurant");
       return { discount: 0, promotion: null };
     }
   
@@ -109,30 +103,24 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     const applicablePromos = promos
       .filter(promo => {
         const isApplicable = isPromotionApplicable(promo, subtotal);
-        console.log(`  ${promo.name} (${promo.promotionType}): ${isApplicable ? '✅' : '❌'}`);
         return isApplicable;
       })
       .sort((a, b) => (b.priority || 0) - (a.priority || 0));
   
     if (applicablePromos.length === 0) {
-      console.log("❌ No applicable promotions found");
       return { discount: 0, promotion: null };
     }
   
-    console.log(`✅ Found ${applicablePromos.length} applicable promotions`);
   
     // Calculate discount from ALL applicable promotions
     let totalDiscount = 0;
     let primaryPromotion = applicablePromos[0]; // For display purposes
   
     applicablePromos.forEach(promo => {
-      console.log(`💵 Calculating discount for: ${promo.name} (${promo.promotionType})`);
       const discount = calculateDiscountByType(promo, subtotal, cartItems);
-      console.log(`   Discount: £${discount}`);
       totalDiscount += discount;
     });
   
-    console.log(`💰 Total discount from all promotions: £${totalDiscount}`);
     
     return { 
       discount: Number(Number(totalDiscount).toFixed(2)), 
@@ -143,13 +131,6 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   // Helper: Check if promotion is applicable
   const isPromotionApplicable = (promo: any, subtotal: number): boolean => {
     // Check date range
-    console.log(`🔍 Checking if ${promo.name} (${promo.promotionType}) is applicable:`, {
-      subtotal,
-      minOrderAmount: promo.minOrderAmount,
-      startDate: promo.startDate,
-      endDate: promo.endDate,
-      now: new Date().toISOString()
-    });
     const now = new Date();
     if (now < new Date(promo.startDate) || now > new Date(promo.endDate)) {
       return false;
@@ -159,7 +140,6 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     if (promo.minOrderAmount && subtotal < promo.minOrderAmount) {
       return false;
     }
-    console.log(`✅ Promotion is applicable`);
     return true;
   };
   
@@ -269,16 +249,8 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     promo: any,
     cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number }>
   ): number => {
-    console.log("🎁 BOGO Calculation Start:", {
-      promoName: promo.name,
-      bogoItemIds: promo.bogoItemIds,
-      buyQty: promo.buyQuantity,
-      getQty: promo.getQuantity,
-      cartItems: cartItems.map(i => ({ id: i.menuItemId, qty: i.quantity, price: i.price }))
-    });
   
     if (!promo.bogoItemIds || promo.bogoItemIds.length === 0) {
-      console.log("❌ No BOGO items defined");
       return 0;
     }
   
@@ -289,7 +261,6 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       promo.bogoItemIds.includes(item.menuItemId)
     );
   
-    console.log("✅ Applicable items:", applicableItems.length);
   
     applicableItems.forEach((item) => {
       const buyQty = promo.buyQuantity || 1;
@@ -301,22 +272,11 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       const freeItemsCount = completeSets * getQty;
       const discount = freeItemsCount * unitPrice;
   
-      console.log(`  Item ${item.menuItemId}:`, {
-        quantity: item.quantity,
-        setSize,
-        completeSets,
-        unitPrice,
-        freeItemsCount,
-        discount
-      });
-  
       totalDiscount += discount;
     });
   
-    console.log("💰 Total BOGO discount:", totalDiscount);
   
     if (promo.maxDiscountAmount && totalDiscount > promo.maxDiscountAmount) {
-      console.log(`⚠️ Capped at max: ${promo.maxDiscountAmount}`);
       totalDiscount = promo.maxDiscountAmount;
     }
   
@@ -325,15 +285,14 @@ export function CateringProvider({ children }: { children: ReactNode }) {
 
   // NEW: Calculate totals with promotions whenever items or promotions change
   useEffect(() => {
-    console.log("use effect", restaurantPromotions)
-    Object.entries(restaurantPromotions).forEach(([restaurantId, promos]) => {
-      console.log(`🏪 Restaurant ${restaurantId} promotions:`, promos.map(p => ({
-        name: p.name,
-        type: p.promotionType,
-        bogoItemIds: p.bogoItemIds,
-        status: p.status
-      })));
-    });
+    // Object.entries(restaurantPromotions).forEach(([restaurantId, promos]) => {
+    //   console.log(`🏪 Restaurant ${restaurantId} promotions:`, promos.map(p => ({
+    //     name: p.name,
+    //     type: p.promotionType,
+    //     bogoItemIds: p.bogoItemIds,
+    //     status: p.status
+    //   })));
+    // });
     const restaurantSubtotals: Record<string, number> = {};
     const newRestaurantDiscounts: Record<string, { discount: number; promotion: any }> = {};
     
@@ -376,20 +335,20 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         restaurantId: selected.item.restaurantId
       };
     });
-    console.log("🛒 Cart Items for discount calculation:", cartItems.map(item => ({
-      menuItemId: item.menuItemId,
-      groupTitle: item.groupTitle,
-      price: item.price,
-      quantity: item.quantity,
-      restuarantId: item.restaurantId
-    })));
+    // console.log("🛒 Cart Items for discount calculation:", cartItems.map(item => ({
+    //   menuItemId: item.menuItemId,
+    //   groupTitle: item.groupTitle,
+    //   price: item.price,
+    //   quantity: item.quantity,
+    //   restuarantId: item.restaurantId
+    // })));
     // Calculate discount per restaurant
     Object.keys(restaurantSubtotals).forEach(restaurantId => {
       const subtotal = restaurantSubtotals[restaurantId];
-      console.log(`\n💰 Processing restaurant ${restaurantId}, subtotal: £${subtotal}`);
+      // console.log(`\n💰 Processing restaurant ${restaurantId}, subtotal: £${subtotal}`);
       
       const { discount, promotion } = calculatePromotionDiscount(restaurantId, subtotal, cartItems);
-      console.log(`💵 Discount calculated: £${discount}`, promotion?.name);
+      // console.log(`💵 Discount calculated: £${discount}`, promotion?.name);
       
       newRestaurantDiscounts[restaurantId] = { discount, promotion };
     });

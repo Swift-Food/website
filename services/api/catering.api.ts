@@ -17,7 +17,6 @@ import {
   CreateCateringOrderRequest,
   CateringRestaurantOrderRequest,
   CateringMenuItemRequest,
-  CateringAddonRequest,
   AddSharedAccessRequest,
   RemoveSharedAccessRequest,
   UpdatePickupContactRequest,
@@ -60,13 +59,11 @@ class CateringService {
     //   );
     // }
 
-    console.log("Search payload: ", params);
 
     const response = await fetchWithAuth(
       `${API_BASE_URL}/search?catering=true&${params.toString()}`
     );
 
-    console.log("Search response: ", response);
 
     if (!response.ok) {
       throw new Error("Failed to search menu items");
@@ -76,10 +73,7 @@ class CateringService {
   }
 
   async getMenuItems() {
-    const fullUrl = `${API_BASE_URL}/menu-item`;
-    console.log("🌐 Fetching menu items from:", fullUrl);
     const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/catering`);
-    console.log("📡 Response status:", response.status);
     if (!response.ok) {
       throw new Error("Failed to search menu items");
     }
@@ -101,17 +95,10 @@ class CateringService {
       paymentIntentId?: string;
     }
   ) {
-    console.log("=== CATERING SERVICE: Submit Order ===");
-    console.log("Event Details:", JSON.stringify(eventDetails, null, 2));
-    console.log("Selected Items Count:", selectedItems.length);
-    console.log("Contact Info:", JSON.stringify(contactInfo, null, 2));
-    console.log("Promo Codes:", promoCodes);
-    console.log("Payment Info:", JSON.stringify(paymentInfo, null, 2));
 
     let userId;
     try {
       userId = await this.findOrCreateConsumerAccount(contactInfo);
-      console.log("✅ User ID obtained:", userId);
     } catch (error: any) {
       console.error("❌ Failed to find/create consumer account");
       console.error("Error:", error);
@@ -246,13 +233,11 @@ class CateringService {
 
   async findOrCreateConsumerAccount(contactInfo: ContactInfo): Promise<string> {
     // Step 1: Check if user exists by email
-    console.log("contact info being sent", JSON.stringify(contactInfo));
     try {
       const checkResponse = await fetchWithAuth(
         `${API_BASE_URL}/users/email/${encodeURIComponent(contactInfo.email)}`
       );
 
-      console.log("Find or create consumer account response: ", checkResponse);
       if (checkResponse.ok) {
         const existingUser = await checkResponse.json();
         return existingUser.id; // User exists, return their ID
@@ -277,7 +262,6 @@ class CateringService {
         role: "customer",
       },
     };
-    console.log("consumer create data", JSON.stringify(createConsumerDto));
     const response = await fetchWithAuth(`${API_BASE_URL}/consumer-user`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -322,7 +306,6 @@ class CateringService {
     }
 
     const data = await response.json();
-    console.log("Address created:", data.id);
     return data.id;
   }
 
@@ -541,11 +524,9 @@ class CateringService {
     restaurantId: string
   ): Promise<MenuItemDetails[]> {
     const url = `${API_BASE_URL}/menu-item/admin/restaurant/${restaurantId}`;
-    console.log("Fetching menu items from:", url);
 
     const response = await fetchWithAuth(url);
 
-    console.log("Response status:", response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -556,7 +537,6 @@ class CateringService {
     }
 
     const data = await response.json();
-    console.log("API Response data:", data);
 
     // Handle both array and object responses
     if (Array.isArray(data)) {
@@ -573,7 +553,6 @@ class CateringService {
   }
 
   async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
-    console.log("dto is", dto);
     const response = await fetchWithAuth(`${API_BASE_URL}/menu-item`, {
       method: "POST",
       body: JSON.stringify(dto),
@@ -671,7 +650,6 @@ class CateringService {
     restaurantId: string,
     groupSettings: { [groupTitle: string]: { displayOrder: number } }
   ): Promise<void> {
-    console.log("groupSettings", groupSettings);
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/menu/reorder-groups/${restaurantId}`,
       {

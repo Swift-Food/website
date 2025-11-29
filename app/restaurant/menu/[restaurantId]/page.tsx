@@ -44,7 +44,6 @@ const MenuListPage = () => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    console.log("Restaurant ID:", restaurantId);
     if (restaurantId) {
       fetchMenuItems();
       fetchRestaurantData();
@@ -65,7 +64,6 @@ const MenuListPage = () => {
       const response = await cateringService.getRestaurantMenuItems(
         restaurantId
       );
-      console.log("Fetched menu items:", response);
 
       // Handle both array and object responses
       let items: MenuItemDetails[] = [];

@@ -99,8 +99,7 @@ const MultiStepDriverForm: React.FC<MultiStepFormProps> = ({ className = '' }) =
     setError(null);
     
     try {
-      const result = await mailService.sendFormResponse(formData);
-      console.log('Email sent successfully:', result);
+      await mailService.sendFormResponse(formData);
       
       // Show success page
       setIsSuccess(true);

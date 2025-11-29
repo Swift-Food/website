@@ -11,24 +11,24 @@ import {
 } from "lucide-react";
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 import { formatDeliveryAddress } from "./utils/address.utils";
-import { CateringOrderResponse } from "@/types/api";
+import { FlattenedOrderItem } from "./types/order-card.dto";
 
 interface CateringOrderCardProps {
-  order: CateringOrderResponse & { isUnassigned?: boolean };
+  item: FlattenedOrderItem;
   restaurantId: string;
-  onReview: (orderId: string, accepted: boolean) => Promise<void>;
+  onReview: (displayId: string, accepted: boolean, isMealSession: boolean) => Promise<void>;
   reviewing: string | null;
   availableAccounts: Record<string, any>;
   selectedAccounts: Record<string, string>;
-  onAccountSelect: (orderId: string, accountId: string) => void;
+  onAccountSelect: (parentOrderId: string, accountId: string) => void;
   loadingAccounts: boolean;
   token?: string;
-  onClaim: (orderId: string) => Promise<void>;
+  onClaim: (parentOrderId: string) => Promise<void>;
   claiming: string | null;
 }
 
 export const CateringOrderCard = ({
-  order,
+  item,
   restaurantId,
   onReview,
   reviewing,
@@ -37,21 +37,13 @@ export const CateringOrderCard = ({
   onAccountSelect,
   loadingAccounts,
   token,
-  onClaim, // Add new prop
+  onClaim,
   claiming,
 }: CateringOrderCardProps) => {
   const [expandedItems, setExpandedItems] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState(false);
-  const isUnassigned = order.isUnassigned === true;
-  const isPaidOrder = order.status === "paid" || order.status === "confirmed";
-  console.log(
-    "Order:",
-    order.id,
-    "isUnassigned:",
-    isUnassigned,
-    "status:",
-    order.status
-  );
+  const isUnassigned = item.isUnassigned === true;
+  const isPaidOrder = item.status === "paid" || item.status === "confirmed";
   // 🔍 View receipt in new tab (no print)
   const viewReceipt = async () => {
     if (!token) {
@@ -60,17 +52,18 @@ export const CateringOrderCard = ({
     }
     setViewingReceipt(true);
     try {
-      const selectedAccountId = selectedAccounts?.[order.id];
+      const selectedAccountId = selectedAccounts?.[item.parentOrderId];
       const branchName =
         selectedAccountId && availableAccounts
           ? availableAccounts[selectedAccountId]?.name
           : null;
 
-      const data = await fetchReceiptJson(order.id, restaurantId, token);
+      // Use parentOrderId for receipt (receipts are at order level)
+      const data = await fetchReceiptJson(item.parentOrderId, restaurantId, token);
       const html = buildReceiptHTML(
         data,
-        order.id,
-        String(order.eventDate),
+        item.parentOrderId,
+        String(item.eventDate),
         branchName
       );
       const w = window.open("", "_blank");
@@ -187,23 +180,25 @@ export const CateringOrderCard = ({
   };
 
   const getPayoutAccountName = (): string | null => {
-    if (!order.restaurantPayoutDetails) return null;
-    const payoutDetail = order.restaurantPayoutDetails[restaurantId];
+    if (!item.restaurantPayoutDetails) return null;
+    const payoutDetail = item.restaurantPayoutDetails[restaurantId];
     return payoutDetail?.accountName || null;
   };
 
   const toggleItems = () => setExpandedItems(!expandedItems);
 
-  // Support both new (restaurants) and legacy (orderItems) formats
-  const restaurantsData = order.restaurants || order.orderItems || [];
-  console.log("Restaurant data: ", restaurantsData);
+  // Use orderItems from flattened item (already resolved from session or order)
+  const restaurantsData = item.orderItems || [];
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       <div className="w-full flex justify-center mb-3">
         <span className="text-xl text-gray-500 text-center">
           <b className="text-primary">
-            Reference: {order.id.slice(0, 4).toUpperCase()}
+            {item.sessionName && (
+              <span className="text-blue-600">{item.sessionName} - </span>
+            )}
+            Reference: {item.displayId.slice(0, 4).toUpperCase()}
           </b>
         </span>
       </div>
@@ -223,14 +218,14 @@ export const CateringOrderCard = ({
                 branch/account should receive the payout.
               </p>
 
-              {/* Account Selector */}
+              {/* Account Selector - uses parentOrderId for account assignment */}
               <div className="mb-3">
                 <label className="block text-xs font-semibold text-yellow-900 mb-2">
                   💳 Select Branch/Payment Account:
                 </label>
                 <select
-                  value={selectedAccounts[order.id] || ""}
-                  onChange={(e) => onAccountSelect(order.id, e.target.value)}
+                  value={selectedAccounts[item.parentOrderId] || ""}
+                  onChange={(e) => onAccountSelect(item.parentOrderId, e.target.value)}
                   className="w-full px-3 py-2 border-2 border-yellow-400 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-yellow-500 text-sm"
                 >
                   <option value="">-- Choose Account --</option>
@@ -244,13 +239,13 @@ export const CateringOrderCard = ({
                 </select>
               </div>
 
-              {/* Claim Button */}
+              {/* Claim Button - uses parentOrderId */}
               <button
-                onClick={() => onClaim(order.id)}
-                disabled={!selectedAccounts[order.id] || claiming === order.id}
+                onClick={() => onClaim(item.parentOrderId)}
+                disabled={!selectedAccounts[item.parentOrderId] || claiming === item.parentOrderId}
                 className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors disabled:bg-yellow-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
               >
-                {claiming === order.id ? (
+                {claiming === item.parentOrderId ? (
                   <>
                     <Loader size={16} className="mr-2 animate-spin" />
                     Assigning Account...
@@ -266,8 +261,8 @@ export const CateringOrderCard = ({
               <p className="text-xs text-yellow-700 mt-2">
                 💰 Once assigned, earnings will be transferred to:{" "}
                 <strong>
-                  {selectedAccounts[order.id] &&
-                    availableAccounts[selectedAccounts[order.id]]?.name}
+                  {selectedAccounts[item.parentOrderId] &&
+                    availableAccounts[selectedAccounts[item.parentOrderId]]?.name}
                 </strong>
               </p>
             </div>
@@ -280,46 +275,43 @@ export const CateringOrderCard = ({
         <div className="flex flex-row gap-5 justify-center items-center">
           <span
             className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border inline-block text-center ${getStatusColor(
-              order.status
+              item.status
             )}`}
           >
-            {getStatusLabel(order.status)}
+            {getStatusLabel(item.status)}
           </span>
         </div>
         <div className="sm:text-right">
           <div className="mb-1">
             <p className="text-xs text-gray-600 font-medium">Your Earnings</p>
             <p className="font-bold text-xl sm:text-2xl text-green-600">
-              {formatCurrency(
-                order.restaurantsTotalNet || order.restaurantTotalCost || 0
-              )}
+              {formatCurrency(item.restaurantNetEarnings || 0)}
             </p>
           </div>
 
           {/* Show pricing breakdown */}
           <div className="mb-2 space-y-1">
-            {order.promoDiscount && Number(order.promoDiscount) > 0 ? (
+            {item.promoDiscount && Number(item.promoDiscount) > 0 ? (
               <>
                 <p className="text-sm text-gray-600">
-                  Subtotal:{" "}
-                  {formatCurrency(order.subtotal || order.estimatedTotal)}
+                  Subtotal: {formatCurrency(item.subtotal)}
                 </p>
                 <p className="text-sm text-green-600 font-medium">
-                  Promotion Savings: -{formatCurrency(order.promoDiscount)}
+                  Promotion Savings: -{formatCurrency(item.promoDiscount)}
                 </p>
                 <p className="text-sm text-gray-900 font-semibold">
-                  Customer Paid: {formatCurrency(order.finalTotal)}
+                  Customer Paid: {formatCurrency(item.customerTotal)}
                 </p>
               </>
             ) : (
               <p className="text-sm text-gray-600">
-                Customer Paid: {formatCurrency(order.finalTotal)}
+                Customer Paid: {formatCurrency(item.customerTotal)}
               </p>
             )}
           </div>
 
           <p className="text-xs text-gray-500">
-            Event: {formatDate(order.eventDate)}
+            Event: {formatDate(item.eventDate)}
           </p>
         </div>
       </div>
@@ -374,15 +366,15 @@ export const CateringOrderCard = ({
           <p className="text-gray-600">
             Date:{" "}
             <span className="text-gray-900 font-medium">
-              {formatDate(order.eventDate)}
+              {formatDate(item.eventDate)}
             </span>
           </p>
           <p className="text-gray-600">
             Collection Time:{" "}
             <span className="text-gray-900 font-medium">
-              {order.collectionTime
-                ? order.collectionTime
-                : formatEventTime(order.eventTime)}
+              {item.collectionTime
+                ? item.collectionTime
+                : formatEventTime(item.eventTime)}
             </span>
           </p>
           <p className="text-gray-600">
@@ -395,7 +387,7 @@ export const CateringOrderCard = ({
         <p className="text-sm text-gray-600 mt-2">
           Delivery:{" "}
           <span className="text-gray-900 font-medium">
-            {formatDeliveryAddress(order.deliveryAddress)}
+            {formatDeliveryAddress(item.deliveryAddress)}
           </span>
         </p>
       </div>
@@ -427,7 +419,7 @@ export const CateringOrderCard = ({
             {restaurantsData.map((restaurant, idx) => (
               <div key={idx} className="mb-3">
                 <div className="space-y-2">
-                  {restaurant.menuItems.map((item, itemIdx) => {
+                  {restaurant.menuItems.map((item: any, itemIdx: number) => {
                     // Group addons by groupTitle
                     const addonGroups: Record<string, any[]> = {};
                     if (
@@ -583,21 +575,21 @@ export const CateringOrderCard = ({
       </div>
 
       {/* Special Requirements */}
-      {order.specialRequirements && (
+      {item.specialRequirements && (
         <div className="mt-4 p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-xs font-semibold text-yellow-900 mb-1">
             Special Requirements:
           </p>
           <p className="text-xs sm:text-sm text-yellow-800 break-words">
-            {order.specialRequirements}
+            {item.specialRequirements}
           </p>
         </div>
       )}
 
       {/* Review Buttons */}
-      {order.status === "admin_reviewed" && (
+      {item.status === "admin_reviewed" && (
         <div className="mt-4 pt-4 border-t border-gray-200">
-          {/* Account Selector */}
+          {/* Account Selector - uses parentOrderId */}
           {!loadingAccounts &&
             availableAccounts &&
             Object.keys(availableAccounts).length > 0 && (
@@ -606,8 +598,8 @@ export const CateringOrderCard = ({
                   💳 Select Branch/Payment Account:
                 </label>
                 <select
-                  value={selectedAccounts[order.id] || ""}
-                  onChange={(e) => onAccountSelect(order.id, e.target.value)}
+                  value={selectedAccounts[item.parentOrderId] || ""}
+                  onChange={(e) => onAccountSelect(item.parentOrderId, e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
                 >
                   {Object.entries(availableAccounts).map(
@@ -621,7 +613,7 @@ export const CateringOrderCard = ({
                 <p className="text-xs text-blue-700 mt-2">
                   💰 Payment will be sent to:{" "}
                   <strong>
-                    {availableAccounts[selectedAccounts[order.id]]?.name ||
+                    {availableAccounts[selectedAccounts[item.parentOrderId]]?.name ||
                       "Selected Account"}
                   </strong>
                 </p>
@@ -629,16 +621,16 @@ export const CateringOrderCard = ({
             )}
 
           <p className="text-xs sm:text-sm font-medium text-gray-900 mb-3">
-            Please review this order and confirm your availability
+            Please review this {item.isMealSession ? "meal session" : "order"} and confirm your availability
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
-              onClick={() => onReview(order.id, true)}
-              disabled={reviewing === order.id || loadingAccounts}
+              onClick={() => onReview(item.displayId, true, item.isMealSession)}
+              disabled={reviewing === item.displayId || loadingAccounts}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-green-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
             >
-              {reviewing === order.id ? (
+              {reviewing === item.displayId ? (
                 <>
                   <Loader size={16} className="mr-2 animate-spin" />
                   Accepting...
@@ -651,11 +643,11 @@ export const CateringOrderCard = ({
               )}
             </button>
             <button
-              onClick={() => onReview(order.id, false)}
-              disabled={reviewing === order.id || loadingAccounts}
+              onClick={() => onReview(item.displayId, false, item.isMealSession)}
+              disabled={reviewing === item.displayId || loadingAccounts}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
             >
-              {reviewing === order.id ? (
+              {reviewing === item.displayId ? (
                 <>
                   <Loader size={16} className="mr-2 animate-spin" />
                   Rejecting...

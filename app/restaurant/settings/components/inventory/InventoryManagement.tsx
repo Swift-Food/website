@@ -84,12 +84,6 @@ export const InventoryManagement = ({
             restaurantId
           );
 
-          console.log("📥 Loaded corporate inventory data from backend:", {
-            sessionResetPeriod: corporateSettings.sessionResetPeriod,
-            maxPortionsPerSession: corporateSettings.maxPortionsPerSession,
-            limitedIngredientsPerSession: corporateSettings.limitedIngredientsPerSession,
-            limitedIngredientsRemaining: corporateSettings.limitedIngredientsRemaining,
-          });
 
           // Reset period
           setSessionResetPeriod(corporateSettings.sessionResetPeriod ?? null);
@@ -187,17 +181,6 @@ export const InventoryManagement = ({
         limitedIngredientsPerSession,
       };
 
-      console.log("📤 Frontend sending corporate inventory update:", {
-        restaurantId,
-        payload,
-        state: {
-          sessionResetPeriod,
-          enablePortionLimit,
-          maxPortionsPerSession,
-          enableIngredientTracking,
-          ingredients,
-        },
-      });
 
       await restaurantApi.updateCorporateInventory(
         restaurantId,

@@ -185,7 +185,6 @@ export const restaurantApi = {
       : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;
 
     const response = await fetchWithAuth(url);
-    console.log("Getting catering orders: ", response);
     if (!response.ok) throw new Error("Failed to fetch catering orders");
     return response.json();
   },
@@ -209,6 +208,28 @@ export const restaurantApi = {
       }
     );
     if (!response.ok) throw new Error("Failed to review catering order");
+    return response.json();
+  },
+
+  reviewMealSession: async (
+    sessionId: string,
+    restaurantId: string,
+    accepted: boolean,
+    token?: string,
+    selectedAccountId?: string
+  ): Promise<any> => {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/catering-orders/sessions/${sessionId}/restaurant-review`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          restaurantId,
+          accepted,
+          selectedAccountId,
+        }),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to review meal session");
     return response.json();
   },
 
@@ -314,7 +335,6 @@ export const restaurantApi = {
       }
     );
 
-    console.log("🟢 Catering Response Status:", response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -325,7 +345,6 @@ export const restaurantApi = {
     }
 
     const result = await response.json();
-    console.log("🟢 Catering Success:", result);
     return result;
   },
 
@@ -333,10 +352,6 @@ export const restaurantApi = {
   getCorporateInventorySettings: async (restaurantId: string): Promise<any> => {
     const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
 
-    console.log("🟣 Getting corporate inventory settings:", {
-      restaurantId,
-      url,
-    });
 
     const response = await fetchWithAuth(url);
 
@@ -349,7 +364,6 @@ export const restaurantApi = {
     }
 
     const result = await response.json();
-    console.log("🟣 Corporate inventory settings:", result);
     return result;
   },
 
@@ -360,11 +374,6 @@ export const restaurantApi = {
   ): Promise<any> => {
     const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
 
-    console.log("🟣 Corporate Update Request:", {
-      restaurantId,
-      url,
-      payload: data,
-    });
 
     const response = await fetchWithAuth(url, {
       method: "PATCH",
@@ -380,7 +389,6 @@ export const restaurantApi = {
     }
 
     const result = await response.json();
-    console.log("🟣 Corporate Success Response:", result);
     return result;
   },
 
