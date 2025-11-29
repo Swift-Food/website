@@ -26,7 +26,7 @@ export const fetchWithAuth = async (
   options: RequestInit = {}
 ): Promise<Response> => {
   const token = localStorage.getItem("access_token");
- 
+
   // Add Authorization header if token exists
   const headers = {
     "Content-Type": "application/json",
@@ -41,14 +41,18 @@ export const fetchWithAuth = async (
 
   // Handle 429 Too Many Requests
   if (response.status === 429) {
-    const retryAfter = response.headers.get('Retry-After');
+    const retryAfter = response.headers.get("Retry-After");
     const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default 60s
 
     // Show user-friendly error message
     console.warn(`Rate limit exceeded. Retry after ${waitTime / 1000} seconds`);
 
     // Throw error with retry information
-    throw new Error(`Rate limit exceeded. Please try again in ${Math.ceil(waitTime / 1000)} seconds.`);
+    throw new Error(
+      `Rate limit exceeded. Please try again in ${Math.ceil(
+        waitTime / 1000
+      )} seconds.`
+    );
   }
 
   // If 401 and not already retrying, attempt refresh
@@ -95,14 +99,11 @@ export const fetchWithAuth = async (
 
     try {
       // Call refresh endpoint
-      const refreshResponse = await fetch(
-        `${API_BASE_URL}/auth/refresh-consumer`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refresh_token: refreshToken }),
-        }
-      );
+      const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
 
       if (!refreshResponse.ok) {
         throw new Error("Token refresh failed");
