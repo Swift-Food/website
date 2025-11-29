@@ -41,25 +41,26 @@ export const CateringOrdersList = ({
     Record<string, any>
   >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
-  
+
   // Flatten orders into display items (handles meal sessions)
-  const flattenedItems = useMemo(() =>
-    flattenOrdersToDisplayItems(orders, restaurantId),
+  const flattenedItems = useMemo(
+    () => flattenOrdersToDisplayItems(orders, restaurantId),
     [orders, restaurantId]
   );
 
   // Process flattened items to adjust status based on restaurant reviews
-  const processedItems = useMemo(() =>
-    flattenedItems.map(item => {
-      // Check if this restaurant has reviewed the item
-      if (
-        item.restaurantReviews?.includes(restaurantId) &&
-        item.status === "admin_reviewed"
-      ) {
-        return { ...item, status: CateringOrderStatus.RESTAURANT_REVIEWED };
-      }
-      return item;
-    }),
+  const processedItems = useMemo(
+    () =>
+      flattenedItems.map((item) => {
+        // Check if this restaurant has reviewed the item
+        if (
+          item.restaurantReviews?.includes(restaurantId) &&
+          item.status === "admin_reviewed"
+        ) {
+          return { ...item, status: CateringOrderStatus.RESTAURANT_REVIEWED };
+        }
+        return item;
+      }),
     [flattenedItems, restaurantId]
   );
 
@@ -100,13 +101,17 @@ export const CateringOrdersList = ({
     }
   }, [selectedAccountId]);
 
-  const handleReview = async (displayId: string, accepted: boolean, isMealSession: boolean) => {
+  const handleReview = async (
+    displayId: string,
+    accepted: boolean,
+    isMealSession: boolean
+  ) => {
     setReviewing(displayId);
     setError("");
 
     try {
       // Find the item to get the parent order ID for account selection
-      const item = processedItems.find(i => i.displayId === displayId);
+      const item = processedItems.find((i) => i.displayId === displayId);
       const accountId = item ? selectedAccounts[item.parentOrderId] : undefined;
 
       if (isMealSession) {
@@ -137,7 +142,6 @@ export const CateringOrdersList = ({
   };
 
   const handleClaim = async (orderId: string) => {
-
     setClaiming(orderId);
     setError("");
 
@@ -222,6 +226,7 @@ export const CateringOrdersList = ({
     : allStatusTabs;
 
   const getActiveItems = (): FlattenedOrderItem[] => {
+    console.log("IN active items: ", itemsByStatus);
     if (activeStatusTab === "unassigned") {
       return unassignedItems;
     }

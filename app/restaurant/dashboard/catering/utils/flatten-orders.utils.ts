@@ -139,6 +139,17 @@ function determineSessionStatus(
 }
 
 /**
+ * Filter order items to only include items for the given restaurant
+ */
+function filterOrderItemsForRestaurant(
+  orderItems: any[],
+  restaurantId: string
+): any[] {
+  if (!orderItems || !Array.isArray(orderItems)) return [];
+  return orderItems.filter((item: any) => item.restaurantId === restaurantId);
+}
+
+/**
  * Flatten a single order into display items
  * Returns multiple items if the order has meal sessions
  */
@@ -152,6 +163,15 @@ function flattenOrder(
   if (order.mealSessions && order.mealSessions.length > 0) {
     // Multi-meal order: create an item for each session
     for (const session of order.mealSessions) {
+      // Filter order items to only include this restaurant's items
+      const filteredOrderItems = filterOrderItemsForRestaurant(
+        session.orderItems || [],
+        restaurantId
+      );
+
+      // Skip this session if the restaurant has no items in it
+      if (filteredOrderItems.length === 0) continue;
+
       items.push({
         // Identifiers
         displayId: session.id,
@@ -163,8 +183,8 @@ function flattenOrder(
         eventTime: session.eventTime,
         collectionTime: session.collectionTime,
 
-        // Order data
-        orderItems: session.orderItems || [],
+        // Order data - filtered to only this restaurant's items
+        orderItems: filteredOrderItems,
         guestCount: session.guestCount || order.guestCount,
         specialRequirements: session.specialRequirements || order.specialRequirements,
         deliveryAddress: order.deliveryAddress,
@@ -193,6 +213,17 @@ function flattenOrder(
     }
   } else {
     // Single-meal order (legacy or no sessions): treat as-is
+    const allOrderItems = order.restaurants || order.orderItems || [];
+
+    // Filter order items to only include this restaurant's items
+    const filteredOrderItems = filterOrderItemsForRestaurant(
+      allOrderItems,
+      restaurantId
+    );
+
+    // Skip this order if the restaurant has no items in it
+    if (filteredOrderItems.length === 0) return items;
+
     items.push({
       // Identifiers
       displayId: order.id,
@@ -204,8 +235,8 @@ function flattenOrder(
       eventTime: order.eventTime,
       collectionTime: order.collectionTime,
 
-      // Order data
-      orderItems: order.restaurants || order.orderItems || [],
+      // Order data - filtered to only this restaurant's items
+      orderItems: filteredOrderItems,
       guestCount: order.guestCount,
       specialRequirements: order.specialRequirements,
       deliveryAddress: order.deliveryAddress,

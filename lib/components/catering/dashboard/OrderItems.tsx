@@ -119,6 +119,9 @@ export default function OrderItems({ order }: OrderItemsProps) {
                 const numUnits = item.quantity / cateringUnit;
                 const totalFeeds = numUnits * feedsPerUnit;
 
+                // Support both 'addons' and 'selectedAddons' property names
+                const itemAddons = item.addons || item.selectedAddons || [];
+
                 return (
                   <div
                     key={itemIdx}
@@ -141,13 +144,13 @@ export default function OrderItems({ order }: OrderItemsProps) {
                     </div>
 
                     {/* Addons */}
-                    {item.selectedAddons && item.selectedAddons.length > 0 && (
+                    {itemAddons.length > 0 && (
                       <div className="mt-2 sm:mt-3 pl-3 sm:pl-4 border-l-2 sm:border-l-3 border-pink-300 bg-white rounded-r-lg p-2 sm:p-3">
                         <p className="text-xs font-semibold text-gray-700 mb-1 sm:mb-2 uppercase tracking-wide">
                           Add-ons:
                         </p>
                         <div className="space-y-1">
-                          {item.selectedAddons.map(
+                          {itemAddons.map(
                             (addon: any, addonIdx: number) => (
                               <div
                                 key={addonIdx}
@@ -162,7 +165,7 @@ export default function OrderItems({ order }: OrderItemsProps) {
                                 <span className="text-pink-600 font-semibold whitespace-nowrap">
                                   +£
                                   {(
-                                    addon.customerUnitPrice * addon.quantity
+                                    (addon.customerUnitPrice || addon.price || 0) * addon.quantity
                                   ).toFixed(2)}
                                 </span>
                               </div>

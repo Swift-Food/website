@@ -26,18 +26,19 @@ export default function CateringDashboardPage() {
   const [order, setOrder] = useState<CateringOrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentUserRole, setCurrentUserRole] =
-    useState<'viewer' | 'editor' | 'manager' | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<
+    "viewer" | "editor" | "manager" | null
+  >(null);
 
-    useEffect(() => {
-      loadOrder();
-    }, [token]);
-    
-    useEffect(() => {
-      if (order) {
-        loadRefunds();
-      }
-    }, [order]);
+  useEffect(() => {
+    loadOrder();
+  }, [token]);
+
+  useEffect(() => {
+    if (order) {
+      loadRefunds();
+    }
+  }, [order]);
 
   const loadOrder = async () => {
     try {
@@ -50,6 +51,7 @@ export default function CateringDashboardPage() {
       const currentUser = data.sharedAccessUsers?.find(
         (u) => u.accessToken === token
       );
+      console.log(data);
       setCurrentUserRole(currentUser?.role || null);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
@@ -65,7 +67,7 @@ export default function CateringDashboardPage() {
       const data = await refundService.getOrderRefunds(order.id);
       setRefunds(data);
     } catch (err) {
-      console.error('Failed to load refunds:', err);
+      console.error("Failed to load refunds:", err);
     } finally {
       setLoadingRefunds(false);
     }
@@ -101,7 +103,7 @@ export default function CateringDashboardPage() {
     );
   }
 
-  const isManager = currentUserRole === 'editor';
+  const isManager = currentUserRole === "editor";
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
@@ -144,26 +146,28 @@ export default function CateringDashboardPage() {
           <div className="space-y-4 sm:space-y-6">
             <DeliveryInfo order={order} />
 
-
-              {refunds.length > 0 && (
-                <RefundsList refunds={refunds} />
-              )}
-              {order.status === 'completed' && (
+            {refunds.length > 0 && <RefundsList refunds={refunds} />}
+            {order.status === "completed" && (
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Need a Refund?</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Need a Refund?
+                </h3>
                 <RefundRequestButton
                   orderId={order.id}
                   orderType="catering"
-                  orderCompletedAt={typeof order.updatedAt === 'string' ? order.updatedAt : order.updatedAt.toISOString()}
+                  orderCompletedAt={
+                    typeof order.updatedAt === "string"
+                      ? order.updatedAt
+                      : order.updatedAt.toISOString()
+                  }
                   totalAmount={order.finalTotal ?? 0}
                   orderItems={order.restaurants || order.orderItems || []}
                   canRequestRefund={true}
                   onRefundRequested={loadOrder}
-                  userId={order.userId ?? ''}
+                  userId={order.userId ?? ""}
                 />
               </div>
-              )}
-            
+            )}
 
             {/* Only show management components if user is a manager */}
             {isManager ? (

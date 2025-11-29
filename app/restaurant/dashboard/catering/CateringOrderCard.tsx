@@ -16,7 +16,11 @@ import { FlattenedOrderItem } from "./types/order-card.dto";
 interface CateringOrderCardProps {
   item: FlattenedOrderItem;
   restaurantId: string;
-  onReview: (displayId: string, accepted: boolean, isMealSession: boolean) => Promise<void>;
+  onReview: (
+    displayId: string,
+    accepted: boolean,
+    isMealSession: boolean
+  ) => Promise<void>;
   reviewing: string | null;
   availableAccounts: Record<string, any>;
   selectedAccounts: Record<string, string>;
@@ -59,7 +63,11 @@ export const CateringOrderCard = ({
           : null;
 
       // Use parentOrderId for receipt (receipts are at order level)
-      const data = await fetchReceiptJson(item.parentOrderId, restaurantId, token);
+      const data = await fetchReceiptJson(
+        item.parentOrderId,
+        restaurantId,
+        token
+      );
       const html = buildReceiptHTML(
         data,
         item.parentOrderId,
@@ -225,7 +233,9 @@ export const CateringOrderCard = ({
                 </label>
                 <select
                   value={selectedAccounts[item.parentOrderId] || ""}
-                  onChange={(e) => onAccountSelect(item.parentOrderId, e.target.value)}
+                  onChange={(e) =>
+                    onAccountSelect(item.parentOrderId, e.target.value)
+                  }
                   className="w-full px-3 py-2 border-2 border-yellow-400 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-yellow-500 text-sm"
                 >
                   <option value="">-- Choose Account --</option>
@@ -242,7 +252,10 @@ export const CateringOrderCard = ({
               {/* Claim Button - uses parentOrderId */}
               <button
                 onClick={() => onClaim(item.parentOrderId)}
-                disabled={!selectedAccounts[item.parentOrderId] || claiming === item.parentOrderId}
+                disabled={
+                  !selectedAccounts[item.parentOrderId] ||
+                  claiming === item.parentOrderId
+                }
                 className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors disabled:bg-yellow-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
               >
                 {claiming === item.parentOrderId ? (
@@ -262,7 +275,8 @@ export const CateringOrderCard = ({
                 💰 Once assigned, earnings will be transferred to:{" "}
                 <strong>
                   {selectedAccounts[item.parentOrderId] &&
-                    availableAccounts[selectedAccounts[item.parentOrderId]]?.name}
+                    availableAccounts[selectedAccounts[item.parentOrderId]]
+                      ?.name}
                 </strong>
               </p>
             </div>
@@ -599,7 +613,9 @@ export const CateringOrderCard = ({
                 </label>
                 <select
                   value={selectedAccounts[item.parentOrderId] || ""}
-                  onChange={(e) => onAccountSelect(item.parentOrderId, e.target.value)}
+                  onChange={(e) =>
+                    onAccountSelect(item.parentOrderId, e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-blue-500"
                 >
                   {Object.entries(availableAccounts).map(
@@ -613,15 +629,16 @@ export const CateringOrderCard = ({
                 <p className="text-xs text-blue-700 mt-2">
                   💰 Payment will be sent to:{" "}
                   <strong>
-                    {availableAccounts[selectedAccounts[item.parentOrderId]]?.name ||
-                      "Selected Account"}
+                    {availableAccounts[selectedAccounts[item.parentOrderId]]
+                      ?.name || "Selected Account"}
                   </strong>
                 </p>
               </div>
             )}
 
           <p className="text-xs sm:text-sm font-medium text-gray-900 mb-3">
-            Please review this {item.isMealSession ? "meal session" : "order"} and confirm your availability
+            Please review this {item.isMealSession ? "meal session" : "order"}{" "}
+            and confirm your availability
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
@@ -643,7 +660,9 @@ export const CateringOrderCard = ({
               )}
             </button>
             <button
-              onClick={() => onReview(item.displayId, false, item.isMealSession)}
+              onClick={() =>
+                onReview(item.displayId, false, item.isMealSession)
+              }
               disabled={reviewing === item.displayId || loadingAccounts}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-red-300 disabled:cursor-not-allowed flex items-center justify-center text-sm"
             >
