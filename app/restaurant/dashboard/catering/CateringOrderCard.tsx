@@ -311,12 +311,12 @@ export const CateringOrderCard = ({
                   Promotion Savings: -{formatCurrency(item.promoDiscount)}
                 </p>
                 <p className="text-sm text-gray-900 font-semibold">
-                  Customer Paid: {formatCurrency(item.sessionTotal)}
+                  Customer Paid: {formatCurrency(item.customerTotal)}
                 </p>
               </>
             ) : (
               <p className="text-sm text-gray-600">
-                Customer Paid: {formatCurrency(item.sessionTotal)}
+                Customer Paid: {formatCurrency(item.customerTotal)}
               </p>
             )}
           </div>

@@ -33,6 +33,33 @@ function calculateSessionNetEarnings(
 }
 
 /**
+ * Calculate customer total for a meal session (what customer pays to this restaurant)
+ */
+function calculateSessionCustomerTotal(
+  session: MealSessionResponse,
+  restaurantId: string
+): number {
+  if (!session.orderItems) return 0;
+
+  // Find the restaurant's order item in this session
+  const restaurantOrder = session.orderItems.find(
+    (item) => item.restaurantId === restaurantId
+  ) as any;
+
+  if (!restaurantOrder) return 0;
+
+  // Use customerTotal if available, otherwise calculate from menu items
+  if (restaurantOrder.customerTotal !== undefined) {
+    return restaurantOrder.customerTotal;
+  }
+
+  // Fallback: sum up customer prices from menu items
+  return restaurantOrder.menuItems?.reduce((total: number, menuItem: any) => {
+    return total + (menuItem.customerTotalPrice || 0);
+  }, 0) || 0;
+}
+
+/**
  * Calculate restaurant net earnings for a legacy order (no meal sessions)
  */
 function calculateOrderNetEarnings(
@@ -60,6 +87,32 @@ function calculateOrderNetEarnings(
   return restaurantOrder.restaurantNetAmount ||
          restaurantOrder.restaurantNetEarning ||
          restaurantOrder.totalPrice || 0;
+}
+
+/**
+ * Calculate customer total for a legacy order (what customer pays to this restaurant)
+ */
+function calculateOrderCustomerTotal(
+  order: CateringOrderResponse,
+  restaurantId: string
+): number {
+  // Calculate from restaurants array
+  const restaurants = order.restaurants || order.orderItems || [];
+  const restaurantOrder = restaurants.find(
+    (item: any) => item.restaurantId === restaurantId
+  ) as any;
+
+  if (!restaurantOrder) return 0;
+
+  // Use customerTotal if available
+  if (restaurantOrder.customerTotal !== undefined) {
+    return restaurantOrder.customerTotal;
+  }
+
+  // Fallback: sum up customer prices from menu items
+  return restaurantOrder.menuItems?.reduce((total: number, menuItem: any) => {
+    return total + (menuItem.customerTotalPrice || 0);
+  }, 0) || 0;
 }
 
 /**
@@ -120,6 +173,7 @@ function flattenOrder(
         subtotal: session.subtotal || 0,
         deliveryFee: session.deliveryFee || 0,
         sessionTotal: session.sessionTotal || 0,
+        customerTotal: calculateSessionCustomerTotal(session, restaurantId),
         restaurantNetEarnings: calculateSessionNetEarnings(session, restaurantId),
         promoDiscount: session.promoDiscount,
         promotionDiscount: session.promotionDiscount,
@@ -160,6 +214,7 @@ function flattenOrder(
       subtotal: order.subtotal || 0,
       deliveryFee: order.deliveryFee || 0,
       sessionTotal: order.finalTotal || order.estimatedTotal || 0,
+      customerTotal: calculateOrderCustomerTotal(order, restaurantId),
       restaurantNetEarnings: calculateOrderNetEarnings(order, restaurantId),
       promoDiscount: order.promoDiscount,
       promotionDiscount: order.promotionDiscount,
