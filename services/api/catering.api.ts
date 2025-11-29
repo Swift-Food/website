@@ -17,7 +17,6 @@ import {
   CreateCateringOrderRequest,
   CateringRestaurantOrderRequest,
   CateringMenuItemRequest,
-  CateringAddonRequest,
   AddSharedAccessRequest,
   RemoveSharedAccessRequest,
   UpdatePickupContactRequest,
@@ -76,8 +75,6 @@ class CateringService {
   }
 
   async getMenuItems() {
-    const fullUrl = `${API_BASE_URL}/menu-item`;
-    console.log("🌐 Fetching menu items from:", fullUrl);
     const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/catering`);
     console.log("📡 Response status:", response.status);
     if (!response.ok) {
