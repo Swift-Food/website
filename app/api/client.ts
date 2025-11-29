@@ -83,11 +83,14 @@ export const fetchWithAuth = async (
 
     try {
       // Call refresh endpoint
-      const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
+      const refreshResponse = await fetch(
+        `${API_BASE_URL}/auth/refresh`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        }
+      );
 
       if (!refreshResponse.ok) {
         throw new Error("Token refresh failed");
