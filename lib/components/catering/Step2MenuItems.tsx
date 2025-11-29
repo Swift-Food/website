@@ -209,7 +209,6 @@ export default function Step2MenuItems() {
     setRestaurantPromotions(promotionsMap); // USE CONTEXT SETTER
   };
 
-
   const fetchAllMenuItems = async () => {
     setLoading(true);
     try {
@@ -403,7 +402,7 @@ export default function Step2MenuItems() {
       }
       // Check OPTIONAL sections
       if (data.optional) {
-        data.optional.forEach((rule, index) => {
+        data.optional.forEach((rule) => {
           // console.log(`    Rule ${index}:`, {
           //   hasItems: rule.hasItems,
           //   count: rule.count,

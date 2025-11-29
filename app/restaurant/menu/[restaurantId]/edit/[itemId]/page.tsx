@@ -193,7 +193,7 @@ const EditMenuItemPage = () => {
       };
 
       // Update restaurant's group settings
-      // await cateringService.reorderGroups(restaurantId, newGroupSettings);
+      await cateringService.reorderGroups(restaurantId, newGroupSettings);
 
       // Update local state
       setExistingGroups((prev) => [...prev, newGroupName.trim()]);
