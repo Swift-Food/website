@@ -66,8 +66,8 @@ const RestaurantSettingsPage = () => {
         setLoading(false);
         sessionStorage.removeItem("restaurantData");
         return;
-      } catch (err) {
-        console.error("Failed to parse cached restaurant data:", err);
+      } catch {
+        // Fall through to fetch from API
       }
     }
 
@@ -129,7 +129,7 @@ const RestaurantSettingsPage = () => {
       const formDataUpload = new FormData();
       formDataUpload.append("upload", file);
 
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`, {
         method: "POST",
         body: formDataUpload,
       });

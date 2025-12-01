@@ -13,7 +13,7 @@ export class MailService {
 
   async sendFormResponse(formData: FormData) {
     try {
-      await fetch(`https://swiftfoods-32981ec7b5a4.herokuapp.com/mail`, {
+      await fetch(`${this.apiUrl}/mail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -21,8 +21,7 @@ export class MailService {
         body: JSON.stringify(formData),
       });
       return "success";
-    } catch (error) {
-      console.error("Error sending form response:", error);
+    } catch {
       throw new Error("Failed to send form response");
     }
   }
