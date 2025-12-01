@@ -21,7 +21,7 @@ interface SessionEditorProps {
   session: MealSessionState;
   sessionIndex: number;
   onUpdate: (index: number, updates: Partial<MealSessionState>) => void;
-  onClose: () => void;
+  onClose: (cancelled: boolean) => void;
 }
 
 function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEditorProps) {
@@ -51,7 +51,7 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEdit
 
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Close on click outside
+  // Close on click outside - saves the session
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (editorRef.current && !editorRef.current.contains(event.target as Node)) {
@@ -61,6 +61,10 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEdit
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sessionName, sessionDate, selectedHour, selectedMinute, selectedPeriod]);
+
+  const handleCancel = () => {
+    onClose(true);
+  };
 
   const getMinDate = () => {
     const date = new Date();
@@ -87,7 +91,7 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEdit
       sessionDate,
       eventTime,
     });
-    onClose();
+    onClose(false);
   };
 
   return (
@@ -169,7 +173,7 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEdit
         {/* Actions */}
         <div className="flex justify-end gap-2 mt-2">
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
           >
             Cancel
@@ -199,6 +203,7 @@ export default function Step2MenuItemsNew() {
   } = useCatering();
 
   const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(null);
+  const [pendingNewSessionIndex, setPendingNewSessionIndex] = useState<number | null>(null);
 
   const handleAddSession = () => {
     const newSession: MealSessionState = {
@@ -209,8 +214,19 @@ export default function Step2MenuItemsNew() {
     };
     addMealSession(newSession);
     // Auto-open editor for new session
-    setEditingSessionIndex(mealSessions.length);
-    setActiveSessionIndex(mealSessions.length);
+    const newIndex = mealSessions.length;
+    setEditingSessionIndex(newIndex);
+    setActiveSessionIndex(newIndex);
+    setPendingNewSessionIndex(newIndex);
+  };
+
+  const handleEditorClose = (cancelled: boolean) => {
+    if (cancelled && pendingNewSessionIndex !== null) {
+      // Remove the pending session if cancel was clicked
+      removeMealSession(pendingNewSessionIndex);
+    }
+    setEditingSessionIndex(null);
+    setPendingNewSessionIndex(null);
   };
 
   const handleSessionClick = (index: number) => {
@@ -335,7 +351,7 @@ export default function Step2MenuItemsNew() {
               session={mealSessions[editingSessionIndex]}
               sessionIndex={editingSessionIndex}
               onUpdate={updateMealSession}
-              onClose={() => setEditingSessionIndex(null)}
+              onClose={handleEditorClose}
             />
           )}
 
