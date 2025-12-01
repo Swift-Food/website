@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useCatering } from "@/context/CateringContext";
-import { MealSessionState } from "@/types/catering.types";
+import { MealSessionState, CategoryWithSubcategories, Subcategory } from "@/types/catering.types";
+import { categoryService } from "@/services/api/category.api";
 
 // Hour and minute options for time picker
 const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
@@ -216,6 +217,35 @@ export default function CateringOrderBuilder() {
   const [pendingNewSessionIndex, setPendingNewSessionIndex] = useState<number | null>(null);
   const [editorAnchorRect, setEditorAnchorRect] = useState<DOMRect | null>(null);
   const sessionButtonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
+
+  // Category state
+  const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryWithSubcategories | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        setCategoriesError(null);
+        const data = await categoryService.getCategoriesWithSubcategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        setCategoriesError("Failed to load categories");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const handleCategoryClick = (category: CategoryWithSubcategories) => {
+    setSelectedCategory(selectedCategory?.id === category.id ? null : category);
+  };
 
   const handleAddSession = () => {
     const newSession: MealSessionState = {
@@ -452,36 +482,69 @@ export default function CateringOrderBuilder() {
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Placeholder for menu content - will be implemented in next iteration */}
+        {/* Categories Row */}
+        <div className="mb-6">
+          {categoriesLoading ? (
+            <div className="flex items-center gap-3 overflow-x-auto pb-2">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                />
+              ))}
+            </div>
+          ) : categoriesError ? (
+            <div className="text-center py-4 text-red-500">{categoriesError}</div>
+          ) : (
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryClick(category)}
+                  className={`
+                    flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all
+                    ${selectedCategory?.id === category.id
+                      ? "bg-primary text-white shadow-md"
+                      : "bg-base-200 text-gray-700 hover:bg-base-300"
+                    }
+                  `}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Subcategories Row (shown when category is selected) */}
+        {selectedCategory && selectedCategory.subcategories.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <span className="flex-shrink-0 text-sm text-gray-500 mr-2">
+                {selectedCategory.name}:
+              </span>
+              {selectedCategory.subcategories.map((subcategory) => (
+                <button
+                  key={subcategory.id}
+                  className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-secondary/10 text-secondary hover:bg-secondary/20 transition-all"
+                >
+                  {subcategory.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Menu Items Area - Placeholder */}
         <div className="bg-base-200/50 rounded-2xl p-8 text-center">
           <h2 className="text-xl font-semibold text-gray-700 mb-2">
-            Menu Content Area
+            {selectedCategory ? `${selectedCategory.name} Menu Items` : "Select a Category"}
           </h2>
           <p className="text-gray-500">
-            This is where the restaurant/menu catalogue will be displayed for session:{" "}
-            <strong>{mealSessions[activeSessionIndex].sessionName}</strong>
+            {selectedCategory
+              ? `Showing menu items for ${selectedCategory.name}`
+              : "Choose a category above to browse menu items"}
           </p>
-
-          {/* Session Summary */}
-          <div className="mt-6 p-4 bg-white rounded-xl inline-block">
-            <h3 className="font-medium text-gray-700 mb-2">Current Session Details:</h3>
-            <ul className="text-sm text-gray-600 text-left space-y-1">
-              <li><strong>Name:</strong> {mealSessions[activeSessionIndex].sessionName}</li>
-              <li><strong>Date:</strong> {mealSessions[activeSessionIndex].sessionDate || "Not set"}</li>
-              <li><strong>Time:</strong> {mealSessions[activeSessionIndex].eventTime || "Not set"}</li>
-              <li><strong>Items:</strong> {mealSessions[activeSessionIndex].orderItems.length}</li>
-              <li><strong>Session Total:</strong> £{getSessionTotal(activeSessionIndex).toFixed(2)}</li>
-            </ul>
-          </div>
-
-          {/* Overall Order Summary */}
-          <div className="mt-4 p-4 bg-primary/10 rounded-xl inline-block">
-            <h3 className="font-medium text-primary mb-2">Overall Order Summary:</h3>
-            <ul className="text-sm text-gray-700 text-left space-y-1">
-              <li><strong>Total Sessions:</strong> {mealSessions.length}</li>
-              <li><strong>Grand Total:</strong> £{getTotalPrice().toFixed(2)}</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>

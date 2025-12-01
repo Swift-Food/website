@@ -746,6 +746,20 @@ export interface MenuCategory {
   clicks: number;
 }
 
+export interface Subcategory {
+  id: string;
+  name: string;
+  images: string | null;
+}
+
+export interface CategoryWithSubcategories {
+  id: string;
+  name: string;
+  images: string | null;
+  clicks: number;
+  subcategories: Subcategory[];
+}
+
 export interface CreateMenuItemDto {
   restaurantId: string;
   categoryIds: string[];
