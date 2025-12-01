@@ -255,54 +255,8 @@ export default function Step2MenuItemsNew() {
       {/* Meal Sessions Tab Bar - Sticky */}
       <div className="sticky top-[64px] md:top-[80px] z-40 bg-base-100 border-b border-base-200">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide">
-            {/* Session Tabs */}
-            {mealSessions.map((session, index) => (
-              <div key={index} className="relative flex-shrink-0">
-                <button
-                  onClick={() => handleSessionClick(index)}
-                  className={`
-                    relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all
-                    ${activeSessionIndex === index
-                      ? "bg-primary text-white shadow-md"
-                      : "bg-base-200 text-gray-700 hover:bg-base-300"
-                    }
-                  `}
-                >
-                  <span className="whitespace-nowrap">{session.sessionName}</span>
-
-                  {/* Remove button (only if more than 1 session) */}
-                  {mealSessions.length > 1 && activeSessionIndex === index && (
-                    <button
-                      onClick={(e) => handleRemoveSession(index, e)}
-                      className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-3 w-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </button>
-
-                {/* Underline indicator for active tab */}
-                {activeSessionIndex === index && (
-                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full" />
-                )}
-              </div>
-            ))}
-
-            {/* Add Session Button */}
+          <div className="flex items-start gap-2 py-3">
+            {/* Add Session Button - Fixed */}
             <button
               onClick={handleAddSession}
               className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium bg-secondary text-white hover:bg-secondary/90 transition-all shadow-sm"
@@ -323,6 +277,56 @@ export default function Step2MenuItemsNew() {
               </svg>
               <span className="hidden sm:inline">Add Session</span>
             </button>
+
+            {/* Session Tabs - Scrollable */}
+            <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-hide">
+              <div className="flex items-center gap-2 h-full">
+                {mealSessions.map((session, index) => (
+                  <div key={index} className="relative flex-shrink-0">
+                    <button
+                      onClick={() => handleSessionClick(index)}
+                      className={`
+                        relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all
+                        ${activeSessionIndex === index
+                          ? "bg-primary text-white shadow-md"
+                          : "bg-base-200 text-gray-700 hover:bg-base-300"
+                        }
+                      `}
+                    >
+                      <span className="whitespace-nowrap">{session.sessionName}</span>
+
+                      {/* Remove button (only if more than 1 session) */}
+                      {mealSessions.length > 1 && activeSessionIndex === index && (
+                        <button
+                          onClick={(e) => handleRemoveSession(index, e)}
+                          className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </button>
+
+                    {/* Underline indicator for active tab */}
+                    {activeSessionIndex === index && (
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Session Editor - Outside scrollable container */}
