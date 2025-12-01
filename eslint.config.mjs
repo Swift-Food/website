@@ -15,6 +15,7 @@ const eslintConfig = [
     rules: {
       "react/no-unescaped-entities": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      "no-console": ["error", { allow: ["warn", "error"] }],
     },
   },
 ];
