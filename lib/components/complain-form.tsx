@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { mailService } from '@/services/utilities/mail.service';
+import { API_BASE_URL, API_ENDPOINTS } from '@/lib/constants';
 import Link from 'next/link';
 
 interface ComplaintFormData {
@@ -84,7 +85,7 @@ const ComplaintForm = () => {
         imageFormData.append('image', formData.image);
 
         const imageUploadResponse = await fetch(
-          'https://swiftfoods-32981ec7b5a4.herokuapp.com/image-upload',
+          `${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`,
           {
             method: 'POST',
             body: imageFormData,
