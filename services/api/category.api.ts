@@ -14,6 +14,30 @@ class CategoryService {
 
     return response.json();
   }
+
+  async getMenuItemsByCategory(categoryId: string): Promise<any[]> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/menu-item/category/${categoryId}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch menu items by category");
+    }
+
+    return response.json();
+  }
+
+  async getMenuItemsBySubcategory(subcategoryId: string): Promise<any[]> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/menu-item/subcategory/${subcategoryId}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch menu items by subcategory");
+    }
+
+    return response.json();
+  }
 }
 
 export const categoryService = new CategoryService();

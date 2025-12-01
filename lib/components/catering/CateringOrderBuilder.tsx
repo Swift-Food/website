@@ -3,8 +3,15 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useCatering } from "@/context/CateringContext";
-import { MealSessionState, CategoryWithSubcategories, Subcategory } from "@/types/catering.types";
+import {
+  MealSessionState,
+  CategoryWithSubcategories,
+  Subcategory,
+  MenuItemDetails,
+} from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
+import MenuItemCard from "./MenuItemCard";
+import { MenuItem } from "./Step2MenuItems";
 
 // Hour and minute options for time picker
 const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
@@ -27,7 +34,13 @@ interface SessionEditorProps {
   anchorRect: DOMRect | null;
 }
 
-function SessionEditor({ session, sessionIndex, onUpdate, onClose, anchorRect }: SessionEditorProps) {
+function SessionEditor({
+  session,
+  sessionIndex,
+  onUpdate,
+  onClose,
+  anchorRect,
+}: SessionEditorProps) {
   const [sessionName, setSessionName] = useState(session.sessionName);
   const [sessionDate, setSessionDate] = useState(session.sessionDate);
   const [selectedHour, setSelectedHour] = useState(() => {
@@ -57,7 +70,10 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose, anchorRect }:
   // Close on click outside - saves the session
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (editorRef.current && !editorRef.current.contains(event.target as Node)) {
+      if (
+        editorRef.current &&
+        !editorRef.current.contains(event.target as Node)
+      ) {
         handleSave();
       }
     };
@@ -213,16 +229,56 @@ export default function CateringOrderBuilder() {
     getTotalPrice,
   } = useCatering();
 
-  const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(null);
-  const [pendingNewSessionIndex, setPendingNewSessionIndex] = useState<number | null>(null);
-  const [editorAnchorRect, setEditorAnchorRect] = useState<DOMRect | null>(null);
+  const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(
+    null
+  );
+  const [pendingNewSessionIndex, setPendingNewSessionIndex] = useState<
+    number | null
+  >(null);
+  const [editorAnchorRect, setEditorAnchorRect] = useState<DOMRect | null>(
+    null
+  );
   const sessionButtonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   // Category state
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryWithSubcategories | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<CategoryWithSubcategories | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] =
+    useState<Subcategory | null>(null);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  // Menu items state
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItemsLoading, setMenuItemsLoading] = useState(false);
+  const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+
+  // Helper to map MenuItemDetails to MenuItem format
+  const mapToMenuItem = (item: MenuItemDetails): MenuItem => ({
+    id: item.id,
+    menuItemName: item.name,
+    description: item.description,
+    price: item.price?.toString() || "0",
+    discountPrice: item.discountPrice?.toString(),
+    allergens: item.allergens,
+    isDiscount: item.isDiscount || false,
+    image: item.image,
+    averageRating: item.averageRating,
+    restaurantId: item.restaurantId,
+    groupTitle: item.groupTitle,
+    status: item.status,
+    itemDisplayOrder: item.itemDisplayOrder || 0,
+    addons: (item.addons || []).map((addon) => ({
+      name: addon.name,
+      price: addon.price?.toString() || "0",
+      allergens: addon.allergens?.join(", ") || "",
+      groupTitle: addon.groupTitle,
+      isRequired: addon.isRequired,
+      selectionType: addon.selectionType,
+    })),
+  });
 
   // Fetch categories on mount
   useEffect(() => {
@@ -243,8 +299,57 @@ export default function CateringOrderBuilder() {
     fetchCategories();
   }, []);
 
+  // Fetch menu items when category or subcategory changes
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      if (!selectedCategory) {
+        setMenuItems([]);
+        return;
+      }
+
+      try {
+        setMenuItemsLoading(true);
+        setMenuItemsError(null);
+
+        let data: MenuItemDetails[];
+        if (selectedSubcategory) {
+          data = await categoryService.getMenuItemsBySubcategory(
+            selectedSubcategory.id
+          );
+        } else {
+          data = await categoryService.getMenuItemsByCategory(
+            selectedCategory.id
+          );
+        }
+        // Map to MenuItem format for MenuItemCard
+        const mappedItems = data.map(mapToMenuItem);
+        setMenuItems(mappedItems);
+      } catch (error) {
+        console.error("Failed to fetch menu items:", error);
+        setMenuItemsError("Failed to load menu items");
+        setMenuItems([]);
+      } finally {
+        setMenuItemsLoading(false);
+      }
+    };
+
+    fetchMenuItems();
+  }, [selectedCategory, selectedSubcategory]);
+
   const handleCategoryClick = (category: CategoryWithSubcategories) => {
-    setSelectedCategory(selectedCategory?.id === category.id ? null : category);
+    if (selectedCategory?.id === category.id) {
+      setSelectedCategory(null);
+      setSelectedSubcategory(null);
+    } else {
+      setSelectedCategory(category);
+      setSelectedSubcategory(null);
+    }
+  };
+
+  const handleSubcategoryClick = (subcategory: Subcategory) => {
+    setSelectedSubcategory(
+      selectedSubcategory?.id === subcategory.id ? null : subcategory
+    );
   };
 
   const handleAddSession = () => {
@@ -314,7 +419,9 @@ export default function CateringOrderBuilder() {
 
     if (session.sessionDate) {
       const date = new Date(session.sessionDate);
-      parts.push(date.toLocaleDateString("en-GB", { day: "numeric", month: "short" }));
+      parts.push(
+        date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+      );
     }
 
     if (session.eventTime) {
@@ -369,43 +476,46 @@ export default function CateringOrderBuilder() {
                       onClick={() => handleSessionClick(index)}
                       className={`
                         relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all
-                        ${activeSessionIndex === index
-                          ? "bg-primary text-white shadow-md"
-                          : "bg-base-200 text-gray-700 hover:bg-base-300"
+                        ${
+                          activeSessionIndex === index
+                            ? "bg-primary text-white shadow-md"
+                            : "bg-base-200 text-gray-700 hover:bg-base-300"
                         }
                       `}
                     >
-                      <span className="whitespace-nowrap">{session.sessionName}</span>
+                      <span className="whitespace-nowrap">
+                        {session.sessionName}
+                      </span>
 
                       {/* Remove button (only if more than 1 session) */}
-                      {mealSessions.length > 1 && activeSessionIndex === index && (
-                        <button
-                          onClick={(e) => handleRemoveSession(index, e)}
-                          className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-3 w-3"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                      {mealSessions.length > 1 &&
+                        activeSessionIndex === index && (
+                          <button
+                            onClick={(e) => handleRemoveSession(index, e)}
+                            className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      )}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        )}
                     </button>
 
                     {/* Underline indicator for active tab */}
                     {activeSessionIndex === index && (
                       <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full" />
                     )}
-
                   </div>
                 ))}
               </div>
@@ -429,8 +539,10 @@ export default function CateringOrderBuilder() {
               <button
                 onClick={() => {
                   setEditingSessionIndex(activeSessionIndex);
-                  const buttonEl = sessionButtonRefs.current.get(activeSessionIndex);
-                  if (buttonEl) setEditorAnchorRect(buttonEl.getBoundingClientRect());
+                  const buttonEl =
+                    sessionButtonRefs.current.get(activeSessionIndex);
+                  if (buttonEl)
+                    setEditorAnchorRect(buttonEl.getBoundingClientRect());
                 }}
                 className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
               >
@@ -494,7 +606,9 @@ export default function CateringOrderBuilder() {
               ))}
             </div>
           ) : categoriesError ? (
-            <div className="text-center py-4 text-red-500">{categoriesError}</div>
+            <div className="text-center py-4 text-red-500">
+              {categoriesError}
+            </div>
           ) : (
             <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {categories.map((category) => (
@@ -503,9 +617,10 @@ export default function CateringOrderBuilder() {
                   onClick={() => handleCategoryClick(category)}
                   className={`
                     flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all
-                    ${selectedCategory?.id === category.id
-                      ? "bg-primary text-white shadow-md"
-                      : "bg-base-200 text-gray-700 hover:bg-base-300"
+                    ${
+                      selectedCategory?.id === category.id
+                        ? "bg-primary text-white shadow-md"
+                        : "bg-base-200 text-gray-700 hover:bg-base-300"
                     }
                   `}
                 >
@@ -526,25 +641,79 @@ export default function CateringOrderBuilder() {
               {selectedCategory.subcategories.map((subcategory) => (
                 <button
                   key={subcategory.id}
-                  className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-secondary/10 text-secondary hover:bg-secondary/20 transition-all"
+                  onClick={() => handleSubcategoryClick(subcategory)}
+                  className={`
+                    flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                    ${
+                      selectedSubcategory?.id === subcategory.id
+                        ? "bg-secondary text-white shadow-md"
+                        : "bg-secondary/10 text-secondary hover:bg-secondary/20"
+                    }
+                  `}
                 >
                   {subcategory.name}
+                  {selectedSubcategory?.id === subcategory.id && (
+                    <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/20">
+                      ×
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Menu Items Area - Placeholder */}
-        <div className="bg-base-200/50 rounded-2xl p-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">
-            {selectedCategory ? `${selectedCategory.name} Menu Items` : "Select a Category"}
-          </h2>
-          <p className="text-gray-500">
-            {selectedCategory
-              ? `Showing menu items for ${selectedCategory.name}`
-              : "Choose a category above to browse menu items"}
-          </p>
+        {/* Menu Items Area */}
+        <div className="bg-base-200/50 rounded-2xl p-8">
+          {menuItemsLoading ? (
+            <div className="text-center">
+              <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="mt-4 text-gray-500">Loading menu items...</p>
+            </div>
+          ) : menuItemsError ? (
+            <div className="text-center text-red-500">{menuItemsError}</div>
+          ) : !selectedCategory ? (
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                Select a Category
+              </h2>
+              <p className="text-gray-500">
+                Choose a category above to browse menu items
+              </p>
+            </div>
+          ) : menuItems.length === 0 ? (
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                No Items Found
+              </h2>
+              <p className="text-gray-500">
+                No menu items available for{" "}
+                {selectedSubcategory?.name || selectedCategory.name}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                {selectedSubcategory?.name || selectedCategory.name}
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  ({menuItems.length} items)
+                </span>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {menuItems.map((item) => (
+                  <MenuItemCard
+                    key={item.id}
+                    item={item}
+                    isExpanded={expandedItemId === item.id}
+                    onToggleExpand={() =>
+                      setExpandedItemId(expandedItemId === item.id ? null : item.id)
+                    }
+                    viewOnly
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
