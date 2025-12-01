@@ -206,6 +206,28 @@ export const restaurantApi = {
     return response.json();
   },
 
+  reviewMealSession: async (
+    sessionId: string,
+    restaurantId: string,
+    accepted: boolean,
+    token?: string,
+    selectedAccountId?: string
+  ): Promise<any> => {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/catering-orders/sessions/${sessionId}/restaurant-review`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          restaurantId,
+          accepted,
+          selectedAccountId,
+        }),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to review meal session");
+    return response.json();
+  },
+
   claimCateringOrder: async (
     orderId: string,
     restaurantId: string,
