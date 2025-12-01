@@ -93,7 +93,7 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEdit
   return (
     <div
       ref={editorRef}
-      className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-base-200 p-4 z-50"
+      className="bg-white rounded-xl shadow-lg border border-base-200 p-4 mt-2"
     >
       <div className="flex flex-col gap-3">
         {/* Session Name */}
@@ -299,16 +299,6 @@ export default function Step2MenuItemsNew() {
                 {activeSessionIndex === index && (
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full" />
                 )}
-
-                {/* Session Editor Dropdown */}
-                {editingSessionIndex === index && (
-                  <SessionEditor
-                    session={session}
-                    sessionIndex={index}
-                    onUpdate={updateMealSession}
-                    onClose={() => setEditingSessionIndex(null)}
-                  />
-                )}
               </div>
             ))}
 
@@ -334,6 +324,16 @@ export default function Step2MenuItemsNew() {
               <span className="hidden sm:inline">Add Session</span>
             </button>
           </div>
+
+          {/* Session Editor - Outside scrollable container */}
+          {editingSessionIndex !== null && (
+            <SessionEditor
+              session={mealSessions[editingSessionIndex]}
+              sessionIndex={editingSessionIndex}
+              onUpdate={updateMealSession}
+              onClose={() => setEditingSessionIndex(null)}
+            />
+          )}
 
           {/* Active Session Info Bar */}
           <div className="flex items-center justify-between py-2 border-t border-base-200 text-sm">
