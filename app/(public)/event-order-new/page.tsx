@@ -2,13 +2,13 @@
 
 import { CateringProvider } from "@/context/CateringContext";
 import { CateringFilterProvider } from "@/context/CateringFilterContext";
-import Step2MenuItemsNew from "@/lib/components/catering/Step2MenuItemsNew";
+import CateringOrderBuilder from "@/lib/components/catering/CateringOrderBuilder";
 
 export default function CateringPageNew() {
   return (
     <CateringProvider>
       <CateringFilterProvider>
-        <Step2MenuItemsNew />
+        <CateringOrderBuilder />
       </CateringFilterProvider>
     </CateringProvider>
   );
