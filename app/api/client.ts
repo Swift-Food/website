@@ -26,7 +26,7 @@ export const fetchWithAuth = async (
   options: RequestInit = {}
 ): Promise<Response> => {
   const token = localStorage.getItem("access_token");
-  
+
   // Add Authorization header if token exists
   const headers = {
     "Content-Type": "application/json",

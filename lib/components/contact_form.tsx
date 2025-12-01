@@ -45,7 +45,6 @@ const ContactForm = () => {
       };
 
       await mailService.sendFormResponse(submissionData);
-      console.log("Email sent successfully:");
 
       setIsSuccess(true);
 

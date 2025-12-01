@@ -97,11 +97,6 @@ export const RestaurantDashboard = ({
         refundsResult,
       ] = results;
 
-      console.log("Catering result: ", cateringResult)
-      console.log(
-        "status data is",
-        statusResult.status === "fulfilled" ? statusResult.value : null
-      );
 
       if (statusResult.status === "fulfilled" && statusResult.value) {
         setStripeStatus(statusResult.value);

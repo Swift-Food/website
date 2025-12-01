@@ -44,7 +44,6 @@ export function RefundModal({
   const [error, setError] = useState('');
 
   // Parse the nested order items structure
-  console.log('orderItems:', JSON.stringify(orderItems, null, 2));
   const parseOrderItems = () => {
     const restaurants: any[] = [];
     

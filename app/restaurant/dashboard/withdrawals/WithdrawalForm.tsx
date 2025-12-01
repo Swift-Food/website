@@ -24,7 +24,6 @@ export const WithdrawalForm = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  console.log("withdrawal form opend", restaurantUserId, accountId)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
