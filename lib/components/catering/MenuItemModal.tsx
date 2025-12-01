@@ -109,7 +109,6 @@ export default function MenuItemModal({
     // console.log("Addons length:", item?.addons?.length);
 
     if (!item?.addons || item.addons.length === 0) {
-      console.log("No addons found, resetting groups");
       setAddonGroups({});
       setSelectedAddons({});
       return;

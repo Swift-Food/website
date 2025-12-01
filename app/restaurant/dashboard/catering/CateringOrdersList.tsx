@@ -226,7 +226,6 @@ export const CateringOrdersList = ({
     : allStatusTabs;
 
   const getActiveItems = (): FlattenedOrderItem[] => {
-    console.log("IN active items: ", itemsByStatus);
     if (activeStatusTab === "unassigned") {
       return unassignedItems;
     }
