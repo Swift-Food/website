@@ -26,6 +26,9 @@ interface MenuCatalogueProps {
   filterModalOpen: boolean;
   setFilterModalOpen: (open: boolean) => void;
   viewOnly?: boolean;
+  hideDateTime?: boolean;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
 const formatCateringHours = (
@@ -228,6 +231,9 @@ export default function MenuCatalogue({
   filterModalOpen,
   setFilterModalOpen,
   viewOnly = false,
+  hideDateTime = false,
+  showBackButton = false,
+  onBackClick,
 }: MenuCatalogueProps) {
   const { filters } = useCateringFilters();
 
@@ -241,6 +247,9 @@ export default function MenuCatalogue({
         hasActiveFilters={filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0}
         onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
         filterModalOpen={filterModalOpen}
+        hideDateTime={hideDateTime}
+        showBackButton={showBackButton}
+        onBackClick={onBackClick}
       />
       {loading ? (
         <div className="text-center py-12 text-base-content/60">

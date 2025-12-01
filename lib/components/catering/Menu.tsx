@@ -336,26 +336,16 @@ export default function Menu() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
+  const handleBackClick = () => {
+    updateSelectedRestaurant(null);
+    clearRestaurantSearch();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-base-100">
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Back button for desktop - shown above content when viewing a restaurant */}
-        {selectedRestaurantId && (
-          <div className="hidden lg:block mb-4">
-            <button
-              className="px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
-              onClick={() => {
-                updateSelectedRestaurant(null);
-                clearRestaurantSearch();
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            >
-              ← Back to All Restaurants
-            </button>
-          </div>
-        )}
-
         <div className="flex flex-col gap-6">
           {/* Menu Items Grid */}
 
@@ -377,6 +367,7 @@ export default function Menu() {
               onSearch={handleCatalogueSearch}
               onClearSearch={clearCatalogueSearch}
               viewOnly={true}
+              hideDateTime={true}
             />
           ) : selectedRestaurantId ? (
             // RESTAURANT MENU VIEW (Frontend-filtered menu)
@@ -396,6 +387,9 @@ export default function Menu() {
               onSearch={handleRestaurantSearch}
               onClearSearch={clearRestaurantSearch}
               viewOnly={true}
+              hideDateTime={true}
+              showBackButton={true}
+              onBackClick={handleBackClick}
             />
           ) : (
             // RESTAURANT CATALOGUE VIEW
@@ -415,25 +409,10 @@ export default function Menu() {
               }
               onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
               filterModalOpen={filterModalOpen}
+              hideDateTime={true}
             />
           )}
         </div>
-
-        {/* Back button for mobile - fixed at bottom when viewing a restaurant */}
-        {selectedRestaurantId && (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-3 z-20">
-            <button
-              className="w-full bg-base-300 text-base-content px-3 py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm"
-              onClick={() => {
-                updateSelectedRestaurant(null);
-                clearRestaurantSearch();
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            >
-              ← Back to All Restaurants
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

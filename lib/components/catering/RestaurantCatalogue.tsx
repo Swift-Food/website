@@ -17,6 +17,7 @@ interface RestaurantCatalogueProps {
   hasActiveFilters: boolean;
   onFilterClick: () => void;
   filterModalOpen: boolean;
+  hideDateTime?: boolean;
 }
 
 const formatCateringHours = (
@@ -91,6 +92,7 @@ export default function RestaurantCatalogue({
   hasActiveFilters,
   onFilterClick,
   filterModalOpen,
+  hideDateTime,
 }: RestaurantCatalogueProps) {
   return (
     <div className="flex-1">
@@ -102,9 +104,10 @@ export default function RestaurantCatalogue({
         hasActiveFilters={hasActiveFilters}
         onFilterClick={onFilterClick}
         filterModalOpen={filterModalOpen}
+        hideDateTime={hideDateTime}
       />
       <h3 className="text-base md:text-lg font-semibold mb-3 text-base-content">
-        Select Restaurant
+        {hideDateTime ? "Browse Restaurants" : "Select Restaurant"}
       </h3>
       {restaurantsLoading ? (
         <div className="text-center py-4 text-base-content/60 text-sm md:text-base">
