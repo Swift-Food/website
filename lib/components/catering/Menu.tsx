@@ -339,8 +339,24 @@ export default function Menu() {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Main Content */}
-      <div className="mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Back button for desktop - shown above content when viewing a restaurant */}
+        {selectedRestaurantId && (
+          <div className="hidden lg:block mb-4">
+            <button
+              className="px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
+              onClick={() => {
+                updateSelectedRestaurant(null);
+                clearRestaurantSearch();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              ← Back to All Restaurants
+            </button>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-6">
           {/* Menu Items Grid */}
 
           {catalogueSearchResults !== null ? (
@@ -401,39 +417,23 @@ export default function Menu() {
               filterModalOpen={filterModalOpen}
             />
           )}
-
-          {/* Back button for mobile when viewing a restaurant */}
-          {selectedRestaurantId && (
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-3 z-20">
-              <button
-                className="w-full bg-base-300 text-base-content px-3 py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm"
-                onClick={() => {
-                  updateSelectedRestaurant(null);
-                  clearRestaurantSearch();
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              >
-                ← Back to All Restaurants
-              </button>
-            </div>
-          )}
-
-          {/* Desktop Back button */}
-          {selectedRestaurantId && (
-            <div className="hidden lg:block lg:w-[25%] sticky top-30">
-              <button
-                className="w-full px-4 py-2 bg-base-200 hover:bg-base-300 text-base-content rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-                onClick={() => {
-                  updateSelectedRestaurant(null);
-                  clearRestaurantSearch();
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              >
-                ← Back to All Restaurants
-              </button>
-            </div>
-          )}
         </div>
+
+        {/* Back button for mobile - fixed at bottom when viewing a restaurant */}
+        {selectedRestaurantId && (
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-3 z-20">
+            <button
+              className="w-full bg-base-300 text-base-content px-3 py-3 rounded-lg font-medium hover:bg-base-content/10 transition-colors text-sm"
+              onClick={() => {
+                updateSelectedRestaurant(null);
+                clearRestaurantSearch();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              ← Back to All Restaurants
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
