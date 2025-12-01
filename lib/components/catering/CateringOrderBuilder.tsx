@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useCatering } from "@/context/CateringContext";
 import { MealSessionState } from "@/types/catering.types";
 
@@ -22,9 +23,10 @@ interface SessionEditorProps {
   sessionIndex: number;
   onUpdate: (index: number, updates: Partial<MealSessionState>) => void;
   onClose: (cancelled: boolean) => void;
+  anchorRect: DOMRect | null;
 }
 
-function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEditorProps) {
+function SessionEditor({ session, sessionIndex, onUpdate, onClose, anchorRect }: SessionEditorProps) {
   const [sessionName, setSessionName] = useState(session.sessionName);
   const [sessionDate, setSessionDate] = useState(session.sessionDate);
   const [selectedHour, setSelectedHour] = useState(() => {
@@ -94,10 +96,16 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEdit
     onClose(false);
   };
 
-  return (
+  if (!anchorRect) return null;
+
+  const editorContent = (
     <div
       ref={editorRef}
-      className="bg-white rounded-xl shadow-lg border border-base-200 p-4 mt-2"
+      className="w-72 bg-white rounded-xl shadow-lg border border-base-200 p-4 fixed z-[100]"
+      style={{
+        top: anchorRect.bottom + 8,
+        left: anchorRect.left,
+      }}
     >
       <div className="flex flex-col gap-3">
         {/* Session Name */}
@@ -188,9 +196,11 @@ function SessionEditor({ session, sessionIndex, onUpdate, onClose }: SessionEdit
       </div>
     </div>
   );
+
+  return createPortal(editorContent, document.body);
 }
 
-export default function Step2MenuItemsNew() {
+export default function CateringOrderBuilder() {
   const {
     mealSessions,
     activeSessionIndex,
@@ -204,6 +214,8 @@ export default function Step2MenuItemsNew() {
 
   const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(null);
   const [pendingNewSessionIndex, setPendingNewSessionIndex] = useState<number | null>(null);
+  const [editorAnchorRect, setEditorAnchorRect] = useState<DOMRect | null>(null);
+  const sessionButtonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   const handleAddSession = () => {
     const newSession: MealSessionState = {
@@ -218,7 +230,18 @@ export default function Step2MenuItemsNew() {
     setEditingSessionIndex(newIndex);
     setActiveSessionIndex(newIndex);
     setPendingNewSessionIndex(newIndex);
+    // Anchor rect will be set via useEffect after render
   };
+
+  // Update anchor rect when editing a newly added session
+  useEffect(() => {
+    if (editingSessionIndex !== null && editorAnchorRect === null) {
+      const buttonEl = sessionButtonRefs.current.get(editingSessionIndex);
+      if (buttonEl) {
+        setEditorAnchorRect(buttonEl.getBoundingClientRect());
+      }
+    }
+  }, [editingSessionIndex, editorAnchorRect, mealSessions.length]);
 
   const handleEditorClose = (cancelled: boolean) => {
     if (cancelled && pendingNewSessionIndex !== null) {
@@ -227,15 +250,24 @@ export default function Step2MenuItemsNew() {
     }
     setEditingSessionIndex(null);
     setPendingNewSessionIndex(null);
+    setEditorAnchorRect(null);
   };
 
   const handleSessionClick = (index: number) => {
+    const buttonEl = sessionButtonRefs.current.get(index);
     if (activeSessionIndex === index && editingSessionIndex !== index) {
       // If clicking on already active session, toggle editor
-      setEditingSessionIndex(editingSessionIndex === index ? null : index);
+      if (editingSessionIndex === index) {
+        setEditingSessionIndex(null);
+        setEditorAnchorRect(null);
+      } else {
+        setEditingSessionIndex(index);
+        if (buttonEl) setEditorAnchorRect(buttonEl.getBoundingClientRect());
+      }
     } else {
       setActiveSessionIndex(index);
       setEditingSessionIndex(null);
+      setEditorAnchorRect(null);
     }
   };
 
@@ -295,11 +327,15 @@ export default function Step2MenuItemsNew() {
             </button>
 
             {/* Session Tabs - Scrollable */}
-            <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-hide">
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 h-full">
                 {mealSessions.map((session, index) => (
                   <div key={index} className="relative flex-shrink-0">
                     <button
+                      ref={(el) => {
+                        if (el) sessionButtonRefs.current.set(index, el);
+                        else sessionButtonRefs.current.delete(index);
+                      }}
                       onClick={() => handleSessionClick(index)}
                       className={`
                         relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all
@@ -339,19 +375,21 @@ export default function Step2MenuItemsNew() {
                     {activeSessionIndex === index && (
                       <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full" />
                     )}
+
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Session Editor - Outside scrollable container */}
+          {/* Session Editor - Rendered via portal */}
           {editingSessionIndex !== null && (
             <SessionEditor
               session={mealSessions[editingSessionIndex]}
               sessionIndex={editingSessionIndex}
               onUpdate={updateMealSession}
               onClose={handleEditorClose}
+              anchorRect={editorAnchorRect}
             />
           )}
 
@@ -359,7 +397,11 @@ export default function Step2MenuItemsNew() {
           <div className="flex items-center justify-between py-2 border-t border-base-200 text-sm">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setEditingSessionIndex(activeSessionIndex)}
+                onClick={() => {
+                  setEditingSessionIndex(activeSessionIndex);
+                  const buttonEl = sessionButtonRefs.current.get(activeSessionIndex);
+                  if (buttonEl) setEditorAnchorRect(buttonEl.getBoundingClientRect());
+                }}
                 className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
               >
                 <svg
