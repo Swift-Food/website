@@ -225,8 +225,9 @@ export default function CateringOrderBuilder() {
     addMealSession,
     updateMealSession,
     removeMealSession,
+    addMenuItem,
+    updateItemQuantity,
     getSessionTotal,
-    getTotalPrice,
   } = useCatering();
 
   const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(
@@ -255,6 +256,53 @@ export default function CateringOrderBuilder() {
   const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
+  // Get quantity for an item in the current session
+  const getItemQuantity = (itemId: string): number => {
+    const session = mealSessions[activeSessionIndex];
+    if (!session) return 0;
+    const orderItem = session.orderItems.find((oi) => oi.item.id === itemId);
+    return orderItem?.quantity || 0;
+  };
+
+  // Handle adding item to cart
+  const handleAddItem = (item: MenuItem) => {
+    const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+    const portionQuantity = item.portionQuantity || 1;
+    const quantity = portionQuantity * BACKEND_QUANTITY_UNIT;
+
+    addMenuItem(activeSessionIndex, {
+      item: {
+        id: item.id,
+        menuItemName: item.menuItemName,
+        description: item.description,
+        price: item.price,
+        discountPrice: item.discountPrice,
+        allergens: item.allergens,
+        isDiscount: item.isDiscount,
+        image: item.image,
+        restaurantId: item.restaurantId,
+        groupTitle: item.groupTitle,
+        cateringQuantityUnit: item.cateringQuantityUnit,
+        feedsPerUnit: item.feedsPerUnit,
+        itemDisplayOrder: item.itemDisplayOrder,
+        addons: item.addons,
+        selectedAddons: item.selectedAddons,
+      },
+      quantity,
+    });
+    setExpandedItemId(null);
+  };
+
+  // Handle updating item quantity
+  const handleUpdateQuantity = (itemId: string, quantity: number) => {
+    updateItemQuantity(activeSessionIndex, itemId, quantity);
+  };
+
+  // Handle opening modal for add/edit
+  const handleAddOrderPress = (item: MenuItem) => {
+    setExpandedItemId(item.id);
+  };
+
   // Helper to map MenuItemDetails to MenuItem format
   const mapToMenuItem = (item: MenuItemDetails): MenuItem => ({
     id: item.id,
@@ -270,13 +318,15 @@ export default function CateringOrderBuilder() {
     groupTitle: item.groupTitle,
     status: item.status,
     itemDisplayOrder: item.itemDisplayOrder || 0,
+    cateringQuantityUnit: (item as any).cateringQuantityUnit,
+    feedsPerUnit: (item as any).feedsPerUnit,
     addons: (item.addons || []).map((addon) => ({
       name: addon.name,
       price: addon.price?.toString() || "0",
       allergens: addon.allergens?.join(", ") || "",
-      groupTitle: addon.groupTitle,
-      isRequired: addon.isRequired,
-      selectionType: addon.selectionType,
+      groupTitle: addon.groupTitle || "",
+      isRequired: addon.isRequired || false,
+      selectionType: addon.selectionType || "single",
     })),
   });
 
@@ -704,11 +754,14 @@ export default function CateringOrderBuilder() {
                   <MenuItemCard
                     key={item.id}
                     item={item}
+                    quantity={getItemQuantity(item.id)}
                     isExpanded={expandedItemId === item.id}
                     onToggleExpand={() =>
                       setExpandedItemId(expandedItemId === item.id ? null : item.id)
                     }
-                    viewOnly
+                    onAddItem={handleAddItem}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onAddOrderPress={handleAddOrderPress}
                   />
                 ))}
               </div>
