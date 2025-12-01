@@ -71,13 +71,11 @@ export const restaurantApi = {
       const response = await fetchWithAuth(url);
 
       if (!response.ok) {
-        console.warn("Stripe status fetch failed:", response.status);
         return null;
       }
 
       return response.json();
-    } catch (error) {
-      console.error("Stripe status error:", error);
+    } catch {
       return null;
     }
   },
@@ -118,12 +116,10 @@ export const restaurantApi = {
         : `${API_BASE_URL}/withdrawals/balance/${userId}/restaurant`;
       const response = await fetchWithAuth(url);
       if (!response.ok) {
-        console.warn("Balance fetch failed:", response.status);
         return null;
       }
       return response.json();
-    } catch (error) {
-      console.error("Balance error:", error);
+    } catch {
       return null;
     }
   },
@@ -137,8 +133,7 @@ export const restaurantApi = {
       );
       if (!response.ok) return null;
       return response.json();
-    } catch (error) {
-      console.error("Failed to fetch payment accounts:", error);
+    } catch {
       return null;
     }
   },
@@ -185,7 +180,6 @@ export const restaurantApi = {
       : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;
 
     const response = await fetchWithAuth(url);
-    console.log("Getting catering orders: ", response);
     if (!response.ok) throw new Error("Failed to fetch catering orders");
     return response.json();
   },
@@ -314,43 +308,24 @@ export const restaurantApi = {
       }
     );
 
-    console.log("🟢 Catering Response Status:", response.status);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("🟢 Catering Error:", errorText);
-      throw new Error(
-        `Failed to update catering portions limit: ${response.status} - ${errorText}`
-      );
+      throw new Error(`Failed to update catering portions limit`);
     }
 
-    const result = await response.json();
-    console.log("🟢 Catering Success:", result);
-    return result;
+    return response.json();
   },
 
   // Get corporate inventory settings
   getCorporateInventorySettings: async (restaurantId: string): Promise<any> => {
-    const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
-
-    console.log("🟣 Getting corporate inventory settings:", {
-      restaurantId,
-      url,
-    });
-
-    const response = await fetchWithAuth(url);
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`
+    );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("🟣 Failed to get corporate inventory:", errorText);
-      throw new Error(
-        `Failed to get corporate inventory settings: ${response.status} - ${errorText}`
-      );
+      throw new Error(`Failed to get corporate inventory settings`);
     }
 
-    const result = await response.json();
-    console.log("🟣 Corporate inventory settings:", result);
-    return result;
+    return response.json();
   },
 
   // Update corporate inventory settings
@@ -358,30 +333,19 @@ export const restaurantApi = {
     restaurantId: string,
     data: UpdateCorporateInventoryDto
   ): Promise<any> => {
-    const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
-
-    console.log("🟣 Corporate Update Request:", {
-      restaurantId,
-      url,
-      payload: data,
-    });
-
-    const response = await fetchWithAuth(url, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }
+    );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("🟣 Corporate Error Response:", errorText);
-      throw new Error(
-        `Failed to update corporate inventory: ${response.status} - ${errorText}`
-      );
+      throw new Error(`Failed to update corporate inventory`);
     }
 
-    const result = await response.json();
-    console.log("🟣 Corporate Success Response:", result);
-    return result;
+    return response.json();
   },
 
   // Get restaurant details (includes inventory settings)
