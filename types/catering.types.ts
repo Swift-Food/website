@@ -195,6 +195,20 @@ export interface SelectedMenuItem {
   quantity: number;
 }
 
+/**
+ * Represents a single meal session within a catering order (frontend state).
+ * Used in CateringContext to manage multi-meal orders.
+ * A single-meal order is just mealSessions.length === 1.
+ */
+export interface MealSessionState {
+  sessionName: string;           // "Breakfast", "Lunch", "Dinner", "Main Event", etc.
+  sessionDate: string;           // ISO date string
+  eventTime: string;             // "14:00" format
+  guestCount?: number;           // Per-session guest count (optional override)
+  specialRequirements?: string;  // Session-specific notes
+  orderItems: SelectedMenuItem[]; // Items for THIS session
+}
+
 export interface ContactInfo {
   organization: string;
   fullName: string;
