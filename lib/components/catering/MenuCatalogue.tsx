@@ -12,19 +12,20 @@ interface MenuCatalogueProps {
   restaurantPromotions: Record<string, any[]>;
   expandedItemId: string | null;
   setExpandedItemId: (id: string | null) => void;
-  getItemQuantity: (itemId: string, item?: MenuItem) => number;
-  handleAddItem: (item: MenuItem) => void;
-  updateItemQuantity: (itemId: string, quantity: number) => void;
-  handleOrderPress: (item: MenuItem) => void;
+  getItemQuantity?: (itemId: string, item?: MenuItem) => number;
+  handleAddItem?: (item: MenuItem) => void;
+  updateItemQuantity?: (itemId: string, quantity: number) => void;
+  handleOrderPress?: (item: MenuItem) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSearch: (e?: React.FormEvent) => void;
   onClearSearch: () => void;
-  deliveryDate: string;
-  deliveryTime: string;
-  eventBudget: string;
+  deliveryDate?: string;
+  deliveryTime?: string;
+  eventBudget?: string;
   filterModalOpen: boolean;
   setFilterModalOpen: (open: boolean) => void;
+  viewOnly?: boolean;
 }
 
 const formatCateringHours = (
@@ -226,6 +227,7 @@ export default function MenuCatalogue({
   onClearSearch,
   filterModalOpen,
   setFilterModalOpen,
+  viewOnly = false,
 }: MenuCatalogueProps) {
   const { filters } = useCateringFilters();
 
@@ -480,7 +482,7 @@ export default function MenuCatalogue({
                               <MenuItemCard
                                 key={item.id}
                                 item={item}
-                                quantity={getItemQuantity(item.id, item)}
+                                quantity={getItemQuantity?.(item.id, item) ?? 0}
                                 isExpanded={expandedItemId === item.id}
                                 onToggleExpand={() =>
                                   setExpandedItemId(
@@ -490,6 +492,7 @@ export default function MenuCatalogue({
                                 onAddItem={handleAddItem}
                                 onUpdateQuantity={updateItemQuantity}
                                 onAddOrderPress={handleOrderPress}
+                                viewOnly={viewOnly}
                               />
                             ))}
                           </div>

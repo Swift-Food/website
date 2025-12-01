@@ -4,24 +4,26 @@ import MenuItemModal from "./MenuItemModal";
 
 interface MenuItemCardProps {
   item: MenuItem;
-  quantity: number;
+  quantity?: number;
   isExpanded?: boolean;
   // isSearching: boolean;
   onToggleExpand?: () => void;
-  onAddItem: (item: MenuItem) => void;
-  onUpdateQuantity: (itemId: string, quantity: number) => void;
-  onAddOrderPress: (item: MenuItem) => void;
+  onAddItem?: (item: MenuItem) => void;
+  onUpdateQuantity?: (itemId: string, quantity: number) => void;
+  onAddOrderPress?: (item: MenuItem) => void;
+  viewOnly?: boolean;
 }
 
 export default function MenuItemCard({
   item,
-  quantity,
+  quantity = 0,
   isExpanded = false,
   // isSearching,
   onToggleExpand = () => {},
   onAddItem,
   onUpdateQuantity,
   onAddOrderPress,
+  viewOnly = false,
 }: MenuItemCardProps) {
   // console.log("Item: ", JSON.stringify(item, null, 2));
   const price = parseFloat(item.price?.toString() || "0");
@@ -53,10 +55,10 @@ export default function MenuItemCard({
 
     if (isMobile || hasAddons) {
       // On mobile or if item has addons, open modal
-      onAddOrderPress(item);
+      onAddOrderPress?.(item);
     } else {
       // On md and larger with no addons, directly add to cart with default quantity
-      onAddItem({ ...item, portionQuantity: 1 });
+      onAddItem?.({ ...item, portionQuantity: 1 });
     }
   };
 
@@ -119,22 +121,103 @@ export default function MenuItemCard({
                   )}
                 </div>
 
-                {/* Add to order button / quantity controls */}
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-shrink-0"
-                >
-                  {quantity > 0 ? (
-                    <>
-                      {/* On md and smaller: show simple add button that opens modal */}
+                {/* Add to order button / quantity controls - Hidden in viewOnly mode */}
+                {!viewOnly && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-shrink-0"
+                  >
+                    {quantity > 0 ? (
+                      <>
+                        {/* On md and smaller: show simple add button that opens modal */}
+                        <button
+                          onClick={() => onAddOrderPress?.(item)}
+                          className="lg:hidden w-8 h-8 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                          aria-label="Add to Order"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                        </button>
+
+                        {/* On lg and larger: show quantity controls */}
+                        <div className="hidden lg:flex bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] items-center gap-2 max-w-[180px]">
+                          <button
+                            onClick={() => {
+                              const newPortionQty = Math.max(
+                                0,
+                                portionQuantity - 1
+                              );
+                              const newBackendQty =
+                                newPortionQty * BACKEND_QUANTITY_UNIT;
+                              onUpdateQuantity?.(item.id, newBackendQty);
+                            }}
+                            className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={quantityInput}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "" || /^\d+$/.test(val)) {
+                                setQuantityInput(val);
+                                if (val !== "" && !isNaN(parseInt(val))) {
+                                  const newPortionQty = parseInt(val);
+                                  const newBackendQty =
+                                    Math.max(0, newPortionQty) *
+                                    BACKEND_QUANTITY_UNIT;
+                                  onUpdateQuantity?.(item.id, newBackendQty);
+                                }
+                              }
+                            }}
+                            onBlur={(e) => {
+                              if (
+                                e.target.value === "" ||
+                                parseInt(e.target.value) < 1
+                              ) {
+                                onUpdateQuantity?.(item.id, 0);
+                                setQuantityInput("0");
+                              }
+                            }}
+                            className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1 flex-shrink-0"
+                          />
+
+                          <button
+                            onClick={() => {
+                              const newPortionQty = portionQuantity + 1;
+                              const newBackendQty =
+                                newPortionQty * BACKEND_QUANTITY_UNIT;
+                              onUpdateQuantity?.(item.id, newBackendQty);
+                            }}
+                            className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </>
+                    ) : (
                       <button
-                        onClick={() => onAddOrderPress(item)}
-                        className="lg:hidden w-8 h-8 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                        onClick={handleAddToOrder}
+                        className="w-8 h-8 md:w-10 md:h-10 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
                         aria-label="Add to Order"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3"
+                          className="h-3 w-3 md:h-5 md:w-5"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -147,88 +230,9 @@ export default function MenuItemCard({
                           />
                         </svg>
                       </button>
-
-                      {/* On lg and larger: show quantity controls */}
-                      <div className="hidden lg:flex bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] items-center gap-2 max-w-[180px]">
-                        <button
-                          onClick={() => {
-                            const newPortionQty = Math.max(
-                              0,
-                              portionQuantity - 1
-                            );
-                            const newBackendQty =
-                              newPortionQty * BACKEND_QUANTITY_UNIT;
-                            onUpdateQuantity(item.id, newBackendQty);
-                          }}
-                          className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
-                        >
-                          −
-                        </button>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={quantityInput}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === "" || /^\d+$/.test(val)) {
-                              setQuantityInput(val);
-                              if (val !== "" && !isNaN(parseInt(val))) {
-                                const newPortionQty = parseInt(val);
-                                const newBackendQty =
-                                  Math.max(0, newPortionQty) *
-                                  BACKEND_QUANTITY_UNIT;
-                                onUpdateQuantity(item.id, newBackendQty);
-                              }
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (
-                              e.target.value === "" ||
-                              parseInt(e.target.value) < 1
-                            ) {
-                              onUpdateQuantity(item.id, 0);
-                              setQuantityInput("0");
-                            }
-                          }}
-                          className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1 flex-shrink-0"
-                        />
-
-                        <button
-                          onClick={() => {
-                            const newPortionQty = portionQuantity + 1;
-                            const newBackendQty =
-                              newPortionQty * BACKEND_QUANTITY_UNIT;
-                            onUpdateQuantity(item.id, newBackendQty);
-                          }}
-                          className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <button
-                      onClick={handleAddToOrder}
-                      className="w-8 h-8 md:w-10 md:h-10 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
-                      aria-label="Add to Order"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-3 w-3 md:h-5 md:w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 4v16m8-8H4"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -254,6 +258,7 @@ export default function MenuItemCard({
         quantity={quantity}
         onAddItem={onAddItem}
         onUpdateQuantity={onUpdateQuantity}
+        viewOnly={viewOnly}
       />
 
       {/* Image Lightbox */}

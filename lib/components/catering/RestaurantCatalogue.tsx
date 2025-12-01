@@ -11,9 +11,9 @@ interface RestaurantCatalogueProps {
   onSearchChange: (query: string) => void;
   onSearch: (e?: React.FormEvent) => void;
   onClearSearch: () => void;
-  deliveryDate: string;
-  deliveryTime: string;
-  eventBudget: string;
+  deliveryDate?: string;
+  deliveryTime?: string;
+  eventBudget?: string;
   hasActiveFilters: boolean;
   onFilterClick: () => void;
   filterModalOpen: boolean;
