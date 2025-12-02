@@ -302,17 +302,78 @@ function SelectedItemsByCategory({
         key={originalIndex}
         className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-[#F5F0E8] rounded-xl"
       >
+        {/* Mobile Layout */}
+        <div className="flex gap-3 sm:hidden">
+          {/* Image */}
+          {item.image && (
+            <img
+              src={item.image}
+              alt={item.menuItemName}
+              className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+            />
+          )}
+          {/* Name + Addons */}
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-800 italic">{item.menuItemName}</p>
+            {item.selectedAddons && item.selectedAddons.length > 0 && (
+              <div className="text-sm text-gray-600 mt-1">
+                {item.selectedAddons.map(
+                  (
+                    addon: { groupTitle: string; name: string; quantity: number },
+                    idx: number
+                  ) => (
+                    <div key={idx}>
+                      <p className="font-medium text-gray-800">{addon.groupTitle}</p>
+                      <p className="text-gray-500">
+                        + {addon.name}
+                        {addon.quantity > 1 && ` (×${addon.quantity})`}
+                      </p>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Price & Portions + Actions */}
+        <div className="flex items-center justify-between sm:hidden">
+          <div>
+            <p className="font-bold text-primary text-lg">
+              £{subtotal.toFixed(2)}
+            </p>
+            <p className="text-sm text-gray-600">
+              {portions} portion{portions !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onEdit(originalIndex)}
+              className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => onRemove(originalIndex)}
+              className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
         {/* Image */}
         {item.image && (
           <img
             src={item.image}
             alt={item.menuItemName}
-            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+            className="hidden sm:block w-16 h-16 rounded-lg object-cover flex-shrink-0"
           />
         )}
 
         {/* Name + Addons */}
-        <div className="flex-1 min-w-0">
+        <div className="hidden sm:block flex-1 min-w-0">
           <p className="font-semibold text-gray-800">{item.menuItemName}</p>
           {item.selectedAddons && item.selectedAddons.length > 0 && (
             <div className="text-sm text-gray-600 mt-1">
@@ -333,7 +394,7 @@ function SelectedItemsByCategory({
         </div>
 
         {/* Price & Portions */}
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
           <p className="font-bold text-primary text-lg">
             £{subtotal.toFixed(2)}
           </p>
@@ -343,7 +404,7 @@ function SelectedItemsByCategory({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => onEdit(originalIndex)}
             className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
