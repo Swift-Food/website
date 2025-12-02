@@ -10,7 +10,7 @@ import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 import { PaymentMethodSelector } from "../PaymentMethodSelector";
 import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
 import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
-import SelectedItemsByCategory from "./SelectedItemsByCategory";
+import AllMealSessionsItems from "./AllMealSessionsItems";
 
 interface ValidationErrors {
   organization?: string;
@@ -996,7 +996,7 @@ export default function Step3ContactInfo() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Selected Items - Left Side */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <SelectedItemsByCategory showActions={false} />
+            <AllMealSessionsItems showActions={false} />
           </div>
 
           {/* Contact Form Card - Right Side */}

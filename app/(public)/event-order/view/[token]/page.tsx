@@ -45,6 +45,7 @@ export default function CateringDashboardPage() {
       setLoading(true);
       setError(null);
       const data = await cateringService.getOrderByToken(token);
+      console.log("Data: ", data);
       setOrder(data);
 
       // Determine current user's role from the token
