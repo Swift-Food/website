@@ -45,7 +45,7 @@ interface CateringContextType {
   removeMealSession: (index: number) => void;
   setActiveSessionIndex: (index: number) => void;
 
-  // Item operations (now take sessionIndex)
+  // Item operations (take sessionIndex)
   addMenuItem: (sessionIndex: number, item: SelectedMenuItem) => void;
   removeMenuItem: (sessionIndex: number, itemId: string) => void;
   removeMenuItemByIndex: (sessionIndex: number, itemIndex: number) => void;
