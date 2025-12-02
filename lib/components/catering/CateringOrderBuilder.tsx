@@ -781,7 +781,7 @@ export default function CateringOrderBuilder() {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Meal Sessions Tab Bar - Sticky */}
-      <div className="sticky top-[92px] md:top-[112px] z-40 bg-base-100 border-b border-base-200">
+      <div className="sticky top-[100px] md:top-[112px] z-40 bg-base-100 border-b border-base-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-start gap-2 py-3">
             {/* Add Session Button - Fixed */}
@@ -943,8 +943,8 @@ export default function CateringOrderBuilder() {
           />
         )}
 
-        {/* Categories Row */}
-        <div className="mb-6">
+        {/* Categories Row - Sticky */}
+        <div className="sticky top-[200px] md:top-[212px] z-30 bg-base-100 pb-2 -mx-4 px-4 pt-2">
           {categoriesLoading ? (
             <div className="flex items-center gap-3 overflow-x-auto pb-2">
               {[...Array(6)].map((_, i) => (
@@ -980,9 +980,9 @@ export default function CateringOrderBuilder() {
           )}
         </div>
 
-        {/* Subcategories Row (shown when category is selected) */}
+        {/* Subcategories Row - Sticky (shown when category is selected) */}
         {selectedCategory && selectedCategory.subcategories.length > 0 && (
-          <div className="mb-6">
+          <div className="sticky top-[260px] md:top-[270px] z-30 bg-base-100 pb-2 -mx-4 px-4">
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
               <span className="flex-shrink-0 text-sm text-gray-500 mr-2">
                 {selectedCategory.name}:
