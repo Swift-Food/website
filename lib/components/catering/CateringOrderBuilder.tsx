@@ -284,7 +284,8 @@ function SelectedItemsByCategory({
     const { item, quantity, originalIndex } = groupedItem;
     const price = parseFloat(item.price?.toString() || "0");
     const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-    const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+    const itemPrice =
+      item.isDiscount && discountPrice > 0 ? discountPrice : price;
     const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
     const portions = quantity / BACKEND_QUANTITY_UNIT;
 
@@ -759,7 +760,8 @@ export default function CateringOrderBuilder() {
     const quantity = (updatedItem.portionQuantity || 1) * BACKEND_QUANTITY_UNIT;
 
     // Preserve the category context from the original item
-    const originalItem = mealSessions[activeSessionIndex].orderItems[editingItemIndex].item;
+    const originalItem =
+      mealSessions[activeSessionIndex].orderItems[editingItemIndex].item;
 
     updateMenuItemByIndex(activeSessionIndex, editingItemIndex, {
       item: {
@@ -779,7 +781,7 @@ export default function CateringOrderBuilder() {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Meal Sessions Tab Bar - Sticky */}
-      <div className="sticky top-[64px] md:top-[80px] z-40 bg-base-100 border-b border-base-200">
+      <div className="sticky top-[92px] md:top-[112px] z-40 bg-base-100 border-b border-base-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-start gap-2 py-3">
             {/* Add Session Button - Fixed */}
@@ -819,7 +821,7 @@ export default function CateringOrderBuilder() {
                         relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all
                         ${
                           activeSessionIndex === index
-                            ? "bg-primary text-white shadow-md"
+                            ? "bg-primary text-white"
                             : "bg-base-200 text-gray-700 hover:bg-base-300"
                         }
                       `}
@@ -852,11 +854,6 @@ export default function CateringOrderBuilder() {
                           </button>
                         )}
                     </button>
-
-                    {/* Underline indicator for active tab */}
-                    {activeSessionIndex === index && (
-                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full" />
-                    )}
                   </div>
                 ))}
               </div>
@@ -971,7 +968,7 @@ export default function CateringOrderBuilder() {
                     flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all
                     ${
                       selectedCategory?.id === category.id
-                        ? "bg-primary text-white shadow-md"
+                        ? "bg-primary text-white"
                         : "bg-base-200 text-gray-700 hover:bg-base-300"
                     }
                   `}
@@ -995,11 +992,11 @@ export default function CateringOrderBuilder() {
                   key={subcategory.id}
                   onClick={() => handleSubcategoryClick(subcategory)}
                   className={`
-                    flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                    flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all border-primary/50 border-1
                     ${
                       selectedSubcategory?.id === subcategory.id
-                        ? "bg-secondary text-white shadow-md"
-                        : "bg-secondary/10 text-secondary hover:bg-secondary/20"
+                        ? "bg-secondary text-white"
+                        : "bg-secondary/10 text-primary hover:bg-secondary/20"
                     }
                   `}
                 >
@@ -1059,7 +1056,9 @@ export default function CateringOrderBuilder() {
                     quantity={getItemQuantity(item.id)}
                     isExpanded={expandedItemId === item.id}
                     onToggleExpand={() =>
-                      setExpandedItemId(expandedItemId === item.id ? null : item.id)
+                      setExpandedItemId(
+                        expandedItemId === item.id ? null : item.id
+                      )
                     }
                     onAddItem={handleAddItem}
                     onUpdateQuantity={handleUpdateQuantity}
@@ -1075,13 +1074,19 @@ export default function CateringOrderBuilder() {
       {/* Edit Item Modal */}
       {isEditModalOpen && editingItemIndex !== null && (
         <MenuItemModal
-          item={mealSessions[activeSessionIndex].orderItems[editingItemIndex].item as MenuItem}
+          item={
+            mealSessions[activeSessionIndex].orderItems[editingItemIndex]
+              .item as MenuItem
+          }
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
             setEditingItemIndex(null);
           }}
-          quantity={mealSessions[activeSessionIndex].orderItems[editingItemIndex].quantity}
+          quantity={
+            mealSessions[activeSessionIndex].orderItems[editingItemIndex]
+              .quantity
+          }
           isEditMode={true}
           editingIndex={editingItemIndex}
           onAddItem={handleSaveEditedItem}
