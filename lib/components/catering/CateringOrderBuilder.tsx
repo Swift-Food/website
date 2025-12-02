@@ -233,6 +233,9 @@ export default function CateringOrderBuilder() {
     removeMenuItemByIndex,
     updateMenuItemByIndex,
     getSessionTotal,
+    getTotalPrice,
+    currentStep,
+    setCurrentStep,
   } = useCatering();
 
   const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(
@@ -878,6 +881,73 @@ export default function CateringOrderBuilder() {
             setEditingItemIndex(null);
           }}
         />
+      )}
+
+      {/* Checkout Button - Mobile (fixed bottom bar) */}
+      {mealSessions.some((s) => s.orderItems.length > 0) && (
+        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-primary p-4 shadow-lg z-50">
+          <button
+            onClick={() => setCurrentStep(currentStep + 1)}
+            className="w-full flex items-center justify-between text-white"
+          >
+            <div className="flex flex-col items-start">
+              <span className="text-sm opacity-90">Total</span>
+              <span className="text-xl font-bold">
+                £{getTotalPrice().toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Checkout</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Checkout Button - Desktop (fixed bottom right) */}
+      {mealSessions.some((s) => s.orderItems.length > 0) && (
+        <button
+          onClick={() => setCurrentStep(currentStep + 1)}
+          className="hidden md:flex fixed bottom-8 right-8 items-center gap-3 bg-primary text-white px-6 py-4 rounded-xl shadow-lg hover:bg-primary/90 transition-all z-50"
+        >
+          <div className="flex flex-col items-start">
+            <span className="text-sm opacity-90">Total</span>
+            <span className="text-xl font-bold">
+              £{getTotalPrice().toFixed(2)}
+            </span>
+          </div>
+          <div className="w-px h-10 bg-white/30" />
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-lg">Checkout</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        </button>
       )}
     </div>
   );

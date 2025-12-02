@@ -2,6 +2,7 @@
 
 import { CateringProvider, useCatering } from "@/context/CateringContext";
 import { CateringFilterProvider } from "@/context/CateringFilterContext";
+import CateringOrderBuilder from "@/lib/components/catering/CateringOrderBuilder";
 import Step1EventDetails from "@/lib/components/catering/Step1EventDetails";
 import Step2MenuItems from "@/lib/components/catering/Step2MenuItems";
 import Step3ContactInfo from "@/lib/components/catering/Step3ContactDetails";
@@ -57,7 +58,8 @@ function CateringSteps() {
         )}
 
         <div className="bg-base-100 rounded-lg max-w-none">
-          {currentStep === 1 && <Step2MenuItems />}
+          {currentStep === 1 && <CateringOrderBuilder />}
+          {/* {currentStep === 1 && <Step2MenuItems />} */}
           {currentStep === 2 && <Step1EventDetails />}
           {currentStep === 3 && <Step3ContactInfo />}
         </div>
