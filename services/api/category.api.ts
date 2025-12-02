@@ -1,6 +1,6 @@
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { API_BASE_URL } from "@/lib/constants";
-import { CategoryWithSubcategories } from "@/types/catering.types";
+import { CategoryWithSubcategories, MenuItemDetails } from "@/types/catering.types";
 
 class CategoryService {
   async getCategoriesWithSubcategories(): Promise<CategoryWithSubcategories[]> {
@@ -15,7 +15,7 @@ class CategoryService {
     return response.json();
   }
 
-  async getMenuItemsByCategory(categoryId: string): Promise<any[]> {
+  async getMenuItemsByCategory(categoryId: string): Promise<MenuItemDetails[]> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/menu-item/category/${categoryId}`
     );
@@ -27,7 +27,7 @@ class CategoryService {
     return response.json();
   }
 
-  async getMenuItemsBySubcategory(subcategoryId: string): Promise<any[]> {
+  async getMenuItemsBySubcategory(subcategoryId: string): Promise<MenuItemDetails[]> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/menu-item/subcategory/${subcategoryId}`
     );

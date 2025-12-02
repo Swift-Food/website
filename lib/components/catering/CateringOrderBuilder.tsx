@@ -589,8 +589,9 @@ export default function CateringOrderBuilder() {
         // Add category context for grouping in cart
         categoryId: selectedCategory?.id,
         categoryName: selectedCategory?.name,
-        subcategoryId: selectedSubcategory?.id,
-        subcategoryName: selectedSubcategory?.name,
+        // Use selected subcategory filter if set, otherwise use item's subcategory from API
+        subcategoryId: selectedSubcategory?.id || item.subcategoryId,
+        subcategoryName: selectedSubcategory?.name || item.subcategoryName,
       },
       quantity,
     });
@@ -624,6 +625,9 @@ export default function CateringOrderBuilder() {
     itemDisplayOrder: item.itemDisplayOrder || 0,
     cateringQuantityUnit: (item as any).cateringQuantityUnit,
     feedsPerUnit: (item as any).feedsPerUnit,
+    // Include subcategory info from API response
+    subcategoryId: (item as any).subcategories?.[0]?.id,
+    subcategoryName: (item as any).subcategories?.[0]?.name,
     addons: (item.addons || []).map((addon) => ({
       name: addon.name,
       price: addon.price?.toString() || "0",
@@ -670,10 +674,12 @@ export default function CateringOrderBuilder() {
           data = await categoryService.getMenuItemsBySubcategory(
             selectedSubcategory.id
           );
+          console.log("Menu items by subcategory:", data);
         } else {
           data = await categoryService.getMenuItemsByCategory(
             selectedCategory.id
           );
+          console.log("Menu items by category:", data);
         }
         // Map to MenuItem format for MenuItemCard
         const mappedItems = data.map(mapToMenuItem);

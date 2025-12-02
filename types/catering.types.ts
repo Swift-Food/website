@@ -754,13 +754,14 @@ export interface MenuCategory {
 export interface Subcategory {
   id: string;
   name: string;
-  images: string | null;
+  clicks: number;
+  images?: string | null;
 }
 
 export interface CategoryWithSubcategories {
   id: string;
   name: string;
-  images: string | null;
+  images?: string | null;
   clicks: number;
   subcategories: Subcategory[];
 }
@@ -791,6 +792,7 @@ export interface MenuItemDetails extends CreateMenuItemDto {
   updatedAt?: string;
   averageRating: string;
   categories?: MenuCategory[];
+  subCategorddies?: Subcategory[];
 }
 
 export interface UpdateMenuItemDto {
