@@ -1,40 +1,115 @@
 // app/components/catering/dashboard/OrderDetails.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CateringOrderResponse } from '@/types/api';
-import { Calendar, Clock, MapPin, FileText } from 'lucide-react';
+import { MapPin, FileText } from 'lucide-react';
 import { formatDeliveryAddress } from '@/app/restaurant/dashboard/catering/utils/address.utils';
 
 interface OrderDetailsProps {
   order: CateringOrderResponse;
 }
 
+// Helper to format time from 24h to 12h format
+const formatTime = (time: string) => {
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes} ${ampm}`;
+};
+
 export default function OrderDetails({ order }: OrderDetailsProps) {
+  // Calculate event date range from meal sessions
+  const eventDateInfo = useMemo(() => {
+    const formatDate = (date: string | Date) => {
+      return new Date(date).toLocaleDateString('en-GB', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    };
+
+    // If no meal sessions, fall back to order.eventDate
+    if (!order.mealSessions || order.mealSessions.length === 0) {
+      return {
+        isSingleDate: true,
+        startDate: formatDate(order.eventDate),
+        startTime: formatTime(order.eventTime),
+        endDate: null,
+        endTime: null,
+      };
+    }
+
+    // Sort sessions by date and time
+    const sortedSessions = [...order.mealSessions].sort((a, b) => {
+      const dateA = new Date(a.sessionDate).getTime();
+      const dateB = new Date(b.sessionDate).getTime();
+      if (dateA !== dateB) return dateA - dateB;
+      return a.eventTime.localeCompare(b.eventTime);
+    });
+
+    const firstSession = sortedSessions[0];
+    const lastSession = sortedSessions[sortedSessions.length - 1];
+
+    // Check if all on same date
+    const firstDateStr = new Date(firstSession.sessionDate).toDateString();
+    const lastDateStr = new Date(lastSession.sessionDate).toDateString();
+    const isSingleDate = firstDateStr === lastDateStr;
+
+    return {
+      isSingleDate,
+      startDate: formatDate(firstSession.sessionDate),
+      startTime: formatTime(firstSession.eventTime),
+      endDate: isSingleDate ? null : formatDate(lastSession.sessionDate),
+      endTime: isSingleDate ? null : formatTime(lastSession.eventTime),
+    };
+  }, [order.mealSessions, order.eventDate, order.eventTime]);
+
   return (
     <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Event Details</h2>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        <div className="flex items-start gap-2 sm:gap-3">
-          <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500 mt-1 flex-shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs sm:text-sm text-gray-600">Event Date</p>
-            <p className="font-semibold text-sm sm:text-base text-gray-900">
-              {new Date(order.eventDate).toLocaleDateString('en-GB', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </p>
-          </div>
-        </div>
 
-        <div className="flex items-start gap-2 sm:gap-3">
-          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500 mt-1 flex-shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs sm:text-sm text-gray-600">Event Time</p>
-            <p className="font-semibold text-sm sm:text-base text-gray-900">{order.eventTime}</p>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        {/* Event Date Timeline */}
+        <div className="sm:col-span-2">
+          {eventDateInfo.isSingleDate ? (
+            // Single date display
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center">
+                <div className="w-3 h-3 rounded-full bg-[#FA43AD]" />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium uppercase tracking-wide">Event Date</p>
+                <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
+                <p className="text-sm text-gray-600">{eventDateInfo.startTime}</p>
+              </div>
+            </div>
+          ) : (
+            // Date range display with timeline
+            <div className="flex gap-3">
+              {/* Timeline dots and line */}
+              <div className="flex flex-col items-center">
+                <div className="w-3 h-3 rounded-full bg-[#FA43AD] flex-shrink-0" />
+                <div className="w-0.5 flex-1 bg-[#FA43AD]/30 my-1" />
+                <div className="w-3 h-3 rounded-full bg-[#FA43AD]/60 flex-shrink-0" />
+              </div>
+              {/* Date content */}
+              <div className="flex-1 space-y-4">
+                {/* Start */}
+                <div>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Start</p>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
+                  <p className="text-sm text-gray-600">{eventDateInfo.startTime}</p>
+                </div>
+                {/* End */}
+                <div>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">End</p>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.endDate}</p>
+                  <p className="text-sm text-gray-600">{eventDateInfo.endTime}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-start gap-2 sm:gap-3">
