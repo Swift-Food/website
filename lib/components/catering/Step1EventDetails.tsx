@@ -382,16 +382,7 @@ export default function Step1EventDetails() {
     const newErrors: typeof validationErrors = {};
     let firstErrorElement: HTMLDivElement | null = null;
 
-    // Validate all fields
-    if (!formData.eventDate) {
-      newErrors.eventDate = "Event date is required.";
-      if (!firstErrorElement) firstErrorElement = dateRef.current;
-    }
-
-    if (!formData.eventTime) {
-      newErrors.eventTime = "Event time is required.";
-      if (!firstErrorElement) firstErrorElement = timeRef.current;
-    }
+    // Date & time validation removed - now handled in meal sessions
 
     // if (!formData.eventType) {
     //   newErrors.eventType = "Event type is required.";
@@ -426,31 +417,31 @@ export default function Step1EventDetails() {
       }
     }
 
-    // Validate delivery notice
-    if (formData.eventDate && formData.eventTime) {
-      const eventDateTime = new Date(
-        `${formData.eventDate}T${formData.eventTime}`
-      );
-      const now = new Date();
-      const hoursUntilEvent =
-        (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-      const requiredNoticeHours = getMaxNoticeHours();
+    // Delivery notice validation removed - now handled in meal sessions
+    // if (formData.eventDate && formData.eventTime) {
+    //   const eventDateTime = new Date(
+    //     `${formData.eventDate}T${formData.eventTime}`
+    //   );
+    //   const now = new Date();
+    //   const hoursUntilEvent =
+    //     (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    //   const requiredNoticeHours = getMaxNoticeHours();
 
-      if (hoursUntilEvent < requiredNoticeHours) {
-        newErrors.noticeHours = `Please select a date/time at least ${requiredNoticeHours} hours in advance.`;
-        if (!firstErrorElement) firstErrorElement = dateRef.current;
-      }
+    //   if (hoursUntilEvent < requiredNoticeHours) {
+    //     newErrors.noticeHours = `Please select a date/time at least ${requiredNoticeHours} hours in advance.`;
+    //     if (!firstErrorElement) firstErrorElement = dateRef.current;
+    //   }
 
-      // Validate operating hours
-      const operatingHoursError = validateEventDateTime(
-        formData.eventDate,
-        formData.eventTime
-      );
-      if (operatingHoursError) {
-        newErrors.eventTime = operatingHoursError;
-        if (!firstErrorElement) firstErrorElement = timeRef.current;
-      }
-    }
+    //   // Validate operating hours
+    //   const operatingHoursError = validateEventDateTime(
+    //     formData.eventDate,
+    //     formData.eventTime
+    //   );
+    //   if (operatingHoursError) {
+    //     newErrors.eventTime = operatingHoursError;
+    //     if (!firstErrorElement) firstErrorElement = timeRef.current;
+    //   }
+    // }
 
     // Update validation errors state
     setValidationErrors(newErrors);
@@ -660,7 +651,8 @@ export default function Step1EventDetails() {
             </button>
           </div>
 
-          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+          {/* Delivery Date & Time - Now handled in meal sessions */}
+          {/* <h3 className="text-2xl font-semibold mb-4 text-gray-800">
             Delivery Date & Time
           </h3>
           <p className="text-sm text-gray-500 mb-4">
@@ -811,7 +803,7 @@ export default function Step1EventDetails() {
                 </p>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Type of Event Section */}
