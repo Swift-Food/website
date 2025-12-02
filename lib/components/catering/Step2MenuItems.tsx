@@ -79,7 +79,12 @@ export interface MenuItem {
     restaurantId: string;
     menuGroupSettings?: Record<string, any>;
   };
-  dietaryFilters?: string[]; // Add this
+  dietaryFilters?: string[];
+  // Category context for cart grouping
+  categoryId?: string;
+  categoryName?: string;
+  subcategoryId?: string;
+  subcategoryName?: string;
 }
 
 export default function Step2MenuItems() {

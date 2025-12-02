@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useCatering } from "@/context/CateringContext";
 import {
@@ -8,9 +8,11 @@ import {
   CategoryWithSubcategories,
   Subcategory,
   MenuItemDetails,
+  SelectedMenuItem,
 } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
 import MenuItemCard from "./MenuItemCard";
+import MenuItemModal from "./MenuItemModal";
 import { MenuItem } from "./Step2MenuItems";
 
 // Hour and minute options for time picker
@@ -217,6 +219,230 @@ function SessionEditor({
   return createPortal(editorContent, document.body);
 }
 
+// Component to display selected items grouped by category
+interface SelectedItemsByCategoryProps {
+  orderItems: SelectedMenuItem[];
+  onEdit: (index: number) => void;
+  onRemove: (index: number) => void;
+  collapsedCategories: Set<string>;
+  onToggleCategory: (categoryName: string) => void;
+}
+
+interface GroupedItem {
+  item: any;
+  quantity: number;
+  originalIndex: number;
+}
+
+interface CategoryGroup {
+  items: GroupedItem[];
+  subcategories: Map<string, GroupedItem[]>;
+}
+
+function SelectedItemsByCategory({
+  orderItems,
+  onEdit,
+  onRemove,
+  collapsedCategories,
+  onToggleCategory,
+}: SelectedItemsByCategoryProps) {
+  // Group items by category -> subcategory
+  const grouped = useMemo(() => {
+    const map = new Map<string, CategoryGroup>();
+
+    orderItems.forEach((orderItem, index) => {
+      const catName = orderItem.item.categoryName || "Uncategorized";
+      const subName = orderItem.item.subcategoryName || "";
+
+      if (!map.has(catName)) {
+        map.set(catName, { items: [], subcategories: new Map() });
+      }
+
+      const category = map.get(catName)!;
+      const groupedItem: GroupedItem = {
+        item: orderItem.item,
+        quantity: orderItem.quantity,
+        originalIndex: index,
+      };
+
+      if (subName) {
+        if (!category.subcategories.has(subName)) {
+          category.subcategories.set(subName, []);
+        }
+        category.subcategories.get(subName)!.push(groupedItem);
+      } else {
+        category.items.push(groupedItem);
+      }
+    });
+
+    return map;
+  }, [orderItems]);
+
+  if (orderItems.length === 0) return null;
+
+  const renderItemRow = (groupedItem: GroupedItem) => {
+    const { item, quantity, originalIndex } = groupedItem;
+    const price = parseFloat(item.price?.toString() || "0");
+    const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+    const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+    const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
+    const portions = quantity / BACKEND_QUANTITY_UNIT;
+
+    // Calculate addon total
+    const addonTotal = (item.selectedAddons || []).reduce(
+      (sum: number, addon: { price: number; quantity: number }) =>
+        sum + (addon.price || 0) * (addon.quantity || 0),
+      0
+    );
+    const subtotal = itemPrice * quantity + addonTotal;
+
+    return (
+      <div
+        key={originalIndex}
+        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-[#F5F0E8] rounded-xl"
+      >
+        {/* Image */}
+        {item.image && (
+          <img
+            src={item.image}
+            alt={item.menuItemName}
+            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+          />
+        )}
+
+        {/* Name + Addons */}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-800">{item.menuItemName}</p>
+          {item.selectedAddons && item.selectedAddons.length > 0 && (
+            <div className="text-sm text-gray-600 mt-1">
+              {item.selectedAddons.map(
+                (
+                  addon: { groupTitle: string; name: string; quantity: number },
+                  idx: number
+                ) => (
+                  <p key={idx}>
+                    <span className="font-medium">{addon.groupTitle}:</span>{" "}
+                    {addon.name}
+                    {addon.quantity > 1 && ` (×${addon.quantity})`}
+                  </p>
+                )
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Price & Portions */}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          <p className="font-bold text-primary text-lg">
+            £{subtotal.toFixed(2)}
+          </p>
+          <p className="text-sm text-gray-600 whitespace-nowrap">
+            {portions} portion{portions !== 1 ? "s" : ""}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={() => onEdit(originalIndex)}
+            className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onRemove(originalIndex)}
+            className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="mb-6 bg-white rounded-2xl border border-base-200 overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 bg-base-100 border-b border-base-200">
+        <h2 className="text-xl font-bold text-gray-800">Your List</h2>
+      </div>
+
+      {/* Categories */}
+      <div className="p-4 space-y-4">
+        {Array.from(grouped.entries()).map(([categoryName, categoryGroup]) => {
+          const isCollapsed = collapsedCategories.has(categoryName);
+          const totalItems =
+            categoryGroup.items.length +
+            Array.from(categoryGroup.subcategories.values()).reduce(
+              (sum, items) => sum + items.length,
+              0
+            );
+
+          return (
+            <div
+              key={categoryName}
+              className="border border-base-200 rounded-xl overflow-hidden"
+            >
+              {/* Category Header */}
+              <button
+                onClick={() => onToggleCategory(categoryName)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-base-100 hover:bg-base-200 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-800">
+                    {categoryName}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    ({totalItems} item{totalItems !== 1 ? "s" : ""})
+                  </span>
+                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-5 w-5 text-gray-500 transition-transform ${
+                    isCollapsed ? "" : "rotate-180"
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Category Content */}
+              {!isCollapsed && (
+                <div className="p-4 space-y-3">
+                  {/* Items without subcategory */}
+                  {categoryGroup.items.map(renderItemRow)}
+
+                  {/* Subcategories */}
+                  {Array.from(categoryGroup.subcategories.entries()).map(
+                    ([subName, items]) => (
+                      <div key={subName}>
+                        <p className="text-sm font-medium text-gray-600 mb-2 pl-2">
+                          {subName}
+                        </p>
+                        <div className="space-y-3">
+                          {items.map(renderItemRow)}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function CateringOrderBuilder() {
   const {
     mealSessions,
@@ -227,6 +453,8 @@ export default function CateringOrderBuilder() {
     removeMealSession,
     addMenuItem,
     updateItemQuantity,
+    removeMenuItemByIndex,
+    updateMenuItemByIndex,
     getSessionTotal,
   } = useCatering();
 
@@ -255,6 +483,15 @@ export default function CateringOrderBuilder() {
   const [menuItemsLoading, setMenuItemsLoading] = useState(false);
   const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+
+  // Edit item state
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Collapsed categories state for the cart list
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set()
+  );
 
   // Get quantity for an item in the current session
   const getItemQuantity = (itemId: string): number => {
@@ -287,6 +524,11 @@ export default function CateringOrderBuilder() {
         itemDisplayOrder: item.itemDisplayOrder,
         addons: item.addons,
         selectedAddons: item.selectedAddons,
+        // Add category context for grouping in cart
+        categoryId: selectedCategory?.id,
+        categoryName: selectedCategory?.name,
+        subcategoryId: selectedSubcategory?.id,
+        subcategoryName: selectedSubcategory?.name,
       },
       quantity,
     });
@@ -485,6 +727,55 @@ export default function CateringOrderBuilder() {
     return parts.length > 0 ? parts.join(" • ") : "Set date & time";
   };
 
+  // Toggle collapsed category
+  const handleToggleCategory = (categoryName: string) => {
+    setCollapsedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryName)) {
+        newSet.delete(categoryName);
+      } else {
+        newSet.add(categoryName);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle edit item from cart list
+  const handleEditItem = (itemIndex: number) => {
+    setEditingItemIndex(itemIndex);
+    setIsEditModalOpen(true);
+  };
+
+  // Handle remove item from cart list
+  const handleRemoveItem = (itemIndex: number) => {
+    removeMenuItemByIndex(activeSessionIndex, itemIndex);
+  };
+
+  // Handle save from edit modal
+  const handleSaveEditedItem = (updatedItem: MenuItem) => {
+    if (editingItemIndex === null) return;
+
+    const BACKEND_QUANTITY_UNIT = updatedItem.cateringQuantityUnit || 7;
+    const quantity = (updatedItem.portionQuantity || 1) * BACKEND_QUANTITY_UNIT;
+
+    // Preserve the category context from the original item
+    const originalItem = mealSessions[activeSessionIndex].orderItems[editingItemIndex].item;
+
+    updateMenuItemByIndex(activeSessionIndex, editingItemIndex, {
+      item: {
+        ...updatedItem,
+        categoryId: originalItem.categoryId,
+        categoryName: originalItem.categoryName,
+        subcategoryId: originalItem.subcategoryId,
+        subcategoryName: originalItem.subcategoryName,
+      },
+      quantity,
+    });
+
+    setIsEditModalOpen(false);
+    setEditingItemIndex(null);
+  };
+
   return (
     <div className="min-h-screen bg-base-100">
       {/* Meal Sessions Tab Bar - Sticky */}
@@ -644,6 +935,17 @@ export default function CateringOrderBuilder() {
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Selected Items by Category - Cart List */}
+        {mealSessions[activeSessionIndex].orderItems.length > 0 && (
+          <SelectedItemsByCategory
+            orderItems={mealSessions[activeSessionIndex].orderItems}
+            onEdit={handleEditItem}
+            onRemove={handleRemoveItem}
+            collapsedCategories={collapsedCategories}
+            onToggleCategory={handleToggleCategory}
+          />
+        )}
+
         {/* Categories Row */}
         <div className="mb-6">
           {categoriesLoading ? (
@@ -769,6 +1071,27 @@ export default function CateringOrderBuilder() {
           )}
         </div>
       </div>
+
+      {/* Edit Item Modal */}
+      {isEditModalOpen && editingItemIndex !== null && (
+        <MenuItemModal
+          item={mealSessions[activeSessionIndex].orderItems[editingItemIndex].item as MenuItem}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingItemIndex(null);
+          }}
+          quantity={mealSessions[activeSessionIndex].orderItems[editingItemIndex].quantity}
+          isEditMode={true}
+          editingIndex={editingItemIndex}
+          onAddItem={handleSaveEditedItem}
+          onRemoveItem={(index) => {
+            removeMenuItemByIndex(activeSessionIndex, index);
+            setIsEditModalOpen(false);
+            setEditingItemIndex(null);
+          }}
+        />
+      )}
     </div>
   );
 }

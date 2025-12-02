@@ -82,6 +82,11 @@ export interface SearchResult {
   };
   score: number;
   matchType: "exact" | "prefix" | "word" | "partial" | "description";
+  // Category context for cart grouping
+  categoryId?: string;
+  categoryName?: string;
+  subcategoryId?: string;
+  subcategoryName?: string;
 }
 
 export interface SearchResponse {
