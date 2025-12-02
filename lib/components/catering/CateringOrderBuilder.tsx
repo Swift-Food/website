@@ -563,6 +563,61 @@ export default function CateringOrderBuilder() {
     setEditingItemIndex(null);
   };
 
+  // State for empty session warning modal
+  const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(null);
+
+  // Handle checkout - validate all sessions have date and time
+  const handleCheckout = () => {
+    // First check for empty sessions (if more than one session exists)
+    if (mealSessions.length > 1) {
+      const emptyIndex = mealSessions.findIndex(
+        (session) => session.orderItems.length === 0
+      );
+      if (emptyIndex !== -1) {
+        setEmptySessionIndex(emptyIndex);
+        return;
+      }
+    }
+
+    // Find all sessions with items that are missing date or time
+    for (let i = 0; i < mealSessions.length; i++) {
+      const session = mealSessions[i];
+      const hasItems = session.orderItems.length > 0;
+      const missingDate = !session.sessionDate;
+      const missingTime = !session.eventTime;
+
+      if (hasItems && (missingDate || missingTime)) {
+        // Open the session editor for the incomplete session
+        setActiveSessionIndex(i);
+        setEditingSessionIndex(i);
+        const buttonEl = sessionButtonRefs.current.get(i);
+        if (buttonEl) {
+          setEditorAnchorRect(buttonEl.getBoundingClientRect());
+        }
+        return;
+      }
+    }
+
+    // All sessions are complete, proceed to checkout
+    setCurrentStep(currentStep + 1);
+  };
+
+  // Handle removing empty session
+  const handleRemoveEmptySession = () => {
+    if (emptySessionIndex !== null) {
+      removeMealSession(emptySessionIndex);
+      setEmptySessionIndex(null);
+    }
+  };
+
+  // Handle adding items to empty session
+  const handleAddItemsToEmptySession = () => {
+    if (emptySessionIndex !== null) {
+      setActiveSessionIndex(emptySessionIndex);
+      setEmptySessionIndex(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-base-100">
       {/* Meal Sessions Tab Bar - Sticky */}
@@ -883,11 +938,62 @@ export default function CateringOrderBuilder() {
         />
       )}
 
+      {/* Empty Session Warning Modal */}
+      {emptySessionIndex !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-amber-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Empty Session
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {mealSessions[emptySessionIndex]?.sessionName || "Session"} has no items
+                </p>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-6">
+              This session doesn&apos;t have any items. Would you like to add items or remove it?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleRemoveEmptySession}
+                className="flex-1 px-4 py-3 border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors font-medium"
+              >
+                Remove Session
+              </button>
+              <button
+                onClick={handleAddItemsToEmptySession}
+                className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium"
+              >
+                Add Items
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Checkout Button - Mobile (fixed bottom bar) */}
       {mealSessions.some((s) => s.orderItems.length > 0) && (
         <div className="fixed bottom-0 left-0 right-0 md:hidden bg-primary p-4 shadow-lg z-50">
           <button
-            onClick={() => setCurrentStep(currentStep + 1)}
+            onClick={handleCheckout}
             className="w-full flex items-center justify-between text-white"
           >
             <div className="flex flex-col items-start">
@@ -920,7 +1026,7 @@ export default function CateringOrderBuilder() {
       {/* Checkout Button - Desktop (fixed bottom right) */}
       {mealSessions.some((s) => s.orderItems.length > 0) && (
         <button
-          onClick={() => setCurrentStep(currentStep + 1)}
+          onClick={handleCheckout}
           className="hidden md:flex fixed bottom-8 right-8 items-center gap-3 bg-primary text-white px-6 py-4 rounded-xl shadow-lg hover:bg-primary/90 transition-all z-50"
         >
           <div className="flex flex-col items-start">
