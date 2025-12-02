@@ -33,6 +33,7 @@ export default function Step3ContactInfo() {
     setContactInfo,
     setCurrentStep,
     eventDetails,
+    mealSessions,
     getAllItems,
     resetOrder,
     markOrderAsSubmitted,
@@ -299,7 +300,7 @@ export default function Step3ContactInfo() {
       const createCateringOrderResponse =
         await cateringService.submitCateringOrder(
           eventDetails!,
-          selectedItems,
+          mealSessions,
           formData,
           promoCodes,
           ccEmails,

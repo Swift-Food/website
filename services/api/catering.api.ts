@@ -12,11 +12,13 @@ import {
   MenuItemDetails,
   UpdateMenuItemDto,
   MenuCategory,
+  MealSessionState,
 } from "@/types/catering.types";
 import {
   CreateCateringOrderRequest,
   CateringRestaurantOrderRequest,
   CateringMenuItemRequest,
+  MealSessionRequest,
   AddSharedAccessRequest,
   RemoveSharedAccessRequest,
   UpdatePickupContactRequest,
@@ -83,7 +85,7 @@ class CateringService {
 
   async submitCateringOrder(
     eventDetails: EventDetails,
-    selectedItems: SelectedMenuItem[],
+    mealSessions: MealSessionState[],
     contactInfo: ContactInfo,
     promoCodes: string[],
     ccEmails?: string[],
@@ -95,7 +97,6 @@ class CateringService {
       paymentIntentId?: string;
     }
   ) {
-
     let userId;
     try {
       userId = await this.findOrCreateConsumerAccount(contactInfo);
@@ -105,90 +106,92 @@ class CateringService {
       throw new Error(`Failed to create user account: ${error.message}`);
     }
 
-    // Group items by restaurant
-    const groupedByRestaurant = selectedItems.reduce(
-      (acc, { item, quantity }) => {
-        const restaurantId =
-          item.restaurant?.restaurantId || item.restaurantId || "unknown";
-        const restaurantName = item.restaurant?.name || "Unknown Restaurant";
+    // Helper function to group items by restaurant for a single session
+    const groupItemsByRestaurant = (
+      orderItems: SelectedMenuItem[]
+    ): CateringRestaurantOrderRequest[] => {
+      const groupedByRestaurant = orderItems.reduce(
+        (acc, { item, quantity }) => {
+          const restaurantId =
+            item.restaurant?.restaurantId || item.restaurantId || "unknown";
 
-        if (!acc[restaurantId]) {
-          acc[restaurantId] = {
-            restaurantId,
-            restaurantName,
-            items: [],
-          };
-        }
+          if (!acc[restaurantId]) {
+            acc[restaurantId] = {
+              restaurantId,
+              items: [],
+            };
+          }
 
-        const price = parseFloat(item.price?.toString() || "0");
-        const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-        const unitPrice =
-          item.isDiscount && discountPrice > 0 ? discountPrice : price;
+          // Send addons as-is to backend (no quantity transformation needed)
+          const transformedAddons = (item.selectedAddons || []).map((addon) => ({
+            name: addon.name,
+            quantity: addon.quantity || 0,
+            groupTitle: addon.groupTitle,
+          }));
 
-        // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
-        const addonTotal = (item.selectedAddons || []).reduce(
-          (sum, { price, quantity }) => {
-            return sum + (price || 0) * (quantity || 0);
-          },
-          0
-        );
-
-        // Total price includes both item price and addon price
-        const itemTotalPrice = unitPrice * quantity + addonTotal;
-
-        // Send addons as-is to backend (no quantity transformation needed)
-        const transformedAddons = (item.selectedAddons || []).map((addon) => ({
-          name: addon.name,
-          quantity: addon.quantity || 0,
-          groupTitle: addon.groupTitle,
-        }));
-
-        acc[restaurantId].items.push({
-          menuItemId: item.id,
-          name: item.menuItemName,
-          groupTitle: item.groupTitle,
-          quantity,
-          unitPrice,
-          addonPrice: addonTotal,
-          selectedAddons: transformedAddons,
-          totalPrice: itemTotalPrice,
-        });
-
-        return acc;
-      },
-      {} as Record<
-        string,
-        { restaurantId: string; restaurantName: string; items: any[] }
-      >
-    );
-
-    // Transform to CateringRestaurantOrderRequest format (backend will calculate pricing)
-    const orderItems: CateringRestaurantOrderRequest[] = Object.values(groupedByRestaurant).map(
-      (group: any) => {
-        return {
-          restaurantId: group.restaurantId,
-          menuItems: group.items.map((item: any) => ({
-            menuItemId: item.menuItemId,
-            quantity: item.quantity,
-            selectedAddons: item.selectedAddons,
+          acc[restaurantId].items.push({
+            menuItemId: item.id,
+            quantity,
+            selectedAddons: transformedAddons,
             groupTitle: item.groupTitle,
-          } as CateringMenuItemRequest)),
-          specialInstructions: eventDetails.specialRequests || "",
-        };
-      }
-    );
+          });
+
+          return acc;
+        },
+        {} as Record<string, { restaurantId: string; items: any[] }>
+      );
+
+      return Object.values(groupedByRestaurant).map((group) => ({
+        restaurantId: group.restaurantId,
+        menuItems: group.items.map(
+          (item) =>
+            ({
+              menuItemId: item.menuItemId,
+              quantity: item.quantity,
+              selectedAddons: item.selectedAddons,
+              groupTitle: item.groupTitle,
+            } as CateringMenuItemRequest)
+        ),
+        specialInstructions: "",
+      }));
+    };
+
+    // Transform MealSessionState[] to MealSessionRequest[]
+    const mealSessionRequests: MealSessionRequest[] = mealSessions
+      .filter((session) => session.orderItems.length > 0) // Only include sessions with items
+      .map((session, index) => ({
+        sessionName: session.sessionName || `Session ${index + 1}`,
+        sessionOrder: index + 1,
+        sessionDate: session.sessionDate,
+        eventTime: session.eventTime,
+        guestCount: session.guestCount,
+        specialRequirements: session.specialRequirements,
+        orderItems: groupItemsByRestaurant(session.orderItems),
+        promoCodes: [], // Session-specific promo codes if needed
+      }));
 
     // Calculate rough estimated total for display (backend will recalculate)
-    const estimatedTotal = Object.values(groupedByRestaurant).reduce(
-      (sum: number, group: any) => {
-        const groupTotal = group.items.reduce(
-          (itemSum: number, item: any) => itemSum + (item.totalPrice || 0),
-          0
-        );
-        return sum + groupTotal;
-      },
-      0
-    );
+    const estimatedTotal = mealSessions.reduce((total, session) => {
+      return (
+        total +
+        session.orderItems.reduce((sessionTotal, { item, quantity }) => {
+          const price = parseFloat(item.price?.toString() || "0");
+          const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+          const unitPrice =
+            item.isDiscount && discountPrice > 0 ? discountPrice : price;
+
+          const addonTotal = (item.selectedAddons || []).reduce(
+            (sum, { price, quantity }) => sum + (price || 0) * (quantity || 0),
+            0
+          );
+
+          return sessionTotal + unitPrice * quantity + addonTotal;
+        }, 0)
+      );
+    }, 0);
+
+    // Get the first session's date/time for top-level fields (backward compatibility)
+    const firstSession = mealSessionRequests[0];
 
     const createDto: CreateCateringOrderRequest = {
       userId,
@@ -197,15 +200,17 @@ class CateringService {
       customerEmail: contactInfo.email,
       customerPhone: contactInfo.phone,
       ccEmails: ccEmails || [],
-      eventDate: eventDetails.eventDate,
-      eventTime: eventDetails.eventTime,
+      // Top-level event details (from first session for backward compatibility)
+      eventDate: firstSession?.sessionDate || eventDetails.eventDate,
+      eventTime: firstSession?.eventTime || eventDetails.eventTime,
       guestCount: eventDetails.guestCount,
       eventType: eventDetails.eventType,
       deliveryAddress: `${contactInfo.addressLine1}${
         contactInfo.addressLine2 ? ", " + contactInfo.addressLine2 : ""
       }, ${contactInfo.city}, ${contactInfo.zipcode}`,
       specialRequirements: eventDetails.specialRequests || "",
-      orderItems,
+      // Use mealSessions instead of orderItems
+      mealSessions: mealSessionRequests,
       estimatedTotal,
       promoCodes,
       corporateUserId: paymentInfo?.corporateUserId,
@@ -213,7 +218,7 @@ class CateringService {
       useOrganizationWallet: paymentInfo?.useOrganizationWallet,
       paymentMethodId: paymentInfo?.paymentMethodId,
       paymentIntentId: paymentInfo?.paymentIntentId,
-      paymentMethod: 'stripe_direct',
+      paymentMethod: "stripe_direct",
     };
 
     const response = await fetchWithAuth(`${API_BASE_URL}/catering-orders`, {
