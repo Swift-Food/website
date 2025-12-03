@@ -78,9 +78,17 @@ export interface GuestTicketMealSession {
   sessionDate: string | Date;
   eventTime: string;
   collectionTime?: string;
+  restaurantCollectionTimes?: Record<string, string>;
   guestCount: number;
   specialRequirements?: string;
   orderItems: GuestTicketRestaurant[];
+
+  // Session pricing
+  subtotal: number;
+  deliveryFee: number;
+  serviceCharge: number;
+  promoDiscount?: number;
+  promotionDiscount?: number;
   sessionTotal: number;
 }
 
