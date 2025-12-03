@@ -22,6 +22,15 @@ The following security fixes have been implemented on the `security-fixes` branc
 | Fixed image upload to use fetchWithAuth | `app/restaurant/settings/[restaurantId]/page.tsx` | `b5919b7` |
 | Fixed hardcoded API URL | `services/utilities/mail.service.ts` | `b5919b7` |
 | Used API constants for image upload | `lib/components/complain-form.tsx` | `15a41d7` |
+| Fix timing attack (frontend) | `app/(public)/event-order/view/[token]/page.tsx`, `types/api/catering.api.types.ts` | `67f954a` |
+
+**Backend (security-fixes branch):**
+
+| Fix | Files Changed | Commit |
+|-----|---------------|--------|
+| Apply RestaurantOwnershipGuard to all owner endpoints | `restaurant.controller.ts` | `a199462` |
+| Fix timing attack: return currentUserRole from backend | `catering-fetch.controller.ts`, `guest-ticket-view.dto.ts`, `catering-fetch.service.ts`, `guest-ticket-mapper.service.ts` | `a21439d` |
+| Add rate limiting to public image upload | `image-upload.controller.ts` | `8fe9455` |
 
 ### Security Headers Added
 
@@ -77,13 +86,14 @@ function isValidRedirectPath(path: string): boolean {
 
 - [ ] Store minimal user data in localStorage (architectural change)
 - [ ] Add JWT expiration check in layout
-- [ ] Fix timing-safe comparison in event-order/view/[token]/page.tsx
+- [x] ~~Fix timing-safe comparison in event-order/view/[token]/page.tsx~~ ✅ **IMPLEMENTED** (uses server-provided role)
 
-### Remaining Backend Tasks (Critical)
+### Backend Tasks (security-fixes branch)
 
-- [ ] Create RestaurantOwnershipGuard (IDOR fix)
-- [ ] Remove accessToken from sharedAccessUsers in API responses
-- [ ] Add separate public image upload endpoint for complaints (rate-limited)
+- [x] ~~Create RestaurantOwnershipGuard (IDOR fix)~~ ✅ **IMPLEMENTED** - Applied to all owner endpoints
+- [x] ~~Fix timing attack~~ ✅ **IMPLEMENTED** - Backend returns currentUserRole
+- [x] ~~Add rate limiting to image upload~~ ✅ **IMPLEMENTED** - 10/min for single, 5/min for batch
+- [ ] Remove accessToken from sharedAccessUsers in API responses (already done in response mapper)
 - [ ] Rate limiting for token-based endpoints
 
 ---
