@@ -219,7 +219,6 @@ function SessionEditor({
   return createPortal(editorContent, document.body);
 }
 
-
 export default function CateringOrderBuilder() {
   const {
     mealSessions,
@@ -562,7 +561,9 @@ export default function CateringOrderBuilder() {
   };
 
   // State for empty session warning modal
-  const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(null);
+  const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(
+    null
+  );
 
   // Handle checkout - validate all sessions have date and time
   const handleCheckout = () => {
@@ -962,12 +963,14 @@ export default function CateringOrderBuilder() {
                   Empty Session
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {mealSessions[emptySessionIndex]?.sessionName || "Session"} has no items
+                  {mealSessions[emptySessionIndex]?.sessionName || "Session"}{" "}
+                  has no items
                 </p>
               </div>
             </div>
             <p className="text-gray-600 mb-6">
-              This session doesn&apos;t have any items. Would you like to add items or remove it?
+              This session doesn&apos;t have any items. Would you like to add
+              items or remove it?
             </p>
             <div className="flex gap-3">
               <button
@@ -994,8 +997,11 @@ export default function CateringOrderBuilder() {
             onClick={handleCheckout}
             className="w-full flex items-center justify-between text-white"
           >
-            <div className="flex flex-col items-start">
-              <span className="text-sm opacity-90">Total</span>
+            <div className="flex flex-row justify-center items-center">
+              {/* <span className="text-sm opacity-90">Total</span> */}
+              <span className="text-lg font-semibold mr-2">
+                Total: 
+              </span>
               <span className="text-xl font-bold">
                 £{getTotalPrice().toFixed(2)}
               </span>
