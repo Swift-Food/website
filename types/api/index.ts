@@ -19,3 +19,6 @@ export * from './catering.request.types';
 
 // Corporate order types (responses)
 export * from './corporate.api.types';
+
+// Guest ticket view types (responses)
+export * from './guest-ticket-view.api.types';
