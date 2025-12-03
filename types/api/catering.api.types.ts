@@ -194,11 +194,15 @@ export interface CateringOrderResponse {
 
   // Shared access
   accessToken?: string;
+  /**
+   * The role of the current user accessing this order via their access token.
+   * Determined server-side to prevent timing attacks.
+   */
+  currentUserRole?: 'viewer' | 'editor' | 'manager';
   sharedAccessUsers?: Array<{
     userId?: string;
     email: string;
     role: 'viewer' | 'editor' | 'manager';
-    accessToken?: string;
     name?: string;
     addedAt?: string | Date;
     addedBy?: string;

@@ -47,11 +47,8 @@ export default function CateringDashboardPage() {
       const data = await cateringService.getOrderByToken(token);
       setOrder(data);
 
-      // Determine current user's role from the token
-      const currentUser = data.sharedAccessUsers?.find(
-        (u) => u.accessToken === token
-      );
-      setCurrentUserRole(currentUser?.role || null);
+      // Use server-provided role (prevents timing attacks)
+      setCurrentUserRole(data.currentUserRole || null);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
     } finally {
