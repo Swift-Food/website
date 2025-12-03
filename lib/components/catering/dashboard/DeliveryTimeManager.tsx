@@ -60,7 +60,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div className="bg-white rounded-xl p-4 sm:p-6">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
           <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />

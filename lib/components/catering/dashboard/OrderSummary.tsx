@@ -10,7 +10,7 @@ interface OrderSummaryProps {
 
 export default function OrderSummary({ order }: OrderSummaryProps) {
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div className="bg-white rounded-xl p-4 sm:p-6">
       <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
         <Receipt className="h-5 w-5 text-pink-500" />
         Order Summary

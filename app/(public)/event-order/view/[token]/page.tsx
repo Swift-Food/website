@@ -89,7 +89,7 @@ export default function CateringDashboardPage() {
   if (error || !order) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full text-center">
           <div className="text-red-500 text-4xl sm:text-5xl mb-4">⚠️</div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Order Not Found
@@ -109,7 +109,7 @@ export default function CateringDashboardPage() {
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-pink-500 to-pink-400 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white">
+        <div className="bg-gradient-to-r from-pink-500 to-pink-400 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-1">
@@ -149,7 +149,7 @@ export default function CateringDashboardPage() {
 
             {refunds.length > 0 && <RefundsList refunds={refunds} />}
             {order.status === "completed" && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-xl p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">
                   Need a Refund?
                 </h3>

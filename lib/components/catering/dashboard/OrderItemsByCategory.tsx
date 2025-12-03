@@ -297,7 +297,7 @@ export default function OrderItemsByCategory({ order }: OrderItemsByCategoryProp
     return (
       <div
         key={session.id}
-        className="border-2 border-pink-200 rounded-xl overflow-hidden bg-white shadow-sm"
+        className="border-2 border-pink-200 rounded-xl overflow-hidden bg-white"
       >
         {/* Session Header */}
         <button
@@ -396,7 +396,7 @@ export default function OrderItemsByCategory({ order }: OrderItemsByCategoryProp
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div className="bg-white rounded-xl p-4 sm:p-6">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
         <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
         Order Items

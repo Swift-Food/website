@@ -42,7 +42,7 @@ export default function RefundsList({ refunds }: RefundsListProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="bg-white rounded-xl p-6">
       <div className="flex items-center gap-2 mb-4">
         <AlertCircle className="h-5 w-5 text-pink-600" />
         <h3 className="text-lg font-bold text-gray-900">Refund Requests</h3>

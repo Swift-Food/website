@@ -66,7 +66,7 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
   }, [order.mealSessions, order.eventDate, order.eventTime]);
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div className="bg-white rounded-xl p-4 sm:p-6">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Event Details</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
