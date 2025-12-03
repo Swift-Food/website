@@ -792,7 +792,7 @@ export interface MenuItemDetails extends CreateMenuItemDto {
   updatedAt?: string;
   averageRating: string;
   categories?: MenuCategory[];
-  subCategorddies?: Subcategory[];
+  subCategories?: Subcategory[];
 }
 
 export interface UpdateMenuItemDto {

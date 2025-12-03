@@ -7,7 +7,7 @@ import { cateringService } from "@/services/api/catering.api";
 import { CateringOrderResponse } from "@/types/api";
 import OrderStatusBadge from "@/lib/components/catering/dashboard/OrderStatusBadge";
 import OrderDetails from "@/lib/components/catering/dashboard/OrderDetails";
-import OrderItems from "@/lib/components/catering/dashboard/OrderItems";
+import OrderItemsByCategory from "@/lib/components/catering/dashboard/OrderItemsByCategory";
 import DeliveryInfo from "@/lib/components/catering/dashboard/DeliveryInfo";
 import SharedAccessManager from "@/lib/components/catering/dashboard/SharedAccessManager";
 import PickupContactManager from "@/lib/components/catering/dashboard/PickupContactManager";
@@ -140,7 +140,7 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <OrderItems order={order} />
+            <OrderItemsByCategory order={order} />
           </div>
 
           {/* Sidebar */}
