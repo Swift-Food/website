@@ -1,7 +1,7 @@
 // app/components/catering/dashboard/OrderDetails.tsx
 import React, { useMemo } from 'react';
 import { CateringOrderResponse } from '@/types/api';
-import { MapPin, FileText } from 'lucide-react';
+import { MapPin, FileText, Calendar } from 'lucide-react';
 import { formatDeliveryAddress } from '@/app/restaurant/dashboard/catering/utils/address.utils';
 
 interface OrderDetailsProps {
@@ -70,43 +70,23 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Event Details</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        {/* Event Date Timeline */}
-        <div className="sm:col-span-2">
-          {eventDateInfo.isSingleDate ? (
-            // Single date display
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full bg-[#FA43AD]" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-gray-500 font-medium uppercase tracking-wide">Event Date</p>
+        {/* Event Date */}
+        <div className="flex items-start gap-2 sm:gap-3">
+          <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500 mt-1 flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            {eventDateInfo.isSingleDate ? (
+              <>
+                <p className="text-xs sm:text-sm text-gray-600">Event Date</p>
                 <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
-              </div>
-            </div>
-          ) : (
-            // Date range display with timeline
-            <div className="flex gap-3">
-              {/* Timeline dots and line */}
-              <div className="flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full bg-[#FA43AD] flex-shrink-0" />
-                <div className="w-0.5 flex-1 bg-[#FA43AD]/30 my-1" />
-                <div className="w-3 h-3 rounded-full bg-[#FA43AD]/60 flex-shrink-0" />
-              </div>
-              {/* Date content */}
-              <div className="flex-1 space-y-4">
-                {/* Start */}
-                <div>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Start</p>
-                  <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
-                </div>
-                {/* End */}
-                <div>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">End</p>
-                  <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.endDate}</p>
-                </div>
-              </div>
-            </div>
-          )}
+              </>
+            ) : (
+              <>
+                <p className="text-xs sm:text-sm text-gray-600">Event Dates</p>
+                <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
+                <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.endDate}</p>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex items-start gap-2 sm:gap-3">

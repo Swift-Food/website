@@ -4,17 +4,21 @@
 import React, { useState, useMemo } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
 import { PricingMenuItem, PricingOrderItem } from "@/types/api/pricing.api.types";
-import { MenuCategory, Subcategory } from "@/types/catering.types";
 import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock } from "lucide-react";
 
 interface OrderItemsByCategoryProps {
   order: CateringOrderResponse;
 }
 
-// Extended PricingMenuItem with category/subcategory info (will come from backend)
+// Extended PricingMenuItem with category/subcategory info from backend
 interface PricingMenuItemWithCategories extends PricingMenuItem {
-  categories?: MenuCategory[];
-  subCategories?: Subcategory[];
+  categoryName?: string;
+  subcategory?: {
+    id: string;
+    name: string;
+    categoryId: string;
+    displayOrder: number;
+  };
 }
 
 interface GroupedItem {
@@ -110,11 +114,13 @@ export default function OrderItemsByCategory({ order }: OrderItemsByCategoryProp
       restaurant.menuItems.forEach((menuItem, itemIdx) => {
         const item = menuItem as PricingMenuItemWithCategories;
 
-        // Get category name - use first category from array, fallback to groupTitle, then "Other Items"
-        const categoryName = item.categories?.[0]?.name || item.groupTitle || "Other Items";
+        // Get category name - use categoryName field, fallback to groupTitle, then "Other Items"
+        // Capitalize first letter for display
+        const rawCategoryName = item.categoryName || item.groupTitle || "Other Items";
+        const categoryName = rawCategoryName.charAt(0).toUpperCase() + rawCategoryName.slice(1);
 
-        // Get subcategory name - use first subcategory from array if available
-        const subcategoryName = item.subCategories?.[0]?.name || "";
+        // Get subcategory name from subcategory object if available
+        const subcategoryName = item.subcategory?.name || "";
 
         if (!map.has(categoryName)) {
           map.set(categoryName, { items: [], subcategories: new Map() });
