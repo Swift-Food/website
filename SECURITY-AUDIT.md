@@ -51,6 +51,28 @@ function isValidRedirectPath(path: string): boolean {
 }
 ```
 
+### Design Decisions & Compatibility Notes
+
+**Complaint Form Image Upload (`complain-form.tsx`):**
+- Intentionally uses plain `fetch()` without auth - this is a public form for unauthenticated users
+- Backend should have a separate rate-limited public upload endpoint for complaints
+- Do NOT add `fetchWithAuth` here as it will break the public complaint flow
+
+**X-Frame-Options: SAMEORIGIN:**
+- Does NOT affect Stripe payment elements - Stripe uses its own iframes that it controls
+- Only prevents OTHER sites from embedding our pages in their iframes (clickjacking protection)
+- Tested: Stripe Elements work correctly with this header
+
+**Permissions-Policy (camera/microphone disabled):**
+- Verified: No camera/microphone usage in the codebase
+- Safe to block these permissions
+- Geolocation is allowed for `self` for potential store locator features
+
+**Redirect Validation (restaurant login):**
+- Only allows redirects to `/restaurant/*` paths - this is intentional
+- Restaurant owners should only be redirected within their dashboard area
+- If other user types need different redirects, add separate login flows
+
 ### Remaining Frontend Tasks
 
 - [ ] Store minimal user data in localStorage (architectural change)
@@ -61,7 +83,7 @@ function isValidRedirectPath(path: string): boolean {
 
 - [ ] Create RestaurantOwnershipGuard (IDOR fix)
 - [ ] Remove accessToken from sharedAccessUsers in API responses
-- [ ] Add auth guard to image-upload endpoint
+- [ ] Add separate public image upload endpoint for complaints (rate-limited)
 - [ ] Rate limiting for token-based endpoints
 
 ---
