@@ -81,7 +81,6 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 font-medium uppercase tracking-wide">Event Date</p>
                 <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
-                <p className="text-sm text-gray-600">{eventDateInfo.startTime}</p>
               </div>
             </div>
           ) : (
@@ -99,13 +98,11 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
                 <div>
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Start</p>
                   <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
-                  <p className="text-sm text-gray-600">{eventDateInfo.startTime}</p>
                 </div>
                 {/* End */}
                 <div>
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">End</p>
                   <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.endDate}</p>
-                  <p className="text-sm text-gray-600">{eventDateInfo.endTime}</p>
                 </div>
               </div>
             </div>
