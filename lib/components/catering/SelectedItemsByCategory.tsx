@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCatering } from "@/context/CateringContext";
-import { SelectedMenuItem } from "@/types/catering.types";
+import { SelectedMenuItem, CategoryWithSubcategories } from "@/types/catering.types";
+import { categoryService } from "@/services/api/category.api";
 
 interface GroupedItem {
   item: any;
@@ -37,6 +38,21 @@ export default function SelectedItemsByCategory({
   // Use provided sessionIndex or fall back to activeSessionIndex
   const currentSessionIndex = sessionIndex ?? activeSessionIndex;
   const orderItems = mealSessions[currentSessionIndex]?.orderItems || [];
+
+  // Fetch categories for ordering
+  const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await categoryService.getCategoriesWithSubcategories();
+        setCategoryOrder(categories.map((c) => c.name));
+      } catch (error) {
+        console.error("Failed to fetch categories for ordering:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Internal collapsed state if not provided externally
   const [internalCollapsedCategories, setInternalCollapsedCategories] =
@@ -91,8 +107,26 @@ export default function SelectedItemsByCategory({
       }
     });
 
+    // Sort categories by the order from the API
+    if (categoryOrder.length > 0) {
+      const sortedMap = new Map<string, CategoryGroup>();
+      const entries = Array.from(map.entries());
+
+      entries.sort((a, b) => {
+        const indexA = categoryOrder.indexOf(a[0]);
+        const indexB = categoryOrder.indexOf(b[0]);
+        // Put unknown categories at the end
+        const orderA = indexA === -1 ? 999 : indexA;
+        const orderB = indexB === -1 ? 999 : indexB;
+        return orderA - orderB;
+      });
+
+      entries.forEach(([key, value]) => sortedMap.set(key, value));
+      return sortedMap;
+    }
+
     return map;
-  }, [orderItems]);
+  }, [orderItems, categoryOrder]);
 
   if (orderItems.length === 0) return null;
 

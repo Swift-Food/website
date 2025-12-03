@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCatering } from "@/context/CateringContext";
 import { MealSessionState, SelectedMenuItem } from "@/types/catering.types";
 import { ChefHat, ChevronDown, ChevronUp, Calendar, Clock } from "lucide-react";
+import { categoryService } from "@/services/api/category.api";
 
 interface GroupedItem {
   item: any;
@@ -28,6 +29,21 @@ export default function AllMealSessionsItems({
   onRemove,
 }: AllMealSessionsItemsProps) {
   const { mealSessions } = useCatering();
+
+  // Fetch categories for ordering
+  const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await categoryService.getCategoriesWithSubcategories();
+        setCategoryOrder(categories.map((c) => c.name));
+      } catch (error) {
+        console.error("Failed to fetch categories for ordering:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Track expanded state for sessions and restaurants
   const [expandedSessions, setExpandedSessions] = useState<Set<number>>(
@@ -108,6 +124,24 @@ export default function AllMealSessionsItems({
         category.items.push(groupedItem);
       }
     });
+
+    // Sort categories by the order from the API
+    if (categoryOrder.length > 0) {
+      const sortedMap = new Map<string, CategoryGroup>();
+      const entries = Array.from(map.entries());
+
+      entries.sort((a, b) => {
+        const indexA = categoryOrder.indexOf(a[0]);
+        const indexB = categoryOrder.indexOf(b[0]);
+        // Put unknown categories at the end
+        const orderA = indexA === -1 ? 999 : indexA;
+        const orderB = indexB === -1 ? 999 : indexB;
+        return orderA - orderB;
+      });
+
+      entries.forEach(([key, value]) => sortedMap.set(key, value));
+      return sortedMap;
+    }
 
     return map;
   };
