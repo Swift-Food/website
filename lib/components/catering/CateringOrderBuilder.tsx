@@ -392,12 +392,10 @@ export default function CateringOrderBuilder() {
           data = await categoryService.getMenuItemsBySubcategory(
             selectedSubcategory.id
           );
-          console.log("Menu items by subcategory:", data);
         } else {
           data = await categoryService.getMenuItemsByCategory(
             selectedCategory.id
           );
-          console.log("Menu items by category:", data);
         }
         // Map to MenuItem format for MenuItemCard
         const mappedItems = data.map(mapToMenuItem);

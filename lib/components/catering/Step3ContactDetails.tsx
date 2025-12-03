@@ -307,7 +307,7 @@ export default function Step3ContactInfo() {
           paymentData
         );
 
-      console.log("Catering order response: ", createCateringOrderResponse);
+      // console.log("Catering order response: ", createCateringOrderResponse);
 
       markOrderAsSubmitted();
       setShowPaymentModal(false);

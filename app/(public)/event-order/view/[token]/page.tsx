@@ -17,6 +17,7 @@ import RefundRequestButton from "@/lib/components/catering/dashboard/RefundReque
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import RefundsList from "@/lib/components/catering/dashboard/refundList";
+import OrderSummary from "@/lib/components/catering/dashboard/OrderSummary";
 
 export default function CateringDashboardPage() {
   const params = useParams();
@@ -45,14 +46,12 @@ export default function CateringDashboardPage() {
       setLoading(true);
       setError(null);
       const data = await cateringService.getOrderByToken(token);
-      console.log("Data: ", data);
       setOrder(data);
 
       // Determine current user's role from the token
       const currentUser = data.sharedAccessUsers?.find(
         (u) => u.accessToken === token
       );
-      console.log(data);
       setCurrentUserRole(currentUser?.role || null);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
@@ -146,6 +145,7 @@ export default function CateringDashboardPage() {
           {/* Sidebar */}
           <div className="space-y-4 sm:space-y-6">
             <DeliveryInfo order={order} />
+            <OrderSummary order={order} />
 
             {refunds.length > 0 && <RefundsList refunds={refunds} />}
             {order.status === "completed" && (
