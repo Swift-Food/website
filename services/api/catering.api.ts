@@ -159,16 +159,37 @@ class CateringService {
     // Transform MealSessionState[] to MealSessionRequest[]
     const mealSessionRequests: MealSessionRequest[] = mealSessions
       .filter((session) => session.orderItems.length > 0) // Only include sessions with items
-      .map((session, index) => ({
-        sessionName: session.sessionName || `Session ${index + 1}`,
-        sessionOrder: index + 1,
-        sessionDate: session.sessionDate,
-        eventTime: session.eventTime,
-        guestCount: session.guestCount,
-        specialRequirements: session.specialRequirements,
-        orderItems: groupItemsByRestaurant(session.orderItems),
-        promoCodes: [], // Session-specific promo codes if needed
-      }));
+      .map((session, index) => {
+        // Validate required fields
+        const sessionLabel = session.sessionName || `Session ${index + 1}`;
+        if (!session.sessionDate) {
+          throw new Error(`Session "${sessionLabel}" is missing a date. Please set a date for your delivery.`);
+        }
+        // Validate sessionDate format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(session.sessionDate)) {
+          throw new Error(`Session "${sessionLabel}" has an invalid date format. Please select a valid date.`);
+        }
+        if (!session.eventTime) {
+          throw new Error(`Session "${sessionLabel}" is missing a time. Please set a time for your delivery.`);
+        }
+        // Validate eventTime format (HH:MM)
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeRegex.test(session.eventTime)) {
+          throw new Error(`Session "${sessionLabel}" has an invalid time format. Expected HH:MM format.`);
+        }
+
+        return {
+          sessionName: session.sessionName || `Session ${index + 1}`,
+          sessionOrder: index + 1,
+          sessionDate: session.sessionDate,
+          eventTime: session.eventTime,
+          guestCount: session.guestCount,
+          specialRequirements: session.specialRequirements,
+          orderItems: groupItemsByRestaurant(session.orderItems),
+          promoCodes: [], // Session-specific promo codes if needed
+        };
+      });
 
     // Calculate rough estimated total for display (backend will recalculate)
     const estimatedTotal = mealSessions.reduce((total, session) => {
@@ -229,7 +250,9 @@ class CateringService {
       body: JSON.stringify(createDto),
     });
 
+
     if (!response.ok) {
+      console.error("Failed to submit catering order: ", response)
       throw new Error("Failed to submit catering order");
     }
 

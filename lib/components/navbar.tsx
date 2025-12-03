@@ -14,9 +14,10 @@ function NavbarAction({ onLinkClick }: { onLinkClick?: () => void }) {
           EVENT ORDERING
         </button>
       </Link>
-      <Link href={"/#aboutus"} onClick={onLinkClick}>
+      {/* <Link href={"/#aboutus"} onClick={onLinkClick}> */}
+      <Link href={"/menu"} onClick={onLinkClick}>
         <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white text-lg">
-          ABOUT
+          MENU
         </button>
       </Link>
       <Link href={"/contact"} onClick={onLinkClick}>

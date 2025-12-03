@@ -395,7 +395,7 @@ export default function AllMealSessionsItems({
       </h2>
 
       <div className="space-y-4 sm:space-y-6">
-        {nonEmptySessions.map((session, idx) => {
+        {nonEmptySessions.map((session) => {
           // Find the actual index in mealSessions array
           const actualIndex = mealSessions.indexOf(session);
           return renderMealSession(session, actualIndex);

@@ -1002,7 +1002,7 @@ export default function Step3ContactInfo() {
 
           {/* Contact Form Card - Right Side */}
           <div className="lg:col-span-1 order-1 lg:order-2">
-            <div className="bg-base-200/30 rounded-2xl p-6 border border-base-300 sticky top-4">
+            <div className="bg-base-200/30 rounded-2xl p-6 border border-base-300">
               <h3 className="text-xl font-bold mb-6 text-base-content">
                 Contact Details
               </h3>
