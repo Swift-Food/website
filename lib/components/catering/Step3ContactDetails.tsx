@@ -316,34 +316,19 @@ export default function Step3ContactInfo() {
         setSuccess(true);
       }
     } catch (error: any) {
-      console.error("=== SUBMIT ORDER ERROR ===");
-      console.error("Error Type:", error?.name);
-      console.error("Error Message:", error?.message);
-      console.error("Error Stack:", error?.stack);
-      console.error("Full Error Object:", JSON.stringify(error, null, 2));
+      console.error("Submit order error:", error?.message);
 
       // Check if it's a network error
       if (
         error?.message?.includes("fetch") ||
         error?.message?.includes("network")
       ) {
-        console.error("Network Error Detected");
         alert(
           "Network error: Please check your internet connection and try again."
         );
       }
       // Check if it's an API error with response
       else if (error?.response) {
-        console.error(
-          "API Response Error:",
-          JSON.stringify(error.response, null, 2)
-        );
-        console.error("Status Code:", error.response.status);
-        console.error("Status Text:", error.response.statusText);
-        console.error(
-          "Response Data:",
-          JSON.stringify(error.response.data, null, 2)
-        );
         alert(
           `Failed to submit order: ${
             error.response.data?.message ||
@@ -354,13 +339,10 @@ export default function Step3ContactInfo() {
       }
       // Generic error
       else {
-        console.error("Unknown Error Type");
         alert(
           `Failed to submit order: ${error?.message || "Please try again."}`
         );
       }
-
-      console.error("=== END ERROR LOG ===");
     } finally {
       setSubmitting(false);
     }

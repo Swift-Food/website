@@ -37,13 +37,7 @@ class OrderSubmissionService {
         paymentInfo
       );
     } catch (error: any) {
-      console.error("=== ORDER SUBMISSION ERROR ===");
-      console.error("Error Type:", error?.name);
-      console.error("Error Message:", error?.message);
-      console.error("Error Stack:", error?.stack);
-      console.error("Full Error Object:", JSON.stringify(error, null, 2));
-
-      // Re-throw for component to handle
+      console.error("Order submission error:", error?.message);
       throw error;
     }
   }

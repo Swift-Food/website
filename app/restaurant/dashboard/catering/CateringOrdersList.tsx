@@ -160,7 +160,7 @@ export const CateringOrdersList = ({
 
       await onRefresh();
     } catch (err: any) {
-      console.error("Claim error:", err); // Add logging
+      console.error("Claim error:", err.message);
       setError(err.message || "Failed to claim order");
     } finally {
       setClaiming(null);
