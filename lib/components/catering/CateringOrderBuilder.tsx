@@ -15,6 +15,8 @@ import MenuItemModal from "./MenuItemModal";
 import { MenuItem } from "./Step2MenuItems";
 import SelectedItemsByCategory from "./SelectedItemsByCategory";
 import { openMenuPreview, LocalMealSession } from "@/lib/utils/menuPdfUtils";
+import { useScrollDetection } from "@/lib/hooks/useScrollDetection";
+import { useScroll } from "@/context/ScrollContext";
 
 // Hour and minute options for time picker
 const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
@@ -284,7 +286,8 @@ export default function CateringOrderBuilder() {
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set()
   );
-
+  useScrollDetection();
+  const { hideNavbar } = useScroll();
   // Get quantity for an item in the current session
   const getItemQuantity = (itemId: string): number => {
     const session = mealSessions[activeSessionIndex];
@@ -662,30 +665,34 @@ export default function CateringOrderBuilder() {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Meal Sessions Tab Bar - Sticky */}
-      <div className="sticky top-[100px] md:top-[112px] z-40 bg-base-100 border-b border-base-200">
+      <div 
+        className={`sticky z-40 bg-base-100 border-b border-base-200 transition-all duration-300 ${
+          hideNavbar ? 'top-0' : 'top-[100px] md:top-[112px]'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-start gap-2 py-3">
             {/* Add Session Button - Fixed */}
             <button
-              onClick={handleAddSession}
-              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium bg-secondary text-white hover:bg-secondary/90 transition-all shadow-sm"
+            onClick={handleAddSession}
+            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-all shadow-sm"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span className="hidden sm:inline">Add Session</span>
-            </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span className="hidden sm:inline">Add Session</span>
+          </button>
 
             {/* Session Tabs - Scrollable */}
             <div className="flex-1 overflow-x-auto scrollbar-hide">
@@ -858,7 +865,7 @@ export default function CateringOrderBuilder() {
                   {category.name}
                 </button>
               ))}
-            </div>
+            </div> 
           )}
         </div>
 
@@ -877,8 +884,8 @@ export default function CateringOrderBuilder() {
                     flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all border-primary/50 border-1
                     ${
                       selectedSubcategory?.id === subcategory.id
-                        ? "bg-secondary text-white"
-                        : "bg-secondary/10 text-primary hover:bg-secondary/20"
+                        ? "bg-primary text-white"
+                        : " text-primary hover:bg-secondary/20"
                     }
                   `}
                 >

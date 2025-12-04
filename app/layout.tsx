@@ -3,6 +3,7 @@ import Navbar from "@/lib/components/navbar";
 import Footer from "@/lib/components/footer";
 import { IBM_Plex_Mono } from "next/font/google";
 import type { Metadata } from "next";
+import { ScrollProvider } from "@/context/ScrollContext";
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -58,11 +59,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        <ScrollProvider>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </ScrollProvider>
       </body>
     </html>
   );
