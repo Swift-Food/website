@@ -15,7 +15,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Swift Food - Bringing London's streetfood to you",
   description: "Swift Food - Planning made easy, Catering made better.",
-  keywords: ["event", "food delivery", "events", "UK", "event-order", "streetfood", "delivery"],
+  keywords: ["event", "food delivery", "events", "UK", "event-order", "streetfood", "street food", "delivery" , "catering", "swift"],
   authors: [{ name: "Swift Food Services ltd" }],
   
   icons: {
