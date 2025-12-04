@@ -4,11 +4,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
 import { PricingMenuItem, PricingOrderItem } from "@/types/api/pricing.api.types";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock } from "lucide-react";
+import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText } from "lucide-react";
 import { categoryService } from "@/services/api/category.api";
 
 interface OrderItemsByCategoryProps {
   order: CateringOrderResponse;
+  onViewMenu?: () => void;
 }
 
 // Extended PricingMenuItem with category/subcategory info from backend
@@ -38,7 +39,7 @@ interface CategoryGroup {
   subcategories: Map<string, SubcategoryGroup>;
 }
 
-export default function OrderItemsByCategory({ order }: OrderItemsByCategoryProps) {
+export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsByCategoryProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
   // Fetch categories for ordering
@@ -431,10 +432,22 @@ export default function OrderItemsByCategory({ order }: OrderItemsByCategoryProp
 
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-        <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
-        Order Items
-      </h2>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
+          Order Items
+        </h2>
+        {onViewMenu && (
+          <button
+            onClick={onViewMenu}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
+          >
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">View Full Menu</span>
+            <span className="sm:hidden">Menu</span>
+          </button>
+        )}
+      </div>
 
       <div className="space-y-4 sm:space-y-6">
         {/* Meal Sessions View */}

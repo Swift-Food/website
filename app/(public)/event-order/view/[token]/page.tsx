@@ -14,6 +14,7 @@ import PickupContactManager from "@/lib/components/catering/dashboard/PickupCont
 import DeliveryTimeManager from "@/lib/components/catering/dashboard/DeliveryTimeManager";
 import { Loader2, Eye } from "lucide-react";
 import RefundRequestButton from "@/lib/components/catering/dashboard/RefundRequestButton";
+import { openMenuViewer } from "@/lib/utils/menuPdfUtils";
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import RefundsList from "@/lib/components/catering/dashboard/refundList";
@@ -140,7 +141,7 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <OrderItemsByCategory order={order} />
+            <OrderItemsByCategory order={order} onViewMenu={() => openMenuViewer(order)} />
           </div>
 
           {/* Sidebar */}
