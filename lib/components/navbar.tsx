@@ -49,7 +49,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 bg-white border-b transition-transform duration-300 ${
+      className={`sticky top-0 z-50 bg-white transition-transform duration-300 ${
         hideNavbar ? "-translate-y-full" : "translate-y-0"
       }`}
     >
