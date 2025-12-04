@@ -340,10 +340,10 @@ export default function SelectedItemsByCategory({
   };
 
   return (
-    <div className="mb-6 bg-white rounded-2xl border border-base-200 overflow-hidden">
+    <div className="mb-6 bg- rounded-2xl overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 bg-base-100 border-b border-base-200 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Your List</h2>
+        <h2 className="text-xl sm:text-3xl font-bold text-gray-800">Your List</h2>
         {onViewMenu && (
           <button
             onClick={onViewMenu}
@@ -370,7 +370,7 @@ export default function SelectedItemsByCategory({
       </div>
 
       {/* Categories */}
-      <div className="p-4 space-y-4">
+      <div className="space-y-4">
         {Array.from(grouped.entries()).map(([categoryName, categoryGroup]) => {
           const isCollapsed = collapsedCategories.has(categoryName);
           const totalItems =
@@ -383,12 +383,12 @@ export default function SelectedItemsByCategory({
           return (
             <div
               key={categoryName}
-              className="border border-base-200 rounded-xl overflow-hidden"
+              className="border-2 border-base-200 rounded-xl overflow-hidden"
             >
               {/* Category Header */}
               <button
                 onClick={() => handleToggleCategory(categoryName)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-secondary/50 hover:bg-secondary/70 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 bg-base-200 hover:bg-base-200 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-800">
