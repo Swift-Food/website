@@ -370,9 +370,6 @@ export const CateringOrderCard = ({
             <p className="text-xs text-gray-600">
               {formatDate(session.sessionDate)} at {session.collectionTime || formatEventTime(session.eventTime)}
             </p>
-            {session.guestCount && (
-              <p className="text-xs text-gray-500">Guests: {session.guestCount}</p>
-            )}
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-600">Session Earnings</p>
@@ -394,7 +391,7 @@ export const CateringOrderCard = ({
         >
           <span>
             View Items ({sessionRestaurantItems.reduce((count: number, r: any) =>
-              count + (r.menuItems?.length || 0), 0
+              count + (r.menuItems?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0), 0
             )} items)
           </span>
           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -599,7 +596,7 @@ export const CateringOrderCard = ({
           <>
             <h4 className="font-semibold text-gray-900 mb-3 text-sm sm:text-base">
               Order Items ({restaurantOrderItems.reduce((count: number, r: any) =>
-                count + (r.menuItems?.length || 0), 0
+                count + (r.menuItems?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0), 0
               )} items)
             </h4>
             <div className="space-y-2">
