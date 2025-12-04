@@ -103,7 +103,9 @@ interface CategoryGroup {
 /**
  * Group items by category and subcategory
  */
-const groupItemsByCategory = (items: MenuItemForPdf[]): Map<string, CategoryGroup> => {
+const groupItemsByCategory = (
+  items: MenuItemForPdf[]
+): Map<string, CategoryGroup> => {
   const grouped = new Map<string, CategoryGroup>();
 
   items.forEach((item) => {
@@ -139,7 +141,10 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
   // Group addons by groupTitle
   let addonsHtml = "";
   if (item.addons && item.addons.length > 0) {
-    const addonsByGroup: Record<string, Array<{ name: string; quantity: number }>> = {};
+    const addonsByGroup: Record<
+      string,
+      Array<{ name: string; quantity: number }>
+    > = {};
     item.addons.forEach((addon) => {
       const group = addon.groupTitle || "Options";
       if (!addonsByGroup[group]) {
@@ -150,7 +155,9 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
 
     addonsHtml = Object.entries(addonsByGroup)
       .map(([groupTitle, addons]) => {
-        const addonsList = addons.map((a) => `${a.name}${a.quantity > 1 ? ` ×${a.quantity}` : ""}`).join(", ");
+        const addonsList = addons
+          .map((a) => `${a.name}${a.quantity > 1 ? ` ×${a.quantity}` : ""}`)
+          .join(", ");
         return `<span style="font-weight: 500; color: #666;">${groupTitle}:</span> ${addonsList}`;
       })
       .join(" • ");
@@ -166,10 +173,18 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
         ${imageHtml}
         <div style="flex: 1; display: flex; justify-content: space-between; align-items: flex-start;">
           <div style="flex: 1;">
-            <p style="font-weight: 600; font-size: 14px; color: #111; margin: 0 0 2px 0;">${item.name}</p>
-            ${addonsHtml ? `<p style="font-size: 12px; color: #888; margin: 0 0 4px 0;">${addonsHtml}</p>` : ""}
+            <p style="font-weight: 600; font-size: 14px; color: #111; margin: 0 0 2px 0;">${
+              item.name
+            }</p>
+            ${
+              addonsHtml
+                ? `<p style="font-size: 12px; color: #888; margin: 0 0 4px 0;">${addonsHtml}</p>`
+                : ""
+            }
             <p style="font-size: 12px; color: #666; margin: 0;">
-              ${Math.round(numUnits)} portion${Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~${Math.round(totalFeeds)} people
+              ${Math.round(numUnits)} portion${
+    Math.round(numUnits) !== 1 ? "s" : ""
+  } • Serves ~${Math.round(totalFeeds)} people
             </p>
           </div>
           <p style="font-weight: 700; color: #ec4899; font-size: 14px; margin: 0; white-space: nowrap;">
@@ -184,24 +199,33 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
 /**
  * Build HTML for a category group with subcategories
  */
-const buildCategoryHtml = (categoryName: string, categoryGroup: CategoryGroup): string => {
+const buildCategoryHtml = (
+  categoryName: string,
+  categoryGroup: CategoryGroup
+): string => {
   // Count total items including subcategories
-  const totalItems = categoryGroup.items.length +
-    Array.from(categoryGroup.subcategories.values()).reduce((sum, sub) => sum + sub.items.length, 0);
+  const totalItems =
+    categoryGroup.items.length +
+    Array.from(categoryGroup.subcategories.values()).reduce(
+      (sum, sub) => sum + sub.items.length,
+      0
+    );
 
   // Build items without subcategory
   const itemsHtml = categoryGroup.items.map(buildItemHtml).join("");
 
   // Build subcategories
   const subcategoriesHtml = Array.from(categoryGroup.subcategories.entries())
-    .map(([subName, subGroup]) => `
+    .map(
+      ([subName, subGroup]) => `
       <div style="margin-top: 16px;">
         <p style="font-size: 13px; font-weight: 600; color: #666; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">
           ${subName}
         </p>
         ${subGroup.items.map(buildItemHtml).join("")}
       </div>
-    `)
+    `
+    )
     .join("");
 
   return `
@@ -227,7 +251,9 @@ const buildCategoryHtml = (categoryName: string, categoryGroup: CategoryGroup): 
 const buildSessionHtml = (session: MealSessionForPdf): string => {
   const groupedItems = groupItemsByCategory(session.items);
   const categoriesHtml = Array.from(groupedItems.entries())
-    .map(([category, categoryGroup]) => buildCategoryHtml(category, categoryGroup))
+    .map(([category, categoryGroup]) =>
+      buildCategoryHtml(category, categoryGroup)
+    )
     .join("");
 
   return `
@@ -247,10 +273,12 @@ const buildSessionHtml = (session: MealSessionForPdf): string => {
       </div>
       <div>
         ${categoriesHtml}
-        <div style="border-top: 2px solid #f3f4f6; padding-top: 16px; margin-top: 16px;">
-          <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 700;">
-            <span style="color: #374151;">Session Total:</span>
-            <span style="color: #ec4899;">£${Number(session.sessionTotal).toFixed(2)}</span>
+        <div style="padding-top: 16px; margin-top: 16px;">
+          <div style="display: flex; justify-content: flex-end; font-size: 16px; font-weight: 700;">
+            <span style="color: #374151; margin-right: 8px;">Sub Total:</span>
+            <span style="color: #ec4899;">£${Number(
+              session.sessionTotal
+            ).toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -269,8 +297,8 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
   let sessions: MealSessionForPdf[] = [];
 
   if (hasMealSessions) {
-    sessions = order.mealSessions!
-      .sort((a, b) => {
+    sessions = order
+      .mealSessions!.sort((a, b) => {
         const dateA = new Date(a.sessionDate);
         const dateB = new Date(b.sessionDate);
         if (dateA.getTime() !== dateB.getTime()) {
@@ -280,9 +308,10 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
       })
       .map((session) => ({
         sessionName: session.sessionName,
-        sessionDate: typeof session.sessionDate === "string"
-          ? session.sessionDate
-          : session.sessionDate.toISOString(),
+        sessionDate:
+          typeof session.sessionDate === "string"
+            ? session.sessionDate
+            : session.sessionDate.toISOString(),
         eventTime: session.eventTime,
         items: extractMenuItems(session.orderItems),
         sessionTotal: session.sessionTotal,
@@ -290,18 +319,23 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
   } else {
     // Legacy format - single session
     const restaurantsData = order.restaurants || order.orderItems || [];
-    sessions = [{
-      sessionName: "Event Menu",
-      sessionDate: typeof order.eventDate === "string"
-        ? order.eventDate
-        : order.eventDate.toISOString(),
-      eventTime: order.eventTime,
-      items: extractMenuItems(restaurantsData as PricingOrderItem[]),
-      sessionTotal: order.finalTotal || order.customerFinalTotal || 0,
-    }];
+    sessions = [
+      {
+        sessionName: "Event Menu",
+        sessionDate:
+          typeof order.eventDate === "string"
+            ? order.eventDate
+            : order.eventDate.toISOString(),
+        eventTime: order.eventTime,
+        items: extractMenuItems(restaurantsData as PricingOrderItem[]),
+        sessionTotal: order.finalTotal || order.customerFinalTotal || 0,
+      },
+    ];
   }
 
-  const sessionsHtml = sessions.map((session) => buildSessionHtml(session)).join("");
+  const sessionsHtml = sessions
+    .map((session) => buildSessionHtml(session))
+    .join("");
 
   return `
     <!DOCTYPE html>
@@ -356,8 +390,14 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
                 </p>
               </div>
               <div style="text-align: right;">
-                <p style="font-size: 13px; opacity: 0.9; margin: 0 0 4px 0;">${order.customerName}</p>
-                ${order.organization ? `<p style="font-size: 12px; opacity: 0.8; margin: 0;">${order.organization}</p>` : ""}
+                <p style="font-size: 13px; opacity: 0.9; margin: 0 0 4px 0;">${
+                  order.customerName
+                }</p>
+                ${
+                  order.organization
+                    ? `<p style="font-size: 12px; opacity: 0.8; margin: 0;">${order.organization}</p>`
+                    : ""
+                }
               </div>
             </div>
           </div>
@@ -383,7 +423,9 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 18px; font-weight: 700; color: #be185d;">Grand Total:</span>
                 <span style="font-size: 24px; font-weight: 700; color: #be185d;">
-                  £${Number(order.finalTotal || order.customerFinalTotal || 0).toFixed(2)}
+                  £${Number(
+                    order.finalTotal || order.customerFinalTotal || 0
+                  ).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -405,7 +447,7 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
                   month: "long",
                   year: "numeric",
                   hour: "2-digit",
-                  minute: "2-digit"
+                  minute: "2-digit",
                 })}
               </p>
             </div>
@@ -486,7 +528,7 @@ export function buildMenuHTMLFromLocalState(
   organization?: string
 ): string {
   const sessions: MealSessionForPdf[] = mealSessions
-    .filter(session => session.orderItems.length > 0)
+    .filter((session) => session.orderItems.length > 0)
     .sort((a, b) => {
       if (!a.sessionDate || !b.sessionDate) return 0;
       const dateA = new Date(a.sessionDate);
@@ -502,7 +544,8 @@ export function buildMenuHTMLFromLocalState(
         const item = orderItem.item;
         const price = parseFloat(item.price || "0");
         const discountPrice = parseFloat(item.discountPrice || "0");
-        const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+        const unitPrice =
+          item.isDiscount && discountPrice > 0 ? discountPrice : price;
         const itemTotal = unitPrice * orderItem.quantity;
 
         const addonTotal = (item.selectedAddons || []).reduce(
@@ -522,7 +565,7 @@ export function buildMenuHTMLFromLocalState(
           categoryName: item.categoryName,
           subcategoryName: item.subcategoryName,
           image: item.image,
-          addons: item.selectedAddons?.map(addon => ({
+          addons: item.selectedAddons?.map((addon) => ({
             name: addon.name,
             quantity: addon.quantity,
             price: addon.price,
@@ -541,7 +584,9 @@ export function buildMenuHTMLFromLocalState(
     });
 
   const grandTotal = sessions.reduce((sum, s) => sum + s.sessionTotal, 0);
-  const sessionsHtml = sessions.map((session) => buildSessionHtml(session)).join("");
+  const sessionsHtml = sessions
+    .map((session) => buildSessionHtml(session))
+    .join("");
 
   return `
     <!DOCTYPE html>
@@ -596,8 +641,16 @@ export function buildMenuHTMLFromLocalState(
                 </p>
               </div>
               <div style="text-align: right;">
-                ${customerName ? `<p style="font-size: 13px; opacity: 0.9; margin: 0 0 4px 0;">${customerName}</p>` : ""}
-                ${organization ? `<p style="font-size: 12px; opacity: 0.8; margin: 0;">${organization}</p>` : ""}
+                ${
+                  customerName
+                    ? `<p style="font-size: 13px; opacity: 0.9; margin: 0 0 4px 0;">${customerName}</p>`
+                    : ""
+                }
+                ${
+                  organization
+                    ? `<p style="font-size: 12px; opacity: 0.8; margin: 0;">${organization}</p>`
+                    : ""
+                }
               </div>
             </div>
           </div>
@@ -616,14 +669,20 @@ export function buildMenuHTMLFromLocalState(
 
           <!-- Content -->
           <div style="padding: 32px;">
-            ${sessions.length > 0 ? sessionsHtml : `
+            ${
+              sessions.length > 0
+                ? sessionsHtml
+                : `
               <div style="text-align: center; padding: 48px; color: #666;">
                 <p style="font-size: 18px; margin-bottom: 8px;">No items in your order yet</p>
                 <p style="font-size: 14px;">Add items to your sessions to see them here</p>
               </div>
-            `}
+            `
+            }
 
-            ${sessions.length > 0 ? `
+            ${
+              sessions.length > 0
+                ? `
               <!-- Grand Total -->
               <div style="background: #fce7f3; border-radius: 12px; padding: 20px; margin-top: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -633,7 +692,9 @@ export function buildMenuHTMLFromLocalState(
                   </span>
                 </div>
               </div>
-            ` : ""}
+            `
+                : ""
+            }
           </div>
 
           <!-- Footer -->
@@ -652,7 +713,7 @@ export function buildMenuHTMLFromLocalState(
                   month: "long",
                   year: "numeric",
                   hour: "2-digit",
-                  minute: "2-digit"
+                  minute: "2-digit",
                 })}
               </p>
             </div>
@@ -686,7 +747,11 @@ export function openMenuPreview(
   customerName?: string,
   organization?: string
 ): void {
-  const html = buildMenuHTMLFromLocalState(mealSessions, customerName, organization);
+  const html = buildMenuHTMLFromLocalState(
+    mealSessions,
+    customerName,
+    organization
+  );
   const newWindow = window.open("", "_blank");
 
   if (!newWindow) {
