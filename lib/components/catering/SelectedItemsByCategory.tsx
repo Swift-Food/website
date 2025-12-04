@@ -2,10 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useCatering } from "@/context/CateringContext";
-import {
-  SelectedMenuItem,
-  CategoryWithSubcategories,
-} from "@/types/catering.types";
+import { SelectedMenuItem } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
 
 interface GroupedItem {
@@ -26,6 +23,7 @@ interface SelectedItemsByCategoryProps {
   collapsedCategories?: Set<string>;
   onToggleCategory?: (categoryName: string) => void;
   showActions?: boolean;
+  onViewMenu?: () => void;
 }
 
 export default function SelectedItemsByCategory({
@@ -35,6 +33,7 @@ export default function SelectedItemsByCategory({
   collapsedCategories: externalCollapsedCategories,
   onToggleCategory: externalOnToggleCategory,
   showActions = true,
+  onViewMenu,
 }: SelectedItemsByCategoryProps) {
   const { mealSessions, activeSessionIndex } = useCatering();
 
@@ -343,8 +342,31 @@ export default function SelectedItemsByCategory({
   return (
     <div className="mb-6 bg-white rounded-2xl border border-base-200 overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 bg-base-100 border-b border-base-200">
+      <div className="px-6 py-4 bg-base-100 border-b border-base-200 flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Your List</h2>
+        {onViewMenu && (
+          <button
+            onClick={onViewMenu}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span className="hidden sm:inline">View Menu</span>
+            <span className="sm:hidden">Menu</span>
+          </button>
+        )}
       </div>
 
       {/* Categories */}
