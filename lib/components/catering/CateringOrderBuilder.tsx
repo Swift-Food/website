@@ -69,19 +69,20 @@ function SessionEditor({
 
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Close on click outside - saves the session
+  // Close on click outside - just closes without saving (user must click Save to validate)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         editorRef.current &&
         !editorRef.current.contains(event.target as Node)
       ) {
-        handleSave();
+        // Just close without saving - requires explicit Save button click
+        onClose(true);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [sessionName, sessionDate, selectedHour, selectedMinute, selectedPeriod]);
+  }, [onClose]);
 
   const handleCancel = () => {
     onClose(true);
@@ -99,12 +100,23 @@ function SessionEditor({
   };
 
   const handleSave = () => {
+    // Calculate event time if hour and minute are set
     let eventTime = "";
     if (selectedHour && selectedMinute) {
       let hourNum = Number(selectedHour) % 12;
       if (selectedPeriod === "PM") hourNum += 12;
       if (selectedPeriod === "AM" && hourNum === 12) hourNum = 0;
       eventTime = `${String(hourNum).padStart(2, "0")}:${selectedMinute}`;
+    }
+
+    // Validate that date and time are set before saving
+    if (!sessionDate) {
+      alert("Please select a date for this session.");
+      return;
+    }
+    if (!eventTime) {
+      alert("Please select a time for this session.");
+      return;
     }
 
     onUpdate(sessionIndex, {

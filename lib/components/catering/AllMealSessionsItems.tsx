@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useCatering } from "@/context/CateringContext";
 import { MealSessionState, SelectedMenuItem } from "@/types/catering.types";
 import { ChefHat, ChevronDown, ChevronUp, Calendar, Clock } from "lucide-react";
@@ -402,14 +402,6 @@ export default function AllMealSessionsItems({
     );
   };
 
-  // Calculate grand total
-  const grandTotal = useMemo(() => {
-    return mealSessions.reduce(
-      (total, session) => total + calculateSessionTotal(session.orderItems),
-      0
-    );
-  }, [mealSessions]);
-
   // Filter out empty sessions
   const nonEmptySessions = mealSessions.filter(
     (session) => session.orderItems.length > 0
@@ -418,9 +410,6 @@ export default function AllMealSessionsItems({
   if (nonEmptySessions.length === 0) {
     return null;
   }
-
-  // If only one session, use simpler styling
-  const isSingleSession = nonEmptySessions.length === 1;
 
   return (
     <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
@@ -436,15 +425,6 @@ export default function AllMealSessionsItems({
         })}
       </div>
 
-      {/* Grand Total (only show if multiple sessions) */}
-      {!isSingleSession && (
-        <div className="border-t-2 border-gray-300 pt-4 sm:pt-6 mt-4 sm:mt-6">
-          <div className="flex justify-between text-lg sm:text-xl font-bold text-gray-900">
-            <span>Order Total:</span>
-            <span className="text-pink-600">£{grandTotal.toFixed(2)}</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -164,7 +164,7 @@ class CateringService {
         const sessionLabel = session.sessionName || `Session ${index + 1}`;
         if (!session.sessionDate) {
           throw new Error(
-            `Session "${sessionLabel}" is missing a date. Please set a date for your delivery.`
+            `Session "${sessionLabel}" is missing a date. Please go back and set a delivery date for your session.`
           );
         }
         // Validate sessionDate format (YYYY-MM-DD)
@@ -176,7 +176,7 @@ class CateringService {
         }
         if (!session.eventTime) {
           throw new Error(
-            `Session "${sessionLabel}" is missing a time. Please set a time for your delivery.`
+            `Session "${sessionLabel}" is missing a time. Please go back and set a delivery time for your session.`
           );
         }
         // Validate eventTime format (HH:MM)
