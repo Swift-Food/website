@@ -795,7 +795,7 @@ export default function CateringOrderBuilder() {
         )}
 
         {/* Categories Row - Sticky */}
-        <div className="sticky top-[200px] md:top-[212px] z-30 bg-base-100 pb-2 -mx-4 px-4 pt-2">
+        <div className=" top-[200px] md:top-[212px] z-30 bg-base-100 pb-2 -mx-4 px-4 pt-2">
           {categoriesLoading ? (
             <div className="flex items-center gap-3 overflow-x-auto pb-2">
               {[...Array(6)].map((_, i) => (
@@ -833,7 +833,7 @@ export default function CateringOrderBuilder() {
 
         {/* Subcategories Row - Sticky (shown when category is selected) */}
         {selectedCategory && selectedCategory.subcategories.length > 0 && (
-          <div className="sticky top-[260px] md:top-[270px] z-30 bg-base-100 pb-2 -mx-4 px-4">
+          <div className="top-[260px] md:top-[270px] z-30 bg-base-100 pb-2 -mx-4 px-4">
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
               <span className="flex-shrink-0 text-sm text-gray-500 mr-2">
                 {selectedCategory.name}:
@@ -893,11 +893,11 @@ export default function CateringOrderBuilder() {
             </div>
           ) : (
             <div>
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">
+              <h2 className="text-2xl font-bold text-gray-700 mb-4">
                 {selectedSubcategory?.name || selectedCategory.name}
-                <span className="ml-2 text-sm font-normal text-gray-500">
+                {/* <span className="ml-2 text-sm font-normal text-gray-500">
                   ({menuItems.length} items)
-                </span>
+                </span> */}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {menuItems.map((item) => (
