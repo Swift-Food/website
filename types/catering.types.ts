@@ -82,6 +82,11 @@ export interface SearchResult {
   };
   score: number;
   matchType: "exact" | "prefix" | "word" | "partial" | "description";
+  // Category context for cart grouping
+  categoryId?: string;
+  categoryName?: string;
+  subcategoryId?: string;
+  subcategoryName?: string;
 }
 
 export interface SearchResponse {
@@ -193,6 +198,20 @@ export interface EventDetails {
 export interface SelectedMenuItem {
   item: SearchResult | MenuItem;
   quantity: number;
+}
+
+/**
+ * Represents a single meal session within a catering order (frontend state).
+ * Used in CateringContext to manage multi-meal orders.
+ * A single-meal order is just mealSessions.length === 1.
+ */
+export interface MealSessionState {
+  sessionName: string;           // "Breakfast", "Lunch", "Dinner", "Main Event", etc.
+  sessionDate: string;           // ISO date string
+  eventTime: string;             // "14:00" format
+  guestCount?: number;           // Per-session guest count (optional override)
+  specialRequirements?: string;  // Session-specific notes
+  orderItems: SelectedMenuItem[]; // Items for THIS session
 }
 
 export interface ContactInfo {
@@ -732,6 +751,21 @@ export interface MenuCategory {
   clicks: number;
 }
 
+export interface Subcategory {
+  id: string;
+  name: string;
+  clicks: number;
+  images?: string | null;
+}
+
+export interface CategoryWithSubcategories {
+  id: string;
+  name: string;
+  images?: string | null;
+  clicks: number;
+  subcategories: Subcategory[];
+}
+
 export interface CreateMenuItemDto {
   restaurantId: string;
   categoryIds: string[];
@@ -758,6 +792,7 @@ export interface MenuItemDetails extends CreateMenuItemDto {
   updatedAt?: string;
   averageRating: string;
   categories?: MenuCategory[];
+  subCategories?: Subcategory[];
 }
 
 export interface UpdateMenuItemDto {

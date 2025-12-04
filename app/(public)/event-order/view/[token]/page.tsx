@@ -7,7 +7,7 @@ import { cateringService } from "@/services/api/catering.api";
 import { CateringOrderResponse } from "@/types/api";
 import OrderStatusBadge from "@/lib/components/catering/dashboard/OrderStatusBadge";
 import OrderDetails from "@/lib/components/catering/dashboard/OrderDetails";
-import OrderItems from "@/lib/components/catering/dashboard/OrderItems";
+import OrderItemsByCategory from "@/lib/components/catering/dashboard/OrderItemsByCategory";
 import DeliveryInfo from "@/lib/components/catering/dashboard/DeliveryInfo";
 import SharedAccessManager from "@/lib/components/catering/dashboard/SharedAccessManager";
 import PickupContactManager from "@/lib/components/catering/dashboard/PickupContactManager";
@@ -17,6 +17,7 @@ import RefundRequestButton from "@/lib/components/catering/dashboard/RefundReque
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import RefundsList from "@/lib/components/catering/dashboard/refundList";
+import OrderSummary from "@/lib/components/catering/dashboard/OrderSummary";
 
 export default function CateringDashboardPage() {
   const params = useParams();
@@ -45,13 +46,13 @@ export default function CateringDashboardPage() {
       setLoading(true);
       setError(null);
       const data = await cateringService.getOrderByToken(token);
+      console.log("Data: ", data);
       setOrder(data);
 
       // Determine current user's role from the token
       const currentUser = data.sharedAccessUsers?.find(
         (u) => u.accessToken === token
       );
-      console.log(data);
       setCurrentUserRole(currentUser?.role || null);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
@@ -89,7 +90,7 @@ export default function CateringDashboardPage() {
   if (error || !order) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full text-center">
           <div className="text-red-500 text-4xl sm:text-5xl mb-4">⚠️</div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Order Not Found
@@ -109,7 +110,7 @@ export default function CateringDashboardPage() {
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-pink-500 to-pink-400 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white">
+        <div className="bg-gradient-to-r from-pink-500 to-pink-400 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-1">
@@ -139,16 +140,17 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <OrderItems order={order} />
+            <OrderItemsByCategory order={order} />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-4 sm:space-y-6">
             <DeliveryInfo order={order} />
+            <OrderSummary order={order} />
 
             {refunds.length > 0 && <RefundsList refunds={refunds} />}
             {order.status === "completed" && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-xl p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">
                   Need a Refund?
                 </h3>

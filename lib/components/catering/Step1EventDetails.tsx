@@ -50,18 +50,18 @@ const EVENT_TYPE_OPTIONS = [
   },
 ];
 
-const MINUTE_OPTIONS = [
-  { label: "00", value: "00" },
-  { label: "15", value: "15" },
-  { label: "30", value: "30" },
-  { label: "45", value: "45" },
-];
+// Commented out - delivery date & time is now handled in meal sessions
+// const MINUTE_OPTIONS = [
+//   { label: "00", value: "00" },
+//   { label: "15", value: "15" },
+//   { label: "30", value: "30" },
+//   { label: "45", value: "45" },
+// ];
 
-// Below constants, add for hour, minute, and period
-const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
-  label: `${i + 1}`,
-  value: String(i + 1).padStart(2, "0"),
-}));
+// const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
+//   label: `${i + 1}`,
+//   value: String(i + 1).padStart(2, "0"),
+// }));
 
 // UK Postcode validation regex
 // Matches formats like: SW1A 1AA, M1 1AE, B33 8TH, CR2 6XH, DN55 1PT
@@ -79,12 +79,14 @@ export default function Step1EventDetails() {
     eventDetails,
     setEventDetails,
     setCurrentStep,
-    selectedRestaurants,
+    // Commented out - delivery date & time is now handled in meal sessions
+    // selectedRestaurants,
     contactInfo,
     setContactInfo,
     setCorporateUser,
   } = useCatering();
-  const [dateTimeError, setDateTimeError] = useState<string | null>(null);
+  // Commented out - delivery date & time is now handled in meal sessions
+  // const [dateTimeError, setDateTimeError] = useState<string | null>(null);
 
   // Validation errors state
   const [validationErrors, setValidationErrors] = useState<{
@@ -110,8 +112,9 @@ export default function Step1EventDetails() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Refs for scrolling to error fields
-  const dateRef = useRef<HTMLDivElement>(null);
-  const timeRef = useRef<HTMLDivElement>(null);
+  // Commented out - delivery date & time is now handled in meal sessions
+  // const dateRef = useRef<HTMLDivElement>(null);
+  // const timeRef = useRef<HTMLDivElement>(null);
   const eventTypeRef = useRef<HTMLDivElement>(null);
   const addressLine1Ref = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
@@ -257,141 +260,120 @@ export default function Step1EventDetails() {
     }));
   };
 
-  const getMaxDate = () => {
-    const date = new Date();
-    date.setMonth(date.getMonth() + 2);
-    return date.toISOString().split("T")[0];
-  };
-  const getMinDate = () => {
-    const date = new Date();
-    return date.toISOString().split("T")[0];
-  };
+  // Commented out - delivery date & time is now handled in meal sessions
+  // const getMaxDate = () => {
+  //   const date = new Date();
+  //   date.setMonth(date.getMonth() + 2);
+  //   return date.toISOString().split("T")[0];
+  // };
+  // const getMinDate = () => {
+  //   const date = new Date();
+  //   return date.toISOString().split("T")[0];
+  // };
 
-  const validateEventDateTime = (date: string, time: string): string | null => {
-    if (
-      !date ||
-      !time ||
-      !selectedRestaurants ||
-      selectedRestaurants.length === 0
-    ) {
-      return null;
-    }
+  // Commented out - delivery date & time is now handled in meal sessions
+  // const validateEventDateTime = (date: string, time: string): string | null => {
+  //   if (
+  //     !date ||
+  //     !time ||
+  //     !selectedRestaurants ||
+  //     selectedRestaurants.length === 0
+  //   ) {
+  //     return null;
+  //   }
+  //   const eventDate = new Date(date);
+  //   const dayOfWeek = eventDate
+  //     .toLocaleDateString("en-US", { weekday: "long" })
+  //     .toLowerCase();
+  //   for (const restaurant of selectedRestaurants) {
+  //     if (!restaurant.cateringOperatingHours) {
+  //       continue;
+  //     }
+  //     const daySchedule = restaurant.cateringOperatingHours.find(
+  //       (schedule) => schedule.day.toLowerCase() === dayOfWeek
+  //     );
+  //     if (!daySchedule || !daySchedule.enabled) {
+  //       return `${restaurant.restaurant_name} does not accept event ordering orders on ${dayOfWeek}s`;
+  //     }
+  //     if (!daySchedule.open || !daySchedule.close) {
+  //       return `${restaurant.restaurant_name} is closed for event ordering on ${dayOfWeek}s`;
+  //     }
+  //     const [eventHour, eventMinute] = time.split(":").map(Number);
+  //     const eventTimeMinutes = eventHour * 60 + eventMinute;
+  //     const [openHour, openMinute] = daySchedule.open.split(":").map(Number);
+  //     const openMinutes = openHour * 60 + openMinute;
+  //     const [closeHour, closeMinute] = daySchedule.close.split(":").map(Number);
+  //     const closeMinutes = closeHour * 60 + closeMinute;
+  //     if (eventTimeMinutes < openMinutes || eventTimeMinutes > closeMinutes) {
+  //       return `${restaurant.restaurant_name} only accepts event ordering orders between ${daySchedule.open} and ${daySchedule.close} on ${dayOfWeek}s`;
+  //     }
+  //   }
+  //   return null;
+  // };
 
-    const eventDate = new Date(date);
-    const dayOfWeek = eventDate
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
+  // Commented out - delivery date & time is now handled in meal sessions
+  // const getMaxNoticeHours = () => {
+  //   if (!selectedRestaurants || selectedRestaurants.length === 0) {
+  //     return 48; // Default 48 hours
+  //   }
+  //   return Math.max(
+  //     ...selectedRestaurants.map((r) => r.minimumDeliveryNoticeHours || 48)
+  //   );
+  // };
 
-    for (const restaurant of selectedRestaurants) {
-      // Skip if no catering hours configured
-      if (!restaurant.cateringOperatingHours) {
-        continue;
-      }
+  // useEffect(() => {
+  //   if (formData.eventDate && formData.eventTime) {
+  //     const error = validateEventDateTime(
+  //       formData.eventDate,
+  //       formData.eventTime
+  //     );
+  //     setDateTimeError(error);
+  //   } else {
+  //     setDateTimeError(null);
+  //   }
+  // }, [formData.eventDate, formData.eventTime, selectedRestaurants]);
 
-      const daySchedule = restaurant.cateringOperatingHours.find(
-        (schedule) => schedule.day.toLowerCase() === dayOfWeek
-      );
-
-      if (!daySchedule || !daySchedule.enabled) {
-        return `${restaurant.restaurant_name} does not accept event ordering orders on ${dayOfWeek}s`;
-      }
-
-      if (!daySchedule.open || !daySchedule.close) {
-        return `${restaurant.restaurant_name} is closed for event ordering on ${dayOfWeek}s`;
-      }
-
-      // Convert times to minutes for comparison
-      const [eventHour, eventMinute] = time.split(":").map(Number);
-      const eventTimeMinutes = eventHour * 60 + eventMinute;
-
-      const [openHour, openMinute] = daySchedule.open.split(":").map(Number);
-      const openMinutes = openHour * 60 + openMinute;
-
-      const [closeHour, closeMinute] = daySchedule.close.split(":").map(Number);
-      const closeMinutes = closeHour * 60 + closeMinute;
-
-      if (eventTimeMinutes < openMinutes || eventTimeMinutes > closeMinutes) {
-        return `${restaurant.restaurant_name} only accepts event ordering orders between ${daySchedule.open} and ${daySchedule.close} on ${dayOfWeek}s`;
-      }
-    }
-
-    return null;
-  };
-
-  const getMaxNoticeHours = () => {
-    if (!selectedRestaurants || selectedRestaurants.length === 0) {
-      return 48; // Default 48 hours
-    }
-
-    return Math.max(
-      ...selectedRestaurants.map((r) => r.minimumDeliveryNoticeHours || 48)
-    );
-  };
-
-  useEffect(() => {
-    if (formData.eventDate && formData.eventTime) {
-      const error = validateEventDateTime(
-        formData.eventDate,
-        formData.eventTime
-      );
-      setDateTimeError(error);
-    } else {
-      setDateTimeError(null);
-    }
-  }, [formData.eventDate, formData.eventTime, selectedRestaurants]);
-
-  // In state, track period and set on mount
-  const [selectedHour, setSelectedHour] = useState(() => {
-    if (eventDetails?.eventTime) {
-      const [h] = eventDetails.eventTime.split(":");
-      // const period = Number(h) >= 12 ? "PM" : "AM";
-      const hour12 = Number(h) % 12 || 12;
-      return String(hour12).padStart(2, "0");
-    }
-    return "";
-  });
-  const [selectedMinute, setSelectedMinute] = useState(() => {
-    if (eventDetails?.eventTime) {
-      return eventDetails.eventTime.split(":")[1];
-    }
-    return "";
-  });
-  const [selectedPeriod, setSelectedPeriod] = useState(() => {
-    if (eventDetails?.eventTime) {
-      const hour = Number(eventDetails.eventTime.split(":")[0]);
-      return hour >= 12 ? "PM" : "AM";
-    }
-    return "AM";
-  });
-  const handleTimeChange = (hour: string, minute: string, period: string) => {
-    if (hour && minute) {
-      let hourNum = Number(hour) % 12;
-      if (period === "PM") hourNum += 12;
-      if (period === "AM" && hourNum === 12) hourNum = 0;
-      const timeValue = `${String(hourNum).padStart(2, "0")}:${minute}`;
-      setFormData({ ...formData, eventTime: timeValue });
-      setEventDetails({ ...formData, eventTime: timeValue });
-    } else {
-      setFormData({ ...formData, eventTime: "" });
-      setEventDetails({ ...formData, eventTime: "" });
-    }
-  };
+  // const [selectedHour, setSelectedHour] = useState(() => {
+  //   if (eventDetails?.eventTime) {
+  //     const [h] = eventDetails.eventTime.split(":");
+  //     const hour12 = Number(h) % 12 || 12;
+  //     return String(hour12).padStart(2, "0");
+  //   }
+  //   return "";
+  // });
+  // const [selectedMinute, setSelectedMinute] = useState(() => {
+  //   if (eventDetails?.eventTime) {
+  //     return eventDetails.eventTime.split(":")[1];
+  //   }
+  //   return "";
+  // });
+  // const [selectedPeriod, setSelectedPeriod] = useState(() => {
+  //   if (eventDetails?.eventTime) {
+  //     const hour = Number(eventDetails.eventTime.split(":")[0]);
+  //     return hour >= 12 ? "PM" : "AM";
+  //   }
+  //   return "AM";
+  // });
+  // const handleTimeChange = (hour: string, minute: string, period: string) => {
+  //   if (hour && minute) {
+  //     let hourNum = Number(hour) % 12;
+  //     if (period === "PM") hourNum += 12;
+  //     if (period === "AM" && hourNum === 12) hourNum = 0;
+  //     const timeValue = `${String(hourNum).padStart(2, "0")}:${minute}`;
+  //     setFormData({ ...formData, eventTime: timeValue });
+  //     setEventDetails({ ...formData, eventTime: timeValue });
+  //   } else {
+  //     setFormData({ ...formData, eventTime: "" });
+  //     setEventDetails({ ...formData, eventTime: "" });
+  //   }
+  // };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const newErrors: typeof validationErrors = {};
     let firstErrorElement: HTMLDivElement | null = null;
 
-    // Validate all fields
-    if (!formData.eventDate) {
-      newErrors.eventDate = "Event date is required.";
-      if (!firstErrorElement) firstErrorElement = dateRef.current;
-    }
-
-    if (!formData.eventTime) {
-      newErrors.eventTime = "Event time is required.";
-      if (!firstErrorElement) firstErrorElement = timeRef.current;
-    }
+    // Date & time validation removed - now handled in meal sessions
 
     // if (!formData.eventType) {
     //   newErrors.eventType = "Event type is required.";
@@ -426,31 +408,31 @@ export default function Step1EventDetails() {
       }
     }
 
-    // Validate delivery notice
-    if (formData.eventDate && formData.eventTime) {
-      const eventDateTime = new Date(
-        `${formData.eventDate}T${formData.eventTime}`
-      );
-      const now = new Date();
-      const hoursUntilEvent =
-        (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-      const requiredNoticeHours = getMaxNoticeHours();
+    // Delivery notice validation removed - now handled in meal sessions
+    // if (formData.eventDate && formData.eventTime) {
+    //   const eventDateTime = new Date(
+    //     `${formData.eventDate}T${formData.eventTime}`
+    //   );
+    //   const now = new Date();
+    //   const hoursUntilEvent =
+    //     (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    //   const requiredNoticeHours = getMaxNoticeHours();
 
-      if (hoursUntilEvent < requiredNoticeHours) {
-        newErrors.noticeHours = `Please select a date/time at least ${requiredNoticeHours} hours in advance.`;
-        if (!firstErrorElement) firstErrorElement = dateRef.current;
-      }
+    //   if (hoursUntilEvent < requiredNoticeHours) {
+    //     newErrors.noticeHours = `Please select a date/time at least ${requiredNoticeHours} hours in advance.`;
+    //     if (!firstErrorElement) firstErrorElement = dateRef.current;
+    //   }
 
-      // Validate operating hours
-      const operatingHoursError = validateEventDateTime(
-        formData.eventDate,
-        formData.eventTime
-      );
-      if (operatingHoursError) {
-        newErrors.eventTime = operatingHoursError;
-        if (!firstErrorElement) firstErrorElement = timeRef.current;
-      }
-    }
+    //   // Validate operating hours
+    //   const operatingHoursError = validateEventDateTime(
+    //     formData.eventDate,
+    //     formData.eventTime
+    //   );
+    //   if (operatingHoursError) {
+    //     newErrors.eventTime = operatingHoursError;
+    //     if (!firstErrorElement) firstErrorElement = timeRef.current;
+    //   }
+    // }
 
     // Update validation errors state
     setValidationErrors(newErrors);
@@ -660,7 +642,8 @@ export default function Step1EventDetails() {
             </button>
           </div>
 
-          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+          {/* Delivery Date & Time - Now handled in meal sessions */}
+          {/* <h3 className="text-2xl font-semibold mb-4 text-gray-800">
             Delivery Date & Time
           </h3>
           <p className="text-sm text-gray-500 mb-4">
@@ -811,7 +794,7 @@ export default function Step1EventDetails() {
                 </p>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Type of Event Section */}

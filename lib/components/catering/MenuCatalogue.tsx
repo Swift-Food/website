@@ -12,19 +12,23 @@ interface MenuCatalogueProps {
   restaurantPromotions: Record<string, any[]>;
   expandedItemId: string | null;
   setExpandedItemId: (id: string | null) => void;
-  getItemQuantity: (itemId: string, item?: MenuItem) => number;
-  handleAddItem: (item: MenuItem) => void;
-  updateItemQuantity: (itemId: string, quantity: number) => void;
-  handleOrderPress: (item: MenuItem) => void;
+  getItemQuantity?: (itemId: string, item?: MenuItem) => number;
+  handleAddItem?: (item: MenuItem) => void;
+  updateItemQuantity?: (itemId: string, quantity: number) => void;
+  handleOrderPress?: (item: MenuItem) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSearch: (e?: React.FormEvent) => void;
   onClearSearch: () => void;
-  deliveryDate: string;
-  deliveryTime: string;
-  eventBudget: string;
+  deliveryDate?: string;
+  deliveryTime?: string;
+  eventBudget?: string;
   filterModalOpen: boolean;
   setFilterModalOpen: (open: boolean) => void;
+  viewOnly?: boolean;
+  hideDateTime?: boolean;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
 const formatCateringHours = (
@@ -226,6 +230,10 @@ export default function MenuCatalogue({
   onClearSearch,
   filterModalOpen,
   setFilterModalOpen,
+  viewOnly = false,
+  hideDateTime = false,
+  showBackButton = false,
+  onBackClick,
 }: MenuCatalogueProps) {
   const { filters } = useCateringFilters();
 
@@ -239,6 +247,9 @@ export default function MenuCatalogue({
         hasActiveFilters={filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0}
         onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
         filterModalOpen={filterModalOpen}
+        hideDateTime={hideDateTime}
+        showBackButton={showBackButton}
+        onBackClick={onBackClick}
       />
       {loading ? (
         <div className="text-center py-12 text-base-content/60">
@@ -475,12 +486,12 @@ export default function MenuCatalogue({
                               </p>
                             );
                           })()}
-                          <div className="grid grid-cols-1 2xl:grid-cols-2 3xl:grid-cols-3 gap-4 md:gap-6">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                             {orderedItems.map((item) => (
                               <MenuItemCard
                                 key={item.id}
                                 item={item}
-                                quantity={getItemQuantity(item.id, item)}
+                                quantity={getItemQuantity?.(item.id, item) ?? 0}
                                 isExpanded={expandedItemId === item.id}
                                 onToggleExpand={() =>
                                   setExpandedItemId(
@@ -490,6 +501,7 @@ export default function MenuCatalogue({
                                 onAddItem={handleAddItem}
                                 onUpdateQuantity={updateItemQuantity}
                                 onAddOrderPress={handleOrderPress}
+                                viewOnly={viewOnly}
                               />
                             ))}
                           </div>

@@ -16,6 +16,13 @@ interface CateringFilterRowProps {
   hasActiveFilters?: boolean;
   onFilterClick?: () => void;
   filterModalOpen?: boolean;
+
+  // View-only mode (hides date/time inputs)
+  hideDateTime?: boolean;
+
+  // Back button (optional)
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
 // Generate hours from 6 AM to 11 PM (same as Step1EventDetails)
@@ -38,6 +45,9 @@ export default function CateringFilterRow({
   hasActiveFilters = false,
   onFilterClick,
   filterModalOpen = false,
+  hideDateTime = false,
+  showBackButton = false,
+  onBackClick,
 }: CateringFilterRowProps) {
   const { eventDetails, setEventDetails } = useCatering();
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -114,129 +124,159 @@ export default function CateringFilterRow({
       {/* Desktop Layout */}
       <div className="hidden md:flex md:sticky top-[100px] md:top-[110px] z-40 md:-mx-4 md:px-4 md:pt-3 md:pb-2 mb-[-1px] overflow-visible relative bg-base-100/80 backdrop-blur-xs">
         <div className="flex items-center justify-center gap-4 relative w-full max-w-[100vw]">
-          {/* Date/Time Inputs */}
-          <div className="flex items-center gap-2 md:gap-3 bg-white rounded-full px-4 md:px-8 h-16 border border-base-200 min-w-0 flex-shrink">
-            <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink w-auto px-0">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Date
-              </label>
-              <input
-                type="date"
-                value={eventDetails?.eventDate || ""}
-                onChange={(e) =>
-                  setEventDetails({
-                    eventTime: eventDetails?.eventTime ?? "",
-                    eventType: eventDetails?.eventType ?? "",
-                    eventDate: e.target.value,
-                    guestCount: eventDetails?.guestCount ?? 0,
-                    specialRequests: eventDetails?.specialRequests ?? "",
-                    address: eventDetails?.address ?? "",
-                    userType: eventDetails?.userType ?? "guest",
-                  })
-                }
-                max={getMaxDate()}
-                min={getMinDate()}
-                className="text-sm text-gray-600 whitespace-nowrap truncate bg-transparent border-none focus:outline-none w-full"
-              />
-            </div>
-            <div className="pr-2 md:pr-3 min-w-0 flex-shrink flex items-center gap-1 max-w-min">
-              <div>
+          {/* Back Button (optional) */}
+          {showBackButton && onBackClick && (
+            <button
+              onClick={onBackClick}
+              className="w-12 h-12 rounded-full bg-white border border-base-200 hover:bg-base-100 transition-colors flex items-center justify-center flex-shrink-0"
+              aria-label="Back to All Restaurants"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5 text-gray-600"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
+              </svg>
+            </button>
+          )}
+
+          {/* Date/Time Inputs - Hidden when hideDateTime is true */}
+          {!hideDateTime && (
+            <div className="flex items-center gap-2 md:gap-3 bg-white rounded-full px-4 md:px-8 h-16 border border-base-200 min-w-0 flex-shrink">
+              <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink w-auto px-0">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Time
+                  Date
                 </label>
-                <div className="flex items-center px-3 py-1.5 gap-1">
-                  <select
-                    value={selectedHour}
-                    onChange={(e) => {
-                      setSelectedHour(e.target.value);
-                      handleTimeChange(
-                        e.target.value,
-                        selectedMinute,
-                        selectedPeriod
-                      );
-                    }}
-                    className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-8 text-center font-mono cursor-pointer appearance-none"
-                    style={{
-                      backgroundImage: "none",
-                      WebkitAppearance: "none",
-                      MozAppearance: "none",
-                    }}
-                  >
-                    <option value="">12</option>
-                    {HOUR_12_OPTIONS.map((hour) => (
-                      <option key={hour.value} value={hour.value}>
-                        {hour.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-sm text-gray-400 font-mono">:</span>
-                  <select
-                    value={selectedMinute}
-                    onChange={(e) => {
-                      setSelectedMinute(e.target.value);
-                      handleTimeChange(
-                        selectedHour,
-                        e.target.value,
-                        selectedPeriod
-                      );
-                    }}
-                    className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-8 text-center font-mono cursor-pointer appearance-none"
-                    style={{
-                      backgroundImage: "none",
-                      WebkitAppearance: "none",
-                      MozAppearance: "none",
-                    }}
-                  >
-                    <option value="">00</option>
-                    {MINUTE_OPTIONS.map((minute) => (
-                      <option key={minute.value} value={minute.value}>
-                        {minute.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                  <select
-                    value={selectedPeriod}
-                    onChange={(e) => {
-                      setSelectedPeriod(e.target.value);
-                      handleTimeChange(
-                        selectedHour,
-                        selectedMinute,
-                        e.target.value
-                      );
-                    }}
-                    className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-10 text-center cursor-pointer appearance-none"
-                    style={{
-                      backgroundImage: "none",
-                      WebkitAppearance: "none",
-                      MozAppearance: "none",
-                    }}
-                  >
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                  </select>
+                <input
+                  type="date"
+                  value={eventDetails?.eventDate || ""}
+                  onChange={(e) =>
+                    setEventDetails({
+                      eventTime: eventDetails?.eventTime ?? "",
+                      eventType: eventDetails?.eventType ?? "",
+                      eventDate: e.target.value,
+                      guestCount: eventDetails?.guestCount ?? 0,
+                      specialRequests: eventDetails?.specialRequests ?? "",
+                      address: eventDetails?.address ?? "",
+                      userType: eventDetails?.userType ?? "guest",
+                    })
+                  }
+                  max={getMaxDate()}
+                  min={getMinDate()}
+                  className="text-sm text-gray-600 whitespace-nowrap truncate bg-transparent border-none focus:outline-none w-full"
+                />
+              </div>
+              <div className="pr-2 md:pr-3 min-w-0 flex-shrink flex items-center gap-1 max-w-min">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Time
+                  </label>
+                  <div className="flex items-center px-3 py-1.5 gap-1">
+                    <select
+                      value={selectedHour}
+                      onChange={(e) => {
+                        setSelectedHour(e.target.value);
+                        handleTimeChange(
+                          e.target.value,
+                          selectedMinute,
+                          selectedPeriod
+                        );
+                      }}
+                      className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-8 text-center font-mono cursor-pointer appearance-none"
+                      style={{
+                        backgroundImage: "none",
+                        WebkitAppearance: "none",
+                        MozAppearance: "none",
+                      }}
+                    >
+                      <option value="">12</option>
+                      {HOUR_12_OPTIONS.map((hour) => (
+                        <option key={hour.value} value={hour.value}>
+                          {hour.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-gray-400 font-mono">:</span>
+                    <select
+                      value={selectedMinute}
+                      onChange={(e) => {
+                        setSelectedMinute(e.target.value);
+                        handleTimeChange(
+                          selectedHour,
+                          e.target.value,
+                          selectedPeriod
+                        );
+                      }}
+                      className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-8 text-center font-mono cursor-pointer appearance-none"
+                      style={{
+                        backgroundImage: "none",
+                        WebkitAppearance: "none",
+                        MozAppearance: "none",
+                      }}
+                    >
+                      <option value="">00</option>
+                      {MINUTE_OPTIONS.map((minute) => (
+                        <option key={minute.value} value={minute.value}>
+                          {minute.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                    <select
+                      value={selectedPeriod}
+                      onChange={(e) => {
+                        setSelectedPeriod(e.target.value);
+                        handleTimeChange(
+                          selectedHour,
+                          selectedMinute,
+                          e.target.value
+                        );
+                      }}
+                      className="text-sm text-gray-700 bg-transparent border-none focus:outline-none w-10 text-center cursor-pointer appearance-none"
+                      style={{
+                        backgroundImage: "none",
+                        WebkitAppearance: "none",
+                        MozAppearance: "none",
+                      }}
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Right Side Buttons Container */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Search and Filter Buttons Container */}
+          <div className={`flex items-center gap-3 ${hideDateTime ? 'flex-1' : 'flex-shrink-0'}`}>
             {/* Search Button/Bar */}
             <div
-              className="group flex items-center"
+              className={`group flex items-center ${hideDateTime ? 'flex-1' : ''}`}
               onMouseEnter={() => {
-                setSearchExpanded(true);
-                setSearchHovered(true);
+                if (!hideDateTime) {
+                  setSearchExpanded(true);
+                  setSearchHovered(true);
+                }
               }}
               onMouseLeave={() => {
-                setSearchHovered(false);
-                if (!searchQuery && !searchFocused) setSearchExpanded(false);
+                if (!hideDateTime) {
+                  setSearchHovered(false);
+                  if (!searchQuery && !searchFocused) setSearchExpanded(false);
+                }
               }}
             >
               <div
-                className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-16 border border-base-200 px-4 gap-3 ${
-                  searchExpanded ? "w-[280px] lg:w-[400px]" : "w-[200px]"
+                className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-12 border border-base-200 px-4 gap-3 ${
+                  hideDateTime ? 'w-full' : (searchExpanded ? "w-[280px] lg:w-[400px]" : "w-[200px]")
                 }`}
               >
                 <svg
@@ -299,8 +339,8 @@ export default function CateringFilterRow({
             {/* Filter Button (optional) */}
             {onFilterClick && (
               <div
-                onMouseEnter={() => setFilterExpanded(true)}
-                onMouseLeave={() => setFilterExpanded(false)}
+                onMouseEnter={() => !hideDateTime && setFilterExpanded(true)}
+                onMouseLeave={() => !hideDateTime && setFilterExpanded(false)}
               >
                 <button
                   onClick={() => {
@@ -312,10 +352,13 @@ export default function CateringFilterRow({
                       onFilterClick();
                     }
                   }}
-                  className={`rounded-full border border-base-200 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-16 overflow-hidden ${
-                    filterExpanded || filterModalOpen
-                      ? "w-40 px-4 gap-2 justify-between"
-                      : "w-16 justify-center"
+                  className={`rounded-full border border-base-200 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center overflow-hidden ${
+                    hideDateTime
+                      ? "w-12 h-12 justify-center"
+                      : `h-16 ${filterExpanded || filterModalOpen
+                          ? "w-40 px-4 gap-2 justify-between"
+                          : "w-16 justify-center"
+                        }`
                   } ${
                     hasActiveFilters || filterModalOpen
                       ? "bg-primary text-white"
@@ -336,7 +379,7 @@ export default function CateringFilterRow({
                       d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
                     />
                   </svg>
-                  {(filterExpanded || filterModalOpen) && (
+                  {!hideDateTime && (filterExpanded || filterModalOpen) && (
                     <>
                       <span className="text-sm font-medium whitespace-nowrap text-center flex-1">
                         Filters
@@ -375,8 +418,9 @@ export default function CateringFilterRow({
         </div>
       </div>
 
-      {/* Mobile Layout - Date/Time */}
-      <section className="md:hidden mb-2">
+      {/* Mobile Layout - Date/Time - Hidden when hideDateTime is true */}
+      {!hideDateTime && (
+        <section className="md:hidden mb-2">
         <div className="bg-white rounded-2xl border-1 border-base-200">
           <div className="flex items-center justify-between w-full px-2">
             <div className="flex items-center gap-2 flex-1 py-1 border-r-1 border-gray-200 justify-center">
@@ -496,10 +540,35 @@ export default function CateringFilterRow({
           </div>
         </div>
       </section>
+      )}
 
       {/* Mobile Search and Filter Row */}
       <div className="md:hidden sticky top-[100px] z-40 -mx-4 px-4 py-3 mb-6 bg-base-100/80 backdrop-blur-sm">
         <div className="flex items-center gap-2 w-full">
+          {/* Back Button (optional) */}
+          {showBackButton && onBackClick && (
+            <button
+              onClick={onBackClick}
+              className="w-12 h-12 rounded-full bg-white border border-base-200 hover:bg-base-100 transition-colors flex items-center justify-center flex-shrink-0"
+              aria-label="Back to All Restaurants"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5 text-gray-600"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
+              </svg>
+            </button>
+          )}
+
           {/* Search Bar fills available width */}
           <div className="flex-1">
             <div className="flex items-center bg-white rounded-full h-12 px-3 w-full border-1 border-base-200">

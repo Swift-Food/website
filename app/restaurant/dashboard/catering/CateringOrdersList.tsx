@@ -6,8 +6,6 @@ import { CateringOrderStatus } from "@/types/catering.types";
 import { restaurantApi } from "@/services/api/restaurant.api";
 import { CateringOrderCard } from "./CateringOrderCard";
 import { CateringOrderResponse } from "@/types/api";
-import { flattenOrdersToDisplayItems } from "./utils/flatten-orders.utils";
-import { FlattenedOrderItem } from "./types/order-card.dto";
 
 interface CateringOrdersListProps {
   orders: CateringOrderResponse[];
@@ -17,6 +15,37 @@ interface CateringOrdersListProps {
   onRefresh: () => void;
   hasMultipleBranches: boolean;
   selectedAccountId: string | null;
+}
+
+/**
+ * Filter orders to only include restaurants that match the given restaurantId
+ */
+function filterOrdersForRestaurant(
+  orders: CateringOrderResponse[],
+  restaurantId: string
+): CateringOrderResponse[] {
+  return orders.filter((order) => {
+    // Check if this restaurant has items in the order
+    const restaurants = order.restaurants || order.orderItems || [];
+    return restaurants.some((item: any) => item.restaurantId === restaurantId);
+  });
+}
+
+/**
+ * Determine the effective status for an order from this restaurant's perspective
+ */
+function getOrderStatusForRestaurant(
+  order: CateringOrderResponse,
+  restaurantId: string
+): string {
+  // If this restaurant has reviewed the order, update status
+  if (
+    order.restaurantReviews?.includes(restaurantId) &&
+    order.status === "admin_reviewed"
+  ) {
+    return CateringOrderStatus.RESTAURANT_REVIEWED;
+  }
+  return order.status;
 }
 
 export const CateringOrdersList = ({
@@ -32,7 +61,7 @@ export const CateringOrdersList = ({
   const [error, setError] = useState("");
   const [claiming, setClaiming] = useState<string | null>(null);
   const [activeStatusTab, setActiveStatusTab] = useState<string>(
-    selectedAccountId === null ? "unassigned" : "admin_reviewed" // Start with unassigned if viewing all branches
+    selectedAccountId === null ? "unassigned" : "admin_reviewed"
   );
   const [selectedAccounts, setSelectedAccounts] = useState<
     Record<string, string>
@@ -42,26 +71,20 @@ export const CateringOrdersList = ({
   >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
 
-  // Flatten orders into display items (handles meal sessions)
-  const flattenedItems = useMemo(
-    () => flattenOrdersToDisplayItems(orders, restaurantId),
+  // Filter orders to only those with items for this restaurant
+  const filteredOrders = useMemo(
+    () => filterOrdersForRestaurant(orders, restaurantId),
     [orders, restaurantId]
   );
 
-  // Process flattened items to adjust status based on restaurant reviews
-  const processedItems = useMemo(
+  // Process orders to adjust status based on restaurant reviews
+  const processedOrders = useMemo(
     () =>
-      flattenedItems.map((item) => {
-        // Check if this restaurant has reviewed the item
-        if (
-          item.restaurantReviews?.includes(restaurantId) &&
-          item.status === "admin_reviewed"
-        ) {
-          return { ...item, status: CateringOrderStatus.RESTAURANT_REVIEWED };
-        }
-        return item;
-      }),
-    [flattenedItems, restaurantId]
+      filteredOrders.map((order) => ({
+        ...order,
+        effectiveStatus: getOrderStatusForRestaurant(order, restaurantId),
+      })),
+    [filteredOrders, restaurantId]
   );
 
   useEffect(() => {
@@ -73,9 +96,9 @@ export const CateringOrdersList = ({
       if (accounts && Object.keys(accounts).length > 0) {
         const defaultAccountId = Object.keys(accounts)[0];
         const defaultSelections: Record<string, string> = {};
-        // Use parentOrderId for account selection (per-order, not per-session)
-        processedItems.forEach((item) => {
-          defaultSelections[item.parentOrderId] = defaultAccountId;
+        // Set default account for each order
+        processedOrders.forEach((order) => {
+          defaultSelections[order.id] = defaultAccountId;
         });
         setSelectedAccounts(defaultSelections);
       }
@@ -84,7 +107,7 @@ export const CateringOrdersList = ({
     };
 
     fetchAccounts();
-  }, [restaurantUserId, processedItems.length]);
+  }, [restaurantUserId, processedOrders.length]);
 
   useEffect(() => {
     if (
@@ -95,44 +118,29 @@ export const CateringOrdersList = ({
       setActiveStatusTab("restaurant_reviewed");
     }
   }, [hasMultipleBranches, selectedAccountId, activeStatusTab]);
+
   useEffect(() => {
     if (selectedAccountId === null && activeStatusTab !== "unassigned") {
       setActiveStatusTab("unassigned");
     }
   }, [selectedAccountId]);
 
-  const handleReview = async (
-    displayId: string,
-    accepted: boolean,
-    isMealSession: boolean
-  ) => {
-    setReviewing(displayId);
+  // Review entire catering order (not individual meal sessions)
+  const handleReview = async (orderId: string, accepted: boolean) => {
+    setReviewing(orderId);
     setError("");
 
     try {
-      // Find the item to get the parent order ID for account selection
-      const item = processedItems.find((i) => i.displayId === displayId);
-      const accountId = item ? selectedAccounts[item.parentOrderId] : undefined;
+      const accountId = selectedAccounts[orderId];
 
-      if (isMealSession) {
-        // Review meal session
-        await restaurantApi.reviewMealSession(
-          displayId,
-          restaurantId,
-          accepted,
-          token,
-          accountId
-        );
-      } else {
-        // Review order (legacy flow)
-        await restaurantApi.reviewCateringOrder(
-          displayId,
-          restaurantId,
-          accepted,
-          token,
-          accountId
-        );
-      }
+      // Always use reviewCateringOrder for whole order review
+      await restaurantApi.reviewCateringOrder(
+        orderId,
+        restaurantId,
+        accepted,
+        token,
+        accountId
+      );
       await onRefresh();
     } catch (err: any) {
       setError(err.message || "Failed to review order");
@@ -167,15 +175,17 @@ export const CateringOrdersList = ({
     }
   };
 
-  const itemsByStatus = processedItems.reduce((acc, item) => {
-    const status = item.status;
+  // Group orders by their effective status
+  type ProcessedOrder = CateringOrderResponse & { effectiveStatus: string };
+  const ordersByStatus = processedOrders.reduce((acc, order) => {
+    const status = order.effectiveStatus;
     if (!acc[status]) acc[status] = [];
-    acc[status].push(item);
+    acc[status].push(order);
     return acc;
-  }, {} as Record<string, FlattenedOrderItem[]>);
+  }, {} as Record<string, ProcessedOrder[]>);
 
-  const unassignedItems = processedItems.filter(
-    (item) => item.isUnassigned === true
+  const unassignedOrders = processedOrders.filter(
+    (order) => order.isUnassigned === true
   );
   const showOnlyPendingReview =
     hasMultipleBranches && selectedAccountId === null;
@@ -186,34 +196,34 @@ export const CateringOrdersList = ({
       ? [
           {
             key: "unassigned",
-            label: "⚠️ Unassigned",
-            count: unassignedItems.length,
+            label: "Unassigned",
+            count: unassignedOrders.length,
           },
         ]
       : []),
     {
       key: "admin_reviewed",
       label: "Pending Review",
-      count: itemsByStatus["admin_reviewed"]?.length || 0,
+      count: ordersByStatus["admin_reviewed"]?.length || 0,
     },
     {
       key: "restaurant_reviewed",
       label: "Awaiting Payment",
       count:
-        (itemsByStatus["restaurant_reviewed"]?.length || 0) +
-        (itemsByStatus["payment_link_sent"]?.length || 0),
+        (ordersByStatus["restaurant_reviewed"]?.length || 0) +
+        (ordersByStatus["payment_link_sent"]?.length || 0),
     },
     {
       key: "confirmed",
       label: "Confirmed",
       count:
-        (itemsByStatus["paid"]?.length || 0) +
-        (itemsByStatus["confirmed"]?.length || 0),
+        (ordersByStatus["paid"]?.length || 0) +
+        (ordersByStatus["confirmed"]?.length || 0),
     },
     {
       key: "completed",
       label: "Completed",
-      count: itemsByStatus["completed"]?.length || 0,
+      count: ordersByStatus["completed"]?.length || 0,
     },
   ];
 
@@ -225,27 +235,26 @@ export const CateringOrdersList = ({
     ? allStatusTabs.filter((tab) => tab.key !== "admin_reviewed")
     : allStatusTabs;
 
-  const getActiveItems = (): FlattenedOrderItem[] => {
-    console.log("IN active items: ", itemsByStatus);
+  const getActiveOrders = (): ProcessedOrder[] => {
     if (activeStatusTab === "unassigned") {
-      return unassignedItems;
+      return unassignedOrders;
     }
     if (activeStatusTab === "confirmed") {
       return [
-        ...(itemsByStatus["paid"] || []),
-        ...(itemsByStatus["confirmed"] || []),
+        ...(ordersByStatus["paid"] || []),
+        ...(ordersByStatus["confirmed"] || []),
       ];
     }
     if (activeStatusTab === "restaurant_reviewed") {
       return [
-        ...(itemsByStatus["restaurant_reviewed"] || []),
-        ...(itemsByStatus["payment_link_sent"] || []),
+        ...(ordersByStatus["restaurant_reviewed"] || []),
+        ...(ordersByStatus["payment_link_sent"] || []),
       ];
     }
-    return itemsByStatus[activeStatusTab] || [];
+    return ordersByStatus[activeStatusTab] || [];
   };
 
-  const activeItems = getActiveItems();
+  const activeOrders = getActiveOrders();
 
   if (orders.length === 0) {
     return (
@@ -298,16 +307,16 @@ export const CateringOrdersList = ({
       </div>
 
       {/* Orders */}
-      {activeItems.length === 0 ? (
+      {activeOrders.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <p className="text-lg">No orders in this category</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {activeItems.map((item) => (
+          {activeOrders.map((order) => (
             <CateringOrderCard
-              key={item.displayId}
-              item={item}
+              key={order.id}
+              order={order}
               restaurantId={restaurantId}
               onReview={handleReview}
               reviewing={reviewing}
@@ -315,10 +324,10 @@ export const CateringOrdersList = ({
               claiming={claiming}
               availableAccounts={availableAccounts}
               selectedAccounts={selectedAccounts}
-              onAccountSelect={(parentOrderId, accountId) =>
+              onAccountSelect={(orderId, accountId) =>
                 setSelectedAccounts((prev) => ({
                   ...prev,
-                  [parentOrderId]: accountId,
+                  [orderId]: accountId,
                 }))
               }
               loadingAccounts={loadingAccounts}

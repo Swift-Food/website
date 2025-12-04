@@ -14,12 +14,13 @@ interface MenuItemModalProps {
   item: MenuItem;
   isOpen: boolean;
   onClose: () => void;
-  quantity: number;
-  onAddItem: (item: MenuItem) => void;
-  onUpdateQuantity: (itemId: string, quantity: number) => void;
+  quantity?: number;
+  onAddItem?: (item: MenuItem) => void;
+  onUpdateQuantity?: (itemId: string, quantity: number) => void;
   isEditMode?: boolean;
   onRemoveItem?: (index: number) => void;
   editingIndex?: number | null;
+  viewOnly?: boolean; // When true, shows menu item details without add/edit functionality
 }
 
 interface AddonGroup {
@@ -32,12 +33,13 @@ export default function MenuItemModal({
   item,
   isOpen,
   onClose,
-  quantity,
+  quantity = 0,
   onAddItem,
   onUpdateQuantity,
   isEditMode = false,
   onRemoveItem,
   editingIndex = null,
+  viewOnly = false,
 }: MenuItemModalProps) {
   // console.log("Item: ", item);
   const [itemQuantity, setItemQuantity] = useState(1);
@@ -109,7 +111,6 @@ export default function MenuItemModal({
     // console.log("Addons length:", item?.addons?.length);
 
     if (!item?.addons || item.addons.length === 0) {
-      console.log("No addons found, resetting groups");
       setAddonGroups({});
       setSelectedAddons({});
       return;
@@ -513,7 +514,7 @@ export default function MenuItemModal({
       portionQuantity: itemQuantity,
     };
 
-    onAddItem(itemWithAddons);
+    onAddItem?.(itemWithAddons);
     onClose();
   };
 
@@ -642,98 +643,100 @@ export default function MenuItemModal({
                 Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
               </p>
 
-              {/* Quantity Selector */}
-              <div className="bg-base-200 p-4 rounded-lg">
-                <h3 className="font-semibold text-sm text-base-content mb-3">
-                  Number of Portions
-                </h3>
-                <div className="flex items-center justify-between gap-3">
-                  <button
-                    onClick={() => {
-                      const newQty = Math.max(1, itemQuantity - 1);
-                      setItemQuantity(newQty);
-                      setItemQuantityInput(newQty.toString());
-                      if (
-                        quantity > 0 &&
-                        (!item.addons || item.addons.length === 0)
-                      ) {
-                        setHasModifiedQuantity(newQty !== initialModalQuantity);
-                      }
-                    }}
-                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
-                  >
-                    −
-                  </button>
-                  <div className="flex flex-col items-center gap-1 flex-1">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={itemQuantityInput}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        // Allow empty or numeric input only
-                        if (val === "" || /^\d+$/.test(val)) {
-                          setItemQuantityInput(val);
-                          if (val !== "" && !isNaN(parseInt(val))) {
-                            const newQty = Math.max(1, parseInt(val));
-                            setItemQuantity(newQty);
+              {/* Quantity Selector - Hidden in viewOnly mode */}
+              {!viewOnly && (
+                <div className="bg-base-200 p-4 rounded-lg">
+                  <h3 className="font-semibold text-sm text-base-content mb-3">
+                    Number of Portions
+                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      onClick={() => {
+                        const newQty = Math.max(1, itemQuantity - 1);
+                        setItemQuantity(newQty);
+                        setItemQuantityInput(newQty.toString());
+                        if (
+                          quantity > 0 &&
+                          (!item.addons || item.addons.length === 0)
+                        ) {
+                          setHasModifiedQuantity(newQty !== initialModalQuantity);
+                        }
+                      }}
+                      className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
+                    >
+                      −
+                    </button>
+                    <div className="flex flex-col items-center gap-1 flex-1">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={itemQuantityInput}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          // Allow empty or numeric input only
+                          if (val === "" || /^\d+$/.test(val)) {
+                            setItemQuantityInput(val);
+                            if (val !== "" && !isNaN(parseInt(val))) {
+                              const newQty = Math.max(1, parseInt(val));
+                              setItemQuantity(newQty);
+                              if (
+                                quantity > 0 &&
+                                (!item.addons || item.addons.length === 0)
+                              ) {
+                                setHasModifiedQuantity(
+                                  newQty !== initialModalQuantity
+                                );
+                              }
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (
+                            e.target.value === "" ||
+                            parseInt(e.target.value) < 1
+                          ) {
+                            setItemQuantity(1);
+                            setItemQuantityInput("1");
                             if (
                               quantity > 0 &&
                               (!item.addons || item.addons.length === 0)
                             ) {
-                              setHasModifiedQuantity(
-                                newQty !== initialModalQuantity
-                              );
+                              setHasModifiedQuantity(1 !== initialModalQuantity);
                             }
                           }
-                        }
-                      }}
-                      onBlur={(e) => {
+                        }}
+                        className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
+                      />
+                      {/* <p className="text-xs text-base-content/60">
+                        Feeds {itemQuantity * DISPLAY_FEEDS_PER_UNIT} people
+                      </p> */}
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newQty = itemQuantity + 1;
+                        setItemQuantity(newQty);
+                        setItemQuantityInput(newQty.toString());
                         if (
-                          e.target.value === "" ||
-                          parseInt(e.target.value) < 1
+                          quantity > 0 &&
+                          (!item.addons || item.addons.length === 0)
                         ) {
-                          setItemQuantity(1);
-                          setItemQuantityInput("1");
-                          if (
-                            quantity > 0 &&
-                            (!item.addons || item.addons.length === 0)
-                          ) {
-                            setHasModifiedQuantity(1 !== initialModalQuantity);
-                          }
+                          setHasModifiedQuantity(newQty !== initialModalQuantity);
                         }
                       }}
-                      className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
-                    />
-                    {/* <p className="text-xs text-base-content/60">
-                      Feeds {itemQuantity * DISPLAY_FEEDS_PER_UNIT} people
-                    </p> */}
+                      className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
+                    >
+                      +
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      const newQty = itemQuantity + 1;
-                      setItemQuantity(newQty);
-                      setItemQuantityInput(newQty.toString());
-                      if (
-                        quantity > 0 &&
-                        (!item.addons || item.addons.length === 0)
-                      ) {
-                        setHasModifiedQuantity(newQty !== initialModalQuantity);
-                      }
-                    }}
-                    className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
-                  >
-                    +
-                  </button>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Addons section */}
             {Object.keys(addonGroups).length > 0 && (
               <div className="pt-4">
                 <h3 className="font-semibold text-base text-base-content mb-3">
-                  Customize Your Order
+                  {viewOnly ? "Available Add-ons" : "Customize Your Order"}
                 </h3>
                 {Object.entries(addonGroups).map(([groupTitle, group]) => (
                   <div key={groupTitle} className="mb-4">
@@ -741,17 +744,19 @@ export default function MenuItemModal({
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium text-sm text-base-content">
                           {groupTitle}
-                          {group.isRequired && (
+                          {!viewOnly && group.isRequired && (
                             <span className="text-error ml-1">*</span>
                           )}
                         </h4>
-                        <span className="text-xs text-base-content/60 italic">
-                          {group.selectionType === "single"
-                            ? `Select portions (total: ${getSingleSelectionTotal(
-                                groupTitle
-                              )}/${itemQuantity})`
-                            : "Choose multiple (applies to all portions)"}
-                        </span>
+                        {!viewOnly && (
+                          <span className="text-xs text-base-content/60 italic">
+                            {group.selectionType === "single"
+                              ? `Select portions (total: ${getSingleSelectionTotal(
+                                  groupTitle
+                                )}/${itemQuantity})`
+                              : "Choose multiple (applies to all portions)"}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -761,6 +766,25 @@ export default function MenuItemModal({
                           addonQuantities[groupTitle]?.[addon.name] || 0;
                         const addonQtyInput =
                           addonQuantityInputs[groupTitle]?.[addon.name] || "0";
+
+                        // View-only mode: Simple list display
+                        if (viewOnly) {
+                          return (
+                            <div
+                              key={index}
+                              className="w-full flex items-center justify-between p-3 rounded-lg border border-base-300 bg-base-100"
+                            >
+                              <span className="text-sm text-base-content">
+                                {addon.name}
+                              </span>
+                              {parseFloat(addon.price) > 0 && (
+                                <span className="text-sm font-medium text-primary">
+                                  +£{parseFloat(addon.price).toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        }
 
                         return group.selectionType === "single" ? (
                           // Single selection: Show quantity controls
@@ -929,74 +953,79 @@ export default function MenuItemModal({
                 ))}
               </div>
             )}
-            <div className="pt-2 border-t border-base-300">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-base-content/70">
-                  Total {itemQuantity > 1 ? `(${itemQuantity} portions)` : ""}:
-                </span>
-                <span className="text-lg font-bold text-primary">
-                  £{totalPrice.toFixed(2)}
-                </span>
+            {/* Total - Hidden in viewOnly mode */}
+            {!viewOnly && (
+              <div className="pt-2 border-t border-base-300">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-base-content/70">
+                    Total {itemQuantity > 1 ? `(${itemQuantity} portions)` : ""}:
+                  </span>
+                  <span className="text-lg font-bold text-primary">
+                    £{totalPrice.toFixed(2)}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Sticky Action Buttons */}
-        <div className="sticky bottom-0 p-6 pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
-          {isEditMode ? (
-            <div className="space-y-2">
+        {/* Sticky Action Buttons - Hidden in viewOnly mode */}
+        {!viewOnly && (
+          <div className="sticky bottom-0 p-6 pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
+            {isEditMode ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    if (onRemoveItem && editingIndex !== null) {
+                      onRemoveItem(editingIndex);
+                      onClose();
+                    }
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Order
+                </button>
+              </div>
+            ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
+              <div className="space-y-2">
+                {hasModifiedQuantity && (
+                  <button
+                    onClick={() => {
+                      const newBackendQty = itemQuantity * BACKEND_QUANTITY_UNIT;
+                      onUpdateQuantity?.(item.id, newBackendQty);
+                      onClose();
+                    }}
+                    className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  >
+                    Save Order
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    onUpdateQuantity?.(item.id, 0);
+                    onClose();
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Order
+                </button>
+              </div>
+            ) : (
               <button
                 onClick={handleAddToCart}
                 className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
               >
-                Save Changes
+                Add to Order
               </button>
-              <button
-                onClick={() => {
-                  if (onRemoveItem && editingIndex !== null) {
-                    onRemoveItem(editingIndex);
-                    onClose();
-                  }
-                }}
-                className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-              >
-                Remove from Order
-              </button>
-            </div>
-          ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
-            <div className="space-y-2">
-              {hasModifiedQuantity && (
-                <button
-                  onClick={() => {
-                    const newBackendQty = itemQuantity * BACKEND_QUANTITY_UNIT;
-                    onUpdateQuantity(item.id, newBackendQty);
-                    onClose();
-                  }}
-                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-                >
-                  Save Order
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  onUpdateQuantity(item.id, 0);
-                  onClose();
-                }}
-                className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-              >
-                Remove from Order
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAddToCart}
-              className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-            >
-              Add to Order
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

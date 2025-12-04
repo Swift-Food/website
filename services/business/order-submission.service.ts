@@ -3,17 +3,12 @@ import {
   ContactFormData,
   OrderSubmissionData,
 } from "@/features/contact-details/types/contact-form.dto";
-import { EventDetails } from "@/types/catering.types";
-
-interface SelectedItem {
-  item: any;
-  quantity: number;
-}
+import { EventDetails, MealSessionState } from "@/types/catering.types";
 
 export class OrderSubmissionService {
   async submitOrder(
     eventDetails: EventDetails,
-    selectedItems: SelectedItem[],
+    mealSessions: MealSessionState[],
     contactInfo: ContactFormData,
     promoCodes: string[],
     ccEmails: string[],
@@ -28,7 +23,7 @@ export class OrderSubmissionService {
     try {
       await cateringService.submitCateringOrder(
         eventDetails,
-        selectedItems,
+        mealSessions,
         contactInfo,
         promoCodes,
         ccEmails,

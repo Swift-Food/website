@@ -3,7 +3,7 @@
  * Handles order submission logic
  */
 
-import { EventDetails, SelectedMenuItem } from "@/types/catering.types";
+import { EventDetails, MealSessionState } from "@/types/catering.types";
 import { ContactFormData } from "../types/contact-form.dto";
 import { cateringService } from "@/services/api/catering.api";
 
@@ -21,7 +21,7 @@ class OrderSubmissionService {
    */
   async submitOrder(
     eventDetails: EventDetails,
-    selectedItems: SelectedMenuItem[],
+    mealSessions: MealSessionState[],
     contactInfo: ContactFormData,
     promoCodes: string[],
     ccEmails: string[],
@@ -30,7 +30,7 @@ class OrderSubmissionService {
     try {
       await cateringService.submitCateringOrder(
         eventDetails,
-        selectedItems,
+        mealSessions,
         contactInfo,
         promoCodes,
         ccEmails,

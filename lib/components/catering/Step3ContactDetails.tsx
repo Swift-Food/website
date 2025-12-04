@@ -10,6 +10,7 @@ import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 import { PaymentMethodSelector } from "../PaymentMethodSelector";
 import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
 import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
+import AllMealSessionsItems from "./AllMealSessionsItems";
 
 interface ValidationErrors {
   organization?: string;
@@ -32,13 +33,15 @@ export default function Step3ContactInfo() {
     setContactInfo,
     setCurrentStep,
     eventDetails,
-    selectedItems,
+    mealSessions,
+    getAllItems,
     resetOrder,
     markOrderAsSubmitted,
     corporateUser,
-    subtotalBeforeDiscount,
-    promotionDiscount,
   } = useCatering();
+
+  // Get all items from all sessions for pricing calculations
+  const selectedItems = getAllItems();
 
   const [formData, setFormData] = useState<ContactInfo>({
     organization: contactInfo?.organization || "",
@@ -297,14 +300,14 @@ export default function Step3ContactInfo() {
       const createCateringOrderResponse =
         await cateringService.submitCateringOrder(
           eventDetails!,
-          selectedItems,
+          mealSessions,
           formData,
           promoCodes,
           ccEmails,
           paymentData
         );
 
-      console.log("Catering order response: ", createCateringOrderResponse);
+      // console.log("Catering order response: ", createCateringOrderResponse);
 
       markOrderAsSubmitted();
       setShowPaymentModal(false);
@@ -427,95 +430,11 @@ export default function Step3ContactInfo() {
   const calculatePricing = async () => {
     setCalculatingPricing(true);
     try {
-      const groupedByRestaurant = selectedItems.reduce(
-        (acc, { item, quantity }) => {
-          const restaurantId =
-            item.restaurant?.restaurantId || item.restaurantId || "unknown";
-          const restaurantName = item.restaurant?.name || "Unknown Restaurant";
-
-          if (!acc[restaurantId]) {
-            acc[restaurantId] = {
-              restaurantId,
-              restaurantName,
-              items: [],
-            };
-          }
-
-          const price = parseFloat(item.price?.toString() || "0");
-          const discountPrice = parseFloat(
-            item.discountPrice?.toString() || "0"
-          );
-          const unitPrice =
-            item.isDiscount && discountPrice > 0 ? discountPrice : price;
-
-          // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
-          const addonTotal = (item.selectedAddons || []).reduce(
-            (sum, { price, quantity }) => {
-              return sum + (price || 0) * (quantity || 0);
-            },
-            0
-          );
-
-          // Total price includes both item price and addon price
-          const itemTotalPrice = unitPrice * quantity + addonTotal;
-
-          // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map(
-            (addon) => ({
-              ...addon,
-              quantity: addon.quantity || 0,
-            })
-          );
-
-          acc[restaurantId].items.push({
-            menuItemId: item.id,
-            menuItemName: item.menuItemName,
-            groupTitle: item.groupTitle,
-            quantity,
-            unitPrice,
-            addonPrice: addonTotal,
-            selectedAddons: transformedAddons,
-            totalPrice: itemTotalPrice,
-          });
-
-          return acc;
-        },
-        {} as Record<
-          string,
-          { restaurantId: string; restaurantName: string; items: any[] }
-        >
-      );
-
-      const orderItems = Object.values(groupedByRestaurant).map(
-        (group: any) => {
-          const restaurantTotal = group.items.reduce(
-            (sum: any, item: any) => sum + item.totalPrice,
-            0
-          );
-
-          return {
-            restaurantId: group.restaurantId,
-            restaurantName: group.restaurantName,
-            menuItems: group.items,
-            status: "pending",
-            restaurantCost: restaurantTotal,
-            totalPrice: restaurantTotal,
-          };
-        }
-      );
-
-      const pricingResult = await cateringService.calculateCateringPricing(
-        orderItems,
+      // Use meal sessions for pricing calculation to get proper per-session delivery fees
+      const pricingResult = await cateringService.calculateCateringPricingWithMealSessions(
+        mealSessions,
         promoCodes
       );
-
-      if (!pricingResult.isValid) {
-        alert(pricingResult.error || "Unable to calculate pricing");
-        setPricing(null);
-        return;
-      }
-
-      setPricing(pricingResult);
 
       if (!pricingResult.isValid) {
         alert(pricingResult.error || "Unable to calculate pricing");
@@ -559,7 +478,7 @@ export default function Step3ContactInfo() {
   useEffect(() => {
     calculatePricing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [promoCodes]);
+  }, [promoCodes, mealSessions]);
 
   const handleApplyPromoCode = async () => {
     if (!promoInput.trim()) return;
@@ -569,94 +488,17 @@ export default function Step3ContactInfo() {
     setPromoSuccess("");
 
     try {
-      const groupedByRestaurant = selectedItems.reduce(
-        (acc, { item, quantity }) => {
-          const restaurantId =
-            item.restaurant?.restaurantId || item.restaurantId || "unknown";
-          const restaurantName = item.restaurant?.name || "Unknown Restaurant";
-
-          if (!acc[restaurantId]) {
-            acc[restaurantId] = {
-              restaurantId,
-              restaurantName,
-              items: [],
-            };
-          }
-
-          const price = parseFloat(item.price?.toString() || "0");
-          const discountPrice = parseFloat(
-            item.discountPrice?.toString() || "0"
-          );
-          const unitPrice =
-            item.isDiscount && discountPrice > 0 ? discountPrice : price;
-
-          // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
-          const addonTotal = (item.selectedAddons || []).reduce(
-            (sum, { price, quantity }) => {
-              return sum + (price || 0) * (quantity || 0);
-            },
-            0
-          );
-
-          // Total price includes both item price and addon price
-          const itemTotalPrice = unitPrice * quantity + addonTotal;
-
-          // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map(
-            (addon) => ({
-              ...addon,
-              quantity: addon.quantity || 0,
-            })
-          );
-
-          acc[restaurantId].items.push({
-            menuItemId: item.id,
-            menuItemName: item.menuItemName,
-            quantity,
-            unitPrice,
-            addonPrice: addonTotal,
-            selectedAddons: transformedAddons,
-            totalPrice: itemTotalPrice,
-          });
-
-          return acc;
-        },
-        {} as Record<
-          string,
-          { restaurantId: string; restaurantName: string; items: any[] }
-        >
-      );
-
-      const orderItems = Object.values(groupedByRestaurant).map(
-        (group: any) => {
-          const restaurantTotal = group.items.reduce(
-            (sum: any, item: any) => sum + item.totalPrice,
-            0
-          );
-
-          return {
-            restaurantId: group.restaurantId,
-            restaurantName: group.restaurantName,
-            menuItems: group.items,
-            status: "pending",
-            restaurantCost: restaurantTotal,
-            totalPrice: restaurantTotal,
-          };
-        }
-      );
-
-      const validation = await cateringService.validatePromoCode(
+      // Use meal sessions format for promo validation
+      const validation = await cateringService.validatePromoCodeWithMealSessions(
         promoInput.toUpperCase(),
-        orderItems
+        mealSessions
       );
 
       if (validation.valid) {
         if (!promoCodes.includes(promoInput.toUpperCase())) {
           setPromoCodes([...promoCodes, promoInput.toUpperCase()]);
           setPromoSuccess(
-            `Promo code "${promoInput.toUpperCase()}" applied! You saved £${validation.discount?.toFixed(
-              2
-            )}`
+            `Promo code "${promoInput.toUpperCase()}" applied!`
           );
           setPromoInput("");
         } else {
@@ -992,522 +834,380 @@ export default function Step3ContactInfo() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Organization */}
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Organization (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="organization"
-                  value={formData.organization}
-                  onChange={(e) => handleChange("organization", e.target.value)}
-                  onBlur={() => handleBlur("organization")}
-                  placeholder="Your Organization Name"
-                  className={`w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                />
-              </div>
-              {/* Name */}
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Name*
-                </label>
-                <input
-                  type="text"
-                  name="fullName"
-                  required
-                  value={formData.fullName}
-                  onChange={(e) => handleChange("fullName", e.target.value)}
-                  onBlur={() => handleBlur("fullName")}
-                  placeholder="Your Name"
-                  className={`w-full px-4 py-3 bg-base-200/50 border ${
-                    errors.fullName ? "border-error" : "border-base-300"
-                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                />
-                {errors.fullName && (
-                  <p className="mt-1 text-sm text-error">✗ {errors.fullName}</p>
-                )}
-              </div>
-
-              {/* Telephone */}
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Telephone*
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => handleChange("phone", e.target.value)}
-                  onBlur={() => handleBlur("phone")}
-                  placeholder="Your Number"
-                  className={`w-full px-4 py-3 bg-base-200/50 border ${
-                    errors.phone ? "border-error" : "border-base-300"
-                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                />
-                {errors.phone && (
-                  <p className="mt-1 text-sm text-error">✗ {errors.phone}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  Email*
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  onBlur={() => handleBlur("email")}
-                  placeholder="Your Email"
-                  className={`w-full px-4 py-3 bg-base-200/50 border ${
-                    errors.email ? "border-error" : "border-base-300"
-                  } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-error">✗ {errors.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-base-content">
-                  CC Additional Emails (Optional)
-                </label>
-                <p className="text-xs text-base-content/60 mb-3">
-                  Add additional email addresses to receive order updates
-                </p>
-
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="email"
-                    value={ccEmailInput}
-                    onChange={(e) => setCcEmailInput(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddCcEmail();
-                      }
-                    }}
-                    placeholder="additional@email.com"
-                    className="flex-1 px-4 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCcEmail}
-                    className="px-4 py-2 bg-dark-pink text-white rounded-lg font-medium hover:opacity-90 transition-all text-sm"
-                  >
-                    Add
-                  </button>
-                </div>
-
-                {ccEmails.length > 0 && (
-                  <div className="space-y-2">
-                    {ccEmails.map((email, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
-                      >
-                        <span className="text-sm text-base-content">
-                          {email}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCcEmail(email)}
-                          className="text-error hover:opacity-80 text-xs font-medium"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Terms and Conditions - Desktop */}
-              <div className="hidden lg:block pt-4">
-                <div className="flex items-start gap-3 mb-4">
-                  <input
-                    type="checkbox"
-                    id="terms-desktop"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
-                  />
-                  <label
-                    htmlFor="terms-desktop"
-                    className="text-sm text-base-content/80 cursor-pointer"
-                  >
-                    I accept the{" "}
-                    <a
-                      href="/terms"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-dark-pink hover:underline font-medium"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Terms and Conditions
-                    </a>
-                    *
-                  </label>
-                </div>
-              </div>
-
-              {/* Submit Button - Desktop */}
-              <div className="hidden lg:block">
-                <button
-                  type="submit"
-                  disabled={submitting || !termsAccepted}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
-                >
-                  {submitting ? "Submitting..." : "Submit"}
-                </button>
-              </div>
-            </form>
+          {/* Selected Items - Left Side */}
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <AllMealSessionsItems showActions={false} />
           </div>
 
-          {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-base-200/30 rounded-2xl p-6 border border-base-300 sticky top-4">
+          {/* Contact Form Card - Right Side */}
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <div className="bg-base-200/30 rounded-2xl p-6 border border-base-300">
               <h3 className="text-xl font-bold mb-6 text-base-content">
-                Event & Order Summary
+                Contact Details
               </h3>
 
-              <p className="text-sm text-base-content/70 mb-4">
-                Review your event details and order summary before submitting
-                your request.
-              </p>
-
-              {/* Event Details */}
-              <div className="space-y-3 mb-6 pb-6 border-b border-base-300">
-                <div className="flex justify-between text-sm">
-                  <span className="text-base-content/70">
-                    Event Date & Time
-                  </span>
-                  <span className="font-semibold text-base-content text-right">
-                    {eventDetails?.eventDate}
-                    <br />
-                    {eventDetails?.eventTime}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-base-content/70">Type of Event</span>
-                  <span className="font-semibold text-base-content capitalize">
-                    {eventDetails?.eventType}
-                  </span>
-                </div>
-                {/* <div className="flex justify-between text-sm">
-                  <span className="text-base-content/70">Guest Count</span>
-                  <p className="font-semibold text-base-content">
-                    {(eventDetails?.guestCount || 10) - 10} -{" "}
-                    {(eventDetails?.guestCount || 10) + 10}{" "}
-                  </p>
-                </div> */}
-              </div>
-
-              {/* Catering List */}
-              <h4 className="font-bold mb-4 text-base-content">Your List</h4>
-
-              {/* Important Notes */}
-              <div className="mb-4">
-                <button
-                  type="button"
-                  className="w-full bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-center justify-between focus:outline-none group"
-                  onClick={() => setImportantNotesOpen((open) => !open)}
-                  aria-expanded={importantNotesOpen}
-                  aria-controls="important-notes-content"
-                >
-                  <span className="text-xs font-semibold text-warning">
-                    Important Notes
-                  </span>
-                  <span className="ml-2 text-warning group-hover:underline flex items-center">
-                    <svg
-                      className={`transition-transform duration-200 w-4 h-4 ${
-                        importantNotesOpen ? "rotate-180" : "rotate-0"
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </span>
-                </button>
-                {importantNotesOpen && (
-                  <div
-                    id="important-notes-content"
-                    className="mt-2 text-xs text-base-content/80 leading-relaxed"
-                  >
-                    <p>
-                      For accurate allergen information, please contact stalls
-                      or restaurants directly.
-                    </p>
-                    <p>
-                      For any last-minute changes, please contact us at least
-                      two days before your event.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Promo Code Section */}
-              <div className="mb-6">
-                <h4 className="font-semibold mb-3 text-base-content">
-                  Discount Code
-                </h4>
-                <div className="flex gap-2 mb-3">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Organization */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
+                    Organization (Optional)
+                  </label>
                   <input
                     type="text"
-                    value={promoInput}
-                    onChange={(e) =>
-                      setPromoInput(e.target.value.toUpperCase())
-                    }
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleApplyPromoCode();
-                      }
-                    }}
-                    placeholder="Add discount code or voucher"
-                    className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-xs"
+                    name="organization"
+                    value={formData.organization}
+                    onChange={(e) => handleChange("organization", e.target.value)}
+                    onBlur={() => handleBlur("organization")}
+                    placeholder="Your Organization Name"
+                    className={`w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                   />
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
+                    Name*
+                  </label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    required
+                    value={formData.fullName}
+                    onChange={(e) => handleChange("fullName", e.target.value)}
+                    onBlur={() => handleBlur("fullName")}
+                    placeholder="Your Name"
+                    className={`w-full px-4 py-3 bg-base-200/50 border ${
+                      errors.fullName ? "border-error" : "border-base-300"
+                    } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+                  />
+                  {errors.fullName && (
+                    <p className="mt-1 text-sm text-error">✗ {errors.fullName}</p>
+                  )}
+                </div>
+
+                {/* Telephone */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
+                    Telephone*
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => handleChange("phone", e.target.value)}
+                    onBlur={() => handleBlur("phone")}
+                    placeholder="Your Number"
+                    className={`w-full px-4 py-3 bg-base-200/50 border ${
+                      errors.phone ? "border-error" : "border-base-300"
+                    } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-error">✗ {errors.phone}</p>
+                  )}
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
+                    Email*
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    onBlur={() => handleBlur("email")}
+                    placeholder="Your Email"
+                    className={`w-full px-4 py-3 bg-base-200/50 border ${
+                      errors.email ? "border-error" : "border-base-300"
+                    } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-error">✗ {errors.email}</p>
+                  )}
+                </div>
+
+                {/* CC Additional Emails */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
+                    CC Additional Emails (Optional)
+                  </label>
+                  <p className="text-xs text-base-content/60 mb-3">
+                    Add additional email addresses to receive order updates
+                  </p>
+
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="email"
+                      value={ccEmailInput}
+                      onChange={(e) => setCcEmailInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCcEmail();
+                        }
+                      }}
+                      placeholder="additional@email.com"
+                      className="flex-1 px-4 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCcEmail}
+                      className="px-4 py-2 bg-dark-pink text-white rounded-lg font-medium hover:opacity-90 transition-all text-sm"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  {ccEmails.length > 0 && (
+                    <div className="space-y-2">
+                      {ccEmails.map((email, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
+                        >
+                          <span className="text-sm text-base-content">
+                            {email}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCcEmail(email)}
+                            className="text-error hover:opacity-80 text-xs font-medium"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Promo Code Section */}
+                <div className="pt-4 border-t border-base-300">
+                  <h4 className="font-semibold mb-3 text-base-content">
+                    Discount Code
+                  </h4>
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) =>
+                        setPromoInput(e.target.value.toUpperCase())
+                      }
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleApplyPromoCode();
+                        }
+                      }}
+                      placeholder="Add discount code or voucher"
+                      className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPromoCode}
+                      disabled={validatingPromo || !promoInput.trim()}
+                      className="px-4 py-2 bg-dark-pink text-white rounded-lg font-medium hover:opacity-90 transition-all disabled:bg-base-300 disabled:cursor-not-allowed text-sm"
+                    >
+                      {validatingPromo ? "..." : "Apply"}
+                    </button>
+                  </div>
+
+                  {promoError && (
+                    <div className="mb-3 p-2 bg-error/10 border border-error/30 rounded-lg">
+                      <p className="text-xs text-error">✗ {promoError}</p>
+                    </div>
+                  )}
+
+                  {promoSuccess && (
+                    <div className="mb-3 p-2 bg-success/10 border border-success/30 rounded-lg">
+                      <p className="text-xs text-success">
+                        ✓ {promoSuccess}
+                        {pricing && (pricing.promoDiscount ?? 0) > 0 && (
+                          <> You saved £{pricing.promoDiscount!.toFixed(2)}</>
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                  {promoCodes.length > 0 && (
+                    <div className="space-y-2">
+                      {promoCodes.map((code) => (
+                        <div
+                          key={code}
+                          className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
+                        >
+                          <span className="font-mono text-xs font-medium text-primary">
+                            {code}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePromoCode(code)}
+                            className="text-error hover:opacity-80 text-xs font-medium"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-base-content/60 mt-2">
+                    If your organisation is partnered with us, please contact us
+                    for vouchers before payment.
+                  </p>
+                </div>
+
+                {/* Pricing Summary */}
+                {calculatingPricing && (
+                  <div className="text-center py-4 text-base-content/60 text-sm">
+                    Calculating pricing...
+                  </div>
+                )}
+
+                {pricing && (
+                  <div className="space-y-2 pt-4 border-t border-base-300">
+                    {/* Show subtotal */}
+                    <div className="flex justify-between text-sm text-base-content/70">
+                      <span>Subtotal</span>
+                      <span>£{pricing.subtotal.toFixed(2)}</span>
+                    </div>
+
+                    {/* Show promotion discount if active */}
+                    {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
+                      <div className="flex justify-between text-sm text-green-600 font-semibold">
+                        <span>Restaurant Promotion</span>
+                        <span>-£{pricing.restaurantPromotionDiscount!.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {/* Delivery fee */}
+                    <div className="flex justify-between text-sm text-base-content/70">
+                      <span>Delivery Cost</span>
+                      <span>£{pricing.deliveryFee.toFixed(2)}</span>
+                    </div>
+
+                    {/* Promo code discount */}
+                    {(pricing.promoDiscount ?? 0) > 0 && (
+                      <div className="flex justify-between text-sm text-success font-medium">
+                        <span>Promo Code Discount</span>
+                        <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {/* Total */}
+                    <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
+                      <span>Total</span>
+                      <div className="text-right">
+                        <p className="">£{pricing.total.toFixed(2)}</p>
+                        {(pricing.totalDiscount ?? 0) > 0 && (
+                          <p className="text-xs line-through text-base-content/50">
+                            £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!pricing && !calculatingPricing && (
+                  <div className="flex justify-between pt-4 border-t border-base-300">
+                    <span className="font-semibold text-base-content">
+                      Estimated Total:
+                    </span>
+                    <span className="font-bold text-xl text-base-content">
+                      £{estimatedTotal.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Important Notes */}
+                <div className="pt-4">
                   <button
                     type="button"
-                    onClick={handleApplyPromoCode}
-                    disabled={validatingPromo || !promoInput.trim()}
-                    className="px-4 py-2 bg-dark-pink text-white rounded-lg font-medium hover:opacity-90 transition-all disabled:bg-base-300 disabled:cursor-not-allowed text-sm"
+                    className="w-full bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-center justify-between focus:outline-none group"
+                    onClick={() => setImportantNotesOpen((open) => !open)}
+                    aria-expanded={importantNotesOpen}
+                    aria-controls="important-notes-content"
                   >
-                    {validatingPromo ? "..." : "Apply"}
-                  </button>
-                </div>
-
-                {promoError && (
-                  <div className="mb-3 p-2 bg-error/10 border border-error/30 rounded-lg">
-                    <p className="text-xs text-error">✗ {promoError}</p>
-                  </div>
-                )}
-
-                {promoSuccess && (
-                  <div className="mb-3 p-2 bg-success/10 border border-success/30 rounded-lg">
-                    <p className="text-xs text-success">✓ {promoSuccess}</p>
-                  </div>
-                )}
-
-                {promoCodes.length > 0 && (
-                  <div className="space-y-2">
-                    {promoCodes.map((code) => (
-                      <div
-                        key={code}
-                        className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
+                    <span className="text-xs font-semibold text-warning">
+                      Important Notes
+                    </span>
+                    <span className="ml-2 text-warning group-hover:underline flex items-center">
+                      <svg
+                        className={`transition-transform duration-200 w-4 h-4 ${
+                          importantNotesOpen ? "rotate-180" : "rotate-0"
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
                       >
-                        <span className="font-mono text-xs font-medium text-primary">
-                          {code}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePromoCode(code)}
-                          className="text-error hover:opacity-80 text-xs font-medium"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <p className="text-xs text-base-content/60 mt-2">
-                  If your organisation is partnered with us, please contact us
-                  for vouchers before payment.
-                </p>
-              </div>
-
-              {/* Order Items */}
-              <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
-                {selectedItems.map(({ item, quantity }, index) => {
-                  const price = parseFloat(item.price?.toString() || "0");
-                  const discountPrice = parseFloat(
-                    item.discountPrice?.toString() || "0"
-                  );
-                  const itemPrice =
-                    item.isDiscount && discountPrice > 0
-                      ? discountPrice
-                      : price;
-
-                  // USE ITEM'S OWN VALUES:
-                  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-                  const displayFeeds = quantity / BACKEND_QUANTITY_UNIT;
-
-                  // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
-                  const addonTotal = (item.selectedAddons || []).reduce(
-                    (sum, { price, quantity }) => {
-                      return sum + (price || 0) * (quantity || 0);
-                    },
-                    0
-                  );
-
-                  const subtotal = itemPrice * quantity + addonTotal;
-
-                  return (
-                    <div key={index} className="flex items-center gap-3">
-                      {item.image && (
-                        <img
-                          src={item.image}
-                          alt={item.menuItemName}
-                          className="w-12 h-12 object-cover rounded-lg"
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 9l-7 7-7-7"
                         />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-base-content truncate">
-                          {item.menuItemName}
-                        </p>
-                        {item.selectedAddons &&
-                          item.selectedAddons.length > 0 && (
-                            <p className="text-xs text-base-content/50 mb-1">
-                              {item.selectedAddons.map((addon, idx) => (
-                                <span key={idx}>
-                                  + {addon.name}
-                                  {addon.quantity > 1 &&
-                                    ` (×${addon.quantity})`}
-                                  {idx < item.selectedAddons!.length - 1
-                                    ? ", "
-                                    : ""}
-                                </span>
-                              ))}
-                            </p>
-                          )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-base-content/70">
-                            {displayFeeds} portions
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-sm text-primary">
-                          £{subtotal.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Pricing Summary */}
-              {calculatingPricing && (
-                <div className="text-center py-4 text-base-content/60 text-sm">
-                  Calculating pricing...
-                </div>
-              )}
-
-              {pricing && (
-                <div className="space-y-2 pt-4 border-t border-base-300">
-                  {/* Show subtotal before promotion */}
-                  <div className="flex justify-between text-sm text-base-content/70">
-                    <span>Subtotal</span>
-                    <span>£{subtotalBeforeDiscount.toFixed(2)}</span>
-                  </div>
-
-                  {/* Show promotion discount if active */}
-                  {promotionDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600 font-semibold">
-                      <span>Restaurant Promotion</span>
-                      <span>-£{promotionDiscount.toFixed(2)}</span>
-                    </div>
-                  )}
-
-                  {/* Delivery fee */}
-                  <div className="flex justify-between text-sm text-base-content/70">
-                    <span>Delivery Cost</span>
-                    <span>£{pricing.deliveryFee.toFixed(2)}</span>
-                  </div>
-
-                  {/* Promo code discount */}
-                  {(pricing.promoDiscount ?? 0) > 0 && (
-                    <div className="flex justify-between text-sm text-success font-medium">
-                      <span>Promo Code Discount</span>
-                      <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
-                    </div>
-                  )}
-
-                  {/* Total */}
-                  <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
-                    <span>Total</span>
-                    <div className="text-right">
-                      <p className="">£{pricing.total.toFixed(2)}</p>
-                      {(promotionDiscount > 0 ||
-                        (pricing.promoDiscount ?? 0) > 0) && (
-                        <p className="text-xs line-through text-base-content/50">
-                          £
-                          {(
-                            subtotalBeforeDiscount + pricing.deliveryFee
-                          ).toFixed(2)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {!pricing && !calculatingPricing && (
-                <div className="flex justify-between pt-4 border-t border-base-300">
-                  <span className="font-semibold text-base-content">
-                    Estimated Total:
-                  </span>
-                  <span className="font-bold text-xl text-base-content">
-                    £{estimatedTotal.toFixed(2)}
-                  </span>
-                </div>
-              )}
-
-              {/* Terms and Conditions - Mobile */}
-              <div className="lg:hidden mt-6">
-                <div className="flex items-start gap-3 mb-4">
-                  <input
-                    type="checkbox"
-                    id="terms-mobile"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
-                  />
-                  <label
-                    htmlFor="terms-mobile"
-                    className="text-sm text-base-content/80 cursor-pointer"
-                  >
-                    I accept the{" "}
-                    <a
-                      href="/terms"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-dark-pink hover:underline font-medium"
-                      onClick={(e) => e.stopPropagation()}
+                      </svg>
+                    </span>
+                  </button>
+                  {importantNotesOpen && (
+                    <div
+                      id="important-notes-content"
+                      className="mt-2 text-xs text-base-content/80 leading-relaxed"
                     >
-                      Terms and Conditions
-                    </a>
-                    *
-                  </label>
+                      <p>
+                        For accurate allergen information, please contact stalls
+                        or restaurants directly.
+                      </p>
+                      <p>
+                        For any last-minute changes, please contact us at least
+                        two days before your event.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Mobile Submit Button */}
-              <div className="lg:hidden">
+                {/* Terms and Conditions */}
+                <div className="pt-4">
+                  <div className="flex items-start gap-3 mb-4">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
+                    />
+                    <label
+                      htmlFor="terms"
+                      className="text-sm text-base-content/80 cursor-pointer"
+                    >
+                      I accept the{" "}
+                      <a
+                        href="/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-dark-pink hover:underline font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Terms and Conditions
+                      </a>
+                      *
+                    </label>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={submitting || !termsAccepted}
-                  onClick={handleSubmit}
                   className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>
