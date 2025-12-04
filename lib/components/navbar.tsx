@@ -5,10 +5,11 @@ import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
 
 import styles from "./navbar.module.css";
+import { useScroll } from "@/context/ScrollContext";
 
 function NavbarAction({ onLinkClick }: { onLinkClick?: () => void }) {
   return (
-    <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
+    <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black ">
       <Link href={"/event-order"} onClick={onLinkClick}>
         <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white text-lg">
           EVENT ORDERING
@@ -44,9 +45,14 @@ export default function Navbar() {
       drawerCheckbox.checked = false;
     }
   };
+  const { hideNavbar } = useScroll();
 
   return (
-    <nav className="sticky top-0 left-0 right-0 flex flex-col z-50">
+    <nav
+      className={`sticky top-0 z-50 bg-white border-b transition-transform duration-300 ${
+        hideNavbar ? "-translate-y-full" : "translate-y-0"
+      }`}
+    >
       <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 bg-secondary gap-5 flex-nowrap">
         {/* <div className="hidden md:block w-full max-w-xs"> */}
         {/* <SearchBar /> */}
