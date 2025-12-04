@@ -17,6 +17,7 @@ interface MenuItemForPdf {
   restaurantName: string;
   categoryName?: string;
   subcategoryName?: string;
+  image?: string;
   addons?: Array<{
     name: string;
     quantity: number;
@@ -79,6 +80,7 @@ const extractMenuItems = (orderItems: PricingOrderItem[]): MenuItemForPdf[] => {
         restaurantName: restaurant.restaurantName,
         categoryName: item.categoryName || item.groupTitle,
         subcategoryName: item.subcategory?.name,
+        image: item.image,
         addons: addons.length > 0 ? addons : undefined,
       });
     });
@@ -125,19 +127,26 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
     `
     : "";
 
+  const imageHtml = item.image
+    ? `<img src="${item.image}" alt="${item.name}" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" />`
+    : "";
+
   return `
-    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px; page-break-inside: avoid;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-        <div style="flex: 1;">
-          <p style="font-weight: 600; font-size: 14px; color: #111; margin: 0 0 4px 0;">${item.name}</p>
-          <p style="font-size: 12px; color: #666; margin: 0;">
-            ${Math.round(numUnits)} portion${Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~${Math.round(totalFeeds)} people
+    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+      <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+        ${imageHtml}
+        <div style="flex: 1; display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="flex: 1;">
+            <p style="font-weight: 600; font-size: 14px; color: #111; margin: 0 0 4px 0;">${item.name}</p>
+            <p style="font-size: 12px; color: #666; margin: 0;">
+              ${Math.round(numUnits)} portion${Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~${Math.round(totalFeeds)} people
+            </p>
+            <p style="font-size: 11px; color: #888; margin: 4px 0 0 0;">From: ${item.restaurantName}</p>
+          </div>
+          <p style="font-weight: 700; color: #ec4899; font-size: 14px; margin: 0; white-space: nowrap;">
+            £${Number(item.price).toFixed(2)}
           </p>
-          <p style="font-size: 11px; color: #888; margin: 4px 0 0 0;">From: ${item.restaurantName}</p>
         </div>
-        <p style="font-weight: 700; color: #ec4899; font-size: 14px; margin: 0; white-space: nowrap;">
-          £${Number(item.price).toFixed(2)}
-        </p>
       </div>
       ${addonsHtml}
     </div>
@@ -149,7 +158,7 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
  */
 const buildCategoryHtml = (categoryName: string, items: MenuItemForPdf[]): string => {
   return `
-    <div style="margin-bottom: 24px; page-break-inside: avoid;">
+    <div style="margin-bottom: 24px;">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #ec4899;">
         <span style="font-size: 18px;">🍽️</span>
         <h3 style="font-size: 16px; font-weight: 700; color: #111; margin: 0;">
@@ -174,8 +183,8 @@ const buildSessionHtml = (session: MealSessionForPdf): string => {
     .join("");
 
   return `
-    <div style="margin-bottom: 32px; border: 2px solid #fce7f3; border-radius: 12px; overflow: hidden; page-break-inside: avoid;">
-      <div style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); padding: 16px 20px;">
+    <div style="margin-bottom: 32px; border: 2px solid #fce7f3; border-radius: 12px; overflow: hidden;">
+      <div style="background: #fce7f3; padding: 16px 20px;">
         <h2 style="font-size: 20px; font-weight: 700; color: #be185d; margin: 0 0 8px 0;">
           ${session.sessionName}
         </h2>
@@ -276,6 +285,11 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
               box-shadow: none;
               max-width: 100%;
             }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
           }
           @page {
             margin: 10mm;
@@ -285,7 +299,7 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
       <body>
         <div class="container">
           <!-- Header -->
-          <div style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); padding: 32px; color: white;">
+          <div style="background: #ec4899; padding: 32px; color: white;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
               <div>
                 <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px 0;">Event Menu</h1>
@@ -317,7 +331,7 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
             ${sessionsHtml}
 
             <!-- Grand Total -->
-            <div style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border-radius: 12px; padding: 20px; margin-top: 16px;">
+            <div style="background: #fce7f3; border-radius: 12px; padding: 20px; margin-top: 16px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 18px; font-weight: 700; color: #be185d;">Grand Total:</span>
                 <span style="font-size: 24px; font-weight: 700; color: #be185d;">
@@ -458,6 +472,7 @@ export function buildMenuHTMLFromLocalState(
           restaurantName: "Restaurant", // Not available in local state
           categoryName: item.categoryName,
           subcategoryName: item.subcategoryName,
+          image: item.image,
           addons: item.selectedAddons?.map(addon => ({
             name: addon.name,
             quantity: addon.quantity,
@@ -508,6 +523,11 @@ export function buildMenuHTMLFromLocalState(
               box-shadow: none;
               max-width: 100%;
             }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
           }
           @page {
             margin: 10mm;
@@ -517,7 +537,7 @@ export function buildMenuHTMLFromLocalState(
       <body>
         <div class="container">
           <!-- Header -->
-          <div style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); padding: 32px; color: white;">
+          <div style="background: #ec4899; padding: 32px; color: white;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
               <div>
                 <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px 0;">Event Menu Preview</h1>
@@ -555,7 +575,7 @@ export function buildMenuHTMLFromLocalState(
 
             ${sessions.length > 0 ? `
               <!-- Grand Total -->
-              <div style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border-radius: 12px; padding: 20px; margin-top: 16px;">
+              <div style="background: #fce7f3; border-radius: 12px; padding: 20px; margin-top: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-size: 18px; font-weight: 700; color: #be185d;">Estimated Total:</span>
                   <span style="font-size: 24px; font-weight: 700; color: #be185d;">
