@@ -61,11 +61,9 @@ class CateringService {
     //   );
     // }
 
-
     const response = await fetchWithAuth(
       `${API_BASE_URL}/search?catering=true&${params.toString()}`
     );
-
 
     if (!response.ok) {
       throw new Error("Failed to search menu items");
@@ -123,11 +121,13 @@ class CateringService {
           }
 
           // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map((addon) => ({
-            name: addon.name,
-            quantity: addon.quantity || 0,
-            groupTitle: addon.groupTitle,
-          }));
+          const transformedAddons = (item.selectedAddons || []).map(
+            (addon) => ({
+              name: addon.name,
+              quantity: addon.quantity || 0,
+              groupTitle: addon.groupTitle,
+            })
+          );
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
@@ -163,20 +163,28 @@ class CateringService {
         // Validate required fields
         const sessionLabel = session.sessionName || `Session ${index + 1}`;
         if (!session.sessionDate) {
-          throw new Error(`Session "${sessionLabel}" is missing a date. Please set a date for your delivery.`);
+          throw new Error(
+            `Session "${sessionLabel}" is missing a date. Please set a date for your delivery.`
+          );
         }
         // Validate sessionDate format (YYYY-MM-DD)
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(session.sessionDate)) {
-          throw new Error(`Session "${sessionLabel}" has an invalid date format. Please select a valid date.`);
+          throw new Error(
+            `Session "${sessionLabel}" has an invalid date format. Please select a valid date.`
+          );
         }
         if (!session.eventTime) {
-          throw new Error(`Session "${sessionLabel}" is missing a time. Please set a time for your delivery.`);
+          throw new Error(
+            `Session "${sessionLabel}" is missing a time. Please set a time for your delivery.`
+          );
         }
         // Validate eventTime format (HH:MM)
         const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
         if (!timeRegex.test(session.eventTime)) {
-          throw new Error(`Session "${sessionLabel}" has an invalid time format. Expected HH:MM format.`);
+          throw new Error(
+            `Session "${sessionLabel}" has an invalid time format. Expected HH:MM format.`
+          );
         }
 
         return {
@@ -197,7 +205,9 @@ class CateringService {
         total +
         session.orderItems.reduce((sessionTotal, { item, quantity }) => {
           const price = parseFloat(item.price?.toString() || "0");
-          const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+          const discountPrice = parseFloat(
+            item.discountPrice?.toString() || "0"
+          );
           const unitPrice =
             item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
@@ -242,6 +252,8 @@ class CateringService {
       paymentMethod: "stripe_direct",
     };
 
+    console.log("Create Order Dto: ", createDto);
+
     const response = await fetchWithAuth(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
       headers: {
@@ -250,9 +262,8 @@ class CateringService {
       body: JSON.stringify(createDto),
     });
 
-
     if (!response.ok) {
-      console.error("Failed to submit catering order: ", response)
+      console.error("Failed to submit catering order: ", response);
       throw new Error("Failed to submit catering order");
     }
 
@@ -417,11 +428,13 @@ class CateringService {
           }
 
           // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map((addon) => ({
-            name: addon.name,
-            quantity: addon.quantity || 0,
-            groupTitle: addon.groupTitle,
-          }));
+          const transformedAddons = (item.selectedAddons || []).map(
+            (addon) => ({
+              name: addon.name,
+              quantity: addon.quantity || 0,
+              groupTitle: addon.groupTitle,
+            })
+          );
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
@@ -540,11 +553,13 @@ class CateringService {
             };
           }
 
-          const transformedAddons = (item.selectedAddons || []).map((addon) => ({
-            name: addon.name,
-            quantity: addon.quantity || 0,
-            groupTitle: addon.groupTitle,
-          }));
+          const transformedAddons = (item.selectedAddons || []).map(
+            (addon) => ({
+              name: addon.name,
+              quantity: addon.quantity || 0,
+              groupTitle: addon.groupTitle,
+            })
+          );
 
           acc[restaurantId].items.push({
             menuItemId: item.id,
@@ -712,7 +727,6 @@ class CateringService {
 
     const response = await fetchWithAuth(url);
 
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error("API Error:", errorText);
@@ -853,7 +867,9 @@ class CateringService {
   }
 
   async getRestaurant(restaurantId: string): Promise<any> {
-    const response = await fetchWithAuth(`${API_BASE_URL}/restaurant/${restaurantId}`);
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant/${restaurantId}`
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch restaurant");

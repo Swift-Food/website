@@ -498,9 +498,7 @@ export default function Step3ContactInfo() {
         if (!promoCodes.includes(promoInput.toUpperCase())) {
           setPromoCodes([...promoCodes, promoInput.toUpperCase()]);
           setPromoSuccess(
-            `Promo code "${promoInput.toUpperCase()}" applied! You saved £${validation.discount?.toFixed(
-              2
-            )}`
+            `Promo code "${promoInput.toUpperCase()}" applied!`
           );
           setPromoInput("");
         } else {
@@ -1025,7 +1023,12 @@ export default function Step3ContactInfo() {
 
                   {promoSuccess && (
                     <div className="mb-3 p-2 bg-success/10 border border-success/30 rounded-lg">
-                      <p className="text-xs text-success">✓ {promoSuccess}</p>
+                      <p className="text-xs text-success">
+                        ✓ {promoSuccess}
+                        {pricing && (pricing.promoDiscount ?? 0) > 0 && (
+                          <> You saved £{pricing.promoDiscount!.toFixed(2)}</>
+                        )}
+                      </p>
                     </div>
                   )}
 
