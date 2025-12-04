@@ -336,7 +336,7 @@ export default function OrderItemsByCategory({ order }: OrderItemsByCategoryProp
         {/* Session Header */}
         <button
           onClick={() => toggleSession(session.id)}
-          className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 bg-gradient-to-r from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-150 transition-colors"
+          className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 bg-secondary/50 transition-colors"
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left">
             <h3 className="text-lg sm:text-xl font-bold text-pink-700">

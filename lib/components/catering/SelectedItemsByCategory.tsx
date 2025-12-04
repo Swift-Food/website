@@ -2,7 +2,10 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useCatering } from "@/context/CateringContext";
-import { SelectedMenuItem, CategoryWithSubcategories } from "@/types/catering.types";
+import {
+  SelectedMenuItem,
+  CategoryWithSubcategories,
+} from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
 
 interface GroupedItem {
@@ -45,7 +48,8 @@ export default function SelectedItemsByCategory({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categories = await categoryService.getCategoriesWithSubcategories();
+        const categories =
+          await categoryService.getCategoriesWithSubcategories();
         setCategoryOrder(categories.map((c) => c.name));
       } catch (error) {
         console.error("Failed to fetch categories for ordering:", error);
@@ -150,7 +154,7 @@ export default function SelectedItemsByCategory({
     return (
       <div
         key={originalIndex}
-        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-[#F5F0E8] rounded-xl"
+        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl"
       >
         {/* Mobile Layout */}
         <div className="flex gap-3 sm:hidden">
@@ -169,22 +173,49 @@ export default function SelectedItemsByCategory({
             </p>
             {item.selectedAddons && item.selectedAddons.length > 0 && (
               <div className="text-sm text-gray-600 mt-1">
-                {item.selectedAddons.map(
-                  (
-                    addon: { groupTitle: string; name: string; quantity: number },
-                    idx: number
-                  ) => (
-                    <div key={idx}>
-                      <p className="font-medium text-gray-800">
-                        {addon.groupTitle}
+                {(() => {
+                  // Group addons by groupTitle
+                  const addonsByGroup = item.selectedAddons.reduce(
+                    (
+                      acc: Record<string, { name: string; quantity: number }[]>,
+                      addon: {
+                        groupTitle: string;
+                        name: string;
+                        quantity: number;
+                      }
+                    ) => {
+                      const group = addon.groupTitle || "Options";
+                      if (!acc[group]) acc[group] = [];
+                      acc[group].push({
+                        name: addon.name,
+                        quantity: addon.quantity,
+                      });
+                      return acc;
+                    },
+                    {}
+                  );
+                  return Object.entries(addonsByGroup).map(
+                    ([groupTitle, addons]) => (
+                      <p key={groupTitle} className="text-gray-500">
+                        <span className="font-medium text-gray-700">
+                          {groupTitle}:
+                        </span>{" "}
+                        {(addons as { name: string; quantity: number }[]).map(
+                          (a, i) => (
+                            <span key={i}>
+                              {a.name}
+                              {a.quantity > 1 && ` (×${a.quantity})`}
+                              {i <
+                                (addons as { name: string; quantity: number }[])
+                                  .length -
+                                  1 && ", "}
+                            </span>
+                          )
+                        )}
                       </p>
-                      <p className="text-gray-500">
-                        + {addon.name}
-                        {addon.quantity > 1 && ` (×${addon.quantity})`}
-                      </p>
-                    </div>
-                  )
-                )}
+                    )
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -233,18 +264,47 @@ export default function SelectedItemsByCategory({
           <p className="font-semibold text-gray-800">{item.menuItemName}</p>
           {item.selectedAddons && item.selectedAddons.length > 0 && (
             <div className="text-sm text-gray-600 mt-1">
-              {item.selectedAddons.map(
-                (
-                  addon: { groupTitle: string; name: string; quantity: number },
-                  idx: number
-                ) => (
-                  <p key={idx}>
-                    <span className="font-medium">{addon.groupTitle}:</span>{" "}
-                    {addon.name}
-                    {addon.quantity > 1 && ` (×${addon.quantity})`}
-                  </p>
-                )
-              )}
+              {(() => {
+                // Group addons by groupTitle
+                const addonsByGroup = item.selectedAddons.reduce(
+                  (
+                    acc: Record<string, { name: string; quantity: number }[]>,
+                    addon: {
+                      groupTitle: string;
+                      name: string;
+                      quantity: number;
+                    }
+                  ) => {
+                    const group = addon.groupTitle || "Options";
+                    if (!acc[group]) acc[group] = [];
+                    acc[group].push({
+                      name: addon.name,
+                      quantity: addon.quantity,
+                    });
+                    return acc;
+                  },
+                  {}
+                );
+                return Object.entries(addonsByGroup).map(
+                  ([groupTitle, addons]) => (
+                    <p key={groupTitle}>
+                      <span className="font-medium">{groupTitle}:</span>{" "}
+                      {(addons as { name: string; quantity: number }[]).map(
+                        (a, i) => (
+                          <span key={i}>
+                            {a.name}
+                            {a.quantity > 1 && ` (×${a.quantity})`}
+                            {i <
+                              (addons as { name: string; quantity: number }[])
+                                .length -
+                                1 && ", "}
+                          </span>
+                        )
+                      )}
+                    </p>
+                  )
+                );
+              })()}
             </div>
           )}
         </div>
@@ -306,7 +366,7 @@ export default function SelectedItemsByCategory({
               {/* Category Header */}
               <button
                 onClick={() => handleToggleCategory(categoryName)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-base-100 hover:bg-base-200 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 bg-secondary/50 hover:bg-secondary/70 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-800">
