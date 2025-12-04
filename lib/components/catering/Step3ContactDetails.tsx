@@ -430,95 +430,11 @@ export default function Step3ContactInfo() {
   const calculatePricing = async () => {
     setCalculatingPricing(true);
     try {
-      const groupedByRestaurant = selectedItems.reduce(
-        (acc, { item, quantity }) => {
-          const restaurantId =
-            item.restaurant?.restaurantId || item.restaurantId || "unknown";
-          const restaurantName = item.restaurant?.name || "Unknown Restaurant";
-
-          if (!acc[restaurantId]) {
-            acc[restaurantId] = {
-              restaurantId,
-              restaurantName,
-              items: [],
-            };
-          }
-
-          const price = parseFloat(item.price?.toString() || "0");
-          const discountPrice = parseFloat(
-            item.discountPrice?.toString() || "0"
-          );
-          const unitPrice =
-            item.isDiscount && discountPrice > 0 ? discountPrice : price;
-
-          // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
-          const addonTotal = (item.selectedAddons || []).reduce(
-            (sum, { price, quantity }) => {
-              return sum + (price || 0) * (quantity || 0);
-            },
-            0
-          );
-
-          // Total price includes both item price and addon price
-          const itemTotalPrice = unitPrice * quantity + addonTotal;
-
-          // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map(
-            (addon) => ({
-              ...addon,
-              quantity: addon.quantity || 0,
-            })
-          );
-
-          acc[restaurantId].items.push({
-            menuItemId: item.id,
-            menuItemName: item.menuItemName,
-            groupTitle: item.groupTitle,
-            quantity,
-            unitPrice,
-            addonPrice: addonTotal,
-            selectedAddons: transformedAddons,
-            totalPrice: itemTotalPrice,
-          });
-
-          return acc;
-        },
-        {} as Record<
-          string,
-          { restaurantId: string; restaurantName: string; items: any[] }
-        >
-      );
-
-      const orderItems = Object.values(groupedByRestaurant).map(
-        (group: any) => {
-          const restaurantTotal = group.items.reduce(
-            (sum: any, item: any) => sum + item.totalPrice,
-            0
-          );
-
-          return {
-            restaurantId: group.restaurantId,
-            restaurantName: group.restaurantName,
-            menuItems: group.items,
-            status: "pending",
-            restaurantCost: restaurantTotal,
-            totalPrice: restaurantTotal,
-          };
-        }
-      );
-
-      const pricingResult = await cateringService.calculateCateringPricing(
-        orderItems,
+      // Use meal sessions for pricing calculation to get proper per-session delivery fees
+      const pricingResult = await cateringService.calculateCateringPricingWithMealSessions(
+        mealSessions,
         promoCodes
       );
-
-      if (!pricingResult.isValid) {
-        alert(pricingResult.error || "Unable to calculate pricing");
-        setPricing(null);
-        return;
-      }
-
-      setPricing(pricingResult);
 
       if (!pricingResult.isValid) {
         alert(pricingResult.error || "Unable to calculate pricing");
@@ -562,7 +478,7 @@ export default function Step3ContactInfo() {
   useEffect(() => {
     calculatePricing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [promoCodes]);
+  }, [promoCodes, mealSessions]);
 
   const handleApplyPromoCode = async () => {
     if (!promoInput.trim()) return;
@@ -572,85 +488,10 @@ export default function Step3ContactInfo() {
     setPromoSuccess("");
 
     try {
-      const groupedByRestaurant = selectedItems.reduce(
-        (acc, { item, quantity }) => {
-          const restaurantId =
-            item.restaurant?.restaurantId || item.restaurantId || "unknown";
-          const restaurantName = item.restaurant?.name || "Unknown Restaurant";
-
-          if (!acc[restaurantId]) {
-            acc[restaurantId] = {
-              restaurantId,
-              restaurantName,
-              items: [],
-            };
-          }
-
-          const price = parseFloat(item.price?.toString() || "0");
-          const discountPrice = parseFloat(
-            item.discountPrice?.toString() || "0"
-          );
-          const unitPrice =
-            item.isDiscount && discountPrice > 0 ? discountPrice : price;
-
-          // Addon total = sum of (addonPrice × addonQuantity) - no scaling multipliers
-          const addonTotal = (item.selectedAddons || []).reduce(
-            (sum, { price, quantity }) => {
-              return sum + (price || 0) * (quantity || 0);
-            },
-            0
-          );
-
-          // Total price includes both item price and addon price
-          const itemTotalPrice = unitPrice * quantity + addonTotal;
-
-          // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map(
-            (addon) => ({
-              ...addon,
-              quantity: addon.quantity || 0,
-            })
-          );
-
-          acc[restaurantId].items.push({
-            menuItemId: item.id,
-            menuItemName: item.menuItemName,
-            quantity,
-            unitPrice,
-            addonPrice: addonTotal,
-            selectedAddons: transformedAddons,
-            totalPrice: itemTotalPrice,
-          });
-
-          return acc;
-        },
-        {} as Record<
-          string,
-          { restaurantId: string; restaurantName: string; items: any[] }
-        >
-      );
-
-      const orderItems = Object.values(groupedByRestaurant).map(
-        (group: any) => {
-          const restaurantTotal = group.items.reduce(
-            (sum: any, item: any) => sum + item.totalPrice,
-            0
-          );
-
-          return {
-            restaurantId: group.restaurantId,
-            restaurantName: group.restaurantName,
-            menuItems: group.items,
-            status: "pending",
-            restaurantCost: restaurantTotal,
-            totalPrice: restaurantTotal,
-          };
-        }
-      );
-
-      const validation = await cateringService.validatePromoCode(
+      // Use meal sessions format for promo validation
+      const validation = await cateringService.validatePromoCodeWithMealSessions(
         promoInput.toUpperCase(),
-        orderItems
+        mealSessions
       );
 
       if (validation.valid) {

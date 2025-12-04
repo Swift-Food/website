@@ -392,6 +392,99 @@ class CateringService {
     return response.json();
   }
 
+  /**
+   * Calculate pricing for multi-meal catering orders using meal sessions.
+   * Each meal session has its own delivery fee calculated by the backend.
+   */
+  async calculateCateringPricingWithMealSessions(
+    mealSessions: MealSessionState[],
+    promoCodes?: string[]
+  ): Promise<CateringPricingResult> {
+    // Helper function to group items by restaurant for a single session
+    const groupItemsByRestaurant = (
+      orderItems: SelectedMenuItem[]
+    ): CateringRestaurantOrderRequest[] => {
+      const groupedByRestaurant = orderItems.reduce(
+        (acc, { item, quantity }) => {
+          const restaurantId =
+            item.restaurant?.restaurantId || item.restaurantId || "unknown";
+
+          if (!acc[restaurantId]) {
+            acc[restaurantId] = {
+              restaurantId,
+              items: [],
+            };
+          }
+
+          // Send addons as-is to backend (no quantity transformation needed)
+          const transformedAddons = (item.selectedAddons || []).map((addon) => ({
+            name: addon.name,
+            quantity: addon.quantity || 0,
+            groupTitle: addon.groupTitle,
+          }));
+
+          acc[restaurantId].items.push({
+            menuItemId: item.id,
+            quantity,
+            selectedAddons: transformedAddons,
+            groupTitle: item.groupTitle,
+          });
+
+          return acc;
+        },
+        {} as Record<string, { restaurantId: string; items: any[] }>
+      );
+
+      return Object.values(groupedByRestaurant).map((group) => ({
+        restaurantId: group.restaurantId,
+        menuItems: group.items.map(
+          (item) =>
+            ({
+              menuItemId: item.menuItemId,
+              quantity: item.quantity,
+              selectedAddons: item.selectedAddons,
+              groupTitle: item.groupTitle,
+            } as CateringMenuItemRequest)
+        ),
+        specialInstructions: "",
+      }));
+    };
+
+    // Transform MealSessionState[] to the format expected by backend
+    const mealSessionRequests = mealSessions
+      .filter((session) => session.orderItems.length > 0) // Only include sessions with items
+      .map((session, index) => ({
+        sessionName: session.sessionName || `Session ${index + 1}`,
+        sessionDate: session.sessionDate,
+        eventTime: session.eventTime,
+        guestCount: session.guestCount,
+        specialRequirements: session.specialRequirements,
+        orderItems: groupItemsByRestaurant(session.orderItems),
+      }));
+
+    const pricingData = {
+      mealSessions: mealSessionRequests,
+      promoCodes,
+    };
+
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/pricing/catering-verify-cart`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pricingData),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Pricing calculation failed:", error);
+      throw new Error("Failed to calculate pricing");
+    }
+
+    return response.json();
+  }
+
   async validatePromoCode(
     promoCode: string,
     orderItems: CateringRestaurantOrderRequest[]
@@ -422,6 +515,70 @@ class CateringService {
         reason: "Network error while validating promo code",
       };
     }
+  }
+
+  /**
+   * Validate promo code using meal sessions format
+   */
+  async validatePromoCodeWithMealSessions(
+    promoCode: string,
+    mealSessions: MealSessionState[]
+  ): Promise<PromoCodeValidation> {
+    // Helper function to group items by restaurant for a single session
+    const groupItemsByRestaurant = (
+      orderItems: SelectedMenuItem[]
+    ): CateringRestaurantOrderRequest[] => {
+      const groupedByRestaurant = orderItems.reduce(
+        (acc, { item, quantity }) => {
+          const restaurantId =
+            item.restaurant?.restaurantId || item.restaurantId || "unknown";
+
+          if (!acc[restaurantId]) {
+            acc[restaurantId] = {
+              restaurantId,
+              items: [],
+            };
+          }
+
+          const transformedAddons = (item.selectedAddons || []).map((addon) => ({
+            name: addon.name,
+            quantity: addon.quantity || 0,
+            groupTitle: addon.groupTitle,
+          }));
+
+          acc[restaurantId].items.push({
+            menuItemId: item.id,
+            quantity,
+            selectedAddons: transformedAddons,
+            groupTitle: item.groupTitle,
+          });
+
+          return acc;
+        },
+        {} as Record<string, { restaurantId: string; items: any[] }>
+      );
+
+      return Object.values(groupedByRestaurant).map((group) => ({
+        restaurantId: group.restaurantId,
+        menuItems: group.items.map(
+          (item) =>
+            ({
+              menuItemId: item.menuItemId,
+              quantity: item.quantity,
+              selectedAddons: item.selectedAddons,
+              groupTitle: item.groupTitle,
+            } as CateringMenuItemRequest)
+        ),
+        specialInstructions: "",
+      }));
+    };
+
+    // Flatten all order items from all sessions for validation
+    const allOrderItems = mealSessions.flatMap((session) =>
+      groupItemsByRestaurant(session.orderItems)
+    );
+
+    return this.validatePromoCode(promoCode, allOrderItems);
   }
 
   async getOrderByToken(token: string): Promise<CateringOrderResponse> {
