@@ -27,9 +27,12 @@ export const fetchWithAuth = async (
 ): Promise<Response> => {
   const token = localStorage.getItem("access_token");
 
+  // Don't set Content-Type for FormData - let the browser set it with the boundary
+  const isFormData = options.body instanceof FormData;
+
   // Add Authorization header if token exists
   const headers = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...options.headers,
     ...(token && { Authorization: `Bearer ${token}` }),
   };
