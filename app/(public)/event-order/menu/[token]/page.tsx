@@ -32,10 +32,10 @@ export default function FullMenuPage() {
     }
   };
 
-  const handleSaveAsPdf = () => {
+  const handleSaveAsPdf = async () => {
     if (!order) return;
 
-    const html = buildMenuHTML(order);
+    const html = await buildMenuHTML(order);
     const newWindow = window.open("", "_blank");
 
     if (!newWindow) {

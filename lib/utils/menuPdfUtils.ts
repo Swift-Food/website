@@ -101,10 +101,11 @@ interface CategoryGroup {
 }
 
 /**
- * Group items by category and subcategory
+ * Group items by category and subcategory, sorted by category order
  */
 const groupItemsByCategory = (
-  items: MenuItemForPdf[]
+  items: MenuItemForPdf[],
+  categoryOrder: string[] = []
 ): Map<string, CategoryGroup> => {
   const grouped = new Map<string, CategoryGroup>();
 
@@ -127,6 +128,24 @@ const groupItemsByCategory = (
       categoryGroup.items.push(item);
     }
   });
+
+  // Sort categories by the order from the API
+  if (categoryOrder.length > 0) {
+    const sortedMap = new Map<string, CategoryGroup>();
+    const entries = Array.from(grouped.entries());
+
+    entries.sort((a, b) => {
+      const indexA = categoryOrder.indexOf(a[0]);
+      const indexB = categoryOrder.indexOf(b[0]);
+      // Put unknown categories at the end
+      const orderA = indexA === -1 ? 999 : indexA;
+      const orderB = indexB === -1 ? 999 : indexB;
+      return orderA - orderB;
+    });
+
+    entries.forEach(([key, value]) => sortedMap.set(key, value));
+    return sortedMap;
+  }
 
   return grouped;
 };
@@ -248,8 +267,11 @@ const buildCategoryHtml = (
 /**
  * Build HTML for a meal session
  */
-const buildSessionHtml = (session: MealSessionForPdf): string => {
-  const groupedItems = groupItemsByCategory(session.items);
+const buildSessionHtml = (
+  session: MealSessionForPdf,
+  categoryOrder: string[] = []
+): string => {
+  const groupedItems = groupItemsByCategory(session.items, categoryOrder);
   const categoriesHtml = Array.from(groupedItems.entries())
     .map(([category, categoryGroup]) =>
       buildCategoryHtml(category, categoryGroup)
@@ -289,9 +311,19 @@ const buildSessionHtml = (session: MealSessionForPdf): string => {
 /**
  * Build the complete printable menu HTML
  */
-export function buildMenuHTML(order: CateringOrderResponse): string {
+export async function buildMenuHTML(order: CateringOrderResponse): Promise<string> {
   const orderRef = order.id.substring(0, 4).toUpperCase();
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
+
+  // Fetch category order from API
+  let categoryOrder: string[] = [];
+  try {
+    const { categoryService } = await import("@/services/api/category.api");
+    const categories = await categoryService.getCategoriesWithSubcategories();
+    categoryOrder = categories.map((c) => c.name);
+  } catch (error) {
+    console.error("Failed to fetch categories for ordering:", error);
+  }
 
   // Prepare meal sessions data
   let sessions: MealSessionForPdf[] = [];
@@ -334,7 +366,7 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
   }
 
   const sessionsHtml = sessions
-    .map((session) => buildSessionHtml(session))
+    .map((session) => buildSessionHtml(session, categoryOrder))
     .join("");
 
   return `
@@ -476,8 +508,8 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
 /**
  * Opens the menu in a new window for viewing/printing
  */
-export function openMenuViewer(order: CateringOrderResponse): void {
-  const html = buildMenuHTML(order);
+export async function openMenuViewer(order: CateringOrderResponse): Promise<void> {
+  const html = await buildMenuHTML(order);
   const newWindow = window.open("", "_blank");
 
   if (!newWindow) {
@@ -522,11 +554,21 @@ export interface LocalMealSession {
   }>;
 }
 
-export function buildMenuHTMLFromLocalState(
+export async function buildMenuHTMLFromLocalState(
   mealSessions: LocalMealSession[],
   customerName?: string,
   organization?: string
-): string {
+): Promise<string> {
+  // Fetch category order from API
+  let categoryOrder: string[] = [];
+  try {
+    const { categoryService } = await import("@/services/api/category.api");
+    const categories = await categoryService.getCategoriesWithSubcategories();
+    categoryOrder = categories.map((c) => c.name);
+  } catch (error) {
+    console.error("Failed to fetch categories for ordering:", error);
+  }
+
   const sessions: MealSessionForPdf[] = mealSessions
     .filter((session) => session.orderItems.length > 0)
     .sort((a, b) => {
@@ -585,7 +627,7 @@ export function buildMenuHTMLFromLocalState(
 
   const grandTotal = sessions.reduce((sum, s) => sum + s.sessionTotal, 0);
   const sessionsHtml = sessions
-    .map((session) => buildSessionHtml(session))
+    .map((session) => buildSessionHtml(session, categoryOrder))
     .join("");
 
   return `
@@ -742,12 +784,12 @@ export function buildMenuHTMLFromLocalState(
 /**
  * Opens the menu preview from local state in a new window
  */
-export function openMenuPreview(
+export async function openMenuPreview(
   mealSessions: LocalMealSession[],
   customerName?: string,
   organization?: string
-): void {
-  const html = buildMenuHTMLFromLocalState(
+): Promise<void> {
+  const html = await buildMenuHTMLFromLocalState(
     mealSessions,
     customerName,
     organization
