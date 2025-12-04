@@ -22,6 +22,7 @@ interface MenuItemForPdf {
     name: string;
     quantity: number;
     price: number;
+    groupTitle?: string;
   }>;
 }
 
@@ -69,6 +70,7 @@ const extractMenuItems = (orderItems: PricingOrderItem[]): MenuItemForPdf[] => {
         name: addon.name,
         quantity: addon.quantity || 1,
         price: addon.customerUnitPrice || addon.price || 0,
+        groupTitle: addon.groupTitle,
       }));
 
       items.push({
@@ -89,18 +91,39 @@ const extractMenuItems = (orderItems: PricingOrderItem[]): MenuItemForPdf[] => {
   return items;
 };
 
+interface SubcategoryGroup {
+  items: MenuItemForPdf[];
+}
+
+interface CategoryGroup {
+  items: MenuItemForPdf[]; // Items without subcategory
+  subcategories: Map<string, SubcategoryGroup>;
+}
+
 /**
- * Group items by category
+ * Group items by category and subcategory
  */
-const groupItemsByCategory = (items: MenuItemForPdf[]): Map<string, MenuItemForPdf[]> => {
-  const grouped = new Map<string, MenuItemForPdf[]>();
+const groupItemsByCategory = (items: MenuItemForPdf[]): Map<string, CategoryGroup> => {
+  const grouped = new Map<string, CategoryGroup>();
 
   items.forEach((item) => {
     const category = item.categoryName || "Other Items";
+    const subcategory = item.subcategoryName || "";
+
     if (!grouped.has(category)) {
-      grouped.set(category, []);
+      grouped.set(category, { items: [], subcategories: new Map() });
     }
-    grouped.get(category)!.push(item);
+
+    const categoryGroup = grouped.get(category)!;
+
+    if (subcategory) {
+      if (!categoryGroup.subcategories.has(subcategory)) {
+        categoryGroup.subcategories.set(subcategory, { items: [] });
+      }
+      categoryGroup.subcategories.get(subcategory)!.items.push(item);
+    } else {
+      categoryGroup.items.push(item);
+    }
   });
 
   return grouped;
@@ -113,19 +136,25 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
   const numUnits = item.quantity / item.cateringQuantityUnit;
   const totalFeeds = numUnits * item.feedsPerUnit;
 
-  const addonsHtml = item.addons && item.addons.length > 0
-    ? `
-      <div style="margin-top: 8px; padding-left: 16px; border-left: 3px solid #ec4899;">
-        <p style="font-size: 11px; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Add-ons:</p>
-        ${item.addons.map((addon) => `
-          <div style="display: flex; justify-content: space-between; font-size: 12px; color: #555; margin-bottom: 2px;">
-            <span>• ${addon.name} × ${addon.quantity}</span>
-            <span style="color: #ec4899;">+£${(addon.price * addon.quantity).toFixed(2)}</span>
-          </div>
-        `).join("")}
-      </div>
-    `
-    : "";
+  // Group addons by groupTitle
+  let addonsHtml = "";
+  if (item.addons && item.addons.length > 0) {
+    const addonsByGroup: Record<string, Array<{ name: string; quantity: number }>> = {};
+    item.addons.forEach((addon) => {
+      const group = addon.groupTitle || "Options";
+      if (!addonsByGroup[group]) {
+        addonsByGroup[group] = [];
+      }
+      addonsByGroup[group].push({ name: addon.name, quantity: addon.quantity });
+    });
+
+    addonsHtml = Object.entries(addonsByGroup)
+      .map(([groupTitle, addons]) => {
+        const addonsList = addons.map((a) => `${a.name}${a.quantity > 1 ? ` ×${a.quantity}` : ""}`).join(", ");
+        return `<span style="font-weight: 500; color: #666;">${groupTitle}:</span> ${addonsList}`;
+      })
+      .join(" • ");
+  }
 
   const imageHtml = item.image
     ? `<img src="${item.image}" alt="${item.name}" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" />`
@@ -133,30 +162,48 @@ const buildItemHtml = (item: MenuItemForPdf): string => {
 
   return `
     <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-      <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+      <div style="display: flex; gap: 12px;">
         ${imageHtml}
         <div style="flex: 1; display: flex; justify-content: space-between; align-items: flex-start;">
           <div style="flex: 1;">
-            <p style="font-weight: 600; font-size: 14px; color: #111; margin: 0 0 4px 0;">${item.name}</p>
+            <p style="font-weight: 600; font-size: 14px; color: #111; margin: 0 0 2px 0;">${item.name}</p>
+            ${addonsHtml ? `<p style="font-size: 12px; color: #888; margin: 0 0 4px 0;">${addonsHtml}</p>` : ""}
             <p style="font-size: 12px; color: #666; margin: 0;">
               ${Math.round(numUnits)} portion${Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~${Math.round(totalFeeds)} people
             </p>
-            <p style="font-size: 11px; color: #888; margin: 4px 0 0 0;">From: ${item.restaurantName}</p>
           </div>
           <p style="font-weight: 700; color: #ec4899; font-size: 14px; margin: 0; white-space: nowrap;">
             £${Number(item.price).toFixed(2)}
           </p>
         </div>
       </div>
-      ${addonsHtml}
     </div>
   `;
 };
 
 /**
- * Build HTML for a category group
+ * Build HTML for a category group with subcategories
  */
-const buildCategoryHtml = (categoryName: string, items: MenuItemForPdf[]): string => {
+const buildCategoryHtml = (categoryName: string, categoryGroup: CategoryGroup): string => {
+  // Count total items including subcategories
+  const totalItems = categoryGroup.items.length +
+    Array.from(categoryGroup.subcategories.values()).reduce((sum, sub) => sum + sub.items.length, 0);
+
+  // Build items without subcategory
+  const itemsHtml = categoryGroup.items.map(buildItemHtml).join("");
+
+  // Build subcategories
+  const subcategoriesHtml = Array.from(categoryGroup.subcategories.entries())
+    .map(([subName, subGroup]) => `
+      <div style="margin-top: 16px;">
+        <p style="font-size: 13px; font-weight: 600; color: #666; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+          ${subName}
+        </p>
+        ${subGroup.items.map(buildItemHtml).join("")}
+      </div>
+    `)
+    .join("");
+
   return `
     <div style="margin-bottom: 24px;">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #ec4899;">
@@ -164,11 +211,12 @@ const buildCategoryHtml = (categoryName: string, items: MenuItemForPdf[]): strin
         <h3 style="font-size: 16px; font-weight: 700; color: #111; margin: 0;">
           ${categoryName}
           <span style="font-weight: 400; color: #888; font-size: 14px; margin-left: 8px;">
-            (${items.length} item${items.length !== 1 ? "s" : ""})
+            (${totalItems} item${totalItems !== 1 ? "s" : ""})
           </span>
         </h3>
       </div>
-      ${items.map(buildItemHtml).join("")}
+      ${itemsHtml}
+      ${subcategoriesHtml}
     </div>
   `;
 };
@@ -179,16 +227,16 @@ const buildCategoryHtml = (categoryName: string, items: MenuItemForPdf[]): strin
 const buildSessionHtml = (session: MealSessionForPdf): string => {
   const groupedItems = groupItemsByCategory(session.items);
   const categoriesHtml = Array.from(groupedItems.entries())
-    .map(([category, items]) => buildCategoryHtml(category, items))
+    .map(([category, categoryGroup]) => buildCategoryHtml(category, categoryGroup))
     .join("");
 
   return `
-    <div style="margin-bottom: 32px; border: 2px solid #fce7f3; border-radius: 12px; overflow: hidden;">
-      <div style="background: #fce7f3; padding: 16px 20px;">
+    <div style="margin-bottom: 32px; padding-bottom: 32px; border-bottom: 2px solid #e5e7eb;">
+      <div style="margin-bottom: 16px;">
         <h2 style="font-size: 20px; font-weight: 700; color: #be185d; margin: 0 0 8px 0;">
           ${session.sessionName}
         </h2>
-        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #9d174d;">
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #666;">
           <span style="display: flex; align-items: center; gap: 4px;">
             📅 ${formatDate(session.sessionDate)}
           </span>
@@ -197,7 +245,7 @@ const buildSessionHtml = (session: MealSessionForPdf): string => {
           </span>
         </div>
       </div>
-      <div style="padding: 20px;">
+      <div>
         ${categoriesHtml}
         <div style="border-top: 2px solid #f3f4f6; padding-top: 16px; margin-top: 16px;">
           <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 700;">
@@ -280,7 +328,7 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
           }
           @media print {
             .no-print { display: none !important; }
-            body { background: #fff; }
+            body { background: #fff; margin: 0; padding: 0; }
             .container {
               box-shadow: none;
               max-width: 100%;
@@ -292,7 +340,7 @@ export function buildMenuHTML(order: CateringOrderResponse): string {
             }
           }
           @page {
-            margin: 10mm;
+            margin: 0;
           }
         </style>
       </head>
@@ -425,6 +473,7 @@ export interface LocalMealSession {
         name: string;
         price: number;
         quantity: number;
+        groupTitle?: string;
       }>;
     };
     quantity: number;
@@ -477,6 +526,7 @@ export function buildMenuHTMLFromLocalState(
             name: addon.name,
             quantity: addon.quantity,
             price: addon.price,
+            groupTitle: addon.groupTitle,
           })),
         };
       });
@@ -518,7 +568,7 @@ export function buildMenuHTMLFromLocalState(
           }
           @media print {
             .no-print { display: none !important; }
-            body { background: #fff; }
+            body { background: #fff; margin: 0; padding: 0; }
             .container {
               box-shadow: none;
               max-width: 100%;
@@ -530,7 +580,7 @@ export function buildMenuHTMLFromLocalState(
             }
           }
           @page {
-            margin: 10mm;
+            margin: 0;
           }
         </style>
       </head>
