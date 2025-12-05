@@ -18,10 +18,10 @@ export interface Restaurant {
   contactEmail?: string;
   contactNumber?: string;
   cateringMinOrderSettings: {
-    required?: {
+    required?: Array<{
       minQuantity: number;
       applicableSections: string[];
-    };
+    }>;
     optional?: Array<{
       minQuantity: number;
       applicableSections: string[];

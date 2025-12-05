@@ -13,9 +13,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Swift Food - Bringing London's streetfood to you",
-  description: "We provide event ordering and delivery of the best street food in London",
-  keywords: ["event", "food delivery", "events", "UK", "event-order", "streetfood", "delivery"],
+  title: "Swift Food - Planning made easy, Catering made better.",
+  description: "We provide event ordering and delivery of the best localeats in London",
+  keywords: ["event", "food delivery", "events", "UK", "event-order", "catering", "delivery"],
   authors: [{ name: "Swift Food Services ltd" }],
   
   icons: {
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
     locale: "en_GB",
     url: "https://swiftfood.uk",
     siteName: "Swift Food",
-    title: "Swift Food - Bringing London's streetfood to you",
-    description: "We provide event ordering and delivery of the best street food in London",
+    title: "wift Food - Planning made easy, Catering made better.",
+    description: "We provide event ordering and delivery of the best local eats in London",
     
   },
   
