@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { EventDetails } from '@/types/catering.types';
 import { CateringPricingResult } from '@/types/catering.types';
+import { ALLERGENS } from '@/lib/constants/allergens';
 
 interface MenuItem {
   menuItemName: string;
@@ -9,6 +11,7 @@ interface MenuItem {
   isDiscount?: boolean;
   feedsPerUnit?: number;
   cateringQuantityUnit?: number;
+  allergens?: string[];
   selectedAddons?: Array<{
     name: string;
     price: number;
@@ -36,6 +39,19 @@ export function SuccessScreen({
   pricing,
   onReset,
 }: SuccessScreenProps) {
+  const [expandedAllergens, setExpandedAllergens] = useState<Set<number>>(new Set());
+
+  const toggleAllergen = (index: number) => {
+    setExpandedAllergens(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
   return (
     <div className="min-h-screen bg-base-100 py-8 px-4">
       <div className="max-w-2xl mx-auto text-center">
@@ -136,6 +152,51 @@ export function SuccessScreen({
                           </span>
                         ))}
                       </p>
+                    )}
+                    {item.allergens && item.allergens.length > 0 && (
+                      <div className="mt-1 mb-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAllergen(index);
+                          }}
+                          className="flex items-center gap-1 text-[10px] font-medium text-orange-700 hover:text-orange-800 transition-colors"
+                        >
+                          <span className="text-orange-600">⚠️</span>
+                          <span>Allergens ({item.allergens.length})</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-2.5 w-2.5 transition-transform ${
+                              expandedAllergens.has(index) ? "rotate-180" : ""
+                            }`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                        {expandedAllergens.has(index) && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.allergens.map((allergenValue) => {
+                              const allergen = ALLERGENS.find((a) => a.value === allergenValue);
+                              return (
+                                <span
+                                  key={allergenValue}
+                                  className="inline-flex items-center bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded text-[10px]"
+                                >
+                                  {allergen?.label || allergenValue}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     )}
                     <p className="text-sm text-base-content/60">{displayFeeds} portions</p>
                   </div>

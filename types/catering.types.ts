@@ -785,6 +785,7 @@ export interface CreateMenuItemDto {
   popular?: boolean;
   style?: MenuItemStyle;
   status: MenuItemStatus;
+  feedsPerUnit?: number;
 }
 
 export interface MenuItemDetails extends CreateMenuItemDto {
@@ -814,4 +815,5 @@ export interface UpdateMenuItemDto {
   popular?: boolean;
   style?: MenuItemStyle;
   status?: MenuItemStatus;
+  feedsPerUnit?: number;
 }

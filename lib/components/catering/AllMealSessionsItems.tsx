@@ -5,6 +5,7 @@ import { useCatering } from "@/context/CateringContext";
 import { MealSessionState, SelectedMenuItem } from "@/types/catering.types";
 import { ChefHat, ChevronDown, ChevronUp, Calendar, Clock } from "lucide-react";
 import { categoryService } from "@/services/api/category.api";
+import { ALLERGENS } from "@/lib/constants/allergens";
 
 interface GroupedItem {
   item: any;
@@ -54,6 +55,9 @@ export default function AllMealSessionsItems({
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set()
   );
+  const [expandedAllergens, setExpandedAllergens] = useState<Set<string>>(
+    new Set()
+  );
 
   const toggleSession = (sessionIndex: number) => {
     setExpandedSessions((prev) => {
@@ -74,6 +78,18 @@ export default function AllMealSessionsItems({
         newSet.delete(categoryKey);
       } else {
         newSet.add(categoryKey);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllergen = (key: string) => {
+    setExpandedAllergens((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
       }
       return newSet;
     });
@@ -219,6 +235,55 @@ export default function AllMealSessionsItems({
                         {idx < item.selectedAddons!.length - 1 ? ", " : ""}
                       </span>
                     )
+                  )}
+                </div>
+              )}
+              {item.allergens && item.allergens.length > 0 && (
+                <div className="mt-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleAllergen(`${sessionIndex}-${originalIndex}`);
+                    }}
+                    className="flex items-center gap-1 text-xs font-medium text-orange-700 hover:text-orange-800 transition-colors"
+                  >
+                    <span className="text-orange-600">⚠️</span>
+                    <span>Allergens ({item.allergens.length})</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-3 w-3 transition-transform ${
+                        expandedAllergens.has(`${sessionIndex}-${originalIndex}`)
+                          ? "rotate-180"
+                          : ""
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {expandedAllergens.has(`${sessionIndex}-${originalIndex}`) && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {item.allergens.map((allergenValue: string) => {
+                        const allergen = ALLERGENS.find(
+                          (a) => a.value === allergenValue
+                        );
+                        return (
+                          <span
+                            key={allergenValue}
+                            className="inline-flex items-center bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs"
+                          >
+                            {allergen?.label || allergenValue}
+                          </span>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               )}

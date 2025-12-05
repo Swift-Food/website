@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { MenuItem, Addon } from "./Step2MenuItems";
+import { ALLERGENS } from "@/lib/constants/allergens";
 
 // Utility function to format allergen enum values into human-readable labels
 const formatAllergen = (allergen: string): string => {
-  // Convert snake_case to Title Case with spaces
-  return allergen
+  const allergenObj = ALLERGENS.find((a) => a.value === allergen);
+  return allergenObj?.label || allergen
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");

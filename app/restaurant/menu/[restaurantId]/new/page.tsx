@@ -57,6 +57,7 @@ const NewMenuItemPage = () => {
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
+  const [feedsPerUnit, setFeedsPerUnit] = useState<number>(1);
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -371,6 +372,7 @@ const NewMenuItemPage = () => {
         subcategoryIds: selectedSubcategories || [],
         allergens: selectedAllergens || [],
         addons: addons && addons.length > 0 ? addons : null,
+        feedsPerUnit,
       };
 
       await cateringService.createMenuItem(createData);
@@ -533,6 +535,23 @@ const NewMenuItemPage = () => {
                   onChange={(e) => setDiscountPrice(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Feeds Per Unit
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={feedsPerUnit}
+                  onChange={(e) => setFeedsPerUnit(parseInt(e.target.value) || 1)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Number of people this item feeds (1-100)
+                </p>
               </div>
             </div>
 
