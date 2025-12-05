@@ -11,6 +11,7 @@ import { PaymentMethodSelector } from "../PaymentMethodSelector";
 import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
 import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
 import AllMealSessionsItems from "./AllMealSessionsItems";
+import { openMenuPreview, LocalMealSession } from "@/lib/utils/menuPdfUtils";
 
 interface ValidationErrors {
   organization?: string;
@@ -589,6 +590,35 @@ export default function Step3ContactInfo() {
     }));
   };
 
+  // Handle view menu preview
+  const handleViewMenu = () => {
+    // Convert mealSessions to LocalMealSession format
+    const sessionsForPreview: LocalMealSession[] = mealSessions.map((session) => ({
+      sessionName: session.sessionName,
+      sessionDate: session.sessionDate,
+      eventTime: session.eventTime,
+      orderItems: session.orderItems.map((orderItem) => ({
+        item: {
+          id: orderItem.item.id,
+          menuItemName: orderItem.item.menuItemName,
+          price: orderItem.item.price,
+          discountPrice: orderItem.item.discountPrice,
+          isDiscount: orderItem.item.isDiscount,
+          image: orderItem.item.image,
+          restaurantId: orderItem.item.restaurantId,
+          cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
+          feedsPerUnit: orderItem.item.feedsPerUnit,
+          categoryName: orderItem.item.categoryName,
+          subcategoryName: orderItem.item.subcategoryName,
+          selectedAddons: orderItem.item.selectedAddons,
+        },
+        quantity: orderItem.quantity,
+      })),
+    }));
+
+    openMenuPreview(sessionsForPreview, formData.fullName, formData.organization);
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
@@ -826,7 +856,7 @@ export default function Step3ContactInfo() {
             </div>
             <button
               onClick={() => setCurrentStep(2)}
-              className="text-primary hover:opacity-80 font-medium flex items-center gap-1 mt-1"
+              className="text-primary hover:opacity-80 font-medium flex items-center gap-1"
             >
               ← Back
             </button>
@@ -836,7 +866,7 @@ export default function Step3ContactInfo() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Selected Items - Left Side */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <AllMealSessionsItems showActions={false} />
+            <AllMealSessionsItems showActions={false} onViewMenu={handleViewMenu} />
           </div>
 
           {/* Contact Form Card - Right Side */}

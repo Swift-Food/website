@@ -21,12 +21,14 @@ interface AllMealSessionsItemsProps {
   showActions?: boolean;
   onEdit?: (sessionIndex: number, itemIndex: number) => void;
   onRemove?: (sessionIndex: number, itemIndex: number) => void;
+  onViewMenu?: () => void;
 }
 
 export default function AllMealSessionsItems({
   showActions = false,
   onEdit,
   onRemove,
+  onViewMenu,
 }: AllMealSessionsItemsProps) {
   const { mealSessions } = useCatering();
 
@@ -413,9 +415,34 @@ export default function AllMealSessionsItems({
 
   return (
     <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
-        Your Order
-      </h2>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+          Your Order
+        </h2>
+        {onViewMenu && (
+          <button
+            onClick={onViewMenu}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span className="hidden sm:inline">View Downloadable Menu</span>
+            <span className="sm:hidden">PDF</span>
+          </button>
+        )}
+      </div>
 
       <div className="space-y-4 sm:space-y-6">
         {nonEmptySessions.map((session) => {

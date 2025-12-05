@@ -14,6 +14,7 @@ import MenuItemCard from "./MenuItemCard";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 import SelectedItemsByCategory from "./SelectedItemsByCategory";
+import { openMenuPreview, LocalMealSession } from "@/lib/utils/menuPdfUtils";
 import { useScrollDetection } from "@/lib/hooks/useScrollDetection";
 import { useScroll } from "@/context/ScrollContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
@@ -691,6 +692,35 @@ export default function CateringOrderBuilder() {
     }
   };
 
+  // Handle view menu preview
+  const handleViewMenu = () => {
+    // Convert mealSessions to LocalMealSession format
+    const sessionsForPreview: LocalMealSession[] = mealSessions.map((session) => ({
+      sessionName: session.sessionName,
+      sessionDate: session.sessionDate,
+      eventTime: session.eventTime,
+      orderItems: session.orderItems.map((orderItem) => ({
+        item: {
+          id: orderItem.item.id,
+          menuItemName: orderItem.item.menuItemName,
+          price: orderItem.item.price,
+          discountPrice: orderItem.item.discountPrice,
+          isDiscount: orderItem.item.isDiscount,
+          image: orderItem.item.image,
+          restaurantId: orderItem.item.restaurantId,
+          cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
+          feedsPerUnit: orderItem.item.feedsPerUnit,
+          categoryName: orderItem.item.categoryName,
+          subcategoryName: orderItem.item.subcategoryName,
+          selectedAddons: orderItem.item.selectedAddons,
+        },
+        quantity: orderItem.quantity,
+      })),
+    }));
+
+    openMenuPreview(sessionsForPreview);
+  };
+
   return (
     <div className="min-h-screen bg-base-100">
       {/* Meal Sessions Tab Bar - Sticky */}
@@ -866,6 +896,7 @@ export default function CateringOrderBuilder() {
             onRemove={handleRemoveItem}
             collapsedCategories={collapsedCategories}
             onToggleCategory={handleToggleCategory}
+            onViewMenu={handleViewMenu}
           />
         )}
 
