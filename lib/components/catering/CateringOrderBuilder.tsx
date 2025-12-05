@@ -1259,8 +1259,8 @@ export default function CateringOrderBuilder() {
           onClick={handleCheckout}
           className={`hidden md:flex fixed bottom-8 right-8 items-center gap-3 text-white px-6 py-4 rounded-xl shadow-lg transition-all z-50 ${
             isCurrentSessionValid
-              ? 'bg-primary hover:bg-primary/90'
-              : 'bg-warning hover:bg-warning/90'
+              ? 'bg-primary hover:bg-primary/20'
+              : 'bg-warning hover:bg-warning/20'
           }`}
         >
           <div className="flex flex-col items-start">

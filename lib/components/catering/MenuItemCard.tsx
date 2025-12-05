@@ -79,14 +79,14 @@ export default function MenuItemCard({
                   <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1 line-clamp-1">
                     {item.menuItemName}
                   </h3>
-                  {item.allergens && item.allergens.length > 0 && (
+                  {/* {item.allergens && item.allergens.length > 0 && (
                     <span
                       className="ml-2 text-orange-600 flex-shrink-0"
                       title="Contains allergens - click for details"
                     >
                       ⚠️
                     </span>
-                  )}
+                  )} */}
                 </div>
 
                 {/* Description - 2 lines */}
