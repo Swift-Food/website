@@ -21,8 +21,6 @@ import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import {
   validateSessionMinOrders,
-  getMinOrderMessage,
-  RestaurantMinOrderStatus,
 } from "@/lib/utils/catering-min-order-validation";
 
 // Hour and minute options for time picker

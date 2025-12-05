@@ -41,9 +41,6 @@ export const metadata: Metadata = {
     url: "https://swiftfood.uk",
     siteName: "Swift Food",
     title: "Swift Food - Planning made easy, Catering made better.",
-    description:
-      "We provide event ordering and delivery of the best street food in London",
-    title: "wift Food - Planning made easy, Catering made better.",
     description: "We provide event ordering and delivery of the best local eats in London",
     
   },
