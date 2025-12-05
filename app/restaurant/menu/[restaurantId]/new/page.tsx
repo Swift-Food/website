@@ -17,7 +17,7 @@ import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import {
   CreateMenuItemDto,
-  MenuCategory,
+  CategoryWithSubcategories,
   MenuItemStatus,
   MenuItemStyle,
   MenuItemAddon,
@@ -37,7 +37,7 @@ const NewMenuItemPage = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   // Categories
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
 
   // Form state
   const [name, setName] = useState("");
@@ -54,6 +54,7 @@ const NewMenuItemPage = () => {
   const [popular, setPopular] = useState(false);
   const [groupTitle, setGroupTitle] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
 
@@ -367,6 +368,7 @@ const NewMenuItemPage = () => {
         popular,
         groupTitle,
         categoryIds: selectedCategories || [],
+        subcategoryIds: selectedSubcategories || [],
         allergens: selectedAllergens || [],
         addons: addons && addons.length > 0 ? addons : null,
       };
@@ -629,6 +631,13 @@ const NewMenuItemPage = () => {
                         setSelectedCategories(
                           selectedCategories.filter((id) => id !== cat.id)
                         );
+                        // Remove subcategories of this category
+                        const subcatIds = cat.subcategories?.map(sub => sub.id) || [];
+                        setSelectedSubcategories(
+                          selectedSubcategories.filter(
+                            (id) => !subcatIds.includes(id)
+                          )
+                        );
                       }
                     }}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -638,6 +647,62 @@ const NewMenuItemPage = () => {
               ))}
             </div>
           </div>
+
+          {/* Subcategories */}
+          {selectedCategories.length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-900 border-b pb-2">
+                Subcategories
+              </h2>
+
+              {categories
+                .filter((cat) => selectedCategories.includes(cat.id))
+                .map((cat) => (
+                  <div key={cat.id} className="space-y-2">
+                    <h3 className="text-sm font-medium text-gray-700">
+                      {cat.name}
+                    </h3>
+                    {cat.subcategories && cat.subcategories.length > 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {cat.subcategories.map((sub) => (
+                          <label
+                            key={sub.id}
+                            className="flex items-center p-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedSubcategories.includes(sub.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedSubcategories([
+                                    ...selectedSubcategories,
+                                    sub.id,
+                                  ]);
+                                } else {
+                                  setSelectedSubcategories(
+                                    selectedSubcategories.filter(
+                                      (id) => id !== sub.id
+                                    )
+                                  );
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">
+                              {sub.name}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">
+                        No subcategories available
+                      </p>
+                    )}
+                  </div>
+                ))}
+            </div>
+          )}
 
           {/* Allergens */}
           <div className="space-y-4">

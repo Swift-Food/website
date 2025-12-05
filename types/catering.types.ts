@@ -769,6 +769,7 @@ export interface CategoryWithSubcategories {
 export interface CreateMenuItemDto {
   restaurantId: string;
   categoryIds: string[];
+  subcategoryIds?: string[];
   groupTitle: string;
   name: string;
   description: string;
@@ -797,6 +798,7 @@ export interface MenuItemDetails extends CreateMenuItemDto {
 
 export interface UpdateMenuItemDto {
   categoryIds?: string[];
+  subcategoryIds?: string[];
   groupTitle?: string;
   name?: string;
   description?: string;

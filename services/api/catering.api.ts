@@ -28,6 +28,7 @@ import {
   OrderPricingBreakdown,
   RestaurantPayoutsResponse,
 } from "@/types/api";
+import { CategoryWithSubcategories } from "@/types/catering.types";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
 
 class CateringService {
@@ -835,7 +836,7 @@ class CateringService {
     return this.createMenuItem(duplicateDto);
   }
 
-  async getCategories(): Promise<MenuCategory[]> {
+  async getCategories(): Promise<CategoryWithSubcategories[]> {
     const response = await fetchWithAuth(`${API_BASE_URL}/categories`);
 
     if (!response.ok) {
