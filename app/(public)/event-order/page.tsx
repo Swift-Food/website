@@ -3,7 +3,6 @@
 import { CateringProvider, useCatering } from "@/context/CateringContext";
 import { CateringFilterProvider } from "@/context/CateringFilterContext";
 import CateringOrderBuilder from "@/lib/components/catering/CateringOrderBuilder";
-import Step1EventDetails from "@/lib/components/catering/Step1EventDetails";
 import Step3ContactInfo from "@/lib/components/catering/Step3ContactDetails";
 
 function CateringSteps() {
@@ -11,11 +10,10 @@ function CateringSteps() {
     currentStep,
     // setCurrentStep
   } = useCatering();
-
+  console.log("current step is", currentStep)
   const steps = [
     { label: "Menu Selection", step: 1 },
-    { label: "Event Details", step: 2 },
-    { label: "Contact & Confirmation", step: 3 },
+    { label: "Contact & Delivery", step: 2 },
   ];
 
   return (
@@ -24,12 +22,12 @@ function CateringSteps() {
         {currentStep !== 1 && (
           <div className="my-10 mr-10 ml-10 max-w mx-auto">
             <div className="text-sm text-gray-500 mb-2">
-              Step {currentStep} of 3
+              Step {currentStep} of 2
             </div>
             <div className="h-2 bg-gray-200 rounded-full">
               <div
                 className="h-full bg-dark-pink rounded-full transition-all duration-500"
-                style={{ width: `${(currentStep / 3) * 100}%` }}
+                style={{ width: `${(currentStep / 2) * 100}%` }}
               />
             </div>
             <div className="mt-2 text-sm text-gray-600 font-medium flex items-center gap-2">
@@ -58,9 +56,7 @@ function CateringSteps() {
 
         <div className="bg-base-100 rounded-lg max-w-none">
           {currentStep === 1 && <CateringOrderBuilder />}
-          {/* {currentStep === 1 && <Step2MenuItems />} */}
-          {currentStep === 2 && <Step1EventDetails />}
-          {currentStep === 3 && <Step3ContactInfo />}
+          {currentStep === 2 && <Step3ContactInfo />}
         </div>
       </div>
     </div>

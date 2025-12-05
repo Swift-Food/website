@@ -2,16 +2,18 @@
 
 "use client";
 
-import { useState, FormEvent, useEffect, useRef, useMemo } from "react";
+import { useState, FormEvent, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/api/catering.api";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 import { PaymentMethodSelector } from "../PaymentMethodSelector";
-import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
-import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
 import AllMealSessionsItems from "./AllMealSessionsItems";
 import { openMenuPreview, LocalMealSession } from "@/lib/utils/menuPdfUtils";
+import DeliveryAddressForm from "./contact/DeliveryAddressForm";
+import ContactInfoForm from "./contact/ContactInfoForm";
+import PromoCodeSection from "./contact/PromoCodeSection";
+import PricingSummary from "./contact/PricingSummary";
 
 interface ValidationErrors {
   organization?: string;
@@ -59,7 +61,6 @@ export default function Step3ContactInfo() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [promoCodes, setPromoCodes] = useState<string[]>([]);
-  const [promoInput, setPromoInput] = useState("");
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [promoSuccess, setPromoSuccess] = useState("");
@@ -67,7 +68,6 @@ export default function Step3ContactInfo() {
   const [calculatingPricing, setCalculatingPricing] = useState(false);
 
   const [ccEmails, setCcEmails] = useState<string[]>([]);
-  const [ccEmailInput, setCcEmailInput] = useState("");
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -78,9 +78,8 @@ export default function Step3ContactInfo() {
     "wallet" | "card" | null
   >(null);
 
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const [importantNotesOpen, setImportantNotesOpen] = useState(false);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
   // Calculate estimated total without triggering state updates
   const estimatedTotal = useMemo(() => {
@@ -180,6 +179,14 @@ export default function Step3ContactInfo() {
     }
   };
 
+  // UK Postcode validation regex
+  const UK_POSTCODE_REGEX = /^([A-Z]{1,2}\d{1,2}[A-Z]?)\s?(\d[A-Z]{2})$/i;
+
+  const validateUKPostcode = (postcode: string): boolean => {
+    if (!postcode) return false;
+    return UK_POSTCODE_REGEX.test(postcode.trim());
+  };
+
   // Validate all fields
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {
@@ -188,34 +195,29 @@ export default function Step3ContactInfo() {
       phone: validatePhone(formData.phone),
     };
 
+    // Validate address fields for guest users
+    if (eventDetails?.userType === "guest") {
+      if (!formData.addressLine1?.trim()) {
+        newErrors.addressLine1 = "Address Line 1 is required";
+      }
+      if (!formData.city?.trim()) {
+        newErrors.city = "City is required";
+      }
+      if (!formData.zipcode?.trim()) {
+        newErrors.zipcode = "Postcode is required";
+      } else if (!validateUKPostcode(formData.zipcode)) {
+        newErrors.zipcode = "Please enter a valid UK postcode (e.g., SW1A 1AA)";
+      }
+    }
+
     setErrors(newErrors);
 
     // Return true if no errors
     return !Object.values(newErrors).some((error) => error !== undefined);
   };
 
-  const handleAddCcEmail = () => {
-    const trimmedEmail = ccEmailInput.trim();
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!trimmedEmail) {
-      return;
-    }
-
-    if (!emailRegex.test(trimmedEmail)) {
-      alert("Please enter a valid email address");
-      return;
-    }
-
-    if (ccEmails.includes(trimmedEmail)) {
-      alert("This email is already added");
-      return;
-    }
-
-    setCcEmails([...ccEmails, trimmedEmail]);
-    setCcEmailInput("");
+  const handleAddCcEmail = (email: string) => {
+    setCcEmails([...ccEmails, email]);
   };
 
   const handleRemoveCcEmail = (emailToRemove: string) => {
@@ -481,9 +483,7 @@ export default function Step3ContactInfo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promoCodes, mealSessions]);
 
-  const handleApplyPromoCode = async () => {
-    if (!promoInput.trim()) return;
-
+  const handleApplyPromoCode = async (code: string) => {
     setValidatingPromo(true);
     setPromoError("");
     setPromoSuccess("");
@@ -491,17 +491,14 @@ export default function Step3ContactInfo() {
     try {
       // Use meal sessions format for promo validation
       const validation = await cateringService.validatePromoCodeWithMealSessions(
-        promoInput.toUpperCase(),
+        code,
         mealSessions
       );
 
       if (validation.valid) {
-        if (!promoCodes.includes(promoInput.toUpperCase())) {
-          setPromoCodes([...promoCodes, promoInput.toUpperCase()]);
-          setPromoSuccess(
-            `Promo code "${promoInput.toUpperCase()}" applied!`
-          );
-          setPromoInput("");
+        if (!promoCodes.includes(code)) {
+          setPromoCodes([...promoCodes, code]);
+          setPromoSuccess(`Promo code "${code}" applied!`);
         } else {
           setPromoError("This promo code has already been applied");
         }
@@ -524,42 +521,21 @@ export default function Step3ContactInfo() {
     // The useEffect will automatically trigger calculatePricing when promoCodes changes
   };
 
-  useEffect(() => {
-    const initAutocomplete = () => {
-      if (!inputRef.current || !window.google?.maps?.places) {
-        console.error("Google Maps Places not available");
-        return;
-      }
-
-      autocompleteRef.current = new google.maps.places.Autocomplete(
-        inputRef.current,
-        {
-          // Remove types restriction or use "geocode" instead of "address"
-          componentRestrictions: {
-            country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION,
-          },
-          fields: GOOGLE_MAPS_CONFIG.FIELDS,
-        }
-      );
-
-      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
-    };
-
-    loadGoogleMapsScript().then(initAutocomplete);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handlePlaceSelect = () => {
-    const place = autocompleteRef.current?.getPlace();
-
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
     if (!place || !place.address_components) {
       console.error("No place data received");
       return;
     }
 
+    // Store place_id for validation
+    if (place.place_id) {
+      setSelectedPlaceId(place.place_id);
+    }
+
     let addressLine1 = "";
     let city = "";
     let zipcode = "";
+    let country = "";
     const latitude = place.geometry?.location?.lat() || 0;
     const longitude = place.geometry?.location?.lng() || 0;
 
@@ -567,10 +543,10 @@ export default function Step3ContactInfo() {
       const types = component.types;
 
       if (types.includes("street_number")) {
-        addressLine1 = component.long_name;
+        addressLine1 = component.long_name + " ";
       }
       if (types.includes("route")) {
-        addressLine1 += (addressLine1 ? " " : "") + component.long_name;
+        addressLine1 += component.long_name;
       }
       if (types.includes("postal_town") || types.includes("locality")) {
         city = component.long_name;
@@ -578,17 +554,37 @@ export default function Step3ContactInfo() {
       if (types.includes("postal_code")) {
         zipcode = component.long_name;
       }
+      if (types.includes("country")) {
+        country = component.short_name;
+      }
     });
+
+    // Validate if address is in UK
+    if (country && country !== "GB") {
+      setErrors((prev) => ({
+        ...prev,
+        addressLine1: "Sorry, we only deliver to addresses within the United Kingdom.",
+      }));
+    } else {
+      // Clear address errors
+      setErrors((prev) => ({
+        ...prev,
+        addressLine1: undefined,
+        city: undefined,
+        zipcode: undefined,
+      }));
+    }
 
     setFormData((prev) => ({
       ...prev,
-      addressLine1,
+      addressLine1: addressLine1.trim(),
       city,
       zipcode,
       latitude,
       longitude,
     }));
   };
+
 
   // Handle view menu preview
   const handleViewMenu = () => {
@@ -855,7 +851,7 @@ export default function Step3ContactInfo() {
               </p>
             </div>
             <button
-              onClick={() => setCurrentStep(2)}
+              onClick={() => setCurrentStep(1)}
               className="text-primary hover:opacity-80 font-medium flex items-center gap-1"
             >
               ← Back
@@ -873,285 +869,49 @@ export default function Step3ContactInfo() {
           <div className="lg:col-span-1 order-1 lg:order-2">
             <div className="bg-base-200/30 rounded-2xl p-6 border border-base-300">
               <h3 className="text-xl font-bold mb-6 text-base-content">
-                Contact Details
+                Contact & Delivery Details
               </h3>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Organization */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    Organization (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="organization"
-                    value={formData.organization}
-                    onChange={(e) => handleChange("organization", e.target.value)}
-                    onBlur={() => handleBlur("organization")}
-                    placeholder="Your Organization Name"
-                    className={`w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                  />
-                </div>
+                {/* Delivery Address Section - Only for guest users */}
+       
+                <DeliveryAddressForm
+                  formData={formData}
+                  errors={errors}
+                  onFieldChange={handleChange}
+                  onPlaceSelect={handlePlaceSelect}
+                  hasValidAddress={selectedPlaceId !== null && formData.addressLine1 !== ""}
+                />
+     
 
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    Name*
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    required
-                    value={formData.fullName}
-                    onChange={(e) => handleChange("fullName", e.target.value)}
-                    onBlur={() => handleBlur("fullName")}
-                    placeholder="Your Name"
-                    className={`w-full px-4 py-3 bg-base-200/50 border ${
-                      errors.fullName ? "border-error" : "border-base-300"
-                    } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                  />
-                  {errors.fullName && (
-                    <p className="mt-1 text-sm text-error">✗ {errors.fullName}</p>
-                  )}
-                </div>
-
-                {/* Telephone */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    Telephone*
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => handleChange("phone", e.target.value)}
-                    onBlur={() => handleBlur("phone")}
-                    placeholder="Your Number"
-                    className={`w-full px-4 py-3 bg-base-200/50 border ${
-                      errors.phone ? "border-error" : "border-base-300"
-                    } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                  />
-                  {errors.phone && (
-                    <p className="mt-1 text-sm text-error">✗ {errors.phone}</p>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    Email*
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                    onBlur={() => handleBlur("email")}
-                    placeholder="Your Email"
-                    className={`w-full px-4 py-3 bg-base-200/50 border ${
-                      errors.email ? "border-error" : "border-base-300"
-                    } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
-                  />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-error">✗ {errors.email}</p>
-                  )}
-                </div>
-
-                {/* CC Additional Emails */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-base-content">
-                    CC Additional Emails (Optional)
-                  </label>
-                  <p className="text-xs text-base-content/60 mb-3">
-                    Add additional email addresses to receive order updates
-                  </p>
-
-                  <div className="flex gap-2 mb-3">
-                    <input
-                      type="email"
-                      value={ccEmailInput}
-                      onChange={(e) => setCcEmailInput(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddCcEmail();
-                        }
-                      }}
-                      placeholder="additional@email.com"
-                      className="flex-1 px-4 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddCcEmail}
-                      className="px-4 py-2 bg-dark-pink text-white rounded-lg font-medium hover:opacity-90 transition-all text-sm"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  {ccEmails.length > 0 && (
-                    <div className="space-y-2">
-                      {ccEmails.map((email, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
-                        >
-                          <span className="text-sm text-base-content">
-                            {email}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCcEmail(email)}
-                            className="text-error hover:opacity-80 text-xs font-medium"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {/* Contact Details Section */}
+                <ContactInfoForm
+                  formData={formData}
+                  errors={errors}
+                  onFieldChange={handleChange}
+                  onBlur={handleBlur}
+                  ccEmails={ccEmails}
+                  onAddCcEmail={handleAddCcEmail}
+                  onRemoveCcEmail={handleRemoveCcEmail}
+                />
 
                 {/* Promo Code Section */}
-                <div className="pt-4 border-t border-base-300">
-                  <h4 className="font-semibold mb-3 text-base-content">
-                    Discount Code
-                  </h4>
-                  <div className="flex gap-2 mb-3">
-                    <input
-                      type="text"
-                      value={promoInput}
-                      onChange={(e) =>
-                        setPromoInput(e.target.value.toUpperCase())
-                      }
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleApplyPromoCode();
-                        }
-                      }}
-                      placeholder="Add discount code or voucher"
-                      className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleApplyPromoCode}
-                      disabled={validatingPromo || !promoInput.trim()}
-                      className="px-4 py-2 bg-dark-pink text-white rounded-lg font-medium hover:opacity-90 transition-all disabled:bg-base-300 disabled:cursor-not-allowed text-sm"
-                    >
-                      {validatingPromo ? "..." : "Apply"}
-                    </button>
-                  </div>
-
-                  {promoError && (
-                    <div className="mb-3 p-2 bg-error/10 border border-error/30 rounded-lg">
-                      <p className="text-xs text-error">✗ {promoError}</p>
-                    </div>
-                  )}
-
-                  {promoSuccess && (
-                    <div className="mb-3 p-2 bg-success/10 border border-success/30 rounded-lg">
-                      <p className="text-xs text-success">
-                        ✓ {promoSuccess}
-                        {pricing && (pricing.promoDiscount ?? 0) > 0 && (
-                          <> You saved £{pricing.promoDiscount!.toFixed(2)}</>
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  {promoCodes.length > 0 && (
-                    <div className="space-y-2">
-                      {promoCodes.map((code) => (
-                        <div
-                          key={code}
-                          className="flex items-center justify-between bg-base-100 p-2 rounded-lg border border-base-300"
-                        >
-                          <span className="font-mono text-xs font-medium text-primary">
-                            {code}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePromoCode(code)}
-                            className="text-error hover:opacity-80 text-xs font-medium"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <p className="text-xs text-base-content/60 mt-2">
-                    If your organisation is partnered with us, please contact us
-                    for vouchers before payment.
-                  </p>
-                </div>
+                <PromoCodeSection
+                  promoCodes={promoCodes}
+                  onApplyPromoCode={handleApplyPromoCode}
+                  onRemovePromoCode={handleRemovePromoCode}
+                  validatingPromo={validatingPromo}
+                  promoError={promoError}
+                  promoSuccess={promoSuccess}
+                  promoDiscount={pricing?.promoDiscount}
+                />
 
                 {/* Pricing Summary */}
-                {calculatingPricing && (
-                  <div className="text-center py-4 text-base-content/60 text-sm">
-                    Calculating pricing...
-                  </div>
-                )}
-
-                {pricing && (
-                  <div className="space-y-2 pt-4 border-t border-base-300">
-                    {/* Show subtotal */}
-                    <div className="flex justify-between text-sm text-base-content/70">
-                      <span>Subtotal</span>
-                      <span>£{pricing.subtotal.toFixed(2)}</span>
-                    </div>
-
-                    {/* Show promotion discount if active */}
-                    {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
-                      <div className="flex justify-between text-sm text-green-600 font-semibold">
-                        <span>Restaurant Promotion</span>
-                        <span>-£{pricing.restaurantPromotionDiscount!.toFixed(2)}</span>
-                      </div>
-                    )}
-
-                    {/* Delivery fee */}
-                    <div className="flex justify-between text-sm text-base-content/70">
-                      <span>Delivery Cost</span>
-                      <span>£{pricing.deliveryFee.toFixed(2)}</span>
-                    </div>
-
-                    {/* Promo code discount */}
-                    {(pricing.promoDiscount ?? 0) > 0 && (
-                      <div className="flex justify-between text-sm text-success font-medium">
-                        <span>Promo Code Discount</span>
-                        <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
-                      </div>
-                    )}
-
-                    {/* Total */}
-                    <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
-                      <span>Total</span>
-                      <div className="text-right">
-                        <p className="">£{pricing.total.toFixed(2)}</p>
-                        {(pricing.totalDiscount ?? 0) > 0 && (
-                          <p className="text-xs line-through text-base-content/50">
-                            £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {!pricing && !calculatingPricing && (
-                  <div className="flex justify-between pt-4 border-t border-base-300">
-                    <span className="font-semibold text-base-content">
-                      Estimated Total:
-                    </span>
-                    <span className="font-bold text-xl text-base-content">
-                      £{estimatedTotal.toFixed(2)}
-                    </span>
-                  </div>
-                )}
+                <PricingSummary
+                  pricing={pricing}
+                  calculatingPricing={calculatingPricing}
+                  estimatedTotal={estimatedTotal}
+                />
 
                 {/* Important Notes */}
                 <div className="pt-4">
@@ -1241,7 +1001,6 @@ export default function Step3ContactInfo() {
             </div>
           </div>
         </div>
-
         {/* Payment Modal JSX */}
         {showPaymentModal && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

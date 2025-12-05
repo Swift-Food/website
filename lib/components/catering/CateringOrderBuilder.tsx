@@ -253,7 +253,6 @@ export default function CateringOrderBuilder() {
     updateMenuItemByIndex,
     getSessionTotal,
     getTotalPrice,
-    currentStep,
     setCurrentStep,
   } = useCatering();
 
@@ -670,8 +669,8 @@ export default function CateringOrderBuilder() {
       }
     }
 
-    // All sessions are complete, proceed to checkout
-    setCurrentStep(currentStep + 1);
+    // All sessions are complete, proceed to contact details (step 2)
+    setCurrentStep(2);
   };
 
   // Handle removing empty session
