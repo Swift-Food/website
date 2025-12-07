@@ -1071,10 +1071,10 @@ export default function CateringOrderBuilder() {
               </>
             ) : (
               <>
-                {/* Back Button - fixed position outside scroll */}
+                {/* Back Button - matches height of pink container */}
                 <button
                   onClick={handleBackToDates}
-                  className="flex-shrink-0 w-12 h-12 rounded-xl bg-base-200 text-gray-600 hover:bg-primary/10 transition-all flex items-center justify-center"
+                  className="flex-shrink-0 w-12 self-stretch rounded-xl bg-base-200 text-gray-600 hover:bg-primary/10 transition-all flex items-center justify-center"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
@@ -1127,7 +1127,7 @@ export default function CateringOrderBuilder() {
                         className="flex-shrink-0 px-3 py-1.5 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary transition-colors animate-[fadeIn_0.3s_ease-out_0.2s_both]"
                       >
                         <Plus className="w-4 h-4 mx-auto" />
-                        <div className="text-[10px] font-medium whitespace-nowrap">Add</div>
+                        <div className="text-[10px] font-medium whitespace-nowrap">Add Session</div>
                       </button>
                     )}
                   </div>
