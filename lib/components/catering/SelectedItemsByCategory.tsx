@@ -448,7 +448,7 @@ export default function SelectedItemsByCategory({
   return (
     <div className="mb-6 bg- rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 bg-base-100 border-b border-base-200 flex items-center justify-between">
+      {/* <div className="px-6 py-4 bg-base-100 border-b border-base-200 flex items-center justify-between">
         <h2 className="text-xl sm:text-3xl font-bold text-gray-800">Your List</h2>
         {onViewMenu && (
           <button
@@ -473,7 +473,7 @@ export default function SelectedItemsByCategory({
             <span className="sm:hidden">PDF</span>
           </button>
         )}
-      </div>
+      </div> */}
 
       {/* Categories */}
       <div className="space-y-4">
