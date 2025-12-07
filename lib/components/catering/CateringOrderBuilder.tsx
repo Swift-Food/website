@@ -320,6 +320,7 @@ interface SessionAccordionProps {
   onEditSession: () => void;
   onRemoveSession: (e: React.MouseEvent) => void;
   canRemove: boolean;
+  children?: React.ReactNode;
 }
 
 function SessionAccordion({
@@ -331,6 +332,7 @@ function SessionAccordion({
   onEditSession,
   onRemoveSession,
   canRemove,
+  children,
 }: SessionAccordionProps) {
   const itemCount = session.orderItems.length;
 
@@ -385,9 +387,9 @@ function SessionAccordion({
         </div>
       </button>
 
-      {/* Expanded Content - Just header actions for now, menu picker will be in main area */}
+      {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-5 pb-4 border-t border-base-200">
+        <div className="px-5 pb-5 border-t border-base-200">
           <div className="flex items-center justify-between py-3">
             <button
               onClick={(e) => {
@@ -423,23 +425,8 @@ function SessionAccordion({
             )}
           </div>
 
-          {/* Show items summary */}
-          {itemCount === 0 ? (
-            <div className="py-6 bg-base-100 rounded-xl text-center">
-              <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No items selected yet</p>
-              <p className="text-sm text-gray-400">
-                Browse the menu below to add items
-              </p>
-            </div>
-          ) : (
-            <div className="py-2">
-              <p className="text-sm text-gray-500">
-                {itemCount} item{itemCount !== 1 ? "s" : ""} selected - £
-                {sessionTotal.toFixed(2)}
-              </p>
-            </div>
-          )}
+          {/* Children content (selected items, categories, menu items) */}
+          {children}
         </div>
       )}
     </div>
@@ -1205,7 +1192,137 @@ export default function CateringOrderBuilder() {
                     }}
                     onRemoveSession={(e) => handleRemoveSession(index, e)}
                     canRemove={mealSessions.length > 1}
-                  />
+                  >
+                    {/* Selected Items for this session */}
+                    {session.orderItems.length > 0 && (
+                      <div className="mb-4">
+                        <SelectedItemsByCategory
+                          sessionIndex={index}
+                          onEdit={handleEditItem}
+                          onRemove={handleRemoveItem}
+                          collapsedCategories={collapsedCategories}
+                          onToggleCategory={handleToggleCategory}
+                          onViewMenu={handleViewMenu}
+                        />
+                      </div>
+                    )}
+
+                    {/* Categories Row */}
+                    <div className="pt-2">
+                      {categoriesLoading ? (
+                        <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                          {[...Array(6)].map((_, i) => (
+                            <div
+                              key={i}
+                              className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                            />
+                          ))}
+                        </div>
+                      ) : categoriesError ? (
+                        <div className="text-center py-4 text-red-500">
+                          {categoriesError}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                          {categories.map((category) => (
+                            <button
+                              key={category.id}
+                              onClick={() => handleCategoryClick(category)}
+                              className={`
+                                flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                                ${
+                                  selectedCategory?.id === category.id
+                                    ? "bg-primary text-white"
+                                    : "bg-base-200 text-gray-700 hover:bg-base-300"
+                                }
+                              `}
+                            >
+                              {category.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Subcategories Row */}
+                    {selectedCategory && selectedCategory.subcategories.length > 0 && (
+                      <div className="pb-2">
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                          <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                            {selectedCategory.name}:
+                          </span>
+                          {selectedCategory.subcategories.map((subcategory) => (
+                            <button
+                              key={subcategory.id}
+                              onClick={() => handleSubcategoryClick(subcategory)}
+                              className={`
+                                flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
+                                ${
+                                  selectedSubcategory?.id === subcategory.id
+                                    ? "bg-primary text-white"
+                                    : "text-primary hover:bg-secondary/20"
+                                }
+                              `}
+                            >
+                              {subcategory.name}
+                              {selectedSubcategory?.id === subcategory.id && (
+                                <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                  ×
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Menu Items */}
+                    <div className="bg-base-100 rounded-xl p-4 mt-2">
+                      {menuItemsLoading ? (
+                        <div className="text-center py-4">
+                          <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                          <p className="mt-2 text-sm text-gray-500">Loading...</p>
+                        </div>
+                      ) : menuItemsError ? (
+                        <div className="text-center py-4 text-red-500 text-sm">{menuItemsError}</div>
+                      ) : !selectedCategory ? (
+                        <div className="text-center py-6">
+                          <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                          <p className="text-gray-500 text-sm">Select a category to browse items</p>
+                        </div>
+                      ) : menuItems.length === 0 ? (
+                        <div className="text-center py-6">
+                          <p className="text-gray-500 text-sm">
+                            No items available for {selectedSubcategory?.name || selectedCategory.name}
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                            {selectedSubcategory?.name || selectedCategory.name}
+                          </h3>
+                          <div className="grid grid-cols-1 gap-3">
+                            {menuItems.map((item) => (
+                              <MenuItemCard
+                                key={item.id}
+                                item={item}
+                                quantity={getItemQuantity(item.id)}
+                                isExpanded={expandedItemId === item.id}
+                                onToggleExpand={() =>
+                                  setExpandedItemId(
+                                    expandedItemId === item.id ? null : item.id
+                                  )
+                                }
+                                onAddItem={handleAddItem}
+                                onUpdateQuantity={handleUpdateQuantity}
+                                onAddOrderPress={handleAddOrderPress}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </SessionAccordion>
                 ))}
 
                 {/* Add Session to this day */}
@@ -1236,255 +1353,6 @@ export default function CateringOrderBuilder() {
           </div>
         </div>
 
-        {/* Selected Items by Category - Cart List (for expanded session) */}
-        {expandedSessionIndex !== null &&
-          mealSessions[expandedSessionIndex]?.orderItems.length > 0 && (
-            <SelectedItemsByCategory
-              sessionIndex={expandedSessionIndex}
-              onEdit={handleEditItem}
-              onRemove={handleRemoveItem}
-              collapsedCategories={collapsedCategories}
-              onToggleCategory={handleToggleCategory}
-              onViewMenu={handleViewMenu}
-            />
-          )}
-
-        {/* Minimum Order Requirements */}
-        {validationStatus.length > 0 &&
-          validationStatus.some((s) => s.sections.length > 0) && (
-            <div className="mb-4 bg-base-100 rounded-xl border border-base-200 overflow-hidden">
-              {validationStatus.map((status) => {
-                if (status.sections.length === 0) return null;
-
-                return (
-                  <div key={status.restaurantId} className="p-4">
-                    <div className="flex items-start gap-3">
-                      {/* Icon */}
-                      <div
-                        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                          status.isValid ? "bg-success/10" : "bg-warning/10"
-                        }`}
-                      >
-                        {status.isValid ? (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-success"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-warning"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                          {status.restaurantName} - Minimum Order Requirements
-                        </h4>
-                        <div className="space-y-1.5">
-                          {status.sections.map((section, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between text-xs"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`font-medium ${
-                                    section.isMet
-                                      ? "text-gray-600"
-                                      : "text-gray-900"
-                                  }`}
-                                >
-                                  {section.section}
-                                </span>
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                    section.isRequired
-                                      ? "bg-primary/10 text-primary"
-                                      : "bg-gray-100 text-gray-600"
-                                  }`}
-                                >
-                                  {section.isRequired ? "Required" : "Optional"}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`font-semibold ${
-                                    section.isMet
-                                      ? "text-success"
-                                      : "text-warning"
-                                  }`}
-                                >
-                                  {section.currentQuantity}
-                                </span>
-                                <span className="text-gray-400">/</span>
-                                <span className="text-gray-600">
-                                  {section.minQuantity}
-                                </span>
-                                {!section.isMet && (
-                                  <span className="text-warning font-medium">
-                                    (need{" "}
-                                    {section.minQuantity -
-                                      section.currentQuantity}{" "}
-                                    more)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-        {/* Categories Row - Sticky */}
-        <div className=" top-[200px] md:top-[212px] z-30 bg-base-100 pb-2 -mx-4 px-4 pt-2">
-          {categoriesLoading ? (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
-                />
-              ))}
-            </div>
-          ) : categoriesError ? (
-            <div className="text-center py-4 text-red-500">
-              {categoriesError}
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryClick(category)}
-                  className={`
-                    flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all
-                    ${
-                      selectedCategory?.id === category.id
-                        ? "bg-primary text-white"
-                        : "bg-base-200 text-gray-700 hover:bg-base-300"
-                    }
-                  `}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Subcategories Row - Sticky (shown when category is selected) */}
-        {selectedCategory && selectedCategory.subcategories.length > 0 && (
-          <div className="top-[260px] md:top-[270px] z-30 bg-base-100 pb-2 -mx-4 px-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              <span className="flex-shrink-0 text-sm text-gray-500 mr-2">
-                {selectedCategory.name}:
-              </span>
-              {selectedCategory.subcategories.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleSubcategoryClick(subcategory)}
-                  className={`
-                    flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all border-primary/50 border-1
-                    ${
-                      selectedSubcategory?.id === subcategory.id
-                        ? "bg-primary text-white"
-                        : " text-primary hover:bg-secondary/20"
-                    }
-                  `}
-                >
-                  {subcategory.name}
-                  {selectedSubcategory?.id === subcategory.id && (
-                    <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/20">
-                      ×
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Menu Items Area */}
-        <div className="bg-base-200/50 rounded-2xl p-8">
-          {menuItemsLoading ? (
-            <div className="text-center">
-              <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-              <p className="mt-4 text-gray-500">Loading menu items...</p>
-            </div>
-          ) : menuItemsError ? (
-            <div className="text-center text-red-500">{menuItemsError}</div>
-          ) : !selectedCategory ? (
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                Select a Category
-              </h2>
-              <p className="text-gray-500">
-                Choose a category above to browse menu items
-              </p>
-            </div>
-          ) : menuItems.length === 0 ? (
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                No Items Found
-              </h2>
-              <p className="text-gray-500">
-                No menu items available for{" "}
-                {selectedSubcategory?.name || selectedCategory.name}
-              </p>
-            </div>
-          ) : (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-700 mb-4">
-                {selectedSubcategory?.name || selectedCategory.name}
-                {/* <span className="ml-2 text-sm font-normal text-gray-500">
-                  ({menuItems.length} items)
-                </span> */}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {menuItems.map((item) => (
-                  <MenuItemCard
-                    key={item.id}
-                    item={item}
-                    quantity={getItemQuantity(item.id)}
-                    isExpanded={expandedItemId === item.id}
-                    onToggleExpand={() =>
-                      setExpandedItemId(
-                        expandedItemId === item.id ? null : item.id
-                      )
-                    }
-                    onAddItem={handleAddItem}
-                    onUpdateQuantity={handleUpdateQuantity}
-                    onAddOrderPress={handleAddOrderPress}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Edit Item Modal */}
