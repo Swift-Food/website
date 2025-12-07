@@ -776,6 +776,7 @@ export default function CateringOrderBuilder() {
     setIsAddDayModalOpen(false);
     setSelectedDayDate(newDayDate);
     setNavMode("sessions");
+    setExpandedSessionIndex(newIndex);
 
     // Open editor for the new session after state update
     setTimeout(() => {
@@ -800,10 +801,21 @@ export default function CateringOrderBuilder() {
     setPendingNewSessionIndex(newIndex);
     setExpandedSessionIndex(newIndex);
 
-    // Open editor after state update
+    // Open editor after state update and scroll to the new session
     setTimeout(() => {
       setEditingSessionIndex(newIndex);
-    }, 100);
+      // Scroll to the new session
+      const element = sessionAccordionRefs.current.get(newIndex);
+      if (element) {
+        const headerOffset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
+    }, 150);
   };
 
   // Calculate totals for summary
@@ -833,8 +845,27 @@ export default function CateringOrderBuilder() {
   const handleEditorClose = (cancelled: boolean) => {
     // Don't remove the session here - let handleBackToDates clean up empty sessions
     // This allows the user to stay on the date view and add a session later
+    const sessionIndex = editingSessionIndex;
     setEditingSessionIndex(null);
     setPendingNewSessionIndex(null);
+
+    // After editor closes, expand the session and scroll to it
+    if (sessionIndex !== null && !cancelled) {
+      setExpandedSessionIndex(sessionIndex);
+      // Scroll to the session after a short delay to allow DOM update
+      setTimeout(() => {
+        const element = sessionAccordionRefs.current.get(sessionIndex);
+        if (element) {
+          const headerOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 150);
+    }
   };
 
   const handleRemoveSession = (index: number, e: React.MouseEvent) => {

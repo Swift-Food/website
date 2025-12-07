@@ -102,7 +102,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const [restaurantPromotions, setRestaurantPromotionsState] = useState<Record<string, any[]>>({});
 
   // Meal sessions state (replaces selectedItems)
-  const [mealSessions, setMealSessionsState] = useState<MealSessionState[]>([createDefaultSession()]);
+  const [mealSessions, setMealSessionsState] = useState<MealSessionState[]>([]);
   const [activeSessionIndex, setActiveSessionIndexState] = useState(0);
 
   // Calculated values for promotions
@@ -373,10 +373,16 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       if (savedPromotions) setRestaurantPromotionsState(JSON.parse(savedPromotions));
 
       if (savedMealSessions) {
-        // New format
-        setMealSessionsState(JSON.parse(savedMealSessions));
+        // New format - filter out empty sessions without dates (cleanup old default sessions)
+        const sessions = JSON.parse(savedMealSessions) as MealSessionState[];
+        const validSessions = sessions.filter(
+          (s) => s.orderItems.length > 0 || s.sessionDate
+        );
+        setMealSessionsState(validSessions);
         if (savedActiveSessionIndex) {
-          setActiveSessionIndexState(JSON.parse(savedActiveSessionIndex));
+          const activeIndex = JSON.parse(savedActiveSessionIndex);
+          // Ensure active index is within bounds
+          setActiveSessionIndexState(Math.min(activeIndex, Math.max(0, validSessions.length - 1)));
         }
       } else if (legacySelectedItems) {
         // Migrate legacy format: put all items in first session
@@ -610,7 +616,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const resetOrder = () => {
     setCurrentStepState(1);
     setEventDetailsState(null);
-    setMealSessionsState([createDefaultSession()]);
+    setMealSessionsState([]);
     setActiveSessionIndexState(0);
     setContactInfoState(null);
     setPromoCodesState([]);
