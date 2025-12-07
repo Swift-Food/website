@@ -1624,7 +1624,7 @@ export default function CateringOrderBuilder() {
       {mealSessions.some((s) => s.orderItems.length > 0) && (
         <button
           onClick={handleCheckout}
-          className={`hidden md:flex fixed bottom-8 right-8 items-center gap-3 text-white px-6 py-4 rounded-xl shadow-lg transition-all z-50 ${
+          className={`hidden md:flex fixed bottom-8 right-8 items-center gap-3 text-white px-4 py-2 rounded-xl shadow-lg transition-all z-50 ${
             isCurrentSessionValid
               ? "bg-primary hover:bg-primary/20"
               : "bg-warning hover:bg-warning/20"
@@ -1632,7 +1632,7 @@ export default function CateringOrderBuilder() {
         >
           <div className="flex flex-col items-start">
             <span className="text-sm opacity-90">Total</span>
-            <span className="text-xl font-bold">
+            <span className="text-lg font-bold">
               £{getTotalPrice().toFixed(2)}
             </span>
           </div>
