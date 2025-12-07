@@ -19,9 +19,7 @@ import { useScrollDetection } from "@/lib/hooks/useScrollDetection";
 import { useScroll } from "@/context/ScrollContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
-import {
-  validateSessionMinOrders,
-} from "@/lib/utils/catering-min-order-validation";
+import { validateSessionMinOrders } from "@/lib/utils/catering-min-order-validation";
 
 // Hour and minute options for time picker
 const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
@@ -692,28 +690,30 @@ export default function CateringOrderBuilder() {
   // Handle view menu preview
   const handleViewMenu = () => {
     // Convert mealSessions to LocalMealSession format
-    const sessionsForPreview: LocalMealSession[] = mealSessions.map((session) => ({
-      sessionName: session.sessionName,
-      sessionDate: session.sessionDate,
-      eventTime: session.eventTime,
-      orderItems: session.orderItems.map((orderItem) => ({
-        item: {
-          id: orderItem.item.id,
-          menuItemName: orderItem.item.menuItemName,
-          price: orderItem.item.price,
-          discountPrice: orderItem.item.discountPrice,
-          isDiscount: orderItem.item.isDiscount,
-          image: orderItem.item.image,
-          restaurantId: orderItem.item.restaurantId,
-          cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
-          feedsPerUnit: orderItem.item.feedsPerUnit,
-          categoryName: orderItem.item.categoryName,
-          subcategoryName: orderItem.item.subcategoryName,
-          selectedAddons: orderItem.item.selectedAddons,
-        },
-        quantity: orderItem.quantity,
-      })),
-    }));
+    const sessionsForPreview: LocalMealSession[] = mealSessions.map(
+      (session) => ({
+        sessionName: session.sessionName,
+        sessionDate: session.sessionDate,
+        eventTime: session.eventTime,
+        orderItems: session.orderItems.map((orderItem) => ({
+          item: {
+            id: orderItem.item.id,
+            menuItemName: orderItem.item.menuItemName,
+            price: orderItem.item.price,
+            discountPrice: orderItem.item.discountPrice,
+            isDiscount: orderItem.item.isDiscount,
+            image: orderItem.item.image,
+            restaurantId: orderItem.item.restaurantId,
+            cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
+            feedsPerUnit: orderItem.item.feedsPerUnit,
+            categoryName: orderItem.item.categoryName,
+            subcategoryName: orderItem.item.subcategoryName,
+            selectedAddons: orderItem.item.selectedAddons,
+          },
+          quantity: orderItem.quantity,
+        })),
+      })
+    );
 
     openMenuPreview(sessionsForPreview);
   };
@@ -721,34 +721,34 @@ export default function CateringOrderBuilder() {
   return (
     <div className="min-h-screen bg-base-100">
       {/* Meal Sessions Tab Bar - Sticky */}
-      <div 
+      <div
         className={`sticky z-40 bg-base-100 border-b border-base-200 transition-all duration-300 ${
-          hideNavbar ? 'top-0' : 'top-[100px] md:top-[112px]'
+          hideNavbar ? "top-0" : "top-[100px] md:top-[112px]"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-start gap-2 py-3">
             {/* Add Session Button - Fixed */}
             <button
-            onClick={handleAddSession}
-            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-all shadow-sm"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+              onClick={handleAddSession}
+              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-all shadow-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span className="hidden sm:inline">Add Session</span>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span className="hidden sm:inline">Add Session</span>
+            </button>
 
             {/* Session Tabs - Scrollable */}
             <div className="flex-1 overflow-x-auto scrollbar-hide">
@@ -817,69 +817,69 @@ export default function CateringOrderBuilder() {
 
           {/* Active Session Info Bar */}
           <div className="flex flex-col gap-2 py-2 border-t border-base-200 text-sm">
-  {mealSessions.map((session, index) => (
-    <div key={index} className="flex items-center justify-between">
-      <button
-        onClick={() => {
-          setEditingSessionIndex(index);
-          const buttonEl = sessionButtonRefs.current.get(index);
-          if (buttonEl)
-            setEditorAnchorRect(buttonEl.getBoundingClientRect());
-        }}
-        className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-        <span className="text-gray-500">
-          {session.sessionName} • {formatSessionDisplay(session)}
-        </span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-3 w-3 text-gray-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-          />
-        </svg>
-      </button>
+            {mealSessions.map((session, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setEditingSessionIndex(index);
+                    const buttonEl = sessionButtonRefs.current.get(index);
+                    if (buttonEl)
+                      setEditorAnchorRect(buttonEl.getBoundingClientRect());
+                  }}
+                  className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span className="text-gray-500">
+                    {session.sessionName} • {formatSessionDisplay(session)}
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3 w-3 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                </button>
 
-      <div className="flex items-center gap-4 text-gray-600">
-        <span>{session.orderItems.length} items</span>
-        <span className="font-semibold text-primary">
-          £{getSessionTotal(index).toFixed(2)}
-        </span>
-      </div>
-    </div>
-  ))}
-  
-  {/* Grand Total */}
-  {mealSessions.length > 1 && (
-    <div className="flex items-center justify-between pt-2 border-t border-base-200 font-semibold">
-      <span className="text-gray-700">Total</span>
-      <span className="text-primary text-base">
-        £{getTotalPrice().toFixed(2)}
-      </span>
-    </div>
-  )}
-</div>
+                <div className="flex items-center gap-4 text-gray-600">
+                  <span>{session.orderItems.length} items</span>
+                  <span className="font-semibold text-primary">
+                    £{getSessionTotal(index).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Grand Total */}
+            {mealSessions.length > 1 && (
+              <div className="flex items-center justify-between pt-2 border-t border-base-200 font-semibold">
+                <span className="text-gray-700">Total</span>
+                <span className="text-primary text-base">
+                  £{getTotalPrice().toFixed(2)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -898,98 +898,114 @@ export default function CateringOrderBuilder() {
         )}
 
         {/* Minimum Order Requirements */}
-        {validationStatus.length > 0 && validationStatus.some((s) => s.sections.length > 0) && (
-          <div className="mb-4 bg-base-100 rounded-xl border border-base-200 overflow-hidden">
-            {validationStatus.map((status) => {
-              if (status.sections.length === 0) return null;
+        {validationStatus.length > 0 &&
+          validationStatus.some((s) => s.sections.length > 0) && (
+            <div className="mb-4 bg-base-100 rounded-xl border border-base-200 overflow-hidden">
+              {validationStatus.map((status) => {
+                if (status.sections.length === 0) return null;
 
-              return (
-                <div key={status.restaurantId} className="p-4">
-                  <div className="flex items-start gap-3">
-                    {/* Icon */}
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      status.isValid ? 'bg-success/10' : 'bg-warning/10'
-                    }`}>
-                      {status.isValid ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-success"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-warning"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                        {status.restaurantName} - Minimum Order Requirements
-                      </h4>
-                      <div className="space-y-1.5">
-                        {status.sections.map((section, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between text-xs"
+                return (
+                  <div key={status.restaurantId} className="p-4">
+                    <div className="flex items-start gap-3">
+                      {/* Icon */}
+                      <div
+                        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          status.isValid ? "bg-success/10" : "bg-warning/10"
+                        }`}
+                      >
+                        {status.isValid ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-success"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
                           >
-                            <div className="flex items-center gap-2">
-                              <span className={`font-medium ${
-                                section.isMet ? 'text-gray-600' : 'text-gray-900'
-                              }`}>
-                                {section.section}
-                              </span>
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                section.isRequired
-                                  ? 'bg-primary/10 text-primary'
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {section.isRequired ? 'Required' : 'Optional'}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className={`font-semibold ${
-                                section.isMet ? 'text-success' : 'text-warning'
-                              }`}>
-                                {section.currentQuantity}
-                              </span>
-                              <span className="text-gray-400">/</span>
-                              <span className="text-gray-600">
-                                {section.minQuantity}
-                              </span>
-                              {!section.isMet && (
-                                <span className="text-warning font-medium">
-                                  (need {section.minQuantity - section.currentQuantity} more)
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-warning"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                          {status.restaurantName} - Minimum Order Requirements
+                        </h4>
+                        <div className="space-y-1.5">
+                          {status.sections.map((section, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between text-xs"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`font-medium ${
+                                    section.isMet
+                                      ? "text-gray-600"
+                                      : "text-gray-900"
+                                  }`}
+                                >
+                                  {section.section}
                                 </span>
-                              )}
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    section.isRequired
+                                      ? "bg-primary/10 text-primary"
+                                      : "bg-gray-100 text-gray-600"
+                                  }`}
+                                >
+                                  {section.isRequired ? "Required" : "Optional"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`font-semibold ${
+                                    section.isMet
+                                      ? "text-success"
+                                      : "text-warning"
+                                  }`}
+                                >
+                                  {section.currentQuantity}
+                                </span>
+                                <span className="text-gray-400">/</span>
+                                <span className="text-gray-600">
+                                  {section.minQuantity}
+                                </span>
+                                {!section.isMet && (
+                                  <span className="text-warning font-medium">
+                                    (need{" "}
+                                    {section.minQuantity -
+                                      section.currentQuantity}{" "}
+                                    more)
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
 
         {/* Categories Row - Sticky */}
         <div className=" top-[200px] md:top-[212px] z-30 bg-base-100 pb-2 -mx-4 px-4 pt-2">
@@ -1024,7 +1040,7 @@ export default function CateringOrderBuilder() {
                   {category.name}
                 </button>
               ))}
-            </div> 
+            </div>
           )}
         </div>
 
@@ -1201,17 +1217,17 @@ export default function CateringOrderBuilder() {
 
       {/* Checkout Button - Mobile (fixed bottom bar) */}
       {mealSessions.some((s) => s.orderItems.length > 0) && (
-        <div className={`fixed bottom-0 left-0 right-0 md:hidden p-4 shadow-lg z-50 ${
-          isCurrentSessionValid ? 'bg-primary' : 'bg-warning'
-        }`}>
+        <div
+          className={`fixed bottom-0 left-0 right-0 md:hidden p-4 shadow-lg z-50 ${
+            isCurrentSessionValid ? "bg-primary" : "bg-warning"
+          }`}
+        >
           <button
             onClick={handleCheckout}
             className="w-full flex items-center justify-between text-white"
           >
             <div className="flex flex-row justify-center items-center">
-              <span className="text-lg font-semibold mr-2">
-                Total:
-              </span>
+              <span className="text-lg font-semibold mr-2">Total:</span>
               <span className="text-xl font-bold">
                 £{getTotalPrice().toFixed(2)}
               </span>
@@ -1232,7 +1248,7 @@ export default function CateringOrderBuilder() {
                 </svg>
               )}
               <span className="font-semibold">
-                {isCurrentSessionValid ? 'Checkout' : 'Min. Order Not Met'}
+                {isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}
               </span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1259,8 +1275,8 @@ export default function CateringOrderBuilder() {
           onClick={handleCheckout}
           className={`hidden md:flex fixed bottom-8 right-8 items-center gap-3 text-white px-6 py-4 rounded-xl shadow-lg transition-all z-50 ${
             isCurrentSessionValid
-              ? 'bg-primary hover:bg-primary/20'
-              : 'bg-warning hover:bg-warning/20'
+              ? "bg-primary hover:bg-primary/20"
+              : "bg-warning hover:bg-warning/20"
           }`}
         >
           <div className="flex flex-col items-start">
@@ -1286,7 +1302,7 @@ export default function CateringOrderBuilder() {
               </svg>
             )}
             <span className="font-semibold text-lg">
-              {isCurrentSessionValid ? 'Checkout' : 'Min. Order Not Met'}
+              {isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
