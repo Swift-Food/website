@@ -52,7 +52,8 @@ function groupSessionsByDay(
   sessions.forEach((session, index) => {
     const date = session.sessionDate || "unscheduled";
     if (!groups.has(date)) {
-      const dateObj = date !== "unscheduled" ? new Date(date + "T00:00:00") : null;
+      const dateObj =
+        date !== "unscheduled" ? new Date(date + "T00:00:00") : null;
       groups.set(date, {
         date,
         displayDate:
@@ -66,7 +67,8 @@ function groupSessionsByDay(
             month: "long",
             year: "numeric",
           }) || "Unscheduled",
-        dayName: dateObj?.toLocaleDateString("en-GB", { weekday: "short" }) || "",
+        dayName:
+          dateObj?.toLocaleDateString("en-GB", { weekday: "short" }) || "",
         sessions: [],
         total: 0,
       });
@@ -363,12 +365,16 @@ function SessionAccordion({
             }`}
           >
             <Clock
-              className={`w-5 h-5 ${isExpanded ? "text-white" : "text-gray-500"}`}
+              className={`w-5 h-5 ${
+                isExpanded ? "text-white" : "text-gray-500"
+              }`}
             />
           </div>
           <div className="text-left">
             <p className="font-semibold text-gray-800">{session.sessionName}</p>
-            <p className="text-sm text-gray-500">{formatTime(session.eventTime)}</p>
+            <p className="text-sm text-gray-500">
+              {formatTime(session.eventTime)}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -464,7 +470,9 @@ export default function CateringOrderBuilder() {
   // Navigation state for day/session UI
   const [navMode, setNavMode] = useState<"dates" | "sessions">("dates");
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
-  const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
+  const [expandedSessionIndex, setExpandedSessionIndex] = useState<
+    number | null
+  >(null);
 
   // Add day modal state
   const [isAddDayModalOpen, setIsAddDayModalOpen] = useState(false);
@@ -702,7 +710,8 @@ export default function CateringOrderBuilder() {
       if (element) {
         const headerOffset = 180; // Account for sticky nav
         const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        const offsetPosition =
+          elementPosition + window.pageYOffset - headerOffset;
         window.scrollTo({
           top: offsetPosition,
           behavior: "smooth",
@@ -727,7 +736,8 @@ export default function CateringOrderBuilder() {
       if (element) {
         const headerOffset = 180; // Account for sticky nav
         const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        const offsetPosition =
+          elementPosition + window.pageYOffset - headerOffset;
         window.scrollTo({
           top: offsetPosition,
           behavior: "smooth",
@@ -1070,11 +1080,11 @@ export default function CateringOrderBuilder() {
                 </button>
 
                 {/* Date + Sessions connected container */}
-                <div className="flex items-stretch gap-0 animate-[expandIn_0.3s_ease-out]">
+                <div className="flex items-stretch gap-0 animate-[expandIn_0.3s_ease-out] bg-primary/10 rounded-xl">
                   {/* Current Date Indicator - Same size as dates view */}
                   {currentDayGroup && (
-                    <div className="flex-shrink-0 px-5 py-3 rounded-l-xl bg-primary text-white shadow-lg z-10">
-                      <div className="text-xs font-medium opacity-80">
+                    <div className="flex-shrink-0 px-5 py-3 rounded-l-xl bg-primary text-white z-10 rounded-xl">
+                      <div className="text-xs font-medium opacity-80 text-center">
                         {currentDayGroup.dayName}
                       </div>
                       <div className="text-lg font-bold">
@@ -1084,7 +1094,7 @@ export default function CateringOrderBuilder() {
                   )}
 
                   {/* Sessions Container with pink background - connected to date */}
-                  <div className="flex items-center gap-2 bg-primary/10 rounded-r-xl pl-3 pr-2 py-1">
+                  <div className="flex items-center gap-2 rounded-r-xl pl-3 pr-2 py-1">
                     {/* Session Pills - Smaller */}
                     {currentDayGroup?.sessions.map(({ session, index }, i) => (
                       <button
@@ -1097,14 +1107,16 @@ export default function CateringOrderBuilder() {
                         style={{ animationDelay: `${(i + 1) * 50}ms` }}
                         className={`flex-shrink-0 px-3 py-1.5 rounded-lg transition-all animate-[slideIn_0.25s_ease-out_both] ${
                           expandedSessionIndex === index
-                            ? "bg-white text-primary border border-primary shadow-sm"
+                            ? "bg-white text-primary border border-primary"
                             : "bg-white/60 text-gray-600 hover:bg-white border border-transparent"
                         }`}
                       >
                         <div className="text-[10px] font-medium opacity-70">
                           {formatTimeDisplay(session.eventTime)}
                         </div>
-                        <div className="text-sm font-semibold leading-tight">{session.sessionName}</div>
+                        <div className="text-sm font-semibold leading-tight">
+                          {session.sessionName}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -1142,8 +1154,10 @@ export default function CateringOrderBuilder() {
         <div className="bg-white rounded-xl shadow-sm border border-base-200 p-4 mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">
-              {totalDays > 0 ? `${totalDays} day${totalDays !== 1 ? "s" : ""}` : "No days scheduled"} •{" "}
-              {totalSessions} session{totalSessions !== 1 ? "s" : ""}
+              {totalDays > 0
+                ? `${totalDays} day${totalDays !== 1 ? "s" : ""}`
+                : "No days scheduled"}{" "}
+              • {totalSessions} session{totalSessions !== 1 ? "s" : ""}
             </p>
           </div>
           <div className="text-right">
@@ -1184,7 +1198,9 @@ export default function CateringOrderBuilder() {
                 <div className="flex-1 bg-primary/5 rounded-2xl p-4">
                   {/* Day Info Header */}
                   <div className="mb-3">
-                    <h3 className="font-semibold text-gray-800">{day.fullDate}</h3>
+                    <h3 className="font-semibold text-gray-800">
+                      {day.fullDate}
+                    </h3>
                     <p className="text-sm text-gray-500">
                       {day.sessions.length} session
                       {day.sessions.length !== 1 ? "s" : ""} • £
@@ -1194,63 +1210,65 @@ export default function CateringOrderBuilder() {
 
                   {/* Sessions List */}
                   <div className="space-y-3">
-                {day.sessions.map(({ session, index }) => (
-                  <SessionAccordion
-                    key={index}
-                    session={session}
-                    isExpanded={expandedSessionIndex === index}
-                    onToggle={() => toggleSessionExpand(index)}
-                    sessionTotal={getSessionTotal(index)}
-                    accordionRef={(el) => {
-                      if (el) sessionAccordionRefs.current.set(index, el);
-                      else sessionAccordionRefs.current.delete(index);
-                    }}
-                    onEditSession={() => {
-                      setEditingSessionIndex(index);
-                      const buttonEl = sessionButtonRefs.current.get(index);
-                      if (buttonEl) {
-                        setEditorAnchorRect(buttonEl.getBoundingClientRect());
-                      }
-                    }}
-                    onRemoveSession={(e) => handleRemoveSession(index, e)}
-                    canRemove={mealSessions.length > 1}
-                  >
-                    {/* Selected Items for this session */}
-                    {session.orderItems.length > 0 && (
-                      <div className="mb-4">
-                        <SelectedItemsByCategory
-                          sessionIndex={index}
-                          onEdit={handleEditItem}
-                          onRemove={handleRemoveItem}
-                          collapsedCategories={collapsedCategories}
-                          onToggleCategory={handleToggleCategory}
-                          onViewMenu={handleViewMenu}
-                        />
-                      </div>
-                    )}
-
-                    {/* Categories Row */}
-                    <div className="pt-2">
-                      {categoriesLoading ? (
-                        <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                          {[...Array(6)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                    {day.sessions.map(({ session, index }) => (
+                      <SessionAccordion
+                        key={index}
+                        session={session}
+                        isExpanded={expandedSessionIndex === index}
+                        onToggle={() => toggleSessionExpand(index)}
+                        sessionTotal={getSessionTotal(index)}
+                        accordionRef={(el) => {
+                          if (el) sessionAccordionRefs.current.set(index, el);
+                          else sessionAccordionRefs.current.delete(index);
+                        }}
+                        onEditSession={() => {
+                          setEditingSessionIndex(index);
+                          const buttonEl = sessionButtonRefs.current.get(index);
+                          if (buttonEl) {
+                            setEditorAnchorRect(
+                              buttonEl.getBoundingClientRect()
+                            );
+                          }
+                        }}
+                        onRemoveSession={(e) => handleRemoveSession(index, e)}
+                        canRemove={mealSessions.length > 1}
+                      >
+                        {/* Selected Items for this session */}
+                        {session.orderItems.length > 0 && (
+                          <div className="mb-4">
+                            <SelectedItemsByCategory
+                              sessionIndex={index}
+                              onEdit={handleEditItem}
+                              onRemove={handleRemoveItem}
+                              collapsedCategories={collapsedCategories}
+                              onToggleCategory={handleToggleCategory}
+                              onViewMenu={handleViewMenu}
                             />
-                          ))}
-                        </div>
-                      ) : categoriesError ? (
-                        <div className="text-center py-4 text-red-500">
-                          {categoriesError}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                          {categories.map((category) => (
-                            <button
-                              key={category.id}
-                              onClick={() => handleCategoryClick(category)}
-                              className={`
+                          </div>
+                        )}
+
+                        {/* Categories Row */}
+                        <div className="pt-2">
+                          {categoriesLoading ? (
+                            <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                              {[...Array(6)].map((_, i) => (
+                                <div
+                                  key={i}
+                                  className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                                />
+                              ))}
+                            </div>
+                          ) : categoriesError ? (
+                            <div className="text-center py-4 text-red-500">
+                              {categoriesError}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                              {categories.map((category) => (
+                                <button
+                                  key={category.id}
+                                  onClick={() => handleCategoryClick(category)}
+                                  className={`
                                 flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
                                 ${
                                   selectedCategory?.id === category.id
@@ -1258,26 +1276,30 @@ export default function CateringOrderBuilder() {
                                     : "bg-base-200 text-gray-700 hover:bg-base-300"
                                 }
                               `}
-                            >
-                              {category.name}
-                            </button>
-                          ))}
+                                >
+                                  {category.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Subcategories Row */}
-                    {selectedCategory && selectedCategory.subcategories.length > 0 && (
-                      <div className="pb-2">
-                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                          <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
-                            {selectedCategory.name}:
-                          </span>
-                          {selectedCategory.subcategories.map((subcategory) => (
-                            <button
-                              key={subcategory.id}
-                              onClick={() => handleSubcategoryClick(subcategory)}
-                              className={`
+                        {/* Subcategories Row */}
+                        {selectedCategory &&
+                          selectedCategory.subcategories.length > 0 && (
+                            <div className="pb-2">
+                              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                                  {selectedCategory.name}:
+                                </span>
+                                {selectedCategory.subcategories.map(
+                                  (subcategory) => (
+                                    <button
+                                      key={subcategory.id}
+                                      onClick={() =>
+                                        handleSubcategoryClick(subcategory)
+                                      }
+                                      className={`
                                 flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
                                 ${
                                   selectedSubcategory?.id === subcategory.id
@@ -1285,67 +1307,80 @@ export default function CateringOrderBuilder() {
                                     : "text-primary hover:bg-secondary/20"
                                 }
                               `}
-                            >
-                              {subcategory.name}
-                              {selectedSubcategory?.id === subcategory.id && (
-                                <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
-                                  ×
-                                </span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Menu Items */}
-                    <div className="bg-base-100 rounded-xl p-4 mt-2">
-                      {menuItemsLoading ? (
-                        <div className="text-center py-4">
-                          <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-                          <p className="mt-2 text-sm text-gray-500">Loading...</p>
-                        </div>
-                      ) : menuItemsError ? (
-                        <div className="text-center py-4 text-red-500 text-sm">{menuItemsError}</div>
-                      ) : !selectedCategory ? (
-                        <div className="text-center py-6">
-                          <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                          <p className="text-gray-500 text-sm">Select a category to browse items</p>
-                        </div>
-                      ) : menuItems.length === 0 ? (
-                        <div className="text-center py-6">
-                          <p className="text-gray-500 text-sm">
-                            No items available for {selectedSubcategory?.name || selectedCategory.name}
-                          </p>
-                        </div>
-                      ) : (
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                            {selectedSubcategory?.name || selectedCategory.name}
-                          </h3>
-                          <div className="grid grid-cols-1 gap-3">
-                            {menuItems.map((item) => (
-                              <MenuItemCard
-                                key={item.id}
-                                item={item}
-                                quantity={getItemQuantity(item.id)}
-                                isExpanded={expandedItemId === item.id}
-                                onToggleExpand={() =>
-                                  setExpandedItemId(
-                                    expandedItemId === item.id ? null : item.id
+                                    >
+                                      {subcategory.name}
+                                      {selectedSubcategory?.id ===
+                                        subcategory.id && (
+                                        <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                          ×
+                                        </span>
+                                      )}
+                                    </button>
                                   )
-                                }
-                                onAddItem={handleAddItem}
-                                onUpdateQuantity={handleUpdateQuantity}
-                                onAddOrderPress={handleAddOrderPress}
-                              />
-                            ))}
-                          </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Menu Items */}
+                        <div className="bg-base-100 rounded-xl p-4 mt-2">
+                          {menuItemsLoading ? (
+                            <div className="text-center py-4">
+                              <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                              <p className="mt-2 text-sm text-gray-500">
+                                Loading...
+                              </p>
+                            </div>
+                          ) : menuItemsError ? (
+                            <div className="text-center py-4 text-red-500 text-sm">
+                              {menuItemsError}
+                            </div>
+                          ) : !selectedCategory ? (
+                            <div className="text-center py-6">
+                              <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                              <p className="text-gray-500 text-sm">
+                                Select a category to browse items
+                              </p>
+                            </div>
+                          ) : menuItems.length === 0 ? (
+                            <div className="text-center py-6">
+                              <p className="text-gray-500 text-sm">
+                                No items available for{" "}
+                                {selectedSubcategory?.name ||
+                                  selectedCategory.name}
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                                {selectedSubcategory?.name ||
+                                  selectedCategory.name}
+                              </h3>
+                              <div className="grid grid-cols-1 gap-3">
+                                {menuItems.map((item) => (
+                                  <MenuItemCard
+                                    key={item.id}
+                                    item={item}
+                                    quantity={getItemQuantity(item.id)}
+                                    isExpanded={expandedItemId === item.id}
+                                    onToggleExpand={() =>
+                                      setExpandedItemId(
+                                        expandedItemId === item.id
+                                          ? null
+                                          : item.id
+                                      )
+                                    }
+                                    onAddItem={handleAddItem}
+                                    onUpdateQuantity={handleUpdateQuantity}
+                                    onAddOrderPress={handleAddOrderPress}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </SessionAccordion>
-                ))}
+                      </SessionAccordion>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1378,7 +1413,6 @@ export default function CateringOrderBuilder() {
             </button>
           </div>
         </div>
-
       </div>
 
       {/* Edit Item Modal */}
