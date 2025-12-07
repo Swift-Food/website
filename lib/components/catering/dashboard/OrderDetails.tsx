@@ -72,21 +72,35 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* Event Date */}
         <div className="flex items-start gap-2 sm:gap-3">
-          <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500 mt-1 flex-shrink-0" />
-          <div className="min-w-0 flex-1">
-            {eventDateInfo.isSingleDate ? (
-              <>
+          {eventDateInfo.isSingleDate ? (
+            <>
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-1 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm text-gray-600">Event Date</p>
                 <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
-              </>
-            ) : (
-              <>
-                <p className="text-xs sm:text-sm text-gray-600">Event Dates</p>
-                <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
-                <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.endDate}</p>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex gap-3 sm:gap-4">
+              {/* Timeline dots and line */}
+              <div className="flex flex-col items-center">
+                <div className="w-3 h-3 rounded-full bg-primary flex-shrink-0" />
+                <div className="w-0.5 flex-1 bg-primary my-1" />
+                <div className="w-3 h-3 rounded-full bg-secondary flex-shrink-0" />
+              </div>
+              {/* Date content */}
+              <div className="flex flex-col justify-between min-w-0">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Start</p>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.startDate}</p>
+                </div>
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">End</p>
+                  <p className="font-semibold text-sm sm:text-base text-gray-900">{eventDateInfo.endDate}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-start gap-2 sm:gap-3">
