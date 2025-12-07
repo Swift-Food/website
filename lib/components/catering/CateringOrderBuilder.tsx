@@ -21,6 +21,79 @@ import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { validateSessionMinOrders } from "@/lib/utils/catering-min-order-validation";
 
+// Icons from lucide-react
+import {
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  Plus,
+  Clock,
+  ShoppingBag,
+  Calendar,
+  X,
+} from "lucide-react";
+
+// Day grouping interface and helper
+interface DayGroup {
+  date: string; // ISO date string or 'unscheduled'
+  displayDate: string; // "11 Dec"
+  fullDate: string; // "11 December 2024"
+  dayName: string; // "Wed"
+  sessions: { session: MealSessionState; index: number }[];
+  total: number;
+}
+
+function groupSessionsByDay(
+  sessions: MealSessionState[],
+  getSessionTotal: (index: number) => number
+): DayGroup[] {
+  const groups: Map<string, DayGroup> = new Map();
+
+  sessions.forEach((session, index) => {
+    const date = session.sessionDate || "unscheduled";
+    if (!groups.has(date)) {
+      const dateObj = date !== "unscheduled" ? new Date(date + "T00:00:00") : null;
+      groups.set(date, {
+        date,
+        displayDate:
+          dateObj?.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+          }) || "No Date",
+        fullDate:
+          dateObj?.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }) || "Unscheduled",
+        dayName: dateObj?.toLocaleDateString("en-GB", { weekday: "short" }) || "",
+        sessions: [],
+        total: 0,
+      });
+    }
+    const group = groups.get(date)!;
+    group.sessions.push({ session, index });
+    group.total += getSessionTotal(index);
+  });
+
+  // Sort sessions within each group by eventTime
+  groups.forEach((group) => {
+    group.sessions.sort((a, b) => {
+      if (!a.session.eventTime && !b.session.eventTime) return 0;
+      if (!a.session.eventTime) return 1;
+      if (!b.session.eventTime) return -1;
+      return a.session.eventTime.localeCompare(b.session.eventTime);
+    });
+  });
+
+  // Sort groups by date
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.date === "unscheduled") return 1;
+    if (b.date === "unscheduled") return -1;
+    return a.date.localeCompare(b.date);
+  });
+}
+
 // Hour and minute options for time picker
 const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   label: `${i + 1}`,
@@ -237,6 +310,142 @@ function SessionEditor({
   return createPortal(editorContent, document.body);
 }
 
+// Session Accordion Component Props
+interface SessionAccordionProps {
+  session: MealSessionState;
+  isExpanded: boolean;
+  onToggle: () => void;
+  sessionTotal: number;
+  accordionRef: (el: HTMLDivElement | null) => void;
+  onEditSession: () => void;
+  onRemoveSession: (e: React.MouseEvent) => void;
+  canRemove: boolean;
+}
+
+function SessionAccordion({
+  session,
+  isExpanded,
+  onToggle,
+  sessionTotal,
+  accordionRef,
+  onEditSession,
+  onRemoveSession,
+  canRemove,
+}: SessionAccordionProps) {
+  const itemCount = session.orderItems.length;
+
+  // Format time for display
+  const formatTime = (eventTime: string | undefined) => {
+    if (!eventTime) return "Set time";
+    const [hours, minutes] = eventTime.split(":");
+    const hour = parseInt(hours);
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${period}`;
+  };
+
+  return (
+    <div
+      ref={accordionRef}
+      className="bg-white rounded-xl shadow-sm border border-base-200 overflow-hidden"
+    >
+      {/* Header */}
+      <button
+        onClick={onToggle}
+        className="w-full px-5 py-4 flex items-center justify-between hover:bg-base-50 transition-colors"
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              isExpanded ? "bg-primary" : "bg-base-200"
+            }`}
+          >
+            <Clock
+              className={`w-5 h-5 ${isExpanded ? "text-white" : "text-gray-500"}`}
+            />
+          </div>
+          <div className="text-left">
+            <p className="font-semibold text-gray-800">{session.sessionName}</p>
+            <p className="text-sm text-gray-500">{formatTime(session.eventTime)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-gray-500">
+            <ShoppingBag className="w-4 h-4" />
+            <span className="text-sm">{itemCount} items</span>
+          </div>
+          <span className="font-semibold text-primary min-w-[80px] text-right">
+            £{sessionTotal.toFixed(2)}
+          </span>
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </div>
+      </button>
+
+      {/* Expanded Content - Just header actions for now, menu picker will be in main area */}
+      {isExpanded && (
+        <div className="px-5 pb-4 border-t border-base-200">
+          <div className="flex items-center justify-between py-3">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditSession();
+              }}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                />
+              </svg>
+              Edit Session Details
+            </button>
+            {canRemove && (
+              <button
+                onClick={onRemoveSession}
+                className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Remove Session
+              </button>
+            )}
+          </div>
+
+          {/* Show items summary */}
+          {itemCount === 0 ? (
+            <div className="py-6 bg-base-100 rounded-xl text-center">
+              <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-gray-500">No items selected yet</p>
+              <p className="text-sm text-gray-400">
+                Browse the menu below to add items
+              </p>
+            </div>
+          ) : (
+            <div className="py-2">
+              <p className="text-sm text-gray-500">
+                {itemCount} item{itemCount !== 1 ? "s" : ""} selected - £
+                {sessionTotal.toFixed(2)}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CateringOrderBuilder() {
   const {
     mealSessions,
@@ -264,6 +473,19 @@ export default function CateringOrderBuilder() {
     null
   );
   const sessionButtonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
+
+  // Navigation state for day/session UI
+  const [navMode, setNavMode] = useState<"dates" | "sessions">("dates");
+  const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
+  const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
+
+  // Add day modal state
+  const [isAddDayModalOpen, setIsAddDayModalOpen] = useState(false);
+  const [newDayDate, setNewDayDate] = useState("");
+
+  // Refs for scroll-to behavior
+  const sessionAccordionRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const dayRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Category state
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
@@ -462,6 +684,147 @@ export default function CateringOrderBuilder() {
     return validationStatus.every((status) => status.isValid);
   }, [validationStatus]);
 
+  // Group sessions by day for timeline view
+  const dayGroups = useMemo(() => {
+    return groupSessionsByDay(mealSessions, getSessionTotal);
+  }, [mealSessions, getSessionTotal]);
+
+  // Get the current day group based on selected date
+  const currentDayGroup = useMemo(() => {
+    if (!selectedDayDate) return null;
+    return dayGroups.find((g) => g.date === selectedDayDate) || null;
+  }, [dayGroups, selectedDayDate]);
+
+  // Format time for display (e.g., "12:00 PM")
+  const formatTimeDisplay = (eventTime: string | undefined) => {
+    if (!eventTime) return "Set time";
+    const [hours, minutes] = eventTime.split(":");
+    const hour = parseInt(hours);
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${period}`;
+  };
+
+  // Handle clicking a date tab in the navigation
+  const handleDateClick = (dayDate: string) => {
+    setSelectedDayDate(dayDate);
+    setNavMode("sessions");
+    // Scroll to day section
+    setTimeout(() => {
+      dayRefs.current.get(dayDate)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
+
+  // Handle back button to return to dates view
+  const handleBackToDates = () => {
+    setNavMode("dates");
+    setSelectedDayDate(null);
+  };
+
+  // Handle clicking a session pill in the nav bar
+  const handleSessionPillClick = (sessionIndex: number) => {
+    setExpandedSessionIndex(sessionIndex);
+    setActiveSessionIndex(sessionIndex);
+    // Scroll to session accordion
+    setTimeout(() => {
+      sessionAccordionRefs.current.get(sessionIndex)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
+
+  // Toggle session accordion expansion (only one at a time)
+  const toggleSessionExpand = (sessionIndex: number) => {
+    setExpandedSessionIndex((prev) =>
+      prev === sessionIndex ? null : sessionIndex
+    );
+    setActiveSessionIndex(sessionIndex);
+  };
+
+  // Handle adding a new day
+  const handleAddDay = () => {
+    setNewDayDate("");
+    setIsAddDayModalOpen(true);
+  };
+
+  // Handle confirming add day modal
+  const handleConfirmAddDay = () => {
+    if (!newDayDate) {
+      alert("Please select a date.");
+      return;
+    }
+
+    // Check if day already exists
+    const existingDay = dayGroups.find((g) => g.date === newDayDate);
+    if (existingDay) {
+      alert("This date already has sessions. Please select a different date.");
+      return;
+    }
+
+    // Create a new session with this date
+    const newSession: MealSessionState = {
+      sessionName: "New Session",
+      sessionDate: newDayDate,
+      eventTime: "",
+      orderItems: [],
+    };
+    addMealSession(newSession);
+
+    // Get the new session index and open editor
+    const newIndex = mealSessions.length;
+    setIsAddDayModalOpen(false);
+    setSelectedDayDate(newDayDate);
+    setNavMode("sessions");
+
+    // Open editor for the new session after state update
+    setTimeout(() => {
+      setEditingSessionIndex(newIndex);
+      setActiveSessionIndex(newIndex);
+      setPendingNewSessionIndex(newIndex);
+      const buttonEl = sessionButtonRefs.current.get(newIndex);
+      if (buttonEl) {
+        setEditorAnchorRect(buttonEl.getBoundingClientRect());
+      }
+    }, 100);
+  };
+
+  // Handle adding a session to a specific day
+  const handleAddSessionToDay = (dayDate: string) => {
+    const newSession: MealSessionState = {
+      sessionName: `Session ${mealSessions.length + 1}`,
+      sessionDate: dayDate,
+      eventTime: "",
+      orderItems: [],
+    };
+    addMealSession(newSession);
+
+    const newIndex = mealSessions.length;
+    setActiveSessionIndex(newIndex);
+    setPendingNewSessionIndex(newIndex);
+    setExpandedSessionIndex(newIndex);
+
+    // Open editor after state update
+    setTimeout(() => {
+      setEditingSessionIndex(newIndex);
+      const buttonEl = sessionButtonRefs.current.get(newIndex);
+      if (buttonEl) {
+        setEditorAnchorRect(buttonEl.getBoundingClientRect());
+      }
+    }, 100);
+  };
+
+  // Calculate totals for summary
+  const totalDays = dayGroups.filter((g) => g.date !== "unscheduled").length;
+  const totalSessions = mealSessions.length;
+  const totalItems = mealSessions.reduce(
+    (acc, s) => acc + s.orderItems.length,
+    0
+  );
+
   const handleCategoryClick = (category: CategoryWithSubcategories) => {
     if (selectedCategory?.id === category.id) {
       setSelectedCategory(null);
@@ -476,22 +839,6 @@ export default function CateringOrderBuilder() {
     setSelectedSubcategory(
       selectedSubcategory?.id === subcategory.id ? null : subcategory
     );
-  };
-
-  const handleAddSession = () => {
-    const newSession: MealSessionState = {
-      sessionName: `Session ${mealSessions.length + 1}`,
-      sessionDate: "",
-      eventTime: "",
-      orderItems: [],
-    };
-    addMealSession(newSession);
-    // Auto-open editor for new session
-    const newIndex = mealSessions.length;
-    setEditingSessionIndex(newIndex);
-    setActiveSessionIndex(newIndex);
-    setPendingNewSessionIndex(newIndex);
-    // Anchor rect will be set via useEffect after render
   };
 
   // Update anchor rect when editing a newly added session
@@ -514,51 +861,12 @@ export default function CateringOrderBuilder() {
     setEditorAnchorRect(null);
   };
 
-  const handleSessionClick = (index: number) => {
-    const buttonEl = sessionButtonRefs.current.get(index);
-    if (activeSessionIndex === index && editingSessionIndex !== index) {
-      // If clicking on already active session, toggle editor
-      if (editingSessionIndex === index) {
-        setEditingSessionIndex(null);
-        setEditorAnchorRect(null);
-      } else {
-        setEditingSessionIndex(index);
-        if (buttonEl) setEditorAnchorRect(buttonEl.getBoundingClientRect());
-      }
-    } else {
-      setActiveSessionIndex(index);
-      setEditingSessionIndex(null);
-      setEditorAnchorRect(null);
-    }
-  };
-
   const handleRemoveSession = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (mealSessions.length > 1) {
       removeMealSession(index);
       setEditingSessionIndex(null);
     }
-  };
-
-  const formatSessionDisplay = (session: MealSessionState) => {
-    const parts: string[] = [];
-
-    if (session.sessionDate) {
-      const date = new Date(session.sessionDate);
-      parts.push(
-        date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-      );
-    }
-
-    if (session.eventTime) {
-      const [hours, minutes] = session.eventTime.split(":");
-      const hour = parseInt(hours);
-      const period = hour >= 12 ? "PM" : "AM";
-      const hour12 = hour % 12 || 12;
-      parts.push(`${hour12}:${minutes} ${period}`);
-    }
-
-    return parts.length > 0 ? parts.join(" • ") : "Set date & time";
   };
 
   // Toggle collapsed category
@@ -720,182 +1028,226 @@ export default function CateringOrderBuilder() {
 
   return (
     <div className="min-h-screen bg-base-100">
-      {/* Meal Sessions Tab Bar - Sticky */}
+      {/* Sticky Navigation - Toggles between Dates and Sessions */}
       <div
-        className={`sticky z-40 bg-base-100 border-b border-base-200 transition-all duration-300 ${
+        className={`sticky z-40 bg-white shadow-sm border-b border-base-200 transition-all duration-300 ${
           hideNavbar ? "top-0" : "top-[100px] md:top-[112px]"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-start gap-2 py-3">
-            {/* Add Session Button - Fixed */}
-            <button
-              onClick={handleAddSession}
-              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-all shadow-sm"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span className="hidden sm:inline">Add Session</span>
-            </button>
-
-            {/* Session Tabs - Scrollable */}
-            <div className="flex-1 overflow-x-auto scrollbar-hide">
-              <div className="flex items-center gap-2 h-full">
-                {mealSessions.map((session, index) => (
-                  <div key={index} className="relative flex-shrink-0">
-                    <button
-                      ref={(el) => {
-                        if (el) sessionButtonRefs.current.set(index, el);
-                        else sessionButtonRefs.current.delete(index);
-                      }}
-                      onClick={() => handleSessionClick(index)}
-                      className={`
-                        relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all
-                        ${
-                          activeSessionIndex === index
-                            ? "bg-primary text-white"
-                            : "bg-base-200 text-gray-700 hover:bg-base-300"
-                        }
-                      `}
-                    >
-                      <span className="whitespace-nowrap">
-                        {session.sessionName}
-                      </span>
-
-                      {/* Remove button (only if more than 1 session) */}
-                      {mealSessions.length > 1 &&
-                        activeSessionIndex === index && (
-                          <button
-                            onClick={(e) => handleRemoveSession(index, e)}
-                            className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-3 w-3"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        )}
-                    </button>
-                  </div>
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {navMode === "dates" ? (
+              <>
+                {/* Date Tabs */}
+                {dayGroups.map((day) => (
+                  <button
+                    key={day.date}
+                    onClick={() => handleDateClick(day.date)}
+                    className="flex-shrink-0 px-5 py-3 rounded-xl bg-base-200 text-gray-600 hover:bg-primary/10 transition-all"
+                  >
+                    <div className="text-xs font-medium opacity-80">
+                      {day.dayName}
+                    </div>
+                    <div className="text-lg font-bold">{day.displayDate}</div>
+                  </button>
                 ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Session Editor - Rendered via portal */}
-          {editingSessionIndex !== null && (
-            <SessionEditor
-              session={mealSessions[editingSessionIndex]}
-              sessionIndex={editingSessionIndex}
-              onUpdate={updateMealSession}
-              onClose={handleEditorClose}
-              anchorRect={editorAnchorRect}
-            />
-          )}
-
-          {/* Active Session Info Bar */}
-          <div className="flex flex-col gap-2 py-2 border-t border-base-200 text-sm">
-            {mealSessions.map((session, index) => (
-              <div key={index} className="flex items-center justify-between">
+                {/* Add Day Button */}
                 <button
-                  onClick={() => {
-                    setEditingSessionIndex(index);
-                    const buttonEl = sessionButtonRefs.current.get(index);
-                    if (buttonEl)
-                      setEditorAnchorRect(buttonEl.getBoundingClientRect());
-                  }}
-                  className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
+                  onClick={handleAddDay}
+                  className="flex-shrink-0 px-5 py-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="text-gray-500">
-                    {session.sessionName} • {formatSessionDisplay(session)}
-                  </span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-3 w-3 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
+                  <Calendar className="w-5 h-5 mx-auto" />
+                  <div className="text-xs font-medium mt-1">Add Day</div>
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Back Button */}
+                <button
+                  onClick={handleBackToDates}
+                  className="flex-shrink-0 w-14 rounded-xl bg-base-200 text-gray-600 hover:bg-primary/10 transition-all flex items-center justify-center"
+                >
+                  <ChevronLeft className="w-6 h-6" />
                 </button>
 
-                <div className="flex items-center gap-4 text-gray-600">
-                  <span>{session.orderItems.length} items</span>
-                  <span className="font-semibold text-primary">
-                    £{getSessionTotal(index).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            ))}
+                {/* Current Date Indicator */}
+                {currentDayGroup && (
+                  <div className="flex-shrink-0 px-5 py-3 rounded-xl bg-primary text-white shadow-lg">
+                    <div className="text-xs font-medium opacity-80">
+                      {currentDayGroup.dayName}
+                    </div>
+                    <div className="text-lg font-bold">
+                      {currentDayGroup.displayDate}
+                    </div>
+                  </div>
+                )}
 
-            {/* Grand Total */}
-            {mealSessions.length > 1 && (
-              <div className="flex items-center justify-between pt-2 border-t border-base-200 font-semibold">
-                <span className="text-gray-700">Total</span>
-                <span className="text-primary text-base">
-                  £{getTotalPrice().toFixed(2)}
-                </span>
-              </div>
+                {/* Session Pills */}
+                {currentDayGroup?.sessions.map(({ session, index }) => (
+                  <button
+                    key={index}
+                    ref={(el) => {
+                      if (el) sessionButtonRefs.current.set(index, el);
+                      else sessionButtonRefs.current.delete(index);
+                    }}
+                    onClick={() => handleSessionPillClick(index)}
+                    className={`flex-shrink-0 px-5 py-3 rounded-xl transition-all ${
+                      expandedSessionIndex === index
+                        ? "bg-primary/10 text-primary border-2 border-primary"
+                        : "bg-base-200 text-gray-600 hover:bg-primary/5 border-2 border-transparent"
+                    }`}
+                  >
+                    <div className="text-xs font-medium opacity-80">
+                      {formatTimeDisplay(session.eventTime)}
+                    </div>
+                    <div className="text-lg font-bold">{session.sessionName}</div>
+                  </button>
+                ))}
+
+                {/* Add Session to this day */}
+                {selectedDayDate && selectedDayDate !== "unscheduled" && (
+                  <button
+                    onClick={() => handleAddSessionToDay(selectedDayDate)}
+                    className="flex-shrink-0 px-5 py-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <Plus className="w-5 h-5 mx-auto" />
+                    <div className="text-xs font-medium mt-1">Add Session</div>
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Selected Items by Category - Cart List */}
-        {mealSessions[activeSessionIndex].orderItems.length > 0 && (
-          <SelectedItemsByCategory
-            sessionIndex={activeSessionIndex}
-            onEdit={handleEditItem}
-            onRemove={handleRemoveItem}
-            collapsedCategories={collapsedCategories}
-            onToggleCategory={handleToggleCategory}
-            onViewMenu={handleViewMenu}
-          />
-        )}
+      {/* Session Editor - Rendered via portal */}
+      {editingSessionIndex !== null && (
+        <SessionEditor
+          session={mealSessions[editingSessionIndex]}
+          sessionIndex={editingSessionIndex}
+          onUpdate={updateMealSession}
+          onClose={handleEditorClose}
+          anchorRect={editorAnchorRect}
+        />
+      )}
+
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Summary Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-base-200 p-4 mb-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500">
+              {totalDays > 0 ? `${totalDays} day${totalDays !== 1 ? "s" : ""}` : "No days scheduled"} •{" "}
+              {totalSessions} session{totalSessions !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold text-primary">
+              £{getTotalPrice().toFixed(2)}
+            </p>
+            <p className="text-sm text-gray-500">{totalItems} items total</p>
+          </div>
+        </div>
+
+        {/* Timeline - All Days */}
+        <div className="relative mb-8">
+          {/* Timeline Line */}
+          <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-primary/20" />
+
+          {dayGroups.map((day) => (
+            <div
+              key={day.date}
+              ref={(el) => {
+                if (el) dayRefs.current.set(day.date, el);
+                else dayRefs.current.delete(day.date);
+              }}
+              className="relative mb-8 last:mb-0"
+            >
+              {/* Day Header */}
+              <div className="flex items-center gap-4 mb-4">
+                {/* Timeline Dot */}
+                <div className="w-12 h-12 rounded-xl bg-primary flex flex-col items-center justify-center z-10 shadow-lg">
+                  <span className="text-xs font-medium text-white/80">
+                    {day.dayName}
+                  </span>
+                  <span className="text-sm font-bold text-white">
+                    {day.displayDate.split(" ")[0]}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-800">{day.fullDate}</h3>
+                  <p className="text-sm text-gray-500">
+                    {day.sessions.length} session
+                    {day.sessions.length !== 1 ? "s" : ""} • £
+                    {day.total.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Sessions for this day */}
+              <div className="ml-14 space-y-3">
+                {day.sessions.map(({ session, index }) => (
+                  <SessionAccordion
+                    key={index}
+                    session={session}
+                    isExpanded={expandedSessionIndex === index}
+                    onToggle={() => toggleSessionExpand(index)}
+                    sessionTotal={getSessionTotal(index)}
+                    accordionRef={(el) => {
+                      if (el) sessionAccordionRefs.current.set(index, el);
+                      else sessionAccordionRefs.current.delete(index);
+                    }}
+                    onEditSession={() => {
+                      setEditingSessionIndex(index);
+                      const buttonEl = sessionButtonRefs.current.get(index);
+                      if (buttonEl) {
+                        setEditorAnchorRect(buttonEl.getBoundingClientRect());
+                      }
+                    }}
+                    onRemoveSession={(e) => handleRemoveSession(index, e)}
+                    canRemove={mealSessions.length > 1}
+                  />
+                ))}
+
+                {/* Add Session to this day */}
+                {day.date !== "unscheduled" && (
+                  <button
+                    onClick={() => handleAddSessionToDay(day.date)}
+                    className="w-full p-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      Add Session to {day.displayDate}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* Add Day at bottom */}
+          <div className="relative ml-14 mt-6">
+            <button
+              onClick={handleAddDay}
+              className="w-full p-4 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="font-medium">Add Day</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Selected Items by Category - Cart List (for expanded session) */}
+        {expandedSessionIndex !== null &&
+          mealSessions[expandedSessionIndex]?.orderItems.length > 0 && (
+            <SelectedItemsByCategory
+              sessionIndex={expandedSessionIndex}
+              onEdit={handleEditItem}
+              onRemove={handleRemoveItem}
+              collapsedCategories={collapsedCategories}
+              onToggleCategory={handleToggleCategory}
+              onViewMenu={handleViewMenu}
+            />
+          )}
 
         {/* Minimum Order Requirements */}
         {validationStatus.length > 0 &&
@@ -1160,6 +1512,56 @@ export default function CateringOrderBuilder() {
             setEditingItemIndex(null);
           }}
         />
+      )}
+
+      {/* Add Day Modal */}
+      {isAddDayModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Add New Day</h3>
+                <p className="text-sm text-gray-500">
+                  Select a date for your event
+                </p>
+              </div>
+            </div>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Date
+              </label>
+              <input
+                type="date"
+                value={newDayDate}
+                onChange={(e) => setNewDayDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+                max={(() => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() + 3);
+                  return d.toISOString().split("T")[0];
+                })()}
+                className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsAddDayModalOpen(false)}
+                className="flex-1 px-4 py-3 border border-base-300 text-gray-600 rounded-xl hover:bg-base-100 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmAddDay}
+                className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium"
+              >
+                Add Day
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Empty Session Warning Modal */}
