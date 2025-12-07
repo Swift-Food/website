@@ -376,7 +376,7 @@ function SessionAccordion({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-5 pb-5 border-t border-base-200">
+        <div className="px-5 pb-5 border-t border-base-200 overflow-hidden">
           <div className="flex items-center justify-between py-3">
             <button
               onClick={(e) => {
@@ -1218,7 +1218,7 @@ export default function CateringOrderBuilder() {
                       >
                         {/* Selected Items for this session */}
                         {session.orderItems.length > 0 && (
-                          <div className="mb-4">
+                          <div className="mb-4 min-w-0 overflow-hidden">
                             <SelectedItemsByCategory
                               sessionIndex={index}
                               onEdit={handleEditItem}
