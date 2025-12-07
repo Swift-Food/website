@@ -1071,19 +1071,19 @@ export default function CateringOrderBuilder() {
               </>
             ) : (
               <>
-                {/* Back Button */}
+                {/* Back Button - fixed position outside scroll */}
                 <button
                   onClick={handleBackToDates}
-                  className="flex-shrink-0 w-14 rounded-xl bg-base-200 text-gray-600 hover:bg-primary/10 transition-all flex items-center justify-center"
+                  className="flex-shrink-0 w-12 h-12 rounded-xl bg-base-200 text-gray-600 hover:bg-primary/10 transition-all flex items-center justify-center"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
 
-                {/* Date + Sessions connected container */}
-                <div className="flex items-stretch gap-0 animate-[expandIn_0.3s_ease-out] bg-primary/10 rounded-xl">
+                {/* Date + Sessions + Add Session - all in one scrollable pink container */}
+                <div className="flex items-stretch gap-0 animate-[expandIn_0.3s_ease-out] bg-primary/10 rounded-xl min-w-0 overflow-x-auto scrollbar-hide">
                   {/* Current Date Indicator - Same size as dates view */}
                   {currentDayGroup && (
-                    <div className="flex-shrink-0 px-5 py-3 rounded-l-xl bg-primary text-white z-10 rounded-xl">
+                    <div className="flex-shrink-0 px-4 py-2.5 rounded-l-xl bg-primary text-white rounded-xl">
                       <div className="text-xs font-medium opacity-80 text-center">
                         {currentDayGroup.dayName}
                       </div>
@@ -1093,8 +1093,8 @@ export default function CateringOrderBuilder() {
                     </div>
                   )}
 
-                  {/* Sessions Container with pink background - connected to date */}
-                  <div className="flex items-center gap-2 rounded-r-xl pl-3 pr-2 py-1">
+                  {/* Sessions Container - connected to date */}
+                  <div className="flex items-center gap-2 pl-2 pr-2 py-1.5">
                     {/* Session Pills - Smaller */}
                     {currentDayGroup?.sessions.map(({ session, index }, i) => (
                       <button
@@ -1114,24 +1114,24 @@ export default function CateringOrderBuilder() {
                         <div className="text-[10px] font-medium opacity-70">
                           {formatTimeDisplay(session.eventTime)}
                         </div>
-                        <div className="text-sm font-semibold leading-tight">
+                        <div className="text-sm font-semibold leading-tight whitespace-nowrap">
                           {session.sessionName}
                         </div>
                       </button>
                     ))}
+
+                    {/* Add Session button - inside the pink container */}
+                    {selectedDayDate && selectedDayDate !== "unscheduled" && (
+                      <button
+                        onClick={() => handleAddSessionToDay(selectedDayDate)}
+                        className="flex-shrink-0 px-3 py-1.5 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary transition-colors animate-[fadeIn_0.3s_ease-out_0.2s_both]"
+                      >
+                        <Plus className="w-4 h-4 mx-auto" />
+                        <div className="text-[10px] font-medium whitespace-nowrap">Add</div>
+                      </button>
+                    )}
                   </div>
                 </div>
-
-                {/* Add Session to this day - Outside the pink container */}
-                {selectedDayDate && selectedDayDate !== "unscheduled" && (
-                  <button
-                    onClick={() => handleAddSessionToDay(selectedDayDate)}
-                    className="flex-shrink-0 px-5 py-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors animate-[fadeIn_0.3s_ease-out_0.2s_both]"
-                  >
-                    <Plus className="w-5 h-5 mx-auto" />
-                    <div className="text-xs font-medium mt-1">Add Session</div>
-                  </button>
-                )}
               </>
             )}
           </div>
