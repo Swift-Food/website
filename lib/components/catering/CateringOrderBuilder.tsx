@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
 import { useCatering } from "@/context/CateringContext";
 import {
   MealSessionState,
@@ -112,7 +111,6 @@ interface SessionEditorProps {
   sessionIndex: number;
   onUpdate: (index: number, updates: Partial<MealSessionState>) => void;
   onClose: (cancelled: boolean) => void;
-  anchorRect: DOMRect | null;
 }
 
 function SessionEditor({
@@ -120,7 +118,6 @@ function SessionEditor({
   sessionIndex,
   onUpdate,
   onClose,
-  anchorRect,
 }: SessionEditorProps) {
   const [sessionName, setSessionName] = useState(session.sessionName);
   const [sessionDate, setSessionDate] = useState(session.sessionDate);
@@ -145,23 +142,6 @@ function SessionEditor({
     }
     return "AM";
   });
-
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  // Close on click outside - just closes without saving (user must click Save to validate)
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        editorRef.current &&
-        !editorRef.current.contains(event.target as Node)
-      ) {
-        // Just close without saving - requires explicit Save button click
-        onClose(true);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
 
   const handleCancel = () => {
     onClose(true);
@@ -206,99 +186,104 @@ function SessionEditor({
     onClose(false);
   };
 
-  if (!anchorRect) return null;
-
-  const editorContent = (
-    <div
-      ref={editorRef}
-      className="w-72 bg-white rounded-xl shadow-lg border border-base-200 p-4 fixed z-[100]"
-      style={{
-        top: anchorRect.bottom + 8,
-        left: anchorRect.left,
-      }}
-    >
-      <div className="flex flex-col gap-3">
-        {/* Session Name */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
-            Session Name
-          </label>
-          <input
-            type="text"
-            value={sessionName}
-            onChange={(e) => setSessionName(e.target.value)}
-            placeholder="e.g., Breakfast, Lunch, Dinner"
-            className="w-full px-3 py-2 text-sm border border-base-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <Clock className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Edit Session</h3>
+            <p className="text-sm text-gray-500">
+              Update session details
+            </p>
+          </div>
         </div>
 
-        {/* Date */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
-            Date
-          </label>
-          <input
-            type="date"
-            value={sessionDate}
-            onChange={(e) => setSessionDate(e.target.value)}
-            min={getMinDate()}
-            max={getMaxDate()}
-            className="w-full px-3 py-2 text-sm border border-base-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
-        </div>
+        <div className="flex flex-col gap-4">
+          {/* Session Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Session Name
+            </label>
+            <input
+              type="text"
+              value={sessionName}
+              onChange={(e) => setSessionName(e.target.value)}
+              placeholder="e.g., Breakfast, Lunch, Dinner"
+              className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+          </div>
 
-        {/* Time */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
-            Time
-          </label>
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedHour}
-              onChange={(e) => setSelectedHour(e.target.value)}
-              className="px-3 py-2 text-sm border border-base-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            >
-              <option value="">HH</option>
-              {HOUR_12_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <span className="text-gray-400">:</span>
-            <select
-              value={selectedMinute}
-              onChange={(e) => setSelectedMinute(e.target.value)}
-              className="px-3 py-2 text-sm border border-base-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            >
-              {MINUTE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-2 text-sm border border-base-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            >
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
-            </select>
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date
+            </label>
+            <input
+              type="date"
+              value={sessionDate}
+              onChange={(e) => setSessionDate(e.target.value)}
+              min={getMinDate()}
+              max={getMaxDate()}
+              className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+          </div>
+
+          {/* Time */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Time
+            </label>
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedHour}
+                onChange={(e) => setSelectedHour(e.target.value)}
+                className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              >
+                <option value="">HH</option>
+                {HOUR_12_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <span className="text-gray-400">:</span>
+              <select
+                value={selectedMinute}
+                onChange={(e) => setSelectedMinute(e.target.value)}
+                className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              >
+                {MINUTE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 mt-2">
+        <div className="flex gap-3 mt-6">
           <button
             onClick={handleCancel}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            className="flex-1 px-4 py-3 border border-base-300 text-gray-600 rounded-xl hover:bg-base-100 transition-colors font-medium"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium"
           >
             Save
           </button>
@@ -306,8 +291,6 @@ function SessionEditor({
       </div>
     </div>
   );
-
-  return createPortal(editorContent, document.body);
 }
 
 // Session Accordion Component Props
@@ -460,9 +443,6 @@ export default function CateringOrderBuilder() {
   const [pendingNewSessionIndex, setPendingNewSessionIndex] = useState<
     number | null
   >(null);
-  const [editorAnchorRect, setEditorAnchorRect] = useState<DOMRect | null>(
-    null
-  );
   const sessionButtonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   // Navigation state for day/session UI
@@ -802,10 +782,6 @@ export default function CateringOrderBuilder() {
       setEditingSessionIndex(newIndex);
       setActiveSessionIndex(newIndex);
       setPendingNewSessionIndex(newIndex);
-      const buttonEl = sessionButtonRefs.current.get(newIndex);
-      if (buttonEl) {
-        setEditorAnchorRect(buttonEl.getBoundingClientRect());
-      }
     }, 100);
   };
 
@@ -827,10 +803,6 @@ export default function CateringOrderBuilder() {
     // Open editor after state update
     setTimeout(() => {
       setEditingSessionIndex(newIndex);
-      const buttonEl = sessionButtonRefs.current.get(newIndex);
-      if (buttonEl) {
-        setEditorAnchorRect(buttonEl.getBoundingClientRect());
-      }
     }, 100);
   };
 
@@ -858,29 +830,25 @@ export default function CateringOrderBuilder() {
     );
   };
 
-  // Update anchor rect when editing a newly added session
-  useEffect(() => {
-    if (editingSessionIndex !== null && editorAnchorRect === null) {
-      const buttonEl = sessionButtonRefs.current.get(editingSessionIndex);
-      if (buttonEl) {
-        setEditorAnchorRect(buttonEl.getBoundingClientRect());
-      }
-    }
-  }, [editingSessionIndex, editorAnchorRect, mealSessions.length]);
-
   const handleEditorClose = (cancelled: boolean) => {
     // Don't remove the session here - let handleBackToDates clean up empty sessions
     // This allows the user to stay on the date view and add a session later
     setEditingSessionIndex(null);
     setPendingNewSessionIndex(null);
-    setEditorAnchorRect(null);
   };
 
   const handleRemoveSession = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (mealSessions.length > 1) {
-      removeMealSession(index);
+      setSessionToRemove(index);
+    }
+  };
+
+  const confirmRemoveSession = () => {
+    if (sessionToRemove !== null) {
+      removeMealSession(sessionToRemove);
       setEditingSessionIndex(null);
+      setSessionToRemove(null);
     }
   };
 
@@ -939,6 +907,9 @@ export default function CateringOrderBuilder() {
     null
   );
 
+  // State for remove session confirmation modal
+  const [sessionToRemove, setSessionToRemove] = useState<number | null>(null);
+
   // Handle checkout - validate all sessions have date and time
   const handleCheckout = () => {
     // First check for empty sessions (if more than one session exists)
@@ -982,10 +953,6 @@ export default function CateringOrderBuilder() {
         // Open the session editor for the incomplete session
         setActiveSessionIndex(i);
         setEditingSessionIndex(i);
-        const buttonEl = sessionButtonRefs.current.get(i);
-        if (buttonEl) {
-          setEditorAnchorRect(buttonEl.getBoundingClientRect());
-        }
         return;
       }
     }
@@ -1157,7 +1124,6 @@ export default function CateringOrderBuilder() {
           sessionIndex={editingSessionIndex}
           onUpdate={updateMealSession}
           onClose={handleEditorClose}
-          anchorRect={editorAnchorRect}
         />
       )}
 
@@ -1235,12 +1201,6 @@ export default function CateringOrderBuilder() {
                         }}
                         onEditSession={() => {
                           setEditingSessionIndex(index);
-                          const buttonEl = sessionButtonRefs.current.get(index);
-                          if (buttonEl) {
-                            setEditorAnchorRect(
-                              buttonEl.getBoundingClientRect()
-                            );
-                          }
                         }}
                         onRemoveSession={(e) => handleRemoveSession(index, e)}
                         canRemove={mealSessions.length > 1}
@@ -1551,6 +1511,44 @@ export default function CateringOrderBuilder() {
                 className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium"
               >
                 Add Items
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Session Confirmation Modal */}
+      {sessionToRemove !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <X className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Remove Session
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {mealSessions[sessionToRemove]?.sessionName || "Session"}
+                </p>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to remove this session? This will delete all items in the session.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSessionToRemove(null)}
+                className="flex-1 px-4 py-3 border border-base-300 text-gray-600 rounded-xl hover:bg-base-100 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRemoveSession}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+              >
+                Remove
               </button>
             </div>
           </div>
