@@ -1161,10 +1161,10 @@ export default function CateringOrderBuilder() {
               }}
               className="relative mb-8 last:mb-0"
             >
-              {/* Day Header */}
-              <div className="flex items-center gap-4 mb-4">
-                {/* Timeline Dot */}
-                <div className="w-12 h-12 rounded-xl bg-primary flex flex-col items-center justify-center z-10 shadow-lg">
+              {/* Day Container with background */}
+              <div className="flex gap-4">
+                {/* Timeline Dot - Date Badge */}
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary flex flex-col items-center justify-center z-10 shadow-lg">
                   <span className="text-xs font-medium text-white/80">
                     {day.dayName}
                   </span>
@@ -1172,18 +1172,21 @@ export default function CateringOrderBuilder() {
                     {day.displayDate.split(" ")[0]}
                   </span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800">{day.fullDate}</h3>
-                  <p className="text-sm text-gray-500">
-                    {day.sessions.length} session
-                    {day.sessions.length !== 1 ? "s" : ""} • £
-                    {day.total.toFixed(2)}
-                  </p>
-                </div>
-              </div>
 
-              {/* Sessions for this day */}
-              <div className="ml-14 space-y-3">
+                {/* Sessions Container with light pink background */}
+                <div className="flex-1 bg-primary/5 rounded-2xl p-4">
+                  {/* Day Info Header */}
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-gray-800">{day.fullDate}</h3>
+                    <p className="text-sm text-gray-500">
+                      {day.sessions.length} session
+                      {day.sessions.length !== 1 ? "s" : ""} • £
+                      {day.total.toFixed(2)}
+                    </p>
+                  </div>
+
+                  {/* Sessions List */}
+                  <div className="space-y-3">
                 {day.sessions.map(({ session, index }) => (
                   <SessionAccordion
                     key={index}
@@ -1336,9 +1339,13 @@ export default function CateringOrderBuilder() {
                     </div>
                   </SessionAccordion>
                 ))}
+                  </div>
+                </div>
+              </div>
 
-                {/* Add Session to this day */}
-                {day.date !== "unscheduled" && (
+              {/* Add Session to this day - Outside the pink container */}
+              {day.date !== "unscheduled" && (
+                <div className="ml-16 mt-3">
                   <button
                     onClick={() => handleAddSessionToDay(day.date)}
                     className="w-full p-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
@@ -1348,8 +1355,8 @@ export default function CateringOrderBuilder() {
                       Add Session to {day.displayDate}
                     </span>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ))}
 
