@@ -696,13 +696,19 @@ export default function CateringOrderBuilder() {
   const handleDateClick = (dayDate: string) => {
     setSelectedDayDate(dayDate);
     setNavMode("sessions");
-    // Scroll to day section
+    // Scroll to day section with offset for sticky header
     setTimeout(() => {
-      dayRefs.current.get(dayDate)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 100);
+      const element = dayRefs.current.get(dayDate);
+      if (element) {
+        const headerOffset = 180; // Account for sticky nav
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
+    }, 150);
   };
 
   // Handle back button to return to dates view
@@ -715,13 +721,19 @@ export default function CateringOrderBuilder() {
   const handleSessionPillClick = (sessionIndex: number) => {
     setExpandedSessionIndex(sessionIndex);
     setActiveSessionIndex(sessionIndex);
-    // Scroll to session accordion
+    // Scroll to session accordion with offset for sticky header
     setTimeout(() => {
-      sessionAccordionRefs.current.get(sessionIndex)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 100);
+      const element = sessionAccordionRefs.current.get(sessionIndex);
+      if (element) {
+        const headerOffset = 180; // Account for sticky nav
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
+    }, 150);
   };
 
   // Toggle session accordion expansion (only one at a time)
