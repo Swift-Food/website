@@ -16,112 +16,167 @@ export default function FAQ() {
 
   const faqData = [
     {
-      title: "General",
+      title: "Ordering & Lead Time",
       questions: [
         {
-          question: "What is Swift Food?",
+          question: "How far in advance should I place an order?",
           answer:
-            "Swift Food is a food delivery app that connects you with the best local street food vendors and market stalls, delivering affordable, high-quality meals straight to your door. Unlike other delivery platforms, we let you order from multiple stalls within the same market in one delivery while keeping costs low.",
+            "Lead times vary by restaurant, and each menu clearly shows the required notice. Some partners offer short-notice options, while others require more preparation time. For larger groups or events, placing your order as early as possible helps us coordinate seamlessly with our partners.",
         },
         {
-          question: "Where is Swift Food available?",
+          question: "Can I place same-day orders?",
           answer:
-            "We currently operate in Camden, but we're expanding across London soon! Stay tuned for updates as we grow.",
+            "Yes. Certain restaurants accept same-day or short-notice orders. The exact timing will always be shown on the restaurant's menu.",
         },
         {
-          question: "Who can use Swift Food?",
+          question: "Is there a minimum order quantity?",
           answer:
-            "Anyone! However, when we launch, our focus will be on students, offering them a cheaper, more flexible alternative to other food delivery services.",
+            "Most restaurants do not require a minimum order. When a specific partner has one, it will be clearly displayed before checkout.",
         },
       ],
     },
     {
-      title: "Orders",
+      title: "Menu, Allergies & Customisation",
       questions: [
         {
-          question: "How do I place an order?",
-          answer: (
-            <div>
-              <p className="mb-3">Ordering with Swift Food is simple:</p>
-              <ol className="list-decimal list-inside space-y-2 ml-4">
-                <li>Choose a market (e.g. Camden Market).</li>
-                <li>Browse food stalls and vendors within that market.</li>
-                <li>Add dishes from multiple stalls in one order.</li>
-                <li>Checkout and track your delivery live.</li>
-              </ol>
-            </div>
-          ),
+          question: "Do you provide allergen details and dietary filters?",
+          answer:
+            "Yes. Each menu item includes allergen information provided by the restaurant. If you have allergies or strict dietary requirements, please confirm details directly with the supplier. Dietary filters are also available to help you browse easily.",
         },
         {
-          question: "Can I order from multiple vendors in one order?",
+          question: "Can I order from multiple restaurants in one delivery?",
           answer:
-            "Yes! You can mix and match dishes from different food stalls within the same market in a single delivery—so you can enjoy a variety of cuisines without extra fees.",
+            "Yes, you can combine items from several partners within a single order.",
         },
         {
-          question: "How long does delivery take?",
+          question: "Do the menus change?",
           answer:
-            "We aim to deliver your food within 15 minutes after the vendor finishes preparing your meal. Our fast delivery ensures you get fresh, hot food straight from the market to your door.",
+            "Menus remain consistent, though special or seasonal offerings may be featured during festive periods.",
         },
       ],
     },
     {
-      title: "Event Ordering",
+      title: "Delivery & Logistics",
       questions: [
         {
-          question: "Do you offer event ordering for big events?",
-          answer: (
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2">
-                  Yes! If you're planning an event, we offer a event ordering option
-                  where you can:
-                </h4>
-                <p className="text-gray-600 mb-3">
-                  Fill out a request form with details on how many people you're
-                  serving and your preferred cuisines. See which market stalls
-                  can provide food, along with estimated prep and delivery
-                  times. Get customised meal packages based on your event size,
-                  whether it's a small gathering or a large festival.
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <h4 className="font-semibold text-primary">
-                  For more details, visit our{" "}
-                  <span className="underline font-bold">Event Ordering Page</span> on
-                  the app or website.
-                </h4>
-              </div>
-            </div>
-          ),
+          question: "What delivery times are available?",
+          answer:
+            "You may request any preferred delivery time. Once submitted, our team reviews and confirms availability to ensure smooth coordination.",
+        },
+        {
+          question: "Who delivers the food?",
+          answer:
+            "Deliveries are handled by a dedicated courier team experienced in event-scale orders.",
+        },
+        {
+          question: "What if something goes wrong with my delivery?",
+          answer:
+            "If an issue such as a delay or incorrect drop-off occurs, we will contact you promptly with updates and next steps.",
+        },
+        {
+          question: "What if part of my order is missing or incorrect?",
+          answer:
+            "Please document as much as possible and submit a request with supporting evidence through our form. Once reviewed, and if approved, a partial refund or credit will be issued.",
+        },
+        {
+          question: "Do you provide cutlery, plates and napkins?",
+          answer:
+            "Yes. Cutlery, plates and napkins can be included upon request. Some partners may apply a small, clearly displayed charge.",
+        },
+        {
+          question: "Can I modify my order after placing it?",
+          answer:
+            "Most orders cannot be modified once confirmed. However, if you submit a request through our form, we will review it promptly and may be able to process manual adjustments or offer alternatives.",
         },
       ],
     },
     {
-      title: "Restaurants & Vendors",
+      title: "Payments, Cancellations & Refunds",
       questions: [
         {
-          question: "How do you choose your food vendors?",
+          question: "What payment methods can I use?",
           answer:
-            "We partner with local street food stalls, market vendors, and small restaurants that serve delicious, high-quality meals at affordable prices.",
+            "We accept all payment options supported by our Stripe partners, including major debit and credit cards, international cards, Visa, and American Express. We also accept wallets such as Link, Apply Pay, and Google Pay",
         },
         {
-          question: "I own a food stall—how can I partner with Swift Food?",
+          question: "What is your cancellation and refund policy?",
           answer:
-            "We'd love to have you on board! Fill out our business inquiries form on the website, and our team will get in touch.",
+            "Restaurants have their own cancellation and refund rules, which will be displayed before you place your order. Refund requests must be submitted within 48 hours of delivery, and the restaurant will review and respond according to its policy.",
         },
       ],
     },
     {
-      title: "Support",
+      title: "Our Partners",
       questions: [
         {
-          question: "What if there's an issue with my order?",
+          question: "Where does the food come from?",
           answer:
-            "If you experience any problems, contact our support team through the contact form below, and we'll sort it out ASAP.",
+            "We work with a carefully selected set of restaurant partners chosen for their quality, value, and commitment to positive operational practices.",
+        },
+      ],
+    },
+    {
+      title: "Platform Experience",
+      questions: [
+        {
+          question: "How do I place and manage an order?",
+          answer:
+            "Orders are placed through our website. A dedicated management page, which is emailed to you post checkout, allows you to organise collection, assign responsibilities, and keep everyone informed.",
         },
         {
-          question: "How do I contact customer support?",
-          answer: "You can reach out via the contact form below.",
+          question: "Can I track my order?",
+          answer:
+            "You will receive timely updates as your order progresses, with information provided as close to real time as possible.",
+        },
+      ],
+    },
+    {
+      title: "Event Scale & Recurring Orders",
+      questions: [
+        {
+          question: "What is the largest event Swift can support?",
+          answer:
+            "We can accommodate events serving up to 10,000 people. For very large orders, contacting us early ensures the best possible coordination.",
+        },
+        {
+          question: "How early should I book for a 500-person event?",
+          answer:
+            "We recommend placing large event orders at least one week in advance. Earlier bookings are advised for complex or multi-vendor arrangements.",
+        },
+        {
+          question: "Can Swift work with venue access restrictions?",
+          answer:
+            "Yes. If you share any venue requirements or restrictions, we can coordinate with the venue where possible. If direct delivery is not allowed, we will arrange the closest feasible delivery point and keep you informed.",
+        },
+        {
+          question: "Do you support big campus-wide events?",
+          answer:
+            "Yes. We support events such as balls, fairs, and hackathons. For UCL and upcoming partner universities, you can select specific campus buildings for delivery, and we offer coordination support.",
+        },
+      ],
+    },
+    {
+      title: "Student & Community Benefits",
+      questions: [
+        {
+          question: "Do you offer sponsorships or partnerships for events?",
+          answer:
+            "Yes. We occasionally support student groups, societies, and community events through sponsorships or partnerships. Opportunities vary, so please contact us directly to discuss your event.",
+        },
+        {
+          question: "Do you offer discounts for student groups or societies?",
+          answer:
+            "We frequently run promotions for student organisations. Check our social media platforms to stay updated on current offers.",
+        },
+      ],
+    },
+    {
+      title: "Corporate & Recurring Orders",
+      questions: [
+        {
+          question: "Can I schedule recurring or corporate orders?",
+          answer:
+            "Yes. Our team can help you set up a corporate account that includes additional features such as budget controls, role assignments, and access to an expanded selection of restaurant partners.",
         },
       ],
     },
