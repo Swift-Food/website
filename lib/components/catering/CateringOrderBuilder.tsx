@@ -722,19 +722,17 @@ export default function CateringOrderBuilder() {
 
   // Handle back button to return to dates view
   const handleBackToDates = () => {
-    // If the selected day has no sessions, remove those empty sessions
+    // Only remove sessions that are incomplete (no time set) AND have no items
+    // This keeps properly configured sessions even if they have no items yet
     if (selectedDayDate && currentDayGroup) {
       const sessionsToRemove = currentDayGroup.sessions
-        .filter(({ session }) => session.orderItems.length === 0)
+        .filter(({ session }) => session.orderItems.length === 0 && !session.eventTime)
         .map(({ index }) => index)
         .sort((a, b) => b - a); // Sort descending to remove from end first
 
-      // If all sessions in this day are empty, remove them all
-      if (sessionsToRemove.length === currentDayGroup.sessions.length) {
-        sessionsToRemove.forEach((index) => {
-          removeMealSession(index);
-        });
-      }
+      sessionsToRemove.forEach((index) => {
+        removeMealSession(index);
+      });
     }
     setNavMode("dates");
     setSelectedDayDate(null);
@@ -875,10 +873,8 @@ export default function CateringOrderBuilder() {
   }, [editingSessionIndex, editorAnchorRect, mealSessions.length]);
 
   const handleEditorClose = (cancelled: boolean) => {
-    if (cancelled && pendingNewSessionIndex !== null) {
-      // Remove the pending session if cancel was clicked
-      removeMealSession(pendingNewSessionIndex);
-    }
+    // Don't remove the session here - let handleBackToDates clean up empty sessions
+    // This allows the user to stay on the date view and add a session later
     setEditingSessionIndex(null);
     setPendingNewSessionIndex(null);
     setEditorAnchorRect(null);
@@ -1062,7 +1058,7 @@ export default function CateringOrderBuilder() {
             {navMode === "dates" ? (
               <>
                 {/* Date Tabs */}
-                {dayGroups.map((day) => (
+                {dayGroups.filter((day) => day.date !== "unscheduled").map((day) => (
                   <button
                     key={day.date}
                     onClick={() => handleDateClick(day.date)}
@@ -1195,7 +1191,7 @@ export default function CateringOrderBuilder() {
           {/* Timeline Line */}
           <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-primary/20" />
 
-          {dayGroups.map((day) => (
+          {dayGroups.filter((day) => day.date !== "unscheduled").map((day) => (
             <div
               key={day.date}
               ref={(el) => {
