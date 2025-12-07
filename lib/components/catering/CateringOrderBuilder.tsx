@@ -1148,8 +1148,8 @@ export default function CateringOrderBuilder() {
 
         {/* Timeline - All Days */}
         <div className="relative mb-8">
-          {/* Timeline Line */}
-          <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-primary/20" />
+          {/* Timeline Line - Hidden on mobile */}
+          <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-primary/20 hidden md:block" />
 
           {dayGroups.filter((day) => day.date !== "unscheduled").map((day) => (
             <div
@@ -1160,10 +1160,10 @@ export default function CateringOrderBuilder() {
               }}
               className="relative mb-8 last:mb-0"
             >
-              {/* Day Container with background */}
-              <div className="flex gap-4">
-                {/* Timeline Dot - Date Badge */}
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary flex flex-col items-center justify-center z-10 shadow-lg">
+              {/* Day Container - Different layouts for mobile/desktop */}
+              <div className="flex flex-col md:flex-row md:gap-4">
+                {/* Timeline Dot - Date Badge (Desktop only) */}
+                <div className="hidden md:flex flex-shrink-0 w-12 h-12 rounded-xl bg-primary flex-col items-center justify-center z-10 shadow-lg">
                   <span className="text-xs font-medium text-white/80">
                     {day.dayName}
                   </span>
@@ -1173,17 +1173,28 @@ export default function CateringOrderBuilder() {
                 </div>
 
                 {/* Sessions Container with light pink background */}
-                <div className="flex-1 bg-primary/5 rounded-2xl p-4">
-                  {/* Day Info Header */}
-                  <div className="mb-3">
-                    <h3 className="font-semibold text-gray-800">
-                      {day.fullDate}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {day.sessions.length} session
-                      {day.sessions.length !== 1 ? "s" : ""} • £
-                      {day.total.toFixed(2)}
-                    </p>
+                <div className="flex-1 md:bg-primary/5 md:rounded-2xl md:p-4">
+                  {/* Day Info Header - Mobile: with square badge, Desktop: text only */}
+                  <div className="mb-3 flex items-start gap-3">
+                    {/* Date Badge Square - Mobile only */}
+                    <div className="md:hidden flex-shrink-0 w-11 h-11 rounded-xl bg-primary text-white flex flex-col items-center justify-center">
+                      <span className="text-[10px] font-medium leading-tight">
+                        {day.dayName}
+                      </span>
+                      <span className="text-sm font-bold leading-tight">
+                        {day.displayDate.split(" ")[0]}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800">
+                        {day.fullDate}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {day.sessions.length} session
+                        {day.sessions.length !== 1 ? "s" : ""} • £
+                        {day.total.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Sessions List */}
@@ -1359,7 +1370,7 @@ export default function CateringOrderBuilder() {
 
               {/* Add Session to this day - Outside the pink container */}
               {day.date !== "unscheduled" && (
-                <div className="ml-16 mt-3">
+                <div className="md:ml-16 mt-3">
                   <button
                     onClick={() => handleAddSessionToDay(day.date)}
                     className="w-full p-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
@@ -1375,7 +1386,7 @@ export default function CateringOrderBuilder() {
           ))}
 
           {/* Add Day at bottom */}
-          <div className="relative ml-14 mt-6">
+          <div className="relative md:ml-14 mt-6">
             <button
               onClick={handleAddDay}
               className="w-full p-4 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
