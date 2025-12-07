@@ -446,7 +446,7 @@ export default function SelectedItemsByCategory({
   };
 
   return (
-    <div className="mb-6 rounded-2xl overflow-hidden min-w-0">
+    <div className="mb-6 overflow-hidden min-w-0">
       {/* Header */}
       {/* <div className="px-6 py-4 bg-base-100 border-b border-base-200 flex items-center justify-between">
         <h2 className="text-xl sm:text-3xl font-bold text-gray-800">Your List</h2>
