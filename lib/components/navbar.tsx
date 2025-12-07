@@ -3,6 +3,7 @@
 import React from "react";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import styles from "./navbar.module.css";
 import { useScroll } from "@/context/ScrollContext";
@@ -46,11 +47,17 @@ export default function Navbar() {
     }
   };
   const { hideNavbar } = useScroll();
+  const pathname = usePathname();
+
+  // Don't use sticky navbar on event-order page (scrolls with page instead)
+  const isEventOrderPage = pathname?.startsWith("/event-order");
 
   return (
     <nav
-      className={`sticky top-0 z-50 bg-white transition-transform duration-300 ${
-        hideNavbar ? "-translate-y-full" : "translate-y-0"
+      className={`bg-white transition-transform duration-300 ${
+        isEventOrderPage
+          ? ""
+          : `sticky top-0 z-50 ${hideNavbar ? "-translate-y-full" : "translate-y-0"}`
       }`}
     >
       <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 bg-secondary gap-5 flex-nowrap">

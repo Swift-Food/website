@@ -15,8 +15,6 @@ import MenuItemModal from "./MenuItemModal";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 import SelectedItemsByCategory from "./SelectedItemsByCategory";
 import { openMenuPreview, LocalMealSession } from "@/lib/utils/menuPdfUtils";
-import { useScrollDetection } from "@/lib/hooks/useScrollDetection";
-import { useScroll } from "@/context/ScrollContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { validateSessionMinOrders } from "@/lib/utils/catering-min-order-validation";
@@ -505,8 +503,6 @@ export default function CateringOrderBuilder() {
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set()
   );
-  useScrollDetection();
-  const { hideNavbar } = useScroll();
 
   // Restaurants state for validation
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -704,11 +700,11 @@ export default function CateringOrderBuilder() {
   const handleDateClick = (dayDate: string) => {
     setSelectedDayDate(dayDate);
     setNavMode("sessions");
-    // Scroll to day section with offset for sticky header
+    // Jump to day section with offset for sticky header
     setTimeout(() => {
       const element = dayRefs.current.get(dayDate);
       if (element) {
-        const headerOffset = 180; // Account for sticky nav
+        const headerOffset = 60; // Account for sticky date/session nav
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition =
           elementPosition + window.pageYOffset - headerOffset;
@@ -742,11 +738,11 @@ export default function CateringOrderBuilder() {
   const handleSessionPillClick = (sessionIndex: number) => {
     setExpandedSessionIndex(sessionIndex);
     setActiveSessionIndex(sessionIndex);
-    // Scroll to session accordion with offset for sticky header
+    // Jump to session accordion with offset for sticky header
     setTimeout(() => {
       const element = sessionAccordionRefs.current.get(sessionIndex);
       if (element) {
-        const headerOffset = 180; // Account for sticky nav
+        const headerOffset = 60; // Account for sticky date/session nav
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition =
           elementPosition + window.pageYOffset - headerOffset;
@@ -1049,9 +1045,7 @@ export default function CateringOrderBuilder() {
     <div className="min-h-screen bg-base-100">
       {/* Sticky Navigation - Toggles between Dates and Sessions */}
       <div
-        className={`sticky z-40 bg-white shadow-sm border-b border-base-200 transition-all duration-300 ${
-          hideNavbar ? "top-0" : "top-[100px] md:top-[112px]"
-        }`}
+        className="sticky top-0 z-40 bg-white shadow-sm border-b border-base-200"
       >
         <div className="max-w-4xl mx-auto px-6 py-2">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
