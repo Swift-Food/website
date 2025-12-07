@@ -1069,45 +1069,52 @@ export default function CateringOrderBuilder() {
                   <ChevronLeft className="w-6 h-6" />
                 </button>
 
-                {/* Current Date Indicator */}
-                {currentDayGroup && (
-                  <div className="flex-shrink-0 px-5 py-3 rounded-xl bg-primary text-white shadow-lg">
-                    <div className="text-xs font-medium opacity-80">
-                      {currentDayGroup.dayName}
+                {/* Date + Sessions connected container */}
+                <div className="flex items-stretch gap-0 animate-[expandIn_0.3s_ease-out]">
+                  {/* Current Date Indicator - Same size as dates view */}
+                  {currentDayGroup && (
+                    <div className="flex-shrink-0 px-5 py-3 rounded-l-xl bg-primary text-white shadow-lg z-10">
+                      <div className="text-xs font-medium opacity-80">
+                        {currentDayGroup.dayName}
+                      </div>
+                      <div className="text-lg font-bold">
+                        {currentDayGroup.displayDate}
+                      </div>
                     </div>
-                    <div className="text-lg font-bold">
-                      {currentDayGroup.displayDate}
-                    </div>
+                  )}
+
+                  {/* Sessions Container with pink background - connected to date */}
+                  <div className="flex items-center gap-2 bg-primary/10 rounded-r-xl pl-3 pr-2 py-1">
+                    {/* Session Pills - Smaller */}
+                    {currentDayGroup?.sessions.map(({ session, index }, i) => (
+                      <button
+                        key={index}
+                        ref={(el) => {
+                          if (el) sessionButtonRefs.current.set(index, el);
+                          else sessionButtonRefs.current.delete(index);
+                        }}
+                        onClick={() => handleSessionPillClick(index)}
+                        style={{ animationDelay: `${(i + 1) * 50}ms` }}
+                        className={`flex-shrink-0 px-3 py-1.5 rounded-lg transition-all animate-[slideIn_0.25s_ease-out_both] ${
+                          expandedSessionIndex === index
+                            ? "bg-white text-primary border border-primary shadow-sm"
+                            : "bg-white/60 text-gray-600 hover:bg-white border border-transparent"
+                        }`}
+                      >
+                        <div className="text-[10px] font-medium opacity-70">
+                          {formatTimeDisplay(session.eventTime)}
+                        </div>
+                        <div className="text-sm font-semibold leading-tight">{session.sessionName}</div>
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
 
-                {/* Session Pills */}
-                {currentDayGroup?.sessions.map(({ session, index }) => (
-                  <button
-                    key={index}
-                    ref={(el) => {
-                      if (el) sessionButtonRefs.current.set(index, el);
-                      else sessionButtonRefs.current.delete(index);
-                    }}
-                    onClick={() => handleSessionPillClick(index)}
-                    className={`flex-shrink-0 px-5 py-3 rounded-xl transition-all ${
-                      expandedSessionIndex === index
-                        ? "bg-primary/10 text-primary border-2 border-primary"
-                        : "bg-base-200 text-gray-600 hover:bg-primary/5 border-2 border-transparent"
-                    }`}
-                  >
-                    <div className="text-xs font-medium opacity-80">
-                      {formatTimeDisplay(session.eventTime)}
-                    </div>
-                    <div className="text-lg font-bold">{session.sessionName}</div>
-                  </button>
-                ))}
-
-                {/* Add Session to this day */}
+                {/* Add Session to this day - Outside the pink container */}
                 {selectedDayDate && selectedDayDate !== "unscheduled" && (
                   <button
                     onClick={() => handleAddSessionToDay(selectedDayDate)}
-                    className="flex-shrink-0 px-5 py-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors"
+                    className="flex-shrink-0 px-5 py-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors animate-[fadeIn_0.3s_ease-out_0.2s_both]"
                   >
                     <Plus className="w-5 h-5 mx-auto" />
                     <div className="text-xs font-medium mt-1">Add Session</div>
