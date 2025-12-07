@@ -338,7 +338,7 @@ function SessionAccordion({
 
   // Format time for display
   const formatTime = (eventTime: string | undefined) => {
-    if (!eventTime) return "Set time";
+    if (!eventTime) return "Time not set";
     const [hours, minutes] = eventTime.split(":");
     const hour = parseInt(hours);
     const period = hour >= 12 ? "PM" : "AM";
