@@ -1093,7 +1093,7 @@ export default function CateringOrderBuilder() {
                 <div className="flex items-stretch gap-0 animate-[expandIn_0.3s_ease-out] bg-primary/10 rounded-lg min-w-0 overflow-x-auto scrollbar-hide">
                   {/* Current Date Indicator - Same size as dates view */}
                   {(currentDayGroup || selectedDayDate) && (
-                    <div className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-primary text-white">
+                    <div className="flex-shrink-0 px-4 py-2 rounded-lg bg-primary text-white">
                       <div className="text-[10px] font-medium opacity-80 text-center">
                         {currentDayGroup?.dayName ||
                           (selectedDayDate && selectedDayDate !== "unscheduled"
