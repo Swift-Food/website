@@ -4,7 +4,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
 import { PricingMenuItem, PricingOrderItem } from "@/types/api/pricing.api.types";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText } from "lucide-react";
+import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock,
+  // FileText,
+ } from "lucide-react";
 import { categoryService } from "@/services/api/category.api";
 
 interface OrderItemsByCategoryProps {
@@ -38,7 +40,9 @@ interface CategoryGroup {
   subcategories: Map<string, SubcategoryGroup>;
 }
 
-export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsByCategoryProps) {
+export default function OrderItemsByCategory({ order, 
+  // onViewMenu
+ }: OrderItemsByCategoryProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
   // Fetch categories for ordering

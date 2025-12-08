@@ -450,9 +450,8 @@ export default function CateringOrderBuilder() {
   const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(
     null
   );
-  const [pendingNewSessionIndex, setPendingNewSessionIndex] = useState<
-    number | null
-  >(null);
+  // Track if the session being edited is newly created (should be removed on cancel)
+  const [isNewSession, setIsNewSession] = useState(false);
   const sessionButtonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   // Navigation state for day/session UI
@@ -792,7 +791,7 @@ export default function CateringOrderBuilder() {
     setTimeout(() => {
       setEditingSessionIndex(newIndex);
       setActiveSessionIndex(newIndex);
-      setPendingNewSessionIndex(newIndex);
+      setIsNewSession(true);
     }, 100);
   };
 
@@ -808,12 +807,12 @@ export default function CateringOrderBuilder() {
 
     const newIndex = mealSessions.length;
     setActiveSessionIndex(newIndex);
-    setPendingNewSessionIndex(newIndex);
     setExpandedSessionIndex(newIndex);
 
     // Open editor after state update and scroll to the new session
     setTimeout(() => {
       setEditingSessionIndex(newIndex);
+      setIsNewSession(true);
       // Scroll to the new session
       const element = sessionAccordionRefs.current.get(newIndex);
       if (element) {
@@ -853,13 +852,17 @@ export default function CateringOrderBuilder() {
   };
 
   const handleEditorClose = (cancelled: boolean) => {
-    // Don't remove the session here - let handleBackToDates clean up empty sessions
-    // This allows the user to stay on the date view and add a session later
     const sessionIndex = editingSessionIndex;
-    setEditingSessionIndex(null);
-    setPendingNewSessionIndex(null);
 
-    // After editor closes, expand the session and scroll to it
+    // If cancelled and this was a new session, remove it
+    if (cancelled && isNewSession && sessionIndex !== null) {
+      removeMealSession(sessionIndex);
+    }
+
+    setEditingSessionIndex(null);
+    setIsNewSession(false);
+
+    // After editor closes, expand the session and scroll to it (only if not cancelled)
     if (sessionIndex !== null && !cancelled) {
       setExpandedSessionIndex(sessionIndex);
       // Scroll to the session after a short delay to allow DOM update

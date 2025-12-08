@@ -35,7 +35,7 @@ export default function SelectedItemsByCategory({
   collapsedCategories: externalCollapsedCategories,
   onToggleCategory: externalOnToggleCategory,
   showActions = true,
-  onViewMenu,
+  // onViewMenu,
 }: SelectedItemsByCategoryProps) {
   const { mealSessions, activeSessionIndex } = useCatering();
 

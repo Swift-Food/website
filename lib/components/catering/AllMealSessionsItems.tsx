@@ -29,7 +29,7 @@ export default function AllMealSessionsItems({
   showActions = false,
   onEdit,
   onRemove,
-  onViewMenu,
+  // onViewMenu,
 }: AllMealSessionsItemsProps) {
   const { mealSessions } = useCatering();
 
