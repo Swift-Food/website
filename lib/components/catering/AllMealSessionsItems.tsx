@@ -29,7 +29,7 @@ export default function AllMealSessionsItems({
   showActions = false,
   onEdit,
   onRemove,
-  // onViewMenu,
+  onViewMenu,
 }: AllMealSessionsItemsProps) {
   const { mealSessions } = useCatering();
 
@@ -484,7 +484,7 @@ export default function AllMealSessionsItems({
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
           Your Order
         </h2>
-        {/* {onViewMenu && (
+        {onViewMenu && (
           <button
             onClick={onViewMenu}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
@@ -503,10 +503,10 @@ export default function AllMealSessionsItems({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <span className="hidden sm:inline">View Downloadable Menu</span>
+            <span className="hidden sm:inline">Download Menu</span>
             <span className="sm:hidden">PDF</span>
           </button>
-        )} */}
+        )}
       </div>
 
       <div className="space-y-4 sm:space-y-6">

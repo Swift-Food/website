@@ -805,3 +805,272 @@ export async function openMenuPreview(
   newWindow.document.close();
   newWindow.focus();
 }
+
+// ============================================================================
+// NEW: React-PDF based PDF generation
+// ============================================================================
+
+import type {
+  PdfSession,
+  PdfCategory,
+  PdfMenuItem,
+  CateringMenuPdfProps,
+} from "@/lib/components/pdf/CateringMenuPdf";
+
+// Re-export types for convenience
+export type { PdfSession, PdfCategory, PdfMenuItem, CateringMenuPdfProps };
+
+/**
+ * Format date for PDF display (e.g., "December 5")
+ */
+const formatDateForPdf = (dateStr: string | Date): string => {
+  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+  return date.toLocaleDateString("en-GB", {
+    month: "long",
+    day: "numeric",
+  });
+};
+
+/**
+ * Transform CateringOrderResponse to PDF data format
+ * Groups items by CATEGORY (not restaurant) as per design requirements
+ */
+export function transformOrderToPdfData(
+  order: CateringOrderResponse,
+  showPrices: boolean = true
+): CateringMenuPdfProps {
+  const sessions: PdfSession[] = [];
+
+  // Handle multi-meal sessions
+  if (order.mealSessions && order.mealSessions.length > 0) {
+    const sortedSessions = [...order.mealSessions].sort((a, b) => {
+      const dateA = new Date(a.sessionDate);
+      const dateB = new Date(b.sessionDate);
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA.getTime() - dateB.getTime();
+      }
+      return a.eventTime.localeCompare(b.eventTime);
+    });
+
+    for (const session of sortedSessions) {
+      const categoryMap = new Map<string, PdfMenuItem[]>();
+
+      // Group items by category across all restaurants in this session
+      for (const restaurant of session.orderItems) {
+        for (const menuItem of restaurant.menuItems) {
+          const categoryName =
+            (menuItem as any).category?.name || (menuItem as any).categoryName || "Other";
+
+          if (!categoryMap.has(categoryName)) {
+            categoryMap.set(categoryName, []);
+          }
+
+          categoryMap.get(categoryName)!.push({
+            quantity: menuItem.quantity,
+            name: menuItem.menuItemName,
+            description: (menuItem as any).description,
+            allergens: (menuItem as any).allergens,
+            unitPrice: menuItem.customerUnitPrice,
+            image: (menuItem as any).image,
+          });
+        }
+      }
+
+      // Convert map to categories array
+      const categories: PdfCategory[] = Array.from(categoryMap.entries()).map(
+        ([name, items]) => ({ name, items })
+      );
+
+      sessions.push({
+        date: formatDateForPdf(session.sessionDate),
+        sessionName: session.sessionName,
+        time: session.eventTime,
+        categories,
+        subtotal: session.sessionTotal,
+      });
+    }
+  } else {
+    // Legacy single-session format
+    const categoryMap = new Map<string, PdfMenuItem[]>();
+    const orderItems = order.restaurants || order.orderItems || [];
+
+    for (const restaurant of orderItems as PricingOrderItem[]) {
+      for (const menuItem of restaurant.menuItems) {
+        const categoryName =
+          (menuItem as any).category?.name ||
+          (menuItem as any).categoryName ||
+          "Menu Items";
+
+        if (!categoryMap.has(categoryName)) {
+          categoryMap.set(categoryName, []);
+        }
+
+        categoryMap.get(categoryName)!.push({
+          quantity: menuItem.quantity,
+          name: menuItem.menuItemName,
+          description: (menuItem as any).description,
+          allergens: (menuItem as any).allergens,
+          unitPrice: menuItem.customerUnitPrice,
+          image: (menuItem as any).image,
+        });
+      }
+    }
+
+    const categories: PdfCategory[] = Array.from(categoryMap.entries()).map(
+      ([name, items]) => ({ name, items })
+    );
+
+    sessions.push({
+      date: formatDateForPdf(order.eventDate),
+      sessionName: "Menu",
+      time: order.eventTime,
+      categories,
+      subtotal: order.subtotal,
+    });
+  }
+
+  return {
+    sessions,
+    showPrices,
+    deliveryCharge: order.deliveryFee,
+    totalPrice: order.finalTotal || order.customerFinalTotal,
+    logoUrl: "/Logo_Circle.png",
+  };
+}
+
+/**
+ * Fetch an image and convert to base64 data URL
+ * In development: Uses a proxy API route to bypass CORS issues
+ * In production: Fetches directly (requires S3 CORS to be configured)
+ */
+async function fetchImageAsBase64(url: string): Promise<string | null> {
+  try {
+    // In development, use proxy to bypass CORS
+    // In production, fetch directly (S3 CORS must be configured)
+    const isDev = process.env.NODE_ENV === "development";
+    const fetchUrl = isDev
+      ? `/api/proxy-image?url=${encodeURIComponent(url)}`
+      : url;
+
+    const response = await fetch(fetchUrl);
+    if (!response.ok) {
+      console.warn(`Failed to fetch image: ${url}`);
+      return null;
+    }
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn(`Error fetching image ${url}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Transform local meal session state to PDF data format
+ * Used for preview before order submission
+ * Now async to handle image fetching for CORS compatibility
+ */
+export async function transformLocalSessionsToPdfData(
+  mealSessions: LocalMealSession[],
+  showPrices: boolean = true
+): Promise<CateringMenuPdfProps> {
+  const sessions: PdfSession[] = [];
+  let grandTotal = 0;
+
+  const sortedSessions = [...mealSessions]
+    .filter((s) => s.orderItems.length > 0)
+    .sort((a, b) => {
+      if (!a.sessionDate || !b.sessionDate) return 0;
+      const dateA = new Date(a.sessionDate);
+      const dateB = new Date(b.sessionDate);
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA.getTime() - dateB.getTime();
+      }
+      return (a.eventTime || "").localeCompare(b.eventTime || "");
+    });
+
+  // Collect all unique image URLs for batch fetching
+  const imageUrls = new Set<string>();
+  for (const session of sortedSessions) {
+    for (const orderItem of session.orderItems) {
+      const imageUrl = (orderItem.item as any).image;
+      if (imageUrl) {
+        imageUrls.add(imageUrl);
+      }
+    }
+  }
+
+  // Fetch all images in parallel and create a map of URL -> base64
+  const imageMap = new Map<string, string | null>();
+  if (imageUrls.size > 0) {
+    console.log(`Fetching ${imageUrls.size} images for PDF...`);
+    const fetchPromises = Array.from(imageUrls).map(async (url) => {
+      const base64 = await fetchImageAsBase64(url);
+      imageMap.set(url, base64);
+    });
+    await Promise.all(fetchPromises);
+    console.log(`Fetched ${imageMap.size} images`);
+  }
+
+  for (const session of sortedSessions) {
+    const categoryMap = new Map<string, PdfMenuItem[]>();
+    let sessionTotal = 0;
+
+    for (const orderItem of session.orderItems) {
+      const item = orderItem.item;
+      const categoryName = (item as any).categoryName || "Menu Items";
+
+      if (!categoryMap.has(categoryName)) {
+        categoryMap.set(categoryName, []);
+      }
+
+      const price = parseFloat((item as any).price || "0");
+      const discountPrice = parseFloat((item as any).discountPrice || "0");
+      const unitPrice =
+        (item as any).isDiscount && discountPrice > 0 ? discountPrice : price;
+      const itemTotal = unitPrice * orderItem.quantity;
+      sessionTotal += itemTotal;
+
+      // Use base64 image if available, otherwise use original URL
+      const originalImageUrl = (item as any).image;
+      const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
+
+      categoryMap.get(categoryName)!.push({
+        quantity: orderItem.quantity,
+        name: (item as any).menuItemName,
+        description: (item as any).description,
+        allergens: (item as any).allergens,
+        unitPrice,
+        image: base64Image || originalImageUrl,
+      });
+    }
+
+    grandTotal += sessionTotal;
+
+    const categories: PdfCategory[] = Array.from(categoryMap.entries()).map(
+      ([name, items]) => ({ name, items })
+    );
+
+    sessions.push({
+      date: session.sessionDate
+        ? formatDateForPdf(session.sessionDate)
+        : "Date TBD",
+      sessionName: session.sessionName || "Menu",
+      time: session.eventTime || "",
+      categories,
+      subtotal: sessionTotal,
+    });
+  }
+
+  return {
+    sessions,
+    showPrices,
+    totalPrice: grandTotal,
+    logoUrl: "/Logo_Circle.png",
+  };
+}
