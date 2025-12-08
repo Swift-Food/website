@@ -1003,8 +1003,37 @@ export default function CateringOrderBuilder() {
   // Handle adding items to empty session
   const handleAddItemsToEmptySession = () => {
     if (emptySessionIndex !== null) {
+      const session = mealSessions[emptySessionIndex];
+      const sessionDate = session?.sessionDate;
+
+      // Set active session
       setActiveSessionIndex(emptySessionIndex);
+
+      // Navigate to sessions view for this day
+      if (sessionDate) {
+        setSelectedDayDate(sessionDate);
+        setNavMode("sessions");
+      }
+
+      // Expand this session
+      setExpandedSessionIndex(emptySessionIndex);
+
+      // Close the modal
       setEmptySessionIndex(null);
+
+      // Scroll to the session after state updates
+      setTimeout(() => {
+        const element = sessionAccordionRefs.current.get(emptySessionIndex);
+        if (element) {
+          const headerOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 150);
     }
   };
 
@@ -1180,7 +1209,7 @@ export default function CateringOrderBuilder() {
           </div>
 
           {/* Download Menu Button */}
-          {totalItems > 0 && (
+          {/* {totalItems > 0 && (
             <button
               onClick={handleViewMenu}
               className="flex-shrink-0 bg-white rounded-xl shadow-sm border border-base-200 p-4 flex flex-col items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors group"
@@ -1203,7 +1232,7 @@ export default function CateringOrderBuilder() {
                 Download Menu
               </span>
             </button>
-          )}
+          )} */}
         </div>
 
         {/* Timeline - All Days */}
