@@ -1082,7 +1082,7 @@ export default function CateringOrderBuilder() {
       <div
         className="sticky top-0 z-40 bg-white shadow-sm border-b border-base-200"
       >
-        <div className="max-w-4xl mx-auto px-6 py-2">
+        <div className="max-w-4xl mx-auto px-2 py-2">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             {navMode === "dates" ? (
               <>
@@ -1195,7 +1195,7 @@ export default function CateringOrderBuilder() {
         />
       )}
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-2">
         {/* Summary Card */}
         <div className="flex gap-3 mb-6">
           {/* Main Summary */}

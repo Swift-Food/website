@@ -524,7 +524,7 @@ export default function SelectedItemsByCategory({
 
               {/* Category Content */}
               {!isCollapsed && (
-                <div className="p-4 space-y-3 min-w-0 overflow-hidden">
+                <div className="p-2 space-y-3 min-w-0 overflow-hidden">
                   {/* Items without subcategory */}
                   {categoryGroup.items.map(renderItemRow)}
 
