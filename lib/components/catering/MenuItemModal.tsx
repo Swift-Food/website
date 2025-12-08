@@ -523,7 +523,7 @@ export default function MenuItemModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -972,12 +972,12 @@ export default function MenuItemModal({
 
         {/* Sticky Action Buttons - Hidden in viewOnly mode */}
         {!viewOnly && (
-          <div className="sticky bottom-0 p-6 pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
+          <div className="sticky bottom-0 p-4 pt-3 md:p-6 md:pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
             {isEditMode ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <button
                   onClick={handleAddToCart}
-                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                 >
                   Save Changes
                 </button>
@@ -988,13 +988,13 @@ export default function MenuItemModal({
                       onClose();
                     }
                   }}
-                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  className="w-full bg-error hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                 >
                   Remove from Order
                 </button>
               </div>
             ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 {hasModifiedQuantity && (
                   <button
                     onClick={() => {
@@ -1002,7 +1002,7 @@ export default function MenuItemModal({
                       onUpdateQuantity?.(item.id, newBackendQty);
                       onClose();
                     }}
-                    className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                    className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                   >
                     Save Order
                   </button>
@@ -1012,7 +1012,7 @@ export default function MenuItemModal({
                     onUpdateQuantity?.(item.id, 0);
                     onClose();
                   }}
-                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  className="w-full bg-error hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                 >
                   Remove from Order
                 </button>
@@ -1020,7 +1020,7 @@ export default function MenuItemModal({
             ) : (
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
               >
                 Add to Order
               </button>
