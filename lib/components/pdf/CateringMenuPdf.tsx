@@ -15,28 +15,18 @@ import {
 // FONT CONFIGURATION - Change font here
 // =============================================================================
 // Options: 'ibm-plex-mono' | 'jetbrains-mono' | 'fira-code' | 'courier' (built-in)
-const ACTIVE_FONT = "courier";
+const ACTIVE_FONT: keyof typeof FONT_CONFIGS = "courier";
 
-const FONT_CONFIGS = {
-  // "ibm-plex-mono": {
-  //   family: "IBM Plex Mono",
-  //   fonts: [
-  //     {
-  //       src: "https://fonts.gstatic.com/s/ibmplexmono/v19/-F63fjptAgt5VM-kVkqdyU8n5igg1l9kn-s.woff2",
-  //       fontWeight: 400,
-  //     },
-  //     {
-  //       src: "https://fonts.gstatic.com/s/ibmplexmono/v19/-F6qfjptAgt5VM-kVkqdyU8n3twJ8ldPg-IUDNg.woff2",
-  //       fontWeight: 700,
-  //     },
-  //     {
-  //       src: "https://fonts.gstatic.com/s/ibmplexmono/v19/-F6pfjptAgt5VM-kVkqdyU8n1ioSflV1gMoW.woff2",
-  //       fontWeight: 400,
-  //       fontStyle: "italic",
-  //     },
-  //   ],
-  // },
+interface FontConfig {
+  family: string;
+  fonts: Array<{
+    src: string;
+    fontWeight: number;
+    fontStyle?: "normal" | "italic" | "oblique";
+  }>;
+}
 
+const FONT_CONFIGS: Record<string, FontConfig> = {
   "ibm-plex-mono": {
     family: "IBM Plex Mono",
     fonts: [
@@ -49,8 +39,6 @@ const FONT_CONFIGS = {
       },
     ],
   },
-  // ...
-
   "jetbrains-mono": {
     family: "JetBrains Mono",
     fonts: [
@@ -81,7 +69,7 @@ const FONT_CONFIGS = {
     family: "Courier",
     fonts: [], // Built-in, no registration needed
   },
-} as const;
+};
 
 // Register font if not built-in
 const fontConfig = FONT_CONFIGS[ACTIVE_FONT];
