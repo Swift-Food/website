@@ -9,7 +9,12 @@ import { cateringService } from "@/services/api/catering.api";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
 import { PaymentMethodSelector } from "../PaymentMethodSelector";
 import AllMealSessionsItems from "./AllMealSessionsItems";
-import { openMenuPreview, LocalMealSession } from "@/lib/utils/menuPdfUtils";
+import {
+  LocalMealSession,
+  transformLocalSessionsToPdfData,
+} from "@/lib/utils/menuPdfUtils";
+import { pdf } from "@react-pdf/renderer";
+import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import DeliveryAddressForm from "./contact/DeliveryAddressForm";
 import ContactInfoForm from "./contact/ContactInfoForm";
 import PromoCodeSection from "./contact/PromoCodeSection";
@@ -586,33 +591,61 @@ export default function Step3ContactInfo() {
   };
 
 
-  // Handle view menu preview
-  const handleViewMenu = () => {
-    // Convert mealSessions to LocalMealSession format
-    const sessionsForPreview: LocalMealSession[] = mealSessions.map((session) => ({
-      sessionName: session.sessionName,
-      sessionDate: session.sessionDate,
-      eventTime: session.eventTime,
-      orderItems: session.orderItems.map((orderItem) => ({
-        item: {
-          id: orderItem.item.id,
-          menuItemName: orderItem.item.menuItemName,
-          price: orderItem.item.price,
-          discountPrice: orderItem.item.discountPrice,
-          isDiscount: orderItem.item.isDiscount,
-          image: orderItem.item.image,
-          restaurantId: orderItem.item.restaurantId,
-          cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
-          feedsPerUnit: orderItem.item.feedsPerUnit,
-          categoryName: orderItem.item.categoryName,
-          subcategoryName: orderItem.item.subcategoryName,
-          selectedAddons: orderItem.item.selectedAddons,
-        },
-        quantity: orderItem.quantity,
-      })),
-    }));
+  // Handle view menu preview - now downloads PDF
+  const handleViewMenu = async () => {
+    try {
+      // Convert mealSessions to LocalMealSession format
+      const sessionsForPreview: LocalMealSession[] = mealSessions.map((session) => ({
+        sessionName: session.sessionName,
+        sessionDate: session.sessionDate,
+        eventTime: session.eventTime,
+        orderItems: session.orderItems.map((orderItem) => ({
+          item: {
+            id: orderItem.item.id,
+            menuItemName: orderItem.item.menuItemName,
+            price: orderItem.item.price,
+            discountPrice: orderItem.item.discountPrice,
+            isDiscount: orderItem.item.isDiscount,
+            image: orderItem.item.image,
+            restaurantId: orderItem.item.restaurantId,
+            cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
+            feedsPerUnit: orderItem.item.feedsPerUnit,
+            categoryName: orderItem.item.categoryName,
+            subcategoryName: orderItem.item.subcategoryName,
+            selectedAddons: orderItem.item.selectedAddons,
+            description: (orderItem.item as any).description,
+            allergens: (orderItem.item as any).allergens,
+          },
+          quantity: orderItem.quantity,
+        })),
+      }));
 
-    openMenuPreview(sessionsForPreview, formData.fullName, formData.organization);
+      // Transform to PDF data format
+      const pdfData = transformLocalSessionsToPdfData(sessionsForPreview, true);
+
+      // Generate and download PDF
+      const blob = await pdf(
+        <CateringMenuPdf
+          sessions={pdfData.sessions}
+          showPrices={pdfData.showPrices}
+          deliveryCharge={pdfData.deliveryCharge}
+          totalPrice={pdfData.totalPrice}
+          logoUrl={pdfData.logoUrl}
+        />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "catering-menu.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   if (success) {

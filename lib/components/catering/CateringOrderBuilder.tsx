@@ -13,7 +13,12 @@ import MenuItemCard from "./MenuItemCard";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 import SelectedItemsByCategory from "./SelectedItemsByCategory";
-import { openMenuPreview, LocalMealSession } from "@/lib/utils/menuPdfUtils";
+import {
+  LocalMealSession,
+  transformLocalSessionsToPdfData,
+} from "@/lib/utils/menuPdfUtils";
+import { pdf } from "@react-pdf/renderer";
+import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { validateSessionMinOrders } from "@/lib/utils/catering-min-order-validation";
@@ -1048,35 +1053,63 @@ export default function CateringOrderBuilder() {
     }
   };
 
-  // Handle view menu preview
-  const handleViewMenu = () => {
-    // Convert mealSessions to LocalMealSession format
-    const sessionsForPreview: LocalMealSession[] = mealSessions.map(
-      (session) => ({
-        sessionName: session.sessionName,
-        sessionDate: session.sessionDate,
-        eventTime: session.eventTime,
-        orderItems: session.orderItems.map((orderItem) => ({
-          item: {
-            id: orderItem.item.id,
-            menuItemName: orderItem.item.menuItemName,
-            price: orderItem.item.price,
-            discountPrice: orderItem.item.discountPrice,
-            isDiscount: orderItem.item.isDiscount,
-            image: orderItem.item.image,
-            restaurantId: orderItem.item.restaurantId,
-            cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
-            feedsPerUnit: orderItem.item.feedsPerUnit,
-            categoryName: orderItem.item.categoryName,
-            subcategoryName: orderItem.item.subcategoryName,
-            selectedAddons: orderItem.item.selectedAddons,
-          },
-          quantity: orderItem.quantity,
-        })),
-      })
-    );
+  // Handle view menu preview - now downloads PDF
+  const handleViewMenu = async () => {
+    try {
+      // Convert mealSessions to LocalMealSession format
+      const sessionsForPreview: LocalMealSession[] = mealSessions.map(
+        (session) => ({
+          sessionName: session.sessionName,
+          sessionDate: session.sessionDate,
+          eventTime: session.eventTime,
+          orderItems: session.orderItems.map((orderItem) => ({
+            item: {
+              id: orderItem.item.id,
+              menuItemName: orderItem.item.menuItemName,
+              price: orderItem.item.price,
+              discountPrice: orderItem.item.discountPrice,
+              isDiscount: orderItem.item.isDiscount,
+              image: orderItem.item.image,
+              restaurantId: orderItem.item.restaurantId,
+              cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
+              feedsPerUnit: orderItem.item.feedsPerUnit,
+              categoryName: orderItem.item.categoryName,
+              subcategoryName: orderItem.item.subcategoryName,
+              selectedAddons: orderItem.item.selectedAddons,
+              description: (orderItem.item as any).description,
+              allergens: (orderItem.item as any).allergens,
+            },
+            quantity: orderItem.quantity,
+          })),
+        })
+      );
 
-    openMenuPreview(sessionsForPreview);
+      // Transform to PDF data format
+      const pdfData = transformLocalSessionsToPdfData(sessionsForPreview, true);
+
+      // Generate and download PDF
+      const blob = await pdf(
+        <CateringMenuPdf
+          sessions={pdfData.sessions}
+          showPrices={pdfData.showPrices}
+          deliveryCharge={pdfData.deliveryCharge}
+          totalPrice={pdfData.totalPrice}
+          logoUrl={pdfData.logoUrl}
+        />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "catering-menu.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   return (
@@ -1220,7 +1253,7 @@ export default function CateringOrderBuilder() {
           </div>
 
           {/* Download Menu Button */}
-          {/* {totalItems > 0 && (
+          {totalItems > 0 && (
             <button
               onClick={handleViewMenu}
               className="flex-shrink-0 bg-white rounded-xl shadow-sm border border-base-200 p-4 flex flex-col items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors group"
@@ -1243,7 +1276,7 @@ export default function CateringOrderBuilder() {
                 Download Menu
               </span>
             </button>
-          )} */}
+          )}
         </div>
 
         {/* Timeline - All Days */}

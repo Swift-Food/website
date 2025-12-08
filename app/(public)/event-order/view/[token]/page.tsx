@@ -14,7 +14,9 @@ import PickupContactManager from "@/lib/components/catering/dashboard/PickupCont
 import DeliveryTimeManager from "@/lib/components/catering/dashboard/DeliveryTimeManager";
 import { Loader2, Eye } from "lucide-react";
 import RefundRequestButton from "@/lib/components/catering/dashboard/RefundRequestButton";
-import { openMenuViewer } from "@/lib/utils/menuPdfUtils";
+import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
+import { pdf } from "@react-pdf/renderer";
+import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import RefundsList from "@/lib/components/catering/dashboard/refundList";
@@ -72,6 +74,36 @@ export default function CateringDashboardPage() {
       console.error("Failed to load refunds:", err);
     } finally {
       setLoadingRefunds(false);
+    }
+  };
+
+  // Handle PDF download
+  const handleDownloadPdf = async () => {
+    if (!order) return;
+
+    try {
+      const pdfData = transformOrderToPdfData(order, true);
+      const blob = await pdf(
+        <CateringMenuPdf
+          sessions={pdfData.sessions}
+          showPrices={pdfData.showPrices}
+          deliveryCharge={pdfData.deliveryCharge}
+          totalPrice={pdfData.totalPrice}
+          logoUrl={pdfData.logoUrl}
+        />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `catering-menu-${order.id.substring(0, 4).toUpperCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
     }
   };
 
@@ -141,7 +173,7 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <OrderItemsByCategory order={order} onViewMenu={() => openMenuViewer(order)} />
+            <OrderItemsByCategory order={order} onViewMenu={handleDownloadPdf} />
           </div>
 
           {/* Sidebar */}

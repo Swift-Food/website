@@ -6,7 +6,9 @@ import { cateringService } from "@/services/api/catering.api";
 import { CateringOrderResponse } from "@/types/api";
 import { Loader2, ArrowLeft, Download, Printer } from "lucide-react";
 import Link from "next/link";
-import { buildMenuHTML } from "@/lib/utils/menuPdfUtils";
+import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
+import { pdf } from "@react-pdf/renderer";
+import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 
 export default function FullMenuPage() {
   const params = useParams();
@@ -36,22 +38,34 @@ export default function FullMenuPage() {
   const handleSaveAsPdf = async () => {
     if (!order) return;
 
-    const html = await buildMenuHTML(order);
-    const newWindow = window.open("", "_blank");
+    try {
+      // Transform order data to PDF format
+      const pdfData = transformOrderToPdfData(order, true);
 
-    if (!newWindow) {
-      alert("Popup blocked. Please allow popups to save as PDF.");
-      return;
+      // Generate PDF
+      const blob = await pdf(
+        <CateringMenuPdf
+          sessions={pdfData.sessions}
+          showPrices={pdfData.showPrices}
+          deliveryCharge={pdfData.deliveryCharge}
+          totalPrice={pdfData.totalPrice}
+          logoUrl={pdfData.logoUrl}
+        />
+      ).toBlob();
+
+      // Download PDF
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `catering-menu-${order.id.substring(0, 4).toUpperCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
     }
-
-    newWindow.document.write(html);
-    newWindow.document.close();
-    newWindow.focus();
-
-    // Trigger print dialog after a short delay to let content load
-    setTimeout(() => {
-      newWindow.print();
-    }, 500);
   };
 
   const handlePrint = () => {
