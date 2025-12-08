@@ -85,6 +85,13 @@ const FONT_FAMILY = fontConfig.family;
 // =============================================================================
 
 // Types
+export interface PdfAddon {
+  name: string;
+  quantity: number;
+  price?: number;
+  groupTitle?: string;
+}
+
 export interface PdfMenuItem {
   quantity: number;
   name: string;
@@ -92,6 +99,7 @@ export interface PdfMenuItem {
   allergens?: string[];
   unitPrice?: number;
   image?: string;
+  addons?: PdfAddon[];
 }
 
 export interface PdfCategory {
@@ -217,6 +225,12 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 4,
   },
+  menuItemAddons: {
+    fontSize: 9,
+    color: "#444",
+    marginTop: 4,
+    marginBottom: 4,
+  },
   menuItemImage: {
     width: 100,
     height: 70,
@@ -297,30 +311,57 @@ const CoverPage: React.FC = () => (
 const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
   item,
   showPrice,
-}) => (
-  <View style={styles.menuItem}>
-    <View style={styles.menuItemContent}>
-      <Text style={styles.menuItemName}>
-        {item.quantity}x {item.name}
-      </Text>
-      {item.description && (
-        <Text style={styles.menuItemDescription}>{item.description}</Text>
-      )}
-      {item.allergens && item.allergens.length > 0 && (
-        <Text style={styles.menuItemAllergens}>
-          Allergen: {item.allergens.join(", ")}
+}) => {
+  // Group addons by groupTitle
+  const groupedAddons: Record<string, Array<{ name: string; quantity: number }>> = {};
+  if (item.addons && item.addons.length > 0) {
+    item.addons.forEach((addon) => {
+      const group = addon.groupTitle || "Options";
+      if (!groupedAddons[group]) {
+        groupedAddons[group] = [];
+      }
+      groupedAddons[group].push({ name: addon.name, quantity: addon.quantity });
+    });
+  }
+
+  // Format addons as a single line: "Group: item1, item2 | Group2: item3"
+  const addonsText = Object.entries(groupedAddons)
+    .map(([groupTitle, addons]) => {
+      const addonsList = addons
+        .map((a) => `${a.quantity > 1 ? `${a.quantity}x ` : ""}${a.name}`)
+        .join(", ");
+      return `${groupTitle}: ${addonsList}`;
+    })
+    .join("  |  ");
+
+  return (
+    <View style={styles.menuItem}>
+      <View style={styles.menuItemContent}>
+        <Text style={styles.menuItemName}>
+          {item.quantity}x {item.name}
         </Text>
-      )}
-      {showPrice && item.unitPrice !== undefined && (
-        <Text style={styles.menuItemPrice}>
-          Unit Price £{" "}
-          {item.unitPrice === 0 ? "FREE" : item.unitPrice.toFixed(2)}
-        </Text>
-      )}
+        {item.description && (
+          <Text style={styles.menuItemDescription}>{item.description}</Text>
+        )}
+        {addonsText && (
+          <Text style={styles.menuItemAddons}>{addonsText}</Text>
+        )}
+        {item.allergens && item.allergens.length > 0 && (
+          <Text style={styles.menuItemAllergens}>
+            Allergen: {item.allergens.join(", ")}
+          </Text>
+        )}
+        {showPrice && item.unitPrice !== undefined && (
+          <Text style={styles.menuItemPrice}>
+            Unit Price £{" "}
+            {item.unitPrice === 0 ? "FREE" : item.unitPrice.toFixed(2)}
+          </Text>
+        )}
+      </View>
+      {item.image && <Image src={item.image} style={styles.menuItemImage} />}
     </View>
-    {item.image && <Image src={item.image} style={styles.menuItemImage} />}
-  </View>
-);
+  );
+};
 
 // Menu Content Component
 const MenuContent: React.FC<{

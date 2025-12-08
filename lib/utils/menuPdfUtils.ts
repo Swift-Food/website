@@ -814,11 +814,12 @@ import type {
   PdfSession,
   PdfCategory,
   PdfMenuItem,
+  PdfAddon,
   CateringMenuPdfProps,
 } from "@/lib/components/pdf/CateringMenuPdf";
 
 // Re-export types for convenience
-export type { PdfSession, PdfCategory, PdfMenuItem, CateringMenuPdfProps };
+export type { PdfSession, PdfCategory, PdfMenuItem, PdfAddon, CateringMenuPdfProps };
 
 /**
  * Format date for PDF display (e.g., "December 5")
@@ -865,6 +866,14 @@ export function transformOrderToPdfData(
             categoryMap.set(categoryName, []);
           }
 
+          // Transform addons for PDF
+          const addons = (menuItem as any).selectedAddons?.map((addon: any) => ({
+            name: addon.name,
+            quantity: addon.quantity || 1,
+            price: addon.customerUnitPrice || addon.price,
+            groupTitle: addon.groupTitle,
+          }));
+
           categoryMap.get(categoryName)!.push({
             quantity: menuItem.quantity,
             name: menuItem.menuItemName,
@@ -872,6 +881,7 @@ export function transformOrderToPdfData(
             allergens: (menuItem as any).allergens,
             unitPrice: menuItem.customerUnitPrice,
             image: (menuItem as any).image,
+            addons: addons?.length > 0 ? addons : undefined,
           });
         }
       }
@@ -905,6 +915,14 @@ export function transformOrderToPdfData(
           categoryMap.set(categoryName, []);
         }
 
+        // Transform addons for PDF
+        const addons = (menuItem as any).selectedAddons?.map((addon: any) => ({
+          name: addon.name,
+          quantity: addon.quantity || 1,
+          price: addon.customerUnitPrice || addon.price,
+          groupTitle: addon.groupTitle,
+        }));
+
         categoryMap.get(categoryName)!.push({
           quantity: menuItem.quantity,
           name: menuItem.menuItemName,
@@ -912,6 +930,7 @@ export function transformOrderToPdfData(
           allergens: (menuItem as any).allergens,
           unitPrice: menuItem.customerUnitPrice,
           image: (menuItem as any).image,
+          addons: addons?.length > 0 ? addons : undefined,
         });
       }
     }
@@ -1040,6 +1059,14 @@ export async function transformLocalSessionsToPdfData(
       const originalImageUrl = (item as any).image;
       const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
 
+      // Transform addons for PDF
+      const addons = (item as any).selectedAddons?.map((addon: any) => ({
+        name: addon.name,
+        quantity: addon.quantity || 1,
+        price: addon.price,
+        groupTitle: addon.groupTitle,
+      }));
+
       categoryMap.get(categoryName)!.push({
         quantity: orderItem.quantity,
         name: (item as any).menuItemName,
@@ -1047,6 +1074,7 @@ export async function transformLocalSessionsToPdfData(
         allergens: (item as any).allergens,
         unitPrice,
         image: base64Image || originalImageUrl,
+        addons: addons?.length > 0 ? addons : undefined,
       });
     }
 
