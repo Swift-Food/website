@@ -271,20 +271,27 @@ const styles = StyleSheet.create({
   },
 });
 
-// Cover Page Component
-const CoverPage: React.FC<{ logoUrl?: string }> = ({ logoUrl }) => (
-  <Page size="A4" style={styles.coverPage}>
-    <Text style={styles.coverTitle}>FOOD CATERING MENU</Text>
-    <View style={styles.coverTitleUnderline} />
-    {logoUrl && <Image src={logoUrl} style={styles.coverLogo} />}
-    <View style={styles.coverTagline}>
-      <Text style={styles.coverTaglineText}>Local</Text>
-      <Text style={styles.coverTaglineText}>Simple</Text>
-      <Text style={styles.coverTaglineText}>Reliable</Text>
-    </View>
-    <Text style={styles.coverBrandName}>SWIFT FOOD</Text>
+// Cover Page Component - Using pre-designed image
+const CoverPage: React.FC = () => (
+  <Page size="A4">
+    <Image src="/Swift_PDF_Cover_Page.png" style={{ width: "100%", height: "100%" }} />
   </Page>
 );
+
+// Original Cover Page Component (commented out)
+// const CoverPageOriginal: React.FC<{ logoUrl?: string }> = ({ logoUrl }) => (
+//   <Page size="A4" style={styles.coverPage}>
+//     <Text style={styles.coverTitle}>FOOD CATERING MENU</Text>
+//     <View style={styles.coverTitleUnderline} />
+//     {logoUrl && <Image src={logoUrl} style={styles.coverLogo} />}
+//     <View style={styles.coverTagline}>
+//       <Text style={styles.coverTaglineText}>Local</Text>
+//       <Text style={styles.coverTaglineText}>Simple</Text>
+//       <Text style={styles.coverTaglineText}>Reliable</Text>
+//     </View>
+//     <Text style={styles.coverBrandName}>SWIFT FOOD</Text>
+//   </Page>
+// );
 
 // Menu Item Component
 const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
@@ -390,10 +397,10 @@ export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
   showPrices,
   deliveryCharge,
   totalPrice,
-  logoUrl,
+  logoUrl: _logoUrl, // Currently unused - cover page uses static image
 }) => (
   <Document>
-    <CoverPage logoUrl={logoUrl} />
+    <CoverPage />
     <MenuContent
       sessions={sessions}
       showPrices={showPrices}
