@@ -15,10 +15,9 @@ interface OrderItemsByCategoryProps {
 // Extended PricingMenuItem with category/subcategory info from backend
 interface PricingMenuItemWithCategories extends PricingMenuItem {
   categoryName?: string;
-  subcategory?: {
+  category?: {
     id: string;
     name: string;
-    categoryId: string;
     displayOrder: number;
   };
 }
@@ -131,9 +130,9 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
       restaurant.menuItems.forEach((menuItem, itemIdx) => {
         const item = menuItem as PricingMenuItemWithCategories;
 
-        // Get category name - use categoryName field, fallback to groupTitle, then "Other Items"
+        // Get category name - use category.name first, then categoryName, fallback to groupTitle, then "Other Items"
         // Capitalize first letter for display
-        const rawCategoryName = item.categoryName || item.groupTitle || "Other Items";
+        const rawCategoryName = item.category?.name || item.categoryName || item.groupTitle || "Other Items";
         const categoryName = rawCategoryName.charAt(0).toUpperCase() + rawCategoryName.slice(1);
 
         // Get subcategory name from subcategory object if available
@@ -437,7 +436,7 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
           <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
           Order Items
         </h2>
-        {onViewMenu && (
+        {/* {onViewMenu && (
           <button
             onClick={onViewMenu}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
@@ -446,7 +445,7 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
             <span className="hidden sm:inline">View Full Menu</span>
             <span className="sm:hidden">Menu</span>
           </button>
-        )}
+        )} */}
       </div>
 
       <div className="space-y-4 sm:space-y-6">

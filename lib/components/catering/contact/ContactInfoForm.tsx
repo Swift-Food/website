@@ -27,7 +27,7 @@ export default function ContactInfoForm({
   onAddCcEmail,
   onRemoveCcEmail,
 }: ContactInfoFormProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [ccEmailInput, setCcEmailInput] = useState("");
 
   const handleAddCcEmail = () => {

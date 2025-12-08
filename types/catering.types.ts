@@ -780,6 +780,7 @@ export interface CreateMenuItemDto {
   image: string;
   isAvailable: boolean;
   allergens: string[];
+  dietaryFilters?: string[];
   addons: MenuItemAddon[] | null;
   itemDisplayOrder?: number;
   popular?: boolean;
@@ -810,6 +811,7 @@ export interface UpdateMenuItemDto {
   image?: string;
   isAvailable?: boolean;
   allergens?: string[];
+  dietaryFilters?: string[];
   addons?: MenuItemAddon[] | null;
   itemDisplayOrder?: number;
   popular?: boolean;

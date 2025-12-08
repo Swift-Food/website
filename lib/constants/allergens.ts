@@ -38,3 +38,15 @@ export const PREP_TIMES = Array.from({ length: 12 }, (_, i) => ({
   label: `${(i + 1) * 5} minutes`,
   value: (i + 1) * 5,
 }));
+
+// Dietary filter constants matching the DietaryFilter enum
+export const DIETARY_FILTERS = [
+  { label: "Vegetarian", value: "vegetarian" },
+  { label: "Non-Vegetarian", value: "nonvegetarian" },
+  { label: "Vegan", value: "vegan" },
+  { label: "Gluten-Free", value: "no_gluten" },
+  { label: "Nut-Free", value: "no_nut" },
+  { label: "Dairy-Free", value: "no_dairy" },
+  { label: "Halal", value: "halal" },
+  { label: "Pescatarian", value: "pescatarian" },
+].sort((a, b) => a.label.localeCompare(b.label));

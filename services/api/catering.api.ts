@@ -233,14 +233,14 @@ class CateringService {
       customerPhone: contactInfo.phone,
       ccEmails: ccEmails || [],
       // Top-level event details (from first session for backward compatibility)
-      eventDate: firstSession?.sessionDate || eventDetails.eventDate,
-      eventTime: firstSession?.eventTime || eventDetails.eventTime,
-      guestCount: eventDetails.guestCount,
-      eventType: eventDetails.eventType,
+      eventDate: firstSession?.sessionDate || eventDetails?.eventDate || "",
+      eventTime: firstSession?.eventTime || eventDetails?.eventTime || "",
+      guestCount: eventDetails?.guestCount || 0,
+      eventType: eventDetails?.eventType || "",
       deliveryAddress: `${contactInfo.addressLine1}${
         contactInfo.addressLine2 ? ", " + contactInfo.addressLine2 : ""
       }, ${contactInfo.city}, ${contactInfo.zipcode}`,
-      specialRequirements: eventDetails.specialRequests || "",
+      specialRequirements: eventDetails?.specialRequests || "",
       // Use mealSessions instead of orderItems
       mealSessions: mealSessionRequests,
       estimatedTotal,

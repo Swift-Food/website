@@ -24,6 +24,7 @@ export default function FullMenuPage() {
       setLoading(true);
       setError(null);
       const data = await cateringService.getOrderByToken(token);
+      console.log("Order data:", JSON.stringify(data, null, 2));
       setOrder(data);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
@@ -123,7 +124,7 @@ export default function FullMenuPage() {
 
     orderItems.forEach((restaurant) => {
       restaurant.menuItems.forEach((item: any) => {
-        const category = item.categoryName || item.groupTitle || "Other Items";
+        const category = item.category?.name || item.categoryName || item.groupTitle || "Other Items";
         if (!groupedItems.has(category)) {
           groupedItems.set(category, []);
         }

@@ -170,7 +170,7 @@ export default function SelectedItemsByCategory({
     return (
       <div
         key={originalIndex}
-        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl"
+        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden"
       >
         {/* Mobile Layout */}
         <div className="flex gap-3 sm:hidden">
@@ -446,9 +446,9 @@ export default function SelectedItemsByCategory({
   };
 
   return (
-    <div className="mb-6 bg- rounded-2xl overflow-hidden">
+    <div className="mb-6 overflow-hidden min-w-0">
       {/* Header */}
-      <div className="px-6 py-4 bg-base-100 border-b border-base-200 flex items-center justify-between">
+      {/* <div className="px-6 py-4 bg-base-100 border-b border-base-200 flex items-center justify-between">
         <h2 className="text-xl sm:text-3xl font-bold text-gray-800">Your List</h2>
         {onViewMenu && (
           <button
@@ -473,7 +473,7 @@ export default function SelectedItemsByCategory({
             <span className="sm:hidden">PDF</span>
           </button>
         )}
-      </div>
+      </div> */}
 
       {/* Categories */}
       <div className="space-y-4">
@@ -524,7 +524,7 @@ export default function SelectedItemsByCategory({
 
               {/* Category Content */}
               {!isCollapsed && (
-                <div className="p-4 space-y-3">
+                <div className="p-4 space-y-3 min-w-0 overflow-hidden">
                   {/* Items without subcategory */}
                   {categoryGroup.items.map(renderItemRow)}
 

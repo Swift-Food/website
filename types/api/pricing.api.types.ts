@@ -54,6 +54,19 @@ export interface PricingMenuItem {
   feedsPerUnit?: number;
   groupTitle?: string;
 
+  // Category information
+  category?: {
+    id: string;
+    name: string;
+    displayOrder: number;
+  };
+  subcategory?: {
+    id: string;
+    name: string;
+    categoryId: string;
+    displayOrder: number;
+  };
+
   // Add-ons
   selectedAddons?: PricingAddon[];
 }
