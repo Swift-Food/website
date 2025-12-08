@@ -1486,7 +1486,7 @@ export default function CateringOrderBuilder() {
           ))}
 
           {/* Add Day at bottom */}
-          <div className="relative md:ml-14 mt-6">
+          <div className={`relative mt-6 ${totalDays > 0 ? "md:ml-14" : ""}`}>
             <button
               onClick={handleAddDay}
               className="w-full p-4 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
