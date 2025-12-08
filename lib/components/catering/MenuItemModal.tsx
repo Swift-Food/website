@@ -547,7 +547,8 @@ export default function MenuItemModal({
         <div className="p-4 md:p-6 overflow-y-auto flex-1">
           {item.image && (
             <div
-              className="w-full h-full flex-shrink-0 mb-3"
+              className="w-full flex-shrink-0 mb-3 overflow-hidden rounded-2xl"
+              style={{ maxHeight: '50vh', aspectRatio: '5/4' }}
               onClick={(e) => {
                 e.stopPropagation();
               }}
@@ -555,7 +556,7 @@ export default function MenuItemModal({
               <img
                 src={item.image}
                 alt={item.menuItemName}
-                className="w-full h-full object-cover rounded-2xl"
+                className="w-full h-full object-cover"
               />
             </div>
           )}
