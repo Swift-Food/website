@@ -436,7 +436,7 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
           <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
           Order Items
         </h2>
-        {onViewMenu && (
+        {/* {onViewMenu && (
           <button
             onClick={onViewMenu}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
@@ -445,7 +445,7 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
             <span className="hidden sm:inline">View Full Menu</span>
             <span className="sm:hidden">Menu</span>
           </button>
-        )}
+        )} */}
       </div>
 
       <div className="space-y-4 sm:space-y-6">

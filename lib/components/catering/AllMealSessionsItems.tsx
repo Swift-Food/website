@@ -484,7 +484,7 @@ export default function AllMealSessionsItems({
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
           Your Order
         </h2>
-        {onViewMenu && (
+        {/* {onViewMenu && (
           <button
             onClick={onViewMenu}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
@@ -506,7 +506,7 @@ export default function AllMealSessionsItems({
             <span className="hidden sm:inline">View Downloadable Menu</span>
             <span className="sm:hidden">PDF</span>
           </button>
-        )}
+        )} */}
       </div>
 
       <div className="space-y-4 sm:space-y-6">
