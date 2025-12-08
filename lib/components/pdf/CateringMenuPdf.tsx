@@ -438,7 +438,7 @@ export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
   showPrices,
   deliveryCharge,
   totalPrice,
-  logoUrl: _logoUrl, // Currently unused - cover page uses static image
+  // logoUrl: _logoUrl, // Currently unused - cover page uses static image
 }) => (
   <Document>
     <CoverPage />
