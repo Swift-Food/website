@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#efeae0",
     padding: 40,
     paddingBottom: 60,
-    fontFamily: FONT_FAMILY,
+    fontFamily: "Helvetica",
   },
   dateHeader: {
     fontSize: 14,
