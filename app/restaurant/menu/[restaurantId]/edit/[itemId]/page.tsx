@@ -22,7 +22,7 @@ import {
   MenuItemStyle,
   MenuItemAddon,
 } from "@/types/catering.types";
-import { ALLERGENS, PREP_TIMES } from "@/lib/constants/allergens";
+import { ALLERGENS, PREP_TIMES, DIETARY_FILTERS } from "@/lib/constants/allergens";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 const EditMenuItemPage = () => {
@@ -57,6 +57,7 @@ const EditMenuItemPage = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
+  const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
   const [feedsPerUnit, setFeedsPerUnit] = useState<number>(1);
 
@@ -187,6 +188,7 @@ const EditMenuItemPage = () => {
       setSelectedSubcategories(subcategoryIds);
 
       setSelectedAllergens(item.allergens || []);
+      setSelectedDietaryFilters(item.dietaryFilters || []);
       setAddons(item.addons || []);
       setFeedsPerUnit(item.feedsPerUnit || 1);
     } catch (err: any) {
@@ -341,6 +343,19 @@ const EditMenuItemPage = () => {
     );
   };
 
+  const handleAddDietaryFilter = (filterValue: string) => {
+    const current = selectedDietaryFilters || [];
+    if (!current.includes(filterValue)) {
+      setSelectedDietaryFilters([...current, filterValue]);
+    }
+  };
+
+  const handleRemoveDietaryFilter = (filterValue: string) => {
+    setSelectedDietaryFilters(
+      (selectedDietaryFilters || []).filter((f) => f !== filterValue)
+    );
+  };
+
   const handleAddAddon = () => {
     setCurrentAddon({
       name: "",
@@ -414,6 +429,7 @@ const EditMenuItemPage = () => {
         categoryIds: selectedCategories || [],
         subcategoryIds: selectedSubcategories || [],
         allergens: selectedAllergens || [],
+        dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
         feedsPerUnit,
       };
@@ -817,6 +833,62 @@ const EditMenuItemPage = () => {
                         type="button"
                         onClick={() => handleRemoveAllergen(allergenValue)}
                         className="hover:bg-red-200 rounded-full p-0.5"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Dietary Filters */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900 border-b pb-2">
+              Dietary Restrictions
+            </h2>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Dietary Options
+              </label>
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleAddDietaryFilter(e.target.value);
+                    e.target.value = "";
+                  }
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+              >
+                <option value="">Select a dietary option...</option>
+                {DIETARY_FILTERS.filter(
+                  (f) => !(selectedDietaryFilters || []).includes(f.value)
+                ).map((filter) => (
+                  <option key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedDietaryFilters && selectedDietaryFilters.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedDietaryFilters.map((filterValue) => {
+                  const filter = DIETARY_FILTERS.find(
+                    (f) => f.value === filterValue
+                  );
+                  return (
+                    <span
+                      key={filterValue}
+                      className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
+                    >
+                      {filter?.label || filterValue}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDietaryFilter(filterValue)}
+                        className="hover:bg-green-200 rounded-full p-0.5"
                       >
                         <X size={14} />
                       </button>
