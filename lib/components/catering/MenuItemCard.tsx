@@ -66,17 +66,17 @@ export default function MenuItemCard({
     <>
       <div
         key={item.id}
-        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[140px] md:h-[200px]"
+        className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[120px]"
         onClick={onToggleExpand}
       >
         <div className="flex flex-row h-full">
           {/* Left Side - Content */}
-          <div className="flex-1 px-4 py-2 sm:p-6">
+          <div className="flex-1 px-3 py-2">
             {/* Header - Name */}
             <div className="flex flex-col h-full justify-between">
               <div>
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1 line-clamp-1">
+                <div className="flex items-start justify-between mb-1">
+                  <h3 className="font-bold text-sm text-gray-900 flex-1 line-clamp-1">
                     {item.menuItemName}
                   </h3>
                   {/* {item.allergens && item.allergens.length > 0 && (
@@ -91,7 +91,7 @@ export default function MenuItemCard({
 
                 {/* Description - 2 lines */}
                 {item.description && (
-                  <p className="text-gray-600 text-xs md:text-sm mb-3 line-clamp-2">
+                  <p className="text-gray-600 text-[10px] mb-1 line-clamp-2">
                     {item.description}
                   </p>
                 )}
@@ -105,26 +105,26 @@ export default function MenuItemCard({
             )} */}
 
               {/* Price and Add to Order / Quantity */}
-              <div className="flex items-end justify-between gap-4">
-                <div className="flex-1">
+              <div className="flex items-end justify-between gap-2">
+                <div className="flex-1 min-w-0">
                   {item.isDiscount && discountPrice > 0 ? (
-                    <div className="flex flex-row items-center justify-start gap-3">
-                      <p className="text-gray-500 text-[11px] md:text-sm line-through">
+                    <div className="flex flex-row items-center justify-start gap-2">
+                      <p className="text-gray-500 text-[10px] line-through">
                         £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                       </p>
-                      <p className="text-primary font-bold text-sm md:text-2xl">
+                      <p className="text-primary font-bold text-sm">
                         £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
                       </p>
                     </div>
                   ) : (
-                    <p className="text-primary font-bold text-md md:text-lg">
+                    <p className="text-primary font-bold text-sm">
                       £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                     </p>
                   )}
                   {/* Feeds per unit */}
                   {DISPLAY_FEEDS_PER_UNIT > 1 && (
-                    <p className="text-[10px] md:text-xs text-gray-600 mt-1">
-                      Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
+                    <p className="text-[9px] text-gray-600 mt-0.5">
+                      Feeds up to {DISPLAY_FEEDS_PER_UNIT}
                     </p>
                   )}
                 </div>
@@ -160,7 +160,7 @@ export default function MenuItemCard({
                         </button>
 
                         {/* On lg and larger: show quantity controls */}
-                        <div className="hidden lg:flex bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] items-center gap-2 max-w-[180px]">
+                        <div className="hidden lg:flex bg-[#F5F1E8] p-1 rounded-md border border-[#F0ECE3] items-center gap-1">
                           <button
                             onClick={() => {
                               const newPortionQty = Math.max(
@@ -171,7 +171,7 @@ export default function MenuItemCard({
                                 newPortionQty * BACKEND_QUANTITY_UNIT;
                               onUpdateQuantity?.(item.id, newBackendQty);
                             }}
-                            className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                            className="w-6 h-6 bg-white border border-gray-300 rounded hover:bg-gray-100 flex items-center justify-center text-xs flex-shrink-0"
                           >
                             −
                           </button>
@@ -201,7 +201,7 @@ export default function MenuItemCard({
                                 setQuantityInput("0");
                               }
                             }}
-                            className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1 flex-shrink-0"
+                            className="w-8 text-center font-medium text-xs text-gray-900 bg-white border border-gray-300 rounded px-0.5 py-0.5 flex-shrink-0"
                           />
 
                           <button
@@ -211,7 +211,7 @@ export default function MenuItemCard({
                                 newPortionQty * BACKEND_QUANTITY_UNIT;
                               onUpdateQuantity?.(item.id, newBackendQty);
                             }}
-                            className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                            className="w-6 h-6 bg-white border border-gray-300 rounded hover:bg-gray-100 flex items-center justify-center text-xs flex-shrink-0"
                           >
                             +
                           </button>
@@ -220,12 +220,12 @@ export default function MenuItemCard({
                     ) : (
                       <button
                         onClick={handleAddToOrder}
-                        className="w-8 h-8 md:w-10 md:h-10 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                        className="w-7 h-7 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center flex-shrink-0"
                         aria-label="Add to Order"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 md:h-5 md:w-5"
+                          className="h-3 w-3"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -247,7 +247,7 @@ export default function MenuItemCard({
 
           {/* Right Side - Image */}
           {item.image && (
-            <div className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0">
+            <div className="w-[100px] h-full bg-gray-200 flex-shrink-0">
               <img
                 src={item.image}
                 alt={item.menuItemName}
