@@ -939,13 +939,46 @@ export function transformOrderToPdfData(
 }
 
 /**
+ * Fetch an image and convert to base64 data URL
+ * In development: Uses a proxy API route to bypass CORS issues
+ * In production: Fetches directly (requires S3 CORS to be configured)
+ */
+async function fetchImageAsBase64(url: string): Promise<string | null> {
+  try {
+    // In development, use proxy to bypass CORS
+    // In production, fetch directly (S3 CORS must be configured)
+    const isDev = process.env.NODE_ENV === "development";
+    const fetchUrl = isDev
+      ? `/api/proxy-image?url=${encodeURIComponent(url)}`
+      : url;
+
+    const response = await fetch(fetchUrl);
+    if (!response.ok) {
+      console.warn(`Failed to fetch image: ${url}`);
+      return null;
+    }
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn(`Error fetching image ${url}:`, error);
+    return null;
+  }
+}
+
+/**
  * Transform local meal session state to PDF data format
  * Used for preview before order submission
+ * Now async to handle image fetching for CORS compatibility
  */
-export function transformLocalSessionsToPdfData(
+export async function transformLocalSessionsToPdfData(
   mealSessions: LocalMealSession[],
   showPrices: boolean = true
-): CateringMenuPdfProps {
+): Promise<CateringMenuPdfProps> {
   const sessions: PdfSession[] = [];
   let grandTotal = 0;
 
@@ -960,6 +993,29 @@ export function transformLocalSessionsToPdfData(
       }
       return (a.eventTime || "").localeCompare(b.eventTime || "");
     });
+
+  // Collect all unique image URLs for batch fetching
+  const imageUrls = new Set<string>();
+  for (const session of sortedSessions) {
+    for (const orderItem of session.orderItems) {
+      const imageUrl = (orderItem.item as any).image;
+      if (imageUrl) {
+        imageUrls.add(imageUrl);
+      }
+    }
+  }
+
+  // Fetch all images in parallel and create a map of URL -> base64
+  const imageMap = new Map<string, string | null>();
+  if (imageUrls.size > 0) {
+    console.log(`Fetching ${imageUrls.size} images for PDF...`);
+    const fetchPromises = Array.from(imageUrls).map(async (url) => {
+      const base64 = await fetchImageAsBase64(url);
+      imageMap.set(url, base64);
+    });
+    await Promise.all(fetchPromises);
+    console.log(`Fetched ${imageMap.size} images`);
+  }
 
   for (const session of sortedSessions) {
     const categoryMap = new Map<string, PdfMenuItem[]>();
@@ -980,13 +1036,17 @@ export function transformLocalSessionsToPdfData(
       const itemTotal = unitPrice * orderItem.quantity;
       sessionTotal += itemTotal;
 
+      // Use base64 image if available, otherwise use original URL
+      const originalImageUrl = (item as any).image;
+      const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
+
       categoryMap.get(categoryName)!.push({
         quantity: orderItem.quantity,
         name: (item as any).menuItemName,
         description: (item as any).description,
         allergens: (item as any).allergens,
         unitPrice,
-        image: (item as any).image,
+        image: base64Image || originalImageUrl,
       });
     }
 

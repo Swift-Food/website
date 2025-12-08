@@ -8,13 +8,93 @@ import {
   View,
   Image,
   StyleSheet,
+  Font,
 } from "@react-pdf/renderer";
 
-// Using Courier (built-in monospace font) as fallback
-// IBM Plex Mono requires TTF files to be served locally
-const FONT_FAMILY = "Courier";
-const FONT_FAMILY_BOLD = "Courier-Bold";
-const FONT_FAMILY_ITALIC = "Courier-Oblique";
+// =============================================================================
+// FONT CONFIGURATION - Change font here
+// =============================================================================
+// Options: 'ibm-plex-mono' | 'jetbrains-mono' | 'fira-code' | 'courier' (built-in)
+const ACTIVE_FONT = "courier";
+
+const FONT_CONFIGS = {
+  // "ibm-plex-mono": {
+  //   family: "IBM Plex Mono",
+  //   fonts: [
+  //     {
+  //       src: "https://fonts.gstatic.com/s/ibmplexmono/v19/-F63fjptAgt5VM-kVkqdyU8n5igg1l9kn-s.woff2",
+  //       fontWeight: 400,
+  //     },
+  //     {
+  //       src: "https://fonts.gstatic.com/s/ibmplexmono/v19/-F6qfjptAgt5VM-kVkqdyU8n3twJ8ldPg-IUDNg.woff2",
+  //       fontWeight: 700,
+  //     },
+  //     {
+  //       src: "https://fonts.gstatic.com/s/ibmplexmono/v19/-F6pfjptAgt5VM-kVkqdyU8n1ioSflV1gMoW.woff2",
+  //       fontWeight: 400,
+  //       fontStyle: "italic",
+  //     },
+  //   ],
+  // },
+
+  "ibm-plex-mono": {
+    family: "IBM Plex Mono",
+    fonts: [
+      { src: "/fonts/IBM_Plex_Mono/IBMPlexMono-Regular.ttf", fontWeight: 400 },
+      { src: "/fonts/IBM_Plex_Mono/IBMPlexMono-Bold.ttf", fontWeight: 700 },
+      {
+        src: "/fonts/IBM_Plex_Mono/IBMPlexMono-Italic.ttf",
+        fontWeight: 400,
+        fontStyle: "italic",
+      },
+    ],
+  },
+  // ...
+
+  "jetbrains-mono": {
+    family: "JetBrains Mono",
+    fonts: [
+      {
+        src: "https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff2",
+        fontWeight: 400,
+      },
+      {
+        src: "https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yK9jOVmUsaaDhw.woff2",
+        fontWeight: 700,
+      },
+    ],
+  },
+  "fira-code": {
+    family: "Fira Code",
+    fonts: [
+      {
+        src: "https://fonts.gstatic.com/s/firacode/v21/uU9eCBsR6Z2vfE9aq3bL0fxyUs4tcw4W_D1sJVD7Ng.woff2",
+        fontWeight: 400,
+      },
+      {
+        src: "https://fonts.gstatic.com/s/firacode/v21/uU9eCBsR6Z2vfE9aq3bL0fxyUs4tcw4W_ONrJVD7Ng.woff2",
+        fontWeight: 700,
+      },
+    ],
+  },
+  courier: {
+    family: "Courier",
+    fonts: [], // Built-in, no registration needed
+  },
+} as const;
+
+// Register font if not built-in
+const fontConfig = FONT_CONFIGS[ACTIVE_FONT];
+if (fontConfig.fonts.length > 0) {
+  Font.register({
+    family: fontConfig.family,
+    fonts: fontConfig.fonts,
+  });
+}
+
+// Font family references
+const FONT_FAMILY = fontConfig.family;
+// =============================================================================
 
 // Types
 export interface PdfMenuItem {
@@ -32,9 +112,9 @@ export interface PdfCategory {
 }
 
 export interface PdfSession {
-  date: string; // "December 5"
-  sessionName: string; // "Dinner"
-  time: string; // "19:00"
+  date: string;
+  sessionName: string;
+  time: string;
   categories: PdfCategory[];
   subtotal?: number;
 }
@@ -54,17 +134,17 @@ const styles = StyleSheet.create({
     padding: 40,
     fontFamily: FONT_FAMILY,
   },
-  // Cover page styles
   coverPage: {
     backgroundColor: "#efeae0",
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 40,
+    fontFamily: FONT_FAMILY,
   },
   coverTitle: {
     fontSize: 24,
-    fontFamily: FONT_FAMILY_BOLD,
+    fontWeight: 700,
     letterSpacing: 4,
     marginBottom: 8,
   },
@@ -85,16 +165,14 @@ const styles = StyleSheet.create({
   },
   coverTaglineText: {
     fontSize: 14,
-    fontFamily: FONT_FAMILY,
     marginHorizontal: 20,
     letterSpacing: 1,
   },
   coverBrandName: {
     fontSize: 48,
-    fontFamily: FONT_FAMILY_BOLD,
+    fontWeight: 700,
     letterSpacing: 2,
   },
-  // Menu page styles
   menuPage: {
     backgroundColor: "#efeae0",
     padding: 40,
@@ -103,7 +181,6 @@ const styles = StyleSheet.create({
   },
   dateHeader: {
     fontSize: 14,
-    fontFamily: FONT_FAMILY,
     marginBottom: 4,
   },
   dateUnderline: {
@@ -113,12 +190,11 @@ const styles = StyleSheet.create({
   },
   sessionHeader: {
     fontSize: 20,
-    fontFamily: FONT_FAMILY_BOLD,
+    fontWeight: 700,
     marginBottom: 8,
   },
   categoryHeader: {
     fontSize: 12,
-    fontFamily: FONT_FAMILY,
     marginBottom: 12,
     marginTop: 8,
   },
@@ -132,24 +208,24 @@ const styles = StyleSheet.create({
   },
   menuItemName: {
     fontSize: 12,
-    fontFamily: FONT_FAMILY_BOLD,
+    fontWeight: 700,
     marginBottom: 4,
   },
   menuItemDescription: {
     fontSize: 10,
-    fontFamily: FONT_FAMILY_ITALIC,
+    fontStyle: "italic",
     marginBottom: 4,
     color: "#333",
   },
   menuItemAllergens: {
     fontSize: 10,
-    fontFamily: FONT_FAMILY_ITALIC,
+    fontStyle: "italic",
     color: "#333",
     marginBottom: 4,
   },
   menuItemPrice: {
     fontSize: 10,
-    fontFamily: FONT_FAMILY_ITALIC,
+    fontStyle: "italic",
     marginTop: 4,
   },
   menuItemImage: {
@@ -167,7 +243,7 @@ const styles = StyleSheet.create({
   },
   subtotalText: {
     fontSize: 14,
-    fontFamily: FONT_FAMILY_BOLD,
+    fontWeight: 700,
   },
   totalsContainer: {
     marginTop: 24,
@@ -180,7 +256,6 @@ const styles = StyleSheet.create({
   },
   deliveryText: {
     fontSize: 12,
-    fontFamily: FONT_FAMILY,
   },
   totalRow: {
     flexDirection: "row",
@@ -191,7 +266,7 @@ const styles = StyleSheet.create({
   },
   totalText: {
     fontSize: 18,
-    fontFamily: FONT_FAMILY_BOLD,
+    fontWeight: 700,
   },
   footer: {
     position: "absolute",
@@ -201,7 +276,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 8,
-    fontFamily: FONT_FAMILY_ITALIC,
+    fontStyle: "italic",
     color: "#666",
   },
 });
@@ -250,87 +325,74 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
   </View>
 );
 
-// Menu Page Component - renders sessions with their categories
+// Menu Content Component
 const MenuContent: React.FC<{
   sessions: PdfSession[];
   showPrices: boolean;
   deliveryCharge?: number;
   totalPrice?: number;
-}> = ({ sessions, showPrices, deliveryCharge, totalPrice }) => {
-  // Group content into pages - we'll let react-pdf handle page breaks naturally
-  return (
-    <Page size="A4" style={styles.menuPage} wrap>
-      {sessions.map((session, sessionIndex) => (
-        <View key={sessionIndex} wrap={false}>
-          {/* Date Header */}
-          <Text style={styles.dateHeader}>{session.date}</Text>
-          <View style={styles.dateUnderline} />
+}> = ({ sessions, showPrices, deliveryCharge, totalPrice }) => (
+  <Page size="A4" style={styles.menuPage} wrap>
+    {sessions.map((session, sessionIndex) => (
+      <View key={sessionIndex} wrap={false}>
+        <Text style={styles.dateHeader}>{session.date}</Text>
+        <View style={styles.dateUnderline} />
+        <Text style={styles.sessionHeader}>
+          {session.sessionName} {session.time}
+        </Text>
 
-          {/* Session Header */}
-          <Text style={styles.sessionHeader}>
-            {session.sessionName} {session.time}
-          </Text>
+        {session.categories.map((category, catIndex) => (
+          <View key={catIndex}>
+            {session.categories.length > 1 && (
+              <Text style={styles.categoryHeader}>
+                Category: {category.name}
+              </Text>
+            )}
+            {category.items.map((item, itemIndex) => (
+              <MenuItem key={itemIndex} item={item} showPrice={showPrices} />
+            ))}
+          </View>
+        ))}
 
-          {/* Categories and Items */}
-          {session.categories.map((category, catIndex) => (
-            <View key={catIndex}>
-              {/* Only show category header if there are multiple categories or it's meaningful */}
-              {session.categories.length > 1 && (
-                <Text style={styles.categoryHeader}>
-                  Category: {category.name}
-                </Text>
-              )}
+        {showPrices && session.subtotal !== undefined && (
+          <View style={styles.subtotalContainer}>
+            <Text style={styles.subtotalText}>
+              Sub Total: £ {session.subtotal.toLocaleString()}
+            </Text>
+          </View>
+        )}
+      </View>
+    ))}
 
-              {/* Menu Items */}
-              {category.items.map((item, itemIndex) => (
-                <MenuItem key={itemIndex} item={item} showPrice={showPrices} />
-              ))}
+    {showPrices &&
+      (deliveryCharge !== undefined || totalPrice !== undefined) && (
+        <View style={styles.totalsContainer}>
+          {deliveryCharge !== undefined && deliveryCharge > 0 && (
+            <View style={styles.deliveryRow}>
+              <Text style={styles.deliveryText}>
+                Delivery Charge: £ {deliveryCharge}
+              </Text>
             </View>
-          ))}
-
-          {/* Session Subtotal */}
-          {showPrices && session.subtotal !== undefined && (
-            <View style={styles.subtotalContainer}>
-              <Text style={styles.subtotalText}>
-                Sub Total: £ {session.subtotal.toLocaleString()}
+          )}
+          {totalPrice !== undefined && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalText}>
+                Total Price: £ {totalPrice.toLocaleString()}
               </Text>
             </View>
           )}
         </View>
-      ))}
+      )}
 
-      {/* Final Totals - only on last page */}
-      {showPrices &&
-        (deliveryCharge !== undefined || totalPrice !== undefined) && (
-          <View style={styles.totalsContainer}>
-            {deliveryCharge !== undefined && deliveryCharge > 0 && (
-              <View style={styles.deliveryRow}>
-                <Text style={styles.deliveryText}>
-                  Delivery Charge: £ {deliveryCharge}
-                </Text>
-              </View>
-            )}
-            {totalPrice !== undefined && (
-              <View style={styles.totalRow}>
-                <Text style={styles.totalText}>
-                  Total Price: £ {totalPrice.toLocaleString()}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-
-      {/* Footer */}
-      <View style={styles.footer} fixed>
-        <Text style={styles.footerText}>
-          *Images are for illustrative purposes only. Actual dishes may vary in
-          appearance, portion size, and presentation due to preparation and
-          ingredient differences.
-        </Text>
-      </View>
-    </Page>
-  );
-};
+    <View style={styles.footer} fixed>
+      <Text style={styles.footerText}>
+        *Images are for illustrative purposes only. Actual dishes may vary in
+        appearance, portion size, and presentation due to preparation and
+        ingredient differences.
+      </Text>
+    </View>
+  </Page>
+);
 
 // Main Document Component
 export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
