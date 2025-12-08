@@ -620,8 +620,8 @@ export default function Step3ContactInfo() {
         })),
       }));
 
-      // Transform to PDF data format
-      const pdfData = transformLocalSessionsToPdfData(sessionsForPreview, true);
+      // Transform to PDF data format (now async to fetch images)
+      const pdfData = await transformLocalSessionsToPdfData(sessionsForPreview, true);
 
       // Generate and download PDF
       const blob = await pdf(

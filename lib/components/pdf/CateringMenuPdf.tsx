@@ -140,11 +140,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 40,
-    fontFamily: FONT_FAMILY,
+    fontFamily: "Helvetica-Bold",
   },
   coverTitle: {
     fontSize: 24,
-    fontWeight: 700,
     letterSpacing: 4,
     marginBottom: 8,
   },
@@ -170,7 +169,7 @@ const styles = StyleSheet.create({
   },
   coverBrandName: {
     fontSize: 48,
-    fontWeight: 700,
+    fontWeight: 900,
     letterSpacing: 2,
   },
   menuPage: {
@@ -197,6 +196,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 12,
     marginTop: 8,
+    textDecoration: "underline",
+    alignSelf: "flex-start",
   },
   menuItem: {
     flexDirection: "row",
@@ -237,6 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     marginTop: 16,
+    marginBottom: 32,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: "#000",
@@ -345,7 +347,7 @@ const MenuContent: React.FC<{
           <View key={catIndex}>
             {session.categories.length > 1 && (
               <Text style={styles.categoryHeader}>
-                Category: {category.name}
+                {category.name}
               </Text>
             )}
             {category.items.map((item, itemIndex) => (
