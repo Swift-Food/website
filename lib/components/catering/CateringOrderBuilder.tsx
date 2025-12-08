@@ -188,7 +188,7 @@ function SessionEditor({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl overflow-hidden">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <Clock className="h-6 w-6 text-primary" />
@@ -227,7 +227,8 @@ function SessionEditor({
               onChange={(e) => setSessionDate(e.target.value)}
               min={getMinDate()}
               max={getMaxDate()}
-              className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none bg-white min-w-0 box-border"
+              style={{ WebkitAppearance: 'none' }}
             />
           </div>
 
@@ -337,57 +338,57 @@ function SessionAccordion({
       {/* Header */}
       <button
         onClick={onToggle}
-        className="w-full px-5 py-4 flex items-center justify-between hover:bg-base-50 transition-colors"
+        className="w-full px-3 py-3 md:px-5 md:py-4 flex items-center justify-between hover:bg-base-50 transition-colors"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
               isExpanded ? "bg-primary" : "bg-base-200"
             }`}
           >
             <Clock
-              className={`w-5 h-5 ${
+              className={`w-4 h-4 md:w-5 md:h-5 ${
                 isExpanded ? "text-white" : "text-gray-500"
               }`}
             />
           </div>
           <div className="text-left">
-            <p className="font-semibold text-gray-800">{session.sessionName}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm md:text-base font-semibold text-gray-800">{session.sessionName}</p>
+            <p className="text-xs md:text-sm text-gray-500">
               {formatTime(session.eventTime)}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-gray-500">
-            <ShoppingBag className="w-4 h-4" />
-            <span className="text-sm">{itemCount} items</span>
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 md:gap-2 text-gray-500">
+            <ShoppingBag className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="text-xs md:text-sm">{itemCount} items</span>
           </div>
-          <span className="font-semibold text-primary min-w-[80px] text-right">
+          <span className="text-sm md:text-base font-semibold text-primary min-w-[60px] md:min-w-[80px] text-right">
             £{sessionTotal.toFixed(2)}
           </span>
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
+            <ChevronUp className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
           )}
         </div>
       </button>
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-5 pb-5 border-t border-base-200 overflow-hidden">
-          <div className="flex items-center justify-between py-3">
+        <div className="px-3 pb-3 md:px-5 md:pb-5 border-t border-base-200 overflow-hidden">
+          <div className="flex items-center justify-between py-2 md:py-3">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onEditSession();
               }}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors"
+              className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-gray-600 hover:text-primary transition-colors"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
+                className="h-3 w-3 md:h-4 md:w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -399,15 +400,17 @@ function SessionAccordion({
                   d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                 />
               </svg>
-              Edit Session Details
+              <span className="hidden sm:inline">Edit Session Details</span>
+              <span className="sm:hidden">Edit</span>
             </button>
             {canRemove && (
               <button
                 onClick={onRemoveSession}
-                className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 transition-colors"
+                className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-red-500 hover:text-red-600 transition-colors"
               >
-                <X className="w-4 h-4" />
-                Remove Session
+                <X className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Remove Session</span>
+                <span className="sm:hidden">Remove</span>
               </button>
             )}
           </div>
@@ -870,9 +873,7 @@ export default function CateringOrderBuilder() {
 
   const handleRemoveSession = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (mealSessions.length > 1) {
-      setSessionToRemove(index);
-    }
+    setSessionToRemove(index);
   };
 
   const confirmRemoveSession = () => {
@@ -1303,7 +1304,7 @@ export default function CateringOrderBuilder() {
                           setEditingSessionIndex(index);
                         }}
                         onRemoveSession={(e) => handleRemoveSession(index, e)}
-                        canRemove={mealSessions.length > 1}
+                        canRemove={true}
                       >
                         {/* Selected Items for this session */}
                         {session.orderItems.length > 0 && (
@@ -1517,7 +1518,7 @@ export default function CateringOrderBuilder() {
       {/* Add Day Modal */}
       {isAddDayModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Calendar className="h-6 w-6 text-primary" />
@@ -1543,7 +1544,8 @@ export default function CateringOrderBuilder() {
                   d.setMonth(d.getMonth() + 3);
                   return d.toISOString().split("T")[0];
                 })()}
-                className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none bg-white min-w-0 box-border"
+                style={{ WebkitAppearance: 'none' }}
               />
             </div>
             <div className="flex gap-3">
