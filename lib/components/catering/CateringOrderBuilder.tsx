@@ -318,7 +318,8 @@ function SessionAccordion({
   canRemove,
   children,
 }: SessionAccordionProps) {
-  const itemCount = session.orderItems.length;
+  // Total quantity of all items (not just unique items)
+  const totalItemCount = session.orderItems.reduce((sum, oi) => sum + oi.quantity, 0);
 
   // Format time for display
   const formatTime = (eventTime: string | undefined) => {
@@ -360,13 +361,19 @@ function SessionAccordion({
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
-          <div className="flex items-center gap-1 md:gap-2 text-gray-500">
-            <ShoppingBag className="w-3 h-3 md:w-4 md:h-4" />
-            <span className="text-xs md:text-sm">{itemCount} items</span>
+          {/* Desktop: items shown inline */}
+          <div className="hidden md:flex items-center gap-2 text-gray-500">
+            <ShoppingBag className="w-4 h-4" />
+            <span className="text-sm">{totalItemCount} items</span>
           </div>
-          <span className="text-sm md:text-base font-semibold text-primary min-w-[60px] md:min-w-[80px] text-right">
-            £{sessionTotal.toFixed(2)}
-          </span>
+          {/* Price and items (mobile: stacked, desktop: inline) */}
+          <div className="text-right">
+            <span className="text-sm md:text-base font-semibold text-primary">
+              £{sessionTotal.toFixed(2)}
+            </span>
+            {/* Mobile: items shown below price */}
+            <p className="md:hidden text-[10px] text-gray-500">{totalItemCount} items</p>
+          </div>
           {isExpanded ? (
             <ChevronUp className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
           ) : (
