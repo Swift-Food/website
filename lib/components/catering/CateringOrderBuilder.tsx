@@ -1340,6 +1340,208 @@ export default function CateringOrderBuilder() {
           {/* Timeline Line - Hidden on mobile */}
           <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-primary/20 hidden md:block" />
 
+          {/* Unscheduled Sessions - Show first if any exist */}
+          {dayGroups.find((day) => day.date === "unscheduled") && (
+            <div className="relative mb-8">
+              <div className="flex flex-col md:flex-row md:gap-4">
+                {/* Timeline Dot - Warning Badge (Desktop only) */}
+                <div className="hidden md:flex flex-shrink-0 w-12 h-12 rounded-xl bg-amber-500 flex-col items-center justify-center z-10 shadow-lg">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+
+                {/* Sessions Container with amber background */}
+                <div className="flex-1 md:bg-amber-50 md:rounded-2xl md:p-4 border border-amber-200 rounded-xl">
+                  {/* Header */}
+                  <div className="mb-3 flex items-start gap-3 p-3 md:p-0">
+                    {/* Warning Badge - Mobile only */}
+                    <div className="md:hidden flex-shrink-0 w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800">
+                        Unscheduled Sessions
+                      </h3>
+                      <p className="text-sm text-amber-600">
+                        Set date & time to continue
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Unscheduled Sessions List */}
+                  <div className="space-y-3 px-3 pb-3 md:px-0 md:pb-0">
+                    {dayGroups
+                      .find((day) => day.date === "unscheduled")
+                      ?.sessions.map(({ session, index }) => (
+                        <SessionAccordion
+                          key={index}
+                          session={session}
+                          isExpanded={expandedSessionIndex === index}
+                          onToggle={() => toggleSessionExpand(index)}
+                          sessionTotal={getSessionTotal(index)}
+                          accordionRef={(el) => {
+                            if (el) sessionAccordionRefs.current.set(index, el);
+                            else sessionAccordionRefs.current.delete(index);
+                          }}
+                          onEditSession={() => {
+                            setEditingSessionIndex(index);
+                          }}
+                          onRemoveSession={(e) => handleRemoveSession(index, e)}
+                          canRemove={mealSessions.length > 1}
+                        >
+                          {/* Selected Items for this session */}
+                          {session.orderItems.length > 0 && (
+                            <div className="mb-4 min-w-0 overflow-hidden">
+                              <SelectedItemsByCategory
+                                sessionIndex={index}
+                                onEdit={handleEditItem}
+                                onRemove={handleRemoveItem}
+                                collapsedCategories={collapsedCategories}
+                                onToggleCategory={handleToggleCategory}
+                                onViewMenu={handleViewMenu}
+                              />
+                            </div>
+                          )}
+
+                          {/* Categories Row */}
+                          <div className="pt-2">
+                            {categoriesLoading ? (
+                              <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                                {[...Array(6)].map((_, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                                  />
+                                ))}
+                              </div>
+                            ) : categoriesError ? (
+                              <div className="text-center py-4 text-red-500">
+                                {categoriesError}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                {categories.map((category) => (
+                                  <button
+                                    key={category.id}
+                                    onClick={() => handleCategoryClick(category)}
+                                    className={`
+                                flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                                ${
+                                  selectedCategory?.id === category.id
+                                    ? "bg-primary text-white"
+                                    : "bg-base-200 text-gray-700 hover:bg-base-300"
+                                }
+                              `}
+                                  >
+                                    {category.name}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Subcategories Row */}
+                          {selectedCategory &&
+                            selectedCategory.subcategories.length > 0 && (
+                              <div className="pb-2">
+                                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                  <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                                    {selectedCategory.name}:
+                                  </span>
+                                  {selectedCategory.subcategories.map(
+                                    (subcategory) => (
+                                      <button
+                                        key={subcategory.id}
+                                        onClick={() =>
+                                          handleSubcategoryClick(subcategory)
+                                        }
+                                        className={`
+                                flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
+                                ${
+                                  selectedSubcategory?.id === subcategory.id
+                                    ? "bg-primary text-white"
+                                    : "text-primary hover:bg-secondary/20"
+                                }
+                              `}
+                                      >
+                                        {subcategory.name}
+                                        {selectedSubcategory?.id ===
+                                          subcategory.id && (
+                                          <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                            ×
+                                          </span>
+                                        )}
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                          {/* Menu Items */}
+                          <div className="bg-base-100 rounded-xl p-4 mt-2">
+                            {menuItemsLoading ? (
+                              <div className="text-center py-4">
+                                <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                                <p className="mt-2 text-sm text-gray-500">
+                                  Loading...
+                                </p>
+                              </div>
+                            ) : menuItemsError ? (
+                              <div className="text-center py-4 text-red-500 text-sm">
+                                {menuItemsError}
+                              </div>
+                            ) : !selectedCategory ? (
+                              <div className="text-center py-6">
+                                <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                                <p className="text-gray-500 text-sm">
+                                  Select a category to browse items
+                                </p>
+                              </div>
+                            ) : menuItems.length === 0 ? (
+                              <div className="text-center py-6">
+                                <p className="text-gray-500 text-sm">
+                                  No items available for{" "}
+                                  {selectedSubcategory?.name ||
+                                    selectedCategory.name}
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                                  {selectedSubcategory?.name ||
+                                    selectedCategory.name}
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {menuItems.map((item) => (
+                                    <MenuItemCard
+                                      key={item.id}
+                                      item={item}
+                                      quantity={getItemQuantity(item.id)}
+                                      isExpanded={expandedItemId === item.id}
+                                      onToggleExpand={() =>
+                                        setExpandedItemId(
+                                          expandedItemId === item.id
+                                            ? null
+                                            : item.id
+                                        )
+                                      }
+                                      onAddItem={handleAddItem}
+                                      onUpdateQuantity={handleUpdateQuantity}
+                                      onAddOrderPress={handleAddOrderPress}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </SessionAccordion>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {dayGroups.filter((day) => day.date !== "unscheduled").map((day) => (
             <div
               key={day.date}
