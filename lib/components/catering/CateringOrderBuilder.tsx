@@ -570,6 +570,7 @@ export default function CateringOrderBuilder() {
     itemDisplayOrder: item.itemDisplayOrder || 0,
     cateringQuantityUnit: (item as any).cateringQuantityUnit,
     feedsPerUnit: (item as any).feedsPerUnit,
+    dietaryFilters: (item as any).dietaryFilters,
     // Include subcategory info from API response
     subcategoryId: (item as any).subcategories?.[0]?.id,
     subcategoryName: (item as any).subcategories?.[0]?.name,
