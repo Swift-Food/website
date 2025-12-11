@@ -115,29 +115,57 @@ export default function RestaurantCatalogue({
         </div>
       ) : (
         <div className="flex flex-wrap sm:grid sm:grid-cols-3 gap-3 md:gap-4 pb-4">
-          {restaurants.map((restaurant) => (
-            <button
-              key={restaurant.id}
-              onClick={() => {
-                setSelectedRestaurantId(
-                  selectedRestaurantId === restaurant.id
-                    ? null
-                    : restaurant.id
-                );
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
-                selectedRestaurantId === restaurant.id
-                  ? "border-primary"
-                  : "border-base-300 hover:border-primary/50"
-              }`}
-            >
-              <div className="relative">
-                <img
-                  src={restaurant.images[0] || "/placeholder.jpg"}
-                  alt={restaurant.restaurant_name}
-                  className="w-full aspect-[16/9] object-cover"
-                />
+          {restaurants.map((restaurant) => {
+            const isComingSoon = restaurant.restaurantType === "coming_soon";
+            return (
+              <button
+                key={restaurant.id}
+                onClick={() => {
+                  if (isComingSoon) return;
+                  setSelectedRestaurantId(
+                    selectedRestaurantId === restaurant.id
+                      ? null
+                      : restaurant.id
+                  );
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                disabled={isComingSoon}
+                className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
+                  isComingSoon
+                    ? "border-base-300 opacity-75 cursor-not-allowed"
+                    : selectedRestaurantId === restaurant.id
+                    ? "border-primary"
+                    : "border-base-300 hover:border-primary/50"
+                }`}
+              >
+                <div className="relative">
+                  <img
+                    src={restaurant.images[0] || "/placeholder.jpg"}
+                    alt={restaurant.restaurant_name}
+                    className="w-full aspect-[16/9] object-cover"
+                  />
+                  {/* COMING SOON OVERLAY */}
+                  {isComingSoon && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <div className="bg-white text-gray-800 px-6 py-2.5 rounded-lg font-semibold text-base shadow-lg flex items-center gap-2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                          className="w-5 h-5 text-gray-600"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span>Coming Soon</span>
+                      </div>
+                    </div>
+                  )}
                 {/* COMPACT PROMOTION BANNER OVERLAY */}
                 {restaurantPromotions[restaurant.id] && (
                   <div className="absolute top-2 right-2">
@@ -277,7 +305,8 @@ export default function RestaurantCatalogue({
                 )}
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

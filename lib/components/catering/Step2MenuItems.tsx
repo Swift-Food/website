@@ -11,6 +11,7 @@ import { fetchWithAuth } from "@/lib/api-client/auth-client";
 export interface Restaurant {
   id: string;
   restaurant_name: string;
+  restaurantType: string;
   images: string[];
   averageRating: string;
   minCateringOrderQuantity?: number;
