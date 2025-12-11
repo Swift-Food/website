@@ -464,7 +464,7 @@ export default function CateringOrderBuilder() {
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
   const [expandedSessionIndex, setExpandedSessionIndex] = useState<
     number | null
-  >(null);
+  >(0);
 
   // Add day modal state
   const [isAddDayModalOpen, setIsAddDayModalOpen] = useState(false);
@@ -608,6 +608,13 @@ export default function CateringOrderBuilder() {
         setCategoriesError(null);
         const data = await categoryService.getCategoriesWithSubcategories();
         setCategories(data);
+        // Auto-select "Mains" category by default
+        const mainCategory = data.find(
+          (cat) => cat.name.toLowerCase() === "mains"
+        );
+        if (mainCategory) {
+          setSelectedCategory(mainCategory);
+        }
       } catch (error) {
         console.error("Failed to fetch categories:", error);
         setCategoriesError("Failed to load categories");
@@ -618,6 +625,18 @@ export default function CateringOrderBuilder() {
 
     fetchCategories();
   }, []);
+
+  // Auto-select "Mains" category when a session is expanded
+  useEffect(() => {
+    if (expandedSessionIndex !== null && categories.length > 0 && !selectedCategory) {
+      const mainsCategory = categories.find(
+        (cat) => cat.name.toLowerCase() === "mains"
+      );
+      if (mainsCategory) {
+        setSelectedCategory(mainsCategory);
+      }
+    }
+  }, [expandedSessionIndex, categories, selectedCategory]);
 
   // Fetch menu items when category or subcategory changes
   useEffect(() => {
@@ -801,6 +820,17 @@ export default function CateringOrderBuilder() {
     }, 100);
   };
 
+  // Helper to select Mains category
+  const selectMainsCategory = () => {
+    const mainsCategory = categories.find(
+      (cat) => cat.name.toLowerCase() === "mains"
+    );
+    if (mainsCategory) {
+      setSelectedCategory(mainsCategory);
+      setSelectedSubcategory(null);
+    }
+  };
+
   // Handle adding a session to a specific day
   const handleAddSessionToDay = (dayDate: string) => {
     const newSession: MealSessionState = {
@@ -814,6 +844,7 @@ export default function CateringOrderBuilder() {
     const newIndex = mealSessions.length;
     setActiveSessionIndex(newIndex);
     setExpandedSessionIndex(newIndex);
+    selectMainsCategory();
 
     // Open editor after state update and scroll to the new session
     setTimeout(() => {
