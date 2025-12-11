@@ -811,6 +811,7 @@ export default function CateringOrderBuilder() {
     setSelectedDayDate(newDayDate);
     setNavMode("sessions");
     setExpandedSessionIndex(newIndex);
+    selectMainsCategory();
 
     // Open editor for the new session after state update
     setTimeout(() => {
