@@ -523,7 +523,7 @@ export default function MenuItemModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -544,10 +544,11 @@ export default function MenuItemModal({
         </button>
 
         {/* Scrollable Modal Body */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-4 md:p-6 overflow-y-auto flex-1">
           {item.image && (
             <div
-              className="w-full h-full flex-shrink-0 mb-3"
+              className="w-full flex-shrink-0 mb-3 overflow-hidden rounded-2xl"
+              style={{ maxHeight: '50vh', aspectRatio: '5/4' }}
               onClick={(e) => {
                 e.stopPropagation();
               }}
@@ -555,25 +556,25 @@ export default function MenuItemModal({
               <img
                 src={item.image}
                 alt={item.menuItemName}
-                className="w-full h-full object-cover rounded-2xl"
+                className="w-full h-full object-cover"
               />
             </div>
           )}
-          <h2 className="font-bold text-xl md:text-2xl text-base-content mb-4 pr-8">
+          <h2 className="font-bold text-lg md:text-2xl text-base-content mb-3 md:mb-4 pr-8">
             {item.menuItemName}
           </h2>
 
-          <div className="space-y-4 mt-2">
+          <div className="space-y-3 md:space-y-4 mt-2">
             {item.description && (
               <div>
-                <p className="text-base-content/70 text-sm leading-relaxed">
+                <p className="text-base-content/70 text-xs md:text-sm leading-relaxed">
                   {item.description}
                 </p>
               </div>
             )}
 
             {item.allergens && item.allergens.length > 0 && (
-              <div className="bg-warning/5 border border-warning/20 rounded-lg p-4">
+              <div className="bg-warning/5 border border-warning/20 rounded-lg p-3 md:p-4">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -583,29 +584,29 @@ export default function MenuItemModal({
                   }}
                   className="w-full text-left hover:opacity-80 transition-opacity"
                 >
-                  <h3 className="font-semibold text-sm text-base-content flex items-center justify-between gap-2">
+                  <h3 className="font-semibold text-xs md:text-sm text-base-content flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2">
-                      <span className="text-warning text-base">⚠️</span>
+                      <span className="text-warning text-sm md:text-base">⚠️</span>
                       Allergens
                     </span>
-                    <span className="text-xs text-base-content/60 font-normal">
+                    <span className="text-[10px] md:text-xs text-base-content/60 font-normal">
                       {isAllergenExpanded ? "▲ Hide" : "▼ Show"}
                     </span>
                   </h3>
                 </button>
                 {isAllergenExpanded && (
                   <>
-                    <div className="flex flex-wrap gap-2 my-3">
+                    <div className="flex flex-wrap gap-1.5 md:gap-2 my-2 md:my-3">
                       {item.allergens.map((allergen: string, index: number) => (
                         <span
                           key={index}
-                          className="bg-warning text-warning-content px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm"
+                          className="bg-warning text-warning-content px-2 md:px-3 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold shadow-sm"
                         >
                           {formatAllergen(allergen)}
                         </span>
                       ))}
                     </div>
-                    <p className="text-xs text-base-content/60 italic leading-relaxed">
+                    <p className="text-[10px] md:text-xs text-base-content/60 italic leading-relaxed">
                       This is approximate. For full allergen information, please
                       contact the restaurant.
                     </p>
@@ -614,8 +615,8 @@ export default function MenuItemModal({
               </div>
             )}
             {(!item.allergens || item.allergens.length === 0) && (
-              <div className="bg-base-200 border border-base-300 rounded-lg p-3">
-                <p className="text-xs text-base-content/60 italic">
+              <div className="bg-base-200 border border-base-300 rounded-lg p-2 md:p-3">
+                <p className="text-[10px] md:text-xs text-base-content/60 italic">
                   ⚠️ Allergen information not available. Please contact the
                   restaurant directly.
                 </p>
@@ -623,31 +624,31 @@ export default function MenuItemModal({
             )}
 
             {/* Pricing */}
-            <div className="pt-2">
+            <div className="pt-1 md:pt-2">
               <div className="flex items-center gap-2 mb-1">
                 {item.isDiscount && discountPrice > 0 ? (
                   <>
-                    <span className="text-2xl font-bold text-primary">
+                    <span className="text-xl md:text-2xl font-bold text-primary">
                       £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
                     </span>
-                    <span className="text-xl text-base-content/50 line-through">
+                    <span className="text-lg md:text-xl text-base-content/50 line-through">
                       £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                     </span>
                   </>
                 ) : (
-                  <span className="text-2xl font-bold text-primary">
+                  <span className="text-xl md:text-2xl font-bold text-primary">
                     £{(displayPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-base-content/60 mb-4">
+              <p className="text-xs md:text-sm text-base-content/60 mb-3 md:mb-4">
                 Feeds up to {DISPLAY_FEEDS_PER_UNIT} people
               </p>
 
               {/* Quantity Selector - Hidden in viewOnly mode */}
               {!viewOnly && (
-                <div className="bg-base-200 p-4 rounded-lg">
-                  <h3 className="font-semibold text-sm text-base-content mb-3">
+                <div className="bg-base-200 p-3 md:p-4 rounded-lg">
+                  <h3 className="font-semibold text-xs md:text-sm text-base-content mb-2 md:mb-3">
                     Number of Portions
                   </h3>
                   <div className="flex items-center justify-between gap-3">
@@ -663,7 +664,7 @@ export default function MenuItemModal({
                           setHasModifiedQuantity(newQty !== initialModalQuantity);
                         }
                       }}
-                      className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
+                      className="w-8 h-8 md:w-10 md:h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-base md:text-lg font-medium flex-shrink-0"
                     >
                       −
                     </button>
@@ -706,7 +707,7 @@ export default function MenuItemModal({
                             }
                           }
                         }}
-                        className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
+                        className="w-16 md:w-20 text-center font-bold text-base md:text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
                       />
                       {/* <p className="text-xs text-base-content/60">
                         Feeds {itemQuantity * DISPLAY_FEEDS_PER_UNIT} people
@@ -724,7 +725,7 @@ export default function MenuItemModal({
                           setHasModifiedQuantity(newQty !== initialModalQuantity);
                         }
                       }}
-                      className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
+                      className="w-8 h-8 md:w-10 md:h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-base md:text-lg font-medium flex-shrink-0"
                     >
                       +
                     </button>
@@ -742,15 +743,15 @@ export default function MenuItemModal({
                 {Object.entries(addonGroups).map(([groupTitle, group]) => (
                   <div key={groupTitle} className="mb-4">
                     <div className="mb-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-sm text-base-content">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-0.5 md:gap-2">
+                        <h4 className="font-medium text-xs md:text-sm text-base-content">
                           {groupTitle}
                           {!viewOnly && group.isRequired && (
                             <span className="text-error ml-1">*</span>
                           )}
                         </h4>
                         {!viewOnly && (
-                          <span className="text-xs text-base-content/60 italic">
+                          <span className="text-[10px] md:text-xs text-base-content/60 italic">
                             {group.selectionType === "single"
                               ? `Select portions (total: ${getSingleSelectionTotal(
                                   groupTitle
@@ -972,12 +973,12 @@ export default function MenuItemModal({
 
         {/* Sticky Action Buttons - Hidden in viewOnly mode */}
         {!viewOnly && (
-          <div className="sticky bottom-0 p-6 pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
+          <div className="sticky bottom-0 p-4 pt-3 md:p-6 md:pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
             {isEditMode ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <button
                   onClick={handleAddToCart}
-                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                 >
                   Save Changes
                 </button>
@@ -988,13 +989,13 @@ export default function MenuItemModal({
                       onClose();
                     }
                   }}
-                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  className="w-full bg-error hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                 >
                   Remove from Order
                 </button>
               </div>
             ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 {hasModifiedQuantity && (
                   <button
                     onClick={() => {
@@ -1002,7 +1003,7 @@ export default function MenuItemModal({
                       onUpdateQuantity?.(item.id, newBackendQty);
                       onClose();
                     }}
-                    className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                    className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                   >
                     Save Order
                   </button>
@@ -1012,7 +1013,7 @@ export default function MenuItemModal({
                     onUpdateQuantity?.(item.id, 0);
                     onClose();
                   }}
-                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  className="w-full bg-error hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
                 >
                   Remove from Order
                 </button>
@@ -1020,7 +1021,7 @@ export default function MenuItemModal({
             ) : (
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
               >
                 Add to Order
               </button>

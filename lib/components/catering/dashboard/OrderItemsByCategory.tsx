@@ -3,8 +3,19 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
-import { PricingMenuItem, PricingOrderItem } from "@/types/api/pricing.api.types";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText } from "lucide-react";
+import {
+  PricingMenuItem,
+  PricingOrderItem,
+} from "@/types/api/pricing.api.types";
+import {
+  ChefHat,
+  Package,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  Clock,
+  FileText,
+} from "lucide-react";
 import { categoryService } from "@/services/api/category.api";
 
 interface OrderItemsByCategoryProps {
@@ -15,10 +26,9 @@ interface OrderItemsByCategoryProps {
 // Extended PricingMenuItem with category/subcategory info from backend
 interface PricingMenuItemWithCategories extends PricingMenuItem {
   categoryName?: string;
-  subcategory?: {
+  category?: {
     id: string;
     name: string;
-    categoryId: string;
     displayOrder: number;
   };
 }
@@ -39,7 +49,10 @@ interface CategoryGroup {
   subcategories: Map<string, SubcategoryGroup>;
 }
 
-export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsByCategoryProps) {
+export default function OrderItemsByCategory({
+  order,
+  onViewMenu,
+}: OrderItemsByCategoryProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
   // Fetch categories for ordering
@@ -48,7 +61,8 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categories = await categoryService.getCategoriesWithSubcategories();
+        const categories =
+          await categoryService.getCategoriesWithSubcategories();
         setCategoryOrder(categories.map((c) => c.name));
       } catch (error) {
         console.error("Failed to fetch categories for ordering:", error);
@@ -124,17 +138,24 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
   };
 
   // Group items by category and subcategory from all restaurants
-  const groupItemsByCategory = (restaurants: PricingOrderItem[]): Map<string, CategoryGroup> => {
+  const groupItemsByCategory = (
+    restaurants: PricingOrderItem[]
+  ): Map<string, CategoryGroup> => {
     const map = new Map<string, CategoryGroup>();
 
     restaurants.forEach((restaurant, restIdx) => {
       restaurant.menuItems.forEach((menuItem, itemIdx) => {
         const item = menuItem as PricingMenuItemWithCategories;
 
-        // Get category name - use categoryName field, fallback to groupTitle, then "Other Items"
+        // Get category name - use category.name first, then categoryName, fallback to groupTitle, then "Other Items"
         // Capitalize first letter for display
-        const rawCategoryName = item.categoryName || item.groupTitle || "Other Items";
-        const categoryName = rawCategoryName.charAt(0).toUpperCase() + rawCategoryName.slice(1);
+        const rawCategoryName =
+          item.category?.name ||
+          item.categoryName ||
+          item.groupTitle ||
+          "Other Items";
+        const categoryName =
+          rawCategoryName.charAt(0).toUpperCase() + rawCategoryName.slice(1);
 
         // Get subcategory name from subcategory object if available
         const subcategoryName = item.subcategory?.name || "";
@@ -211,9 +232,7 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
               {Math.round(numUnits) !== 1 ? "s" : ""} &bull; Serves ~
               {Math.round(totalFeeds)} people
             </p>
-            <p className="text-xs text-gray-500 mt-1">
-              From: {restaurantName}
-            </p>
+            <p className="text-xs text-gray-500 mt-1">From: {restaurantName}</p>
           </div>
           <p className="font-bold text-pink-600 text-sm sm:text-base whitespace-nowrap self-end sm:self-auto">
             £{Number(item.customerTotalPrice || 0).toFixed(2)}
@@ -234,15 +253,13 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
                 >
                   <span className="text-gray-700 flex-1 break-words">
                     &bull; {addon.name}{" "}
-                    <span className="text-gray-500">
-                      x {addon.quantity}
-                    </span>
+                    <span className="text-gray-500">x {addon.quantity}</span>
                   </span>
                   <span className="text-pink-600 font-semibold whitespace-nowrap">
                     +£
-                    {(
-                      (addon.customerUnitPrice || 0) * addon.quantity
-                    ).toFixed(2)}
+                    {((addon.customerUnitPrice || 0) * addon.quantity).toFixed(
+                      2
+                    )}
                   </span>
                 </div>
               ))}
@@ -303,7 +320,10 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
             {/* Subcategories and their items */}
             {Array.from(categoryGroup.subcategories.entries()).map(
               ([subcategoryName, subGroup]) => (
-                <div key={`${categoryKey}-sub-${subcategoryName}`} className="mt-3">
+                <div
+                  key={`${categoryKey}-sub-${subcategoryName}`}
+                  className="mt-3"
+                >
                   <p className="text-xs font-medium text-gray-600 mb-2 pl-2 uppercase tracking-wide">
                     {subcategoryName}
                   </p>
@@ -443,7 +463,7 @@ export default function OrderItemsByCategory({ order, onViewMenu }: OrderItemsBy
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
           >
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">View Full Menu</span>
+            <span className="hidden sm:inline">Download Menu</span>
             <span className="sm:hidden">Menu</span>
           </button>
         )}
