@@ -378,11 +378,16 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         const validSessions = sessions.filter(
           (s) => s.orderItems.length > 0 || s.sessionDate
         );
-        setMealSessionsState(validSessions);
-        if (savedActiveSessionIndex) {
-          const activeIndex = JSON.parse(savedActiveSessionIndex);
-          // Ensure active index is within bounds
-          setActiveSessionIndexState(Math.min(activeIndex, Math.max(0, validSessions.length - 1)));
+        // If no valid sessions remain, create a default one
+        if (validSessions.length === 0) {
+          setMealSessionsState([createDefaultSession()]);
+        } else {
+          setMealSessionsState(validSessions);
+          if (savedActiveSessionIndex) {
+            const activeIndex = JSON.parse(savedActiveSessionIndex);
+            // Ensure active index is within bounds
+            setActiveSessionIndexState(Math.min(activeIndex, Math.max(0, validSessions.length - 1)));
+          }
         }
       } else if (legacySelectedItems) {
         // Migrate legacy format: put all items in first session
@@ -394,6 +399,9 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         setMealSessionsState([migratedSession]);
         // Remove legacy key
         localStorage.removeItem(STORAGE_KEYS.SELECTED_ITEMS);
+      } else {
+        // No saved sessions at all - create a default one
+        setMealSessionsState([createDefaultSession()]);
       }
     } catch (error) {
       console.error("Error loading catering data from localStorage:", error);
