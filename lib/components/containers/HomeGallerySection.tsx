@@ -16,7 +16,7 @@ const polaroidItems = [
     caption: "Hiba @ Great Agent Hack",
   },
   {
-    src: "/home_gallery/hiba_rl agian.JPG",
+    src: "/home_gallery/hiba_rl2.JPG",
     caption: "Hiba @ Iterate’s London RL Hackathon",
   },
   {
