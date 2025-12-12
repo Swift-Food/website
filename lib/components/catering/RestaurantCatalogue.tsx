@@ -132,7 +132,7 @@ export default function RestaurantCatalogue({
                 disabled={isComingSoon}
                 className={`flex-shrink-0 w-full rounded-xl overflow-hidden border-2 transition-all ${
                   isComingSoon
-                    ? "border-base-300 opacity-75 cursor-not-allowed"
+                    ? "border-base-300 cursor-not-allowed"
                     : selectedRestaurantId === restaurant.id
                     ? "border-primary"
                     : "border-base-300 hover:border-primary/50"
@@ -144,25 +144,14 @@ export default function RestaurantCatalogue({
                     alt={restaurant.restaurant_name}
                     className="w-full aspect-[16/9] object-cover"
                   />
-                  {/* COMING SOON OVERLAY */}
+                  {/* COMING SOON RIBBON */}
                   {isComingSoon && (
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                      <div className="bg-white text-gray-800 px-6 py-2.5 rounded-lg font-semibold text-base shadow-lg flex items-center gap-2">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-5 h-5 text-gray-600"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        <span>Coming Soon</span>
+                    <div className="absolute top-0 right-0 overflow-hidden w-36 h-36">
+                      <div
+                        className="absolute top-[26px] right-[-45px] w-[180px] bg-primary text-white text-xs font-bold py-1.5 shadow-md flex items-center justify-center"
+                        style={{ transform: "rotate(45deg)" }}
+                      >
+                        Coming Soon
                       </div>
                     </div>
                   )}
