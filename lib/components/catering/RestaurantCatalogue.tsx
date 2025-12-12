@@ -146,7 +146,11 @@ export default function RestaurantCatalogue({
                     className="w-full aspect-[16/9] object-cover"
                   />
                 ) : (
-                  <div className="w-full aspect-[16/9] bg-base-200" />
+                  <div className="w-full aspect-[16/9] bg-base-200 flex items-center justify-center px-4">
+                    <span className="text-xl font-semibold text-base-content/30 text-center">
+                      {restaurant.restaurant_name}
+                    </span>
+                  </div>
                 )}
                   {/* COMING SOON RIBBON */}
                   {isComingSoon && (
