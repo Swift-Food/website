@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
+import PolaroidGallery from "./PolaroidGallery";
 
 const galleryImages = [
   "/home_gallery/asian_delights_AgentVerse Hackathon.JPG",
@@ -20,7 +21,40 @@ const galleryImages = [
   "/home_gallery/sandwich_Rl as well.PNG",
 ];
 
+// Polaroid items with placeholder captions
+const placeholderCaptions = [
+  "Fresh & Delicious",
+  "Made with Love",
+  "Farm to Table",
+  "Local Ingredients",
+  "Chef's Special",
+  "Daily Fresh",
+  "Artisan Quality",
+  "Seasonal Picks",
+  "Handcrafted",
+  "Premium Selection",
+  "Organic Goodness",
+  "Signature Dish",
+  "House Favorite",
+  "Today's Special",
+  "Market Fresh",
+];
+
+const polaroidItems = galleryImages.map((src, index) => ({
+  src,
+  caption: placeholderCaptions[index % placeholderCaptions.length],
+}));
+
 export default function HomeGallerySection() {
+  // Polaroid Gallery
+  return (
+    <PolaroidGallery
+      items={polaroidItems}
+      title="FRESH FROM THE MARKET"
+    />
+  );
+
+  /* MARQUEE GALLERY - Commented out
   const [offset, setOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -90,12 +124,16 @@ export default function HomeGallerySection() {
 
   return (
     <section className="w-full bg-base-100 py-8 overflow-hidden">
+      <h2
+        className="text-center text-primary text-3xl sm:text-4xl font-bold tracking-wide mb-8 px-4"
+        style={{ fontFamily: "IBM Plex Mono, monospace" }}
+      >
+        EVENTS WE&apos;VE SERVED
+      </h2>
       <div className="relative h-64 sm:h-80 md:h-96">
-        {/* Blur edges */}
         <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-r from-base-100 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-base-100 to-transparent z-10 pointer-events-none" />
 
-        {/* Scrolling Images */}
         <div
           ref={carouselRef}
           className="flex gap-4 h-full cursor-grab active:cursor-grabbing select-none"
@@ -130,4 +168,5 @@ export default function HomeGallerySection() {
       </div>
     </section>
   );
+  END MARQUEE GALLERY */
 }
