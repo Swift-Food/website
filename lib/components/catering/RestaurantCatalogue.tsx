@@ -139,11 +139,15 @@ export default function RestaurantCatalogue({
                 }`}
               >
                 <div className="relative">
+                {restaurant.images?.[0] ? (
                   <img
-                    src={restaurant.images[0] || "/placeholder.jpg"}
+                    src={restaurant.images[0]}
                     alt={restaurant.restaurant_name}
                     className="w-full aspect-[16/9] object-cover"
                   />
+                ) : (
+                  <div className="w-full aspect-[16/9] bg-base-200" />
+                )}
                   {/* COMING SOON RIBBON */}
                   {isComingSoon && (
                     <div className="absolute top-0 right-0 overflow-hidden w-36 h-36">
