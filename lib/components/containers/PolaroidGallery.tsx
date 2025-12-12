@@ -22,7 +22,6 @@ export default function PolaroidGallery({
 }: PolaroidGalleryProps) {
   const [startIndex, setStartIndex] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
-  const [nextIndex, setNextIndex] = useState(0);
 
   // Rotate images at interval with flip animation
   useEffect(() => {
@@ -31,7 +30,6 @@ export default function PolaroidGallery({
     const interval = setInterval(() => {
       // Calculate next index
       const next = (startIndex + displayCount) % items.length;
-      setNextIndex(next);
 
       // Start flip animation
       setIsFlipping(true);
