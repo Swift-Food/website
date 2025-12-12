@@ -18,20 +18,37 @@ export default function PolaroidGallery({
   items,
   title,
   displayCount = 8,
-  rotateInterval = 5000
+  rotateInterval = 5000,
 }: PolaroidGalleryProps) {
   const [startIndex, setStartIndex] = useState(0);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [nextIndex, setNextIndex] = useState(0);
 
-  // Rotate images at interval
+  // Rotate images at interval with flip animation
   useEffect(() => {
     if (items.length <= displayCount) return;
 
     const interval = setInterval(() => {
-      setStartIndex((prev) => (prev + displayCount) % items.length);
+      // Calculate next index
+      const next = (startIndex + displayCount) % items.length;
+      setNextIndex(next);
+
+      // Start flip animation
+      setIsFlipping(true);
+
+      // After flip halfway (250ms), change the images
+      setTimeout(() => {
+        setStartIndex(next);
+      }, 250);
+
+      // After full flip (500ms), reset flipping state
+      setTimeout(() => {
+        setIsFlipping(false);
+      }, 500);
     }, rotateInterval);
 
     return () => clearInterval(interval);
-  }, [items.length, displayCount, rotateInterval]);
+  }, [items.length, displayCount, rotateInterval, startIndex]);
 
   // Get current set of images to display
   const visibleItems = [];
@@ -54,13 +71,19 @@ export default function PolaroidGallery({
         </h2>
       )}
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
+          style={{ perspective: "1000px" }}
+        >
           {visibleItems.map((item, index) => (
             <div
               key={index}
-              className="bg-white p-3 pb-12 shadow-lg transform transition-transform hover:scale-105 hover:z-10"
+              className="bg-white p-3 pb-12 shadow-lg hover:scale-105 hover:z-10"
               style={{
-                transform: `rotate(${rotations[index % rotations.length]}deg)`,
+                transform: `rotate(${rotations[index % rotations.length]}deg) ${isFlipping ? "rotateY(180deg)" : "rotateY(0deg)"}`,
+                transition: "transform 0.5s ease-in-out",
+                transformStyle: "preserve-3d",
+                backfaceVisibility: "hidden",
               }}
             >
               <div className="relative aspect-square overflow-hidden bg-gray-100">

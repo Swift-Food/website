@@ -44,7 +44,7 @@ const polaroidItems = [
   { src: "/home_gallery/oakberry3.jpg", caption: "Oakberry Matcha Rave" },
   { src: "/home_gallery/oakberry4.jpg", caption: "Oakberry Matcha Rave" },
   {
-    src: "/home_gallery/sandwich_Rl as well.PNG",
+    src: "/home_gallery/sandwich_Rl.jpg",
     caption: "Sandwich Sandwich @ Iterate's London RL Hackkathon",
   },
 ];
