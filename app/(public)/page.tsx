@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import HomeHeroSection from "@/lib/components/containers/HomeHeroSection";
+import HomeGallerySection from "@/lib/components/containers/HomeGallerySection";
 import OurStorySection from "@/lib/components/containers/OurStorySection";
 
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
     <div>
       <HomeHeroSection />
       <div className="bg-primary h-10 w-full" />
+      <HomeGallerySection />
       <OurStorySection />
       <section
         ref={differentSectionRef}
