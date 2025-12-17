@@ -21,6 +21,9 @@ export const API_ENDPOINTS = {
   CATERING_ORDERS: '/catering-orders',
   CATERING_ORDER_RECEIPT: (orderId: string, restaurantId: string) =>
     `/catering-orders/${orderId}/restaurant/${restaurantId}/receipt-calc?style=MENU_ITEM`,
+
+  // Catering Bundles
+  CATERING_BUNDLE: (id: string) => `/catering-bundles/${id}`,
 } as const;
 
 export const EXTERNAL_APIS = {

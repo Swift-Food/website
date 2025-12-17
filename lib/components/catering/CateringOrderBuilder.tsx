@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
 import {
   MealSessionState,
@@ -9,6 +10,7 @@ import {
   MenuItemDetails,
 } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
+import { cateringService } from "@/services/api/catering.api";
 import MenuItemCard from "./MenuItemCard";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
@@ -436,6 +438,7 @@ function SessionAccordion({
 }
 
 export default function CateringOrderBuilder() {
+  const searchParams = useSearchParams();
   const {
     mealSessions,
     activeSessionIndex,
@@ -599,6 +602,77 @@ export default function CateringOrderBuilder() {
     };
     fetchRestaurants();
   }, []);
+
+  // Prefill cart from bundle query parameter
+  useEffect(() => {
+    const bundleId = searchParams.get("bundleId");
+    if (!bundleId) return;
+
+    const prefillFromBundle = async () => {
+      try {
+        // Fetch bundle data
+        const bundle = await cateringService.getBundleById(bundleId);
+
+        // Fetch all menu items to match with bundle items
+        const response = await cateringService.getMenuItems();
+        const allMenuItems = (response || []).map((item: any) => ({
+          id: item.id,
+          menuItemName: item.name,
+          description: item.description,
+          price: item.price?.toString() || "0",
+          discountPrice: item.discountPrice?.toString(),
+          isDiscount: item.isDiscount || false,
+          image: item.image,
+          averageRating: item.averageRating?.toString(),
+          restaurantId: item.restaurantId || "",
+          cateringQuantityUnit: item.cateringQuantityUnit || 7,
+          feedsPerUnit: item.feedsPerUnit || 10,
+          groupTitle: item.groupTitle,
+          status: item.status,
+          itemDisplayOrder: item.itemDisplayOrder,
+          addons: Array.isArray(item.addons) ? item.addons : [],
+          allergens: Array.isArray(item.allergens) ? item.allergens : [],
+          restaurant: {
+            id: item.restaurantId,
+            name: item.restaurant?.restaurant_name || "Unknown",
+            restaurantId: item.restaurantId,
+            menuGroupSettings: item.restaurant?.menuGroupSettings,
+          },
+          dietaryFilters: item.dietaryFilters,
+        }));
+
+        // Match bundle items with loaded menu items and add to cart
+        bundle.items.forEach((bundleItem) => {
+          const menuItem = allMenuItems.find(
+            (item: MenuItem) => item.id === bundleItem.menuItemId
+          );
+
+          if (menuItem) {
+            // Create a copy of the menu item with selected addons from the bundle
+            const itemWithAddons: MenuItem = {
+              ...menuItem,
+              selectedAddons: bundleItem.selectedAddons,
+            };
+
+            // Add to the active session
+            addMenuItem(activeSessionIndex, {
+              item: itemWithAddons,
+              quantity: bundleItem.quantity,
+            });
+          } else {
+            console.warn(
+              `Menu item ${bundleItem.menuItemId} not found in loaded menu items`
+            );
+          }
+        });
+      } catch (error) {
+        console.error("Error loading bundle:", error);
+      }
+    };
+
+    prefillFromBundle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Fetch categories on mount
   useEffect(() => {

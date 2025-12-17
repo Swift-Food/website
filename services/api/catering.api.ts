@@ -27,9 +27,11 @@ import {
   CateringOrderResponse,
   OrderPricingBreakdown,
   RestaurantPayoutsResponse,
+  CateringBundleResponse,
 } from "@/types/api";
 import { CategoryWithSubcategories } from "@/types/catering.types";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
+import { API_ENDPOINTS } from "@/lib/constants/api";
 
 class CateringService {
   async searchMenuItems(
@@ -77,6 +79,18 @@ class CateringService {
     const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/catering`);
     if (!response.ok) {
       throw new Error("Failed to search menu items");
+    }
+
+    return response.json();
+  }
+
+  async getBundleById(bundleId: string): Promise<CateringBundleResponse> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}${API_ENDPOINTS.CATERING_BUNDLE(bundleId)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch bundle");
     }
 
     return response.json();

@@ -272,3 +272,47 @@ export interface CateringOrderSummary {
   mealSessionCount?: number; // Number of meal sessions (1 for single-meal, >1 for multi-meal)
   isMultiMeal?: boolean; // Quick check if this is a multi-meal order
 }
+
+// ============================================================================
+// CATERING BUNDLE TYPES
+// ============================================================================
+
+/**
+ * Catering bundle item details
+ * Backend: CateringBundleItemResponseDto
+ */
+export interface CateringBundleItem {
+  id: string;
+  cateringBundleId: string;
+  restaurantId: string;
+  restaurantName: string;
+  menuItemId: string;
+  menuItemName: string;
+  quantity: number;
+  selectedAddons: Array<{
+    name: string;
+    price: number;
+    quantity: number;
+    groupTitle: string;
+  }>;
+  sortOrder: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/**
+ * Complete catering bundle response
+ * Backend: CateringBundleResponseDto
+ */
+export interface CateringBundleResponse {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  pricePerPerson: number;
+  baseGuestCount: number;
+  isActive: boolean;
+  items: CateringBundleItem[];
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
