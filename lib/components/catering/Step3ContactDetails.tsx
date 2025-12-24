@@ -49,6 +49,7 @@ export default function Step3ContactInfo() {
     resetOrder,
     markOrderAsSubmitted,
     corporateUser,
+    updateMealSession,
   } = useCatering();
 
   // Get all items from all sessions for pricing calculations
@@ -546,6 +547,22 @@ export default function Step3ContactInfo() {
 
               setFormData((prev) => ({ ...prev, ...ownerUpdates }));
             }
+
+            // Prefill first meal session date with event start date
+            if (eventData.startDateTime && mealSessions.length > 0 && !mealSessions[0].sessionDate) {
+              const eventStartDate = new Date(eventData.startDateTime);
+              const sessionDate = eventStartDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+              // Also extract time from startDateTime (HH:MM format)
+              const hours = eventStartDate.getHours();
+              const minutes = eventStartDate.getMinutes();
+              const eventTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+              updateMealSession(0, {
+                sessionDate,
+                eventTime,
+              });
+            }
           }
         })
         .catch((error) => {
@@ -555,7 +572,7 @@ export default function Step3ContactInfo() {
           setLoadingEventData(false);
         });
     }
-  }, [searchParams, loadingEventData]);
+  }, [searchParams, loadingEventData, mealSessions, updateMealSession]);
 
   useEffect(() => {
     calculatePricing();
