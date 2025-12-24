@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/api/catering.api";
 import { CateringPricingResult, ContactInfo } from "@/types/catering.types";
@@ -19,6 +19,8 @@ import DeliveryAddressForm from "./contact/DeliveryAddressForm";
 import ContactInfoForm from "./contact/ContactInfoForm";
 import PromoCodeSection from "./contact/PromoCodeSection";
 import PricingSummary from "./contact/PricingSummary";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
+import { API_BASE_URL } from "@/lib/constants/api";
 
 interface ValidationErrors {
   organization?: string;
@@ -36,6 +38,7 @@ interface ValidationErrors {
 
 export default function Step3ContactInfo() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     contactInfo,
     setContactInfo,
@@ -85,6 +88,10 @@ export default function Step3ContactInfo() {
 
   const [importantNotesOpen, setImportantNotesOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+
+  // Event integration state
+  const [eventId, setEventId] = useState<string | null>(null);
+  const [loadingEventData, setLoadingEventData] = useState(false);
 
   // Calculate estimated total without triggering state updates
   const estimatedTotal = useMemo(() => {
@@ -312,7 +319,8 @@ export default function Step3ContactInfo() {
           formData,
           promoCodes,
           ccEmails,
-          paymentData
+          paymentData,
+          eventId || undefined
         );
 
       // console.log("Catering order response: ", createCateringOrderResponse);
@@ -482,6 +490,72 @@ export default function Step3ContactInfo() {
       });
     }
   }, [contactInfo]);
+
+  // Fetch event details if eventId is provided in URL
+  useEffect(() => {
+    const eventIdParam = searchParams.get("eventId");
+    if (eventIdParam && !loadingEventData) {
+      setEventId(eventIdParam);
+      setLoadingEventData(true);
+
+      // Fetch event details from the API
+      fetchWithAuth(`${API_BASE_URL}/events/${eventIdParam}`)
+        .then(async (response) => {
+          if (response.ok) {
+            const eventData = await response.json();
+
+            // Prefill form with event address and owner details
+            if (eventData.address) {
+              const addressUpdates: Partial<ContactInfo> = {};
+
+              if (eventData.address.addressLine1) {
+                addressUpdates.addressLine1 = eventData.address.addressLine1;
+              }
+              if (eventData.address.addressLine2) {
+                addressUpdates.addressLine2 = eventData.address.addressLine2;
+              }
+              if (eventData.address.city) {
+                addressUpdates.city = eventData.address.city;
+              }
+              if (eventData.address.zipcode) {
+                addressUpdates.zipcode = eventData.address.zipcode;
+              }
+              if (eventData.address.location?.latitude && eventData.address.location?.longitude) {
+                addressUpdates.latitude = eventData.address.location.latitude;
+                addressUpdates.longitude = eventData.address.location.longitude;
+              }
+
+              setFormData((prev) => ({ ...prev, ...addressUpdates }));
+            }
+
+            // Prefill owner information
+            if (eventData.owner) {
+              const ownerUpdates: Partial<ContactInfo> = {};
+
+              if (eventData.owner.organizationName) {
+                ownerUpdates.organization = eventData.owner.organizationName;
+              }
+              if (eventData.owner.user) {
+                if (eventData.owner.user.email) {
+                  ownerUpdates.email = eventData.owner.user.email;
+                }
+                if (eventData.owner.user.username) {
+                  ownerUpdates.fullName = eventData.owner.user.username;
+                }
+              }
+
+              setFormData((prev) => ({ ...prev, ...ownerUpdates }));
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch event details:", error);
+        })
+        .finally(() => {
+          setLoadingEventData(false);
+        });
+    }
+  }, [searchParams, loadingEventData]);
 
   useEffect(() => {
     calculatePricing();

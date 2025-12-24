@@ -108,7 +108,8 @@ class CateringService {
       useOrganizationWallet?: boolean;
       paymentMethodId?: string;
       paymentIntentId?: string;
-    }
+    },
+    eventId?: string
   ) {
     let userId;
     try {
@@ -249,6 +250,7 @@ class CateringService {
       // Top-level event details (from first session for backward compatibility)
       eventDate: firstSession?.sessionDate || eventDetails?.eventDate || "",
       eventTime: firstSession?.eventTime || eventDetails?.eventTime || "",
+      eventId: eventId || undefined,
       guestCount: eventDetails?.guestCount || 0,
       eventType: eventDetails?.eventType || "",
       deliveryAddress: `${contactInfo.addressLine1}${
