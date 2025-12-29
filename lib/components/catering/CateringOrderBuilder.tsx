@@ -1050,7 +1050,7 @@ export default function CateringOrderBuilder() {
         categoryName: originalItem.categoryName,
         subcategoryId: originalItem.subcategoryId,
         subcategoryName: originalItem.subcategoryName,
-        restaurantName: originalItem.restaurantName,
+        restaurantName: 'restaurantName' in originalItem ? originalItem.restaurantName : originalItem.restaurant?.name,
       },
       quantity,
     });
