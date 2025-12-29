@@ -560,9 +560,14 @@ export default function MenuItemModal({
               />
             </div>
           )}
-          <h2 className="font-bold text-lg md:text-2xl text-base-content mb-3 md:mb-4 pr-8">
+          <h2 className="font-bold text-lg md:text-2xl text-base-content mb-1 pr-8">
             {item.menuItemName}
           </h2>
+          {item.restaurantName && (
+            <p className="text-xs md:text-sm text-primary font-medium mb-3 md:mb-4">
+              From {item.restaurantName}
+            </p>
+          )}
 
           <div className="space-y-3 md:space-y-4 mt-2">
             {item.description && (

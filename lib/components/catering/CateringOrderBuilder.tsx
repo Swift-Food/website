@@ -528,6 +528,7 @@ export default function CateringOrderBuilder() {
         isDiscount: item.isDiscount,
         image: item.image,
         restaurantId: item.restaurantId,
+        restaurantName: item.restaurantName,
         groupTitle: item.groupTitle,
         cateringQuantityUnit: item.cateringQuantityUnit,
         feedsPerUnit: item.feedsPerUnit,
@@ -568,6 +569,7 @@ export default function CateringOrderBuilder() {
     image: item.image,
     averageRating: item.averageRating,
     restaurantId: item.restaurantId,
+    restaurantName: (item as any).restaurant?.restaurant_name,
     groupTitle: item.groupTitle,
     status: item.status,
     itemDisplayOrder: item.itemDisplayOrder || 0,
@@ -1048,6 +1050,7 @@ export default function CateringOrderBuilder() {
         categoryName: originalItem.categoryName,
         subcategoryId: originalItem.subcategoryId,
         subcategoryName: originalItem.subcategoryName,
+        restaurantName: originalItem.restaurantName,
       },
       quantity,
     });

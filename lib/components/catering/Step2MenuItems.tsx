@@ -60,6 +60,7 @@ export interface MenuItem {
   cateringQuantityUnit?: number;
   feedsPerUnit?: number;
   restaurantId: string;
+  restaurantName?: string;
   groupTitle?: string;
   status?: string;
   itemDisplayOrder: number;

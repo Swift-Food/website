@@ -80,23 +80,22 @@ export default function MenuItemCard({
             {/* Header - Name */}
             <div className="flex flex-col h-full justify-between">
               <div>
-                <div className="flex items-start justify-between mb-1">
+                <div className="flex items-start justify-between mb-0.5">
                   <h3 className="font-bold text-sm text-gray-900 flex-1 line-clamp-1">
                     {item.menuItemName}
                   </h3>
-                  {/* {item.allergens && item.allergens.length > 0 && (
-                    <span
-                      className="ml-2 text-orange-600 flex-shrink-0"
-                      title="Contains allergens - click for details"
-                    >
-                      ⚠️
-                    </span>
-                  )} */}
                 </div>
 
-                {/* Description - 2 lines */}
+                {/* Restaurant Name */}
+                {item.restaurantName && (
+                  <p className="text-[10px] text-primary font-medium mb-0.5 line-clamp-1">
+                    {item.restaurantName}
+                  </p>
+                )}
+
+                {/* Description - 1 line */}
                 {item.description && (
-                  <p className="text-gray-600 text-[10px] mb-1 line-clamp-2">
+                  <p className="text-gray-600 text-[10px] mb-1 line-clamp-1">
                     {item.description}
                   </p>
                 )}
