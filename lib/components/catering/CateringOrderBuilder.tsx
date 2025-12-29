@@ -341,7 +341,7 @@ function SessionAccordion({
   return (
     <div
       ref={accordionRef}
-      className="bg-white rounded-xl shadow-sm border border-base-200 overflow-hidden"
+      className="bg-white rounded-xl shadow-sm border border-base-200"
     >
       {/* Header */}
       <button
@@ -391,7 +391,7 @@ function SessionAccordion({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-3 pb-3 md:px-5 md:pb-5 border-t border-base-200 overflow-hidden">
+        <div className="px-3 pb-3 md:px-5 md:pb-5 border-t border-base-200">
           <div className="flex items-center justify-between py-2 md:py-3">
             <button
               onClick={(e) => {
@@ -1476,80 +1476,83 @@ export default function CateringOrderBuilder() {
                             </div>
                           )}
 
-                          {/* Categories Row */}
-                          <div className="pt-2">
-                            {categoriesLoading ? (
-                              <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                                {[...Array(6)].map((_, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
-                                  />
-                                ))}
-                              </div>
-                            ) : categoriesError ? (
-                              <div className="text-center py-4 text-red-500">
-                                {categoriesError}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                {categories.map((category) => (
-                                  <button
-                                    key={category.id}
-                                    onClick={() => handleCategoryClick(category)}
-                                    className={`
-                                flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
-                                ${
-                                  selectedCategory?.id === category.id
-                                    ? "bg-primary text-white"
-                                    : "bg-base-200 text-gray-700 hover:bg-base-300"
-                                }
-                              `}
-                                  >
-                                    {category.name}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Subcategories Row */}
-                          {selectedCategory &&
-                            selectedCategory.subcategories.length > 0 && (
-                              <div className="pb-2">
-                                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                  <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
-                                    {selectedCategory.name}:
-                                  </span>
-                                  {selectedCategory.subcategories.map(
-                                    (subcategory) => (
-                                      <button
-                                        key={subcategory.id}
-                                        onClick={() =>
-                                          handleSubcategoryClick(subcategory)
-                                        }
-                                        className={`
-                                flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
-                                ${
-                                  selectedSubcategory?.id === subcategory.id
-                                    ? "bg-primary text-white"
-                                    : "text-primary hover:bg-secondary/20"
-                                }
-                              `}
-                                      >
-                                        {subcategory.name}
-                                        {selectedSubcategory?.id ===
-                                          subcategory.id && (
-                                          <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
-                                            ×
-                                          </span>
-                                        )}
-                                      </button>
-                                    )
-                                  )}
+                          {/* Categories and Subcategories - Sticky */}
+                          <div className="sticky top-[68px] z-30 -mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
+                            {/* Categories Row */}
+                            <div>
+                              {categoriesLoading ? (
+                                <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                                  {[...Array(6)].map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                                    />
+                                  ))}
                                 </div>
-                              </div>
-                            )}
+                              ) : categoriesError ? (
+                                <div className="text-center py-4 text-red-500">
+                                  {categoriesError}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                  {categories.map((category) => (
+                                    <button
+                                      key={category.id}
+                                      onClick={() => handleCategoryClick(category)}
+                                      className={`
+                                  flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                                  ${
+                                    selectedCategory?.id === category.id
+                                      ? "bg-primary text-white"
+                                      : "bg-base-200 text-gray-700 hover:bg-base-300"
+                                  }
+                                `}
+                                    >
+                                      {category.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Subcategories Row */}
+                            {selectedCategory &&
+                              selectedCategory.subcategories.length > 0 && (
+                                <div className="pb-1">
+                                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                    <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                                      {selectedCategory.name}:
+                                    </span>
+                                    {selectedCategory.subcategories.map(
+                                      (subcategory) => (
+                                        <button
+                                          key={subcategory.id}
+                                          onClick={() =>
+                                            handleSubcategoryClick(subcategory)
+                                          }
+                                          className={`
+                                    flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
+                                    ${
+                                      selectedSubcategory?.id === subcategory.id
+                                        ? "bg-primary text-white"
+                                        : "bg-white text-primary hover:bg-secondary/20"
+                                    }
+                                  `}
+                                        >
+                                          {subcategory.name}
+                                          {selectedSubcategory?.id ===
+                                            subcategory.id && (
+                                            <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                              ×
+                                            </span>
+                                          )}
+                                        </button>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                          </div>
 
                           {/* Menu Items */}
                           <div className="bg-base-100 rounded-xl p-4 mt-2">
@@ -1695,80 +1698,83 @@ export default function CateringOrderBuilder() {
                           </div>
                         )}
 
-                        {/* Categories Row */}
-                        <div className="pt-2">
-                          {categoriesLoading ? (
-                            <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                              {[...Array(6)].map((_, i) => (
-                                <div
-                                  key={i}
-                                  className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
-                                />
-                              ))}
-                            </div>
-                          ) : categoriesError ? (
-                            <div className="text-center py-4 text-red-500">
-                              {categoriesError}
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                              {categories.map((category) => (
-                                <button
-                                  key={category.id}
-                                  onClick={() => handleCategoryClick(category)}
-                                  className={`
-                                flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
-                                ${
-                                  selectedCategory?.id === category.id
-                                    ? "bg-primary text-white"
-                                    : "bg-base-200 text-gray-700 hover:bg-base-300"
-                                }
-                              `}
-                                >
-                                  {category.name}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Subcategories Row */}
-                        {selectedCategory &&
-                          selectedCategory.subcategories.length > 0 && (
-                            <div className="pb-2">
-                              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
-                                  {selectedCategory.name}:
-                                </span>
-                                {selectedCategory.subcategories.map(
-                                  (subcategory) => (
-                                    <button
-                                      key={subcategory.id}
-                                      onClick={() =>
-                                        handleSubcategoryClick(subcategory)
-                                      }
-                                      className={`
-                                flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
-                                ${
-                                  selectedSubcategory?.id === subcategory.id
-                                    ? "bg-primary text-white"
-                                    : "text-primary hover:bg-secondary/20"
-                                }
-                              `}
-                                    >
-                                      {subcategory.name}
-                                      {selectedSubcategory?.id ===
-                                        subcategory.id && (
-                                        <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
-                                          ×
-                                        </span>
-                                      )}
-                                    </button>
-                                  )
-                                )}
+                        {/* Categories and Subcategories - Sticky */}
+                        <div className="sticky top-[68px] z-30 -mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
+                          {/* Categories Row */}
+                          <div>
+                            {categoriesLoading ? (
+                              <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                                {[...Array(6)].map((_, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                                  />
+                                ))}
                               </div>
-                            </div>
-                          )}
+                            ) : categoriesError ? (
+                              <div className="text-center py-4 text-red-500">
+                                {categoriesError}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                {categories.map((category) => (
+                                  <button
+                                    key={category.id}
+                                    onClick={() => handleCategoryClick(category)}
+                                    className={`
+                                  flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                                  ${
+                                    selectedCategory?.id === category.id
+                                      ? "bg-primary text-white"
+                                      : "bg-base-200 text-gray-700 hover:bg-base-300"
+                                  }
+                                `}
+                                  >
+                                    {category.name}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Subcategories Row */}
+                          {selectedCategory &&
+                            selectedCategory.subcategories.length > 0 && (
+                              <div className="pb-1">
+                                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                  <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                                    {selectedCategory.name}:
+                                  </span>
+                                  {selectedCategory.subcategories.map(
+                                    (subcategory) => (
+                                      <button
+                                        key={subcategory.id}
+                                        onClick={() =>
+                                          handleSubcategoryClick(subcategory)
+                                        }
+                                        className={`
+                                  flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
+                                  ${
+                                    selectedSubcategory?.id === subcategory.id
+                                      ? "bg-primary text-white"
+                                      : "bg-white text-primary hover:bg-secondary/20"
+                                  }
+                                `}
+                                      >
+                                        {subcategory.name}
+                                        {selectedSubcategory?.id ===
+                                          subcategory.id && (
+                                          <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                            ×
+                                          </span>
+                                        )}
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                        </div>
 
                         {/* Menu Items */}
                         <div className="bg-base-100 rounded-xl p-4 mt-2">
