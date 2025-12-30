@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { Upload, Loader, X, Calendar } from "lucide-react";
 import Image from "next/image";
+import { ImageCropModal } from "./ImageCropModal";
 
 interface EventPhotosManagerProps {
   images: string[];
-  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImagesUpload: (files: File[]) => Promise<void>;
   onImageRemove: (imageUrl: string) => void;
   uploadingImage: boolean;
   deletingImage: string | null;
@@ -13,11 +15,92 @@ interface EventPhotosManagerProps {
 
 export const EventPhotosManager = ({
   images,
-  onImageUpload,
+  onImagesUpload,
   onImageRemove,
   uploadingImage,
   deletingImage,
 }: EventPhotosManagerProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [currentCropIndex, setCurrentCropIndex] = useState<number>(-1);
+  const [currentImageSrc, setCurrentImageSrc] = useState<string | null>(null);
+  const [croppedFiles, setCroppedFiles] = useState<File[]>([]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    setPendingFiles(fileArray);
+    setCroppedFiles([]);
+    startCropping(fileArray, 0);
+
+    // Reset input
+    e.target.value = "";
+  };
+
+  const startCropping = (files: File[], index: number) => {
+    if (index >= files.length) {
+      // All files cropped, nothing more to do here
+      return;
+    }
+
+    const file = files[index];
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCurrentImageSrc(reader.result as string);
+      setCurrentCropIndex(index);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    const originalFile = pendingFiles[currentCropIndex];
+    const croppedFile = new File(
+      [croppedBlob],
+      originalFile.name,
+      { type: "image/jpeg" }
+    );
+
+    const newCroppedFiles = [...croppedFiles, croppedFile];
+    setCroppedFiles(newCroppedFiles);
+
+    const nextIndex = currentCropIndex + 1;
+    if (nextIndex < pendingFiles.length) {
+      // More files to crop
+      startCropping(pendingFiles, nextIndex);
+    } else {
+      // All done, upload all cropped files
+      setCurrentImageSrc(null);
+      setCurrentCropIndex(-1);
+      setPendingFiles([]);
+      await onImagesUpload(newCroppedFiles);
+      setCroppedFiles([]);
+    }
+  };
+
+  const handleCropCancel = () => {
+    // Skip this file and move to next
+    const nextIndex = currentCropIndex + 1;
+    if (nextIndex < pendingFiles.length) {
+      startCropping(pendingFiles, nextIndex);
+    } else {
+      // Done, upload whatever was cropped
+      setCurrentImageSrc(null);
+      setCurrentCropIndex(-1);
+      setPendingFiles([]);
+      if (croppedFiles.length > 0) {
+        onImagesUpload(croppedFiles);
+      }
+      setCroppedFiles([]);
+    }
+  };
+
+  const isCropping = currentImageSrc !== null;
+  const progressText = pendingFiles.length > 1
+    ? `(${currentCropIndex + 1}/${pendingFiles.length})`
+    : "";
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
@@ -69,18 +152,19 @@ export const EventPhotosManager = ({
       {/* Upload button */}
       <div>
         <input
+          ref={fileInputRef}
           type="file"
           id="event-image-upload"
           accept="image/*"
           multiple
-          onChange={onImageUpload}
+          onChange={handleFileSelect}
           className="hidden"
-          disabled={uploadingImage}
+          disabled={uploadingImage || isCropping}
         />
         <label
           htmlFor="event-image-upload"
           className={`inline-flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed rounded-xl ${
-            uploadingImage
+            uploadingImage || isCropping
               ? "bg-gray-100 border-gray-300 cursor-not-allowed"
               : "bg-white border-purple-300 hover:border-purple-500 hover:bg-purple-50 cursor-pointer"
           } transition-colors w-full`}
@@ -102,9 +186,18 @@ export const EventPhotosManager = ({
           )}
         </label>
         <p className="text-sm text-gray-500 mt-2">
-          You can select multiple images at once • Max 5MB each • JPG, PNG, or WebP
+          Images will be cropped to square • Max 5MB each • JPG, PNG, or WebP
         </p>
       </div>
+
+      {/* Crop Modal */}
+      {currentImageSrc && (
+        <ImageCropModal
+          imageSrc={currentImageSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </div>
   );
 };

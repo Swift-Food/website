@@ -174,28 +174,15 @@ const RestaurantSettingsPage = () => {
     }));
   };
 
-  const handleEventImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    // Validate all files
-    for (const file of Array.from(files)) {
-      if (!file.type.startsWith("image/")) {
-        setError("Please upload only image files");
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Each image should be less than 5MB");
-        return;
-      }
-    }
+  const handleEventImagesUpload = async (files: File[]) => {
+    if (files.length === 0) return;
 
     setUploadingEventImage(true);
     setError("");
 
     try {
       const formDataUpload = new FormData();
-      for (const file of Array.from(files)) {
+      for (const file of files) {
         formDataUpload.append("uploads", file);
       }
 
@@ -222,8 +209,6 @@ const RestaurantSettingsPage = () => {
 
       setSuccess("Event images uploaded successfully!");
       setTimeout(() => setSuccess(""), 3000);
-
-      e.target.value = "";
     } catch (err: any) {
       setError(err.message || "Failed to upload event images");
     } finally {
@@ -345,7 +330,7 @@ const RestaurantSettingsPage = () => {
           onDescriptionChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
           onImageUpload={handleImageUpload}
           onImageRemove={handleRemoveImage}
-          onEventImageUpload={handleEventImageUpload}
+          onEventImagesUpload={handleEventImagesUpload}
           onEventImageRemove={handleRemoveEventImage}
           onSave={handleSaveProfile}
           onCancel={() => setActiveSection(null)}

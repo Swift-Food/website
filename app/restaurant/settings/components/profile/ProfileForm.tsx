@@ -13,7 +13,7 @@ interface ProfileFormProps {
   onDescriptionChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
-  onEventImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEventImagesUpload: (files: File[]) => Promise<void>;
   onEventImageRemove: (imageUrl: string) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -34,7 +34,7 @@ export const ProfileForm = ({
   onDescriptionChange,
   onImageUpload,
   onImageRemove,
-  onEventImageUpload,
+  onEventImagesUpload,
   onEventImageRemove,
   onSave,
   onCancel,
@@ -102,7 +102,7 @@ export const ProfileForm = ({
             {/* Event Images */}
             <EventPhotosManager
               images={eventImages}
-              onImageUpload={onEventImageUpload}
+              onImagesUpload={onEventImagesUpload}
               onImageRemove={onEventImageRemove}
               uploadingImage={uploadingEventImage}
               deletingImage={deletingEventImage}
