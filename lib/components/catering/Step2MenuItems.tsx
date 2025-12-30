@@ -13,6 +13,7 @@ export interface Restaurant {
   restaurant_name: string;
   restaurantType: string;
   images: string[];
+  eventImages?: string[];
   averageRating: string;
   minCateringOrderQuantity?: number;
   minimumDeliveryNoticeHours?: number;

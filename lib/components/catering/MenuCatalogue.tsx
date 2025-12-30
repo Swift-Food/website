@@ -2,6 +2,7 @@ import { Restaurant, MenuItem } from "./Step2MenuItems";
 import MenuItemCard from "./MenuItemCard";
 import CateringFilterRow from "./CateringFilterRow";
 import { useCateringFilters } from "@/context/CateringFilterContext";
+import EventPhotosDisplay from "./EventPhotosDisplay";
 
 interface MenuCatalogueProps {
   displayItems: MenuItem[];
@@ -424,6 +425,18 @@ export default function MenuCatalogue({
                       );
                     })()}
                   </div>
+                  {/* Event Photos Gallery */}
+                  {(() => {
+                    const restaurant = restaurants.find(
+                      (r) => r.id === rest.restaurantId
+                    );
+                    if (restaurant?.eventImages && restaurant.eventImages.length > 0) {
+                      return (
+                        <EventPhotosDisplay images={restaurant.eventImages} />
+                      );
+                    }
+                    return null;
+                  })()}
                   {restaurantPromotions[rest.restaurantId] && (
                     <PromotionDetailsCard
                       promotions={restaurantPromotions[rest.restaurantId]}
