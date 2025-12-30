@@ -14,8 +14,10 @@ export default function EventPhotosDisplay({ images }: EventPhotosDisplayProps) 
 
   const rotations = [-3, 2, -2, 3, -1, 1];
 
-  // Triple the images for seamless infinite scroll
-  const displayImages = [...images, ...images, ...images];
+  // Duplicate enough times to fill viewport and allow seamless scroll
+  // Minimum 6 copies to ensure no gaps
+  const repeatCount = Math.max(6, Math.ceil(12 / images.length));
+  const displayImages = Array(repeatCount).fill(images).flat();
 
   return (
     <div
@@ -26,9 +28,9 @@ export default function EventPhotosDisplay({ images }: EventPhotosDisplayProps) 
       onTouchEnd={() => setIsPaused(false)}
     >
       <div
-        className="flex gap-4 w-max"
+        className="flex gap-4"
         style={{
-          animation: `scroll ${images.length * 4}s linear infinite`,
+          animation: `scroll ${images.length * 5}s linear infinite`,
           animationPlayState: isPaused ? "paused" : "running",
         }}
       >
@@ -60,7 +62,17 @@ export default function EventPhotosDisplay({ images }: EventPhotosDisplayProps) 
             transform: translateX(0);
           }
           100% {
-            transform: translateX(-33.333%);
+            transform: translateX(calc(-144px * ${images.length} - 16px * ${images.length}));
+          }
+        }
+        @media (min-width: 768px) {
+          @keyframes scroll {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(calc(-176px * ${images.length} - 16px * ${images.length}));
+            }
           }
         }
       `}</style>
