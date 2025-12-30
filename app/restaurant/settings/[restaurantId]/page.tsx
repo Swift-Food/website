@@ -17,6 +17,7 @@ interface FormData {
   restaurant_name: string;
   description: string;
   images: string[];
+  eventImages: string[];
   isCatering: boolean;
   isCorporate: boolean;
 }
@@ -37,9 +38,13 @@ const RestaurantSettingsPage = () => {
     restaurant_name: "",
     description: "",
     images: [],
+    eventImages: [],
     isCatering: false,
     isCorporate: false,
   });
+
+  const [uploadingEventImage, setUploadingEventImage] = useState(false);
+  const [deletingEventImage, setDeletingEventImage] = useState<string | null>(null);
 
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
 
@@ -55,11 +60,13 @@ const RestaurantSettingsPage = () => {
       try {
         const restaurantDetails = JSON.parse(cachedData);
         const images = restaurantDetails.images || (restaurantDetails.image ? [restaurantDetails.image] : []);
+        const eventImages = restaurantDetails.eventImages || [];
 
         setFormData({
           restaurant_name: restaurantDetails.restaurant_name || "",
           description: restaurantDetails.restaurant_description || "",
           images: images,
+          eventImages: eventImages,
           isCatering: restaurantDetails.isCatering || false,
           isCorporate: restaurantDetails.isCorporate || false,
         });
@@ -79,11 +86,13 @@ const RestaurantSettingsPage = () => {
     try {
       const restaurantDetails = await cateringService.getRestaurant(restaurantId);
       const images = restaurantDetails.images || (restaurantDetails.image ? [restaurantDetails.image] : []);
+      const eventImages = restaurantDetails.eventImages || [];
 
       setFormData({
         restaurant_name: restaurantDetails.restaurant_name || "",
         description: restaurantDetails.restaurant_description || "",
         images: images,
+        eventImages: eventImages,
         isCatering: restaurantDetails.isCatering || false,
         isCorporate: restaurantDetails.isCorporate || false,
       });
@@ -165,6 +174,98 @@ const RestaurantSettingsPage = () => {
     }));
   };
 
+  const handleEventImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Validate all files
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload only image files");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Each image should be less than 5MB");
+        return;
+      }
+    }
+
+    setUploadingEventImage(true);
+    setError("");
+
+    try {
+      const formDataUpload = new FormData();
+      for (const file of Array.from(files)) {
+        formDataUpload.append("uploads", file);
+      }
+
+      const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD_BATCH}`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload images: ${response.status}`);
+      }
+
+      const imageUrls: string[] = await response.json();
+
+      // Update local state
+      const newEventImages = [...formData.eventImages, ...imageUrls];
+      setFormData((prev) => ({
+        ...prev,
+        eventImages: newEventImages,
+      }));
+
+      // Immediately save to backend
+      await updateRestaurant(restaurantId, { eventImages: newEventImages });
+
+      setSuccess("Event images uploaded successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+
+      e.target.value = "";
+    } catch (err: any) {
+      setError(err.message || "Failed to upload event images");
+    } finally {
+      setUploadingEventImage(false);
+    }
+  };
+
+  const handleRemoveEventImage = async (imageUrl: string) => {
+    setDeletingEventImage(imageUrl);
+    setError("");
+
+    try {
+      // Delete from S3
+      const deleteResponse = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_DELETE}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete image from storage");
+      }
+
+      // Update local state
+      const newEventImages = formData.eventImages.filter((img) => img !== imageUrl);
+      setFormData((prev) => ({
+        ...prev,
+        eventImages: newEventImages,
+      }));
+
+      // Update backend
+      await updateRestaurant(restaurantId, { eventImages: newEventImages });
+
+      setSuccess("Event image removed successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to remove event image");
+    } finally {
+      setDeletingEventImage(null);
+    }
+  };
+
   const handleSaveProfile = () => {
     setError("");
 
@@ -239,13 +340,18 @@ const RestaurantSettingsPage = () => {
           restaurantName={formData.restaurant_name}
           description={formData.description}
           images={formData.images}
+          eventImages={formData.eventImages}
           onNameChange={(value) => setFormData((prev) => ({ ...prev, restaurant_name: value }))}
           onDescriptionChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
           onImageUpload={handleImageUpload}
           onImageRemove={handleRemoveImage}
+          onEventImageUpload={handleEventImageUpload}
+          onEventImageRemove={handleRemoveEventImage}
           onSave={handleSaveProfile}
           onCancel={() => setActiveSection(null)}
           uploadingImage={uploadingImage}
+          uploadingEventImage={uploadingEventImage}
+          deletingEventImage={deletingEventImage}
           saving={saving}
           error={error}
           success={success}

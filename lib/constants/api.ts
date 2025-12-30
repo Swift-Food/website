@@ -16,6 +16,8 @@ export const API_ENDPOINTS = {
 
   // Image Upload
   IMAGE_UPLOAD: '/image-upload',
+  IMAGE_UPLOAD_BATCH: '/image-upload/batch',
+  IMAGE_DELETE: '/image-upload',
 
   // Catering Orders
   CATERING_ORDERS: '/catering-orders',

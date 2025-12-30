@@ -2,18 +2,24 @@
 
 import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react";
 import { ImageUploadSection } from "./ImageUploadSection";
+import { EventPhotosManager } from "./EventPhotosManager";
 
 interface ProfileFormProps {
   restaurantName: string;
   description: string;
   images: string[];
+  eventImages: string[];
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
+  onEventImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEventImageRemove: (imageUrl: string) => void;
   onSave: () => void;
   onCancel: () => void;
   uploadingImage: boolean;
+  uploadingEventImage: boolean;
+  deletingEventImage: string | null;
   saving: boolean;
   error: string;
   success: string;
@@ -23,13 +29,18 @@ export const ProfileForm = ({
   restaurantName,
   description,
   images,
+  eventImages,
   onNameChange,
   onDescriptionChange,
   onImageUpload,
   onImageRemove,
+  onEventImageUpload,
+  onEventImageRemove,
   onSave,
   onCancel,
   uploadingImage,
+  uploadingEventImage,
+  deletingEventImage,
   saving,
   error,
   success,
@@ -83,6 +94,18 @@ export const ProfileForm = ({
               onImageUpload={onImageUpload}
               onImageRemove={onImageRemove}
               uploadingImage={uploadingImage}
+            />
+
+            {/* Divider */}
+            <div className="border-t border-gray-200"></div>
+
+            {/* Event Images */}
+            <EventPhotosManager
+              images={eventImages}
+              onImageUpload={onEventImageUpload}
+              onImageRemove={onEventImageRemove}
+              uploadingImage={uploadingEventImage}
+              deletingImage={deletingEventImage}
             />
 
             {/* Divider */}
@@ -142,7 +165,7 @@ export const ProfileForm = ({
             </button>
             <button
               type="submit"
-              disabled={saving || uploadingImage}
+              disabled={saving || uploadingImage || uploadingEventImage || !!deletingEventImage}
               className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg shadow-lg shadow-purple-500/30"
             >
               {saving ? (
