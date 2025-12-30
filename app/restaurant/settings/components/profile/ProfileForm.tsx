@@ -15,12 +15,13 @@ interface ProfileFormProps {
   onImageRemove: (index: number) => void;
   pendingEventImages: PendingEventImage[];
   onPendingEventImagesChange: (images: PendingEventImage[]) => void;
+  pendingEventDeletions: string[];
   onEventImageRemove: (imageUrl: string) => void;
+  onEventImageRestore: (imageUrl: string) => void;
   onSave: () => void;
   onCancel: () => void;
   uploadingImage: boolean;
   uploadingEventImage: boolean;
-  deletingEventImage: string | null;
   saving: boolean;
   error: string;
   success: string;
@@ -37,12 +38,13 @@ export const ProfileForm = ({
   onImageRemove,
   pendingEventImages,
   onPendingEventImagesChange,
+  pendingEventDeletions,
   onEventImageRemove,
+  onEventImageRestore,
   onSave,
   onCancel,
   uploadingImage,
   uploadingEventImage,
-  deletingEventImage,
   saving,
   error,
   success,
@@ -106,9 +108,10 @@ export const ProfileForm = ({
               images={eventImages}
               pendingImages={pendingEventImages}
               onPendingImagesChange={onPendingEventImagesChange}
+              pendingDeletions={pendingEventDeletions}
               onImageRemove={onEventImageRemove}
+              onImageRestore={onEventImageRestore}
               uploadingImage={uploadingEventImage}
-              deletingImage={deletingEventImage}
             />
 
             {/* Divider */}
@@ -168,7 +171,7 @@ export const ProfileForm = ({
             </button>
             <button
               type="submit"
-              disabled={saving || uploadingImage || uploadingEventImage || !!deletingEventImage}
+              disabled={saving || uploadingImage || uploadingEventImage}
               className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg shadow-lg shadow-purple-500/30"
             >
               {saving ? (

@@ -45,8 +45,8 @@ const RestaurantSettingsPage = () => {
   });
 
   const [uploadingEventImage, setUploadingEventImage] = useState(false);
-  const [deletingEventImage, setDeletingEventImage] = useState<string | null>(null);
   const [pendingEventImages, setPendingEventImages] = useState<PendingEventImage[]>([]);
+  const [pendingEventDeletions, setPendingEventDeletions] = useState<string[]>([]);
 
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
 
@@ -176,39 +176,14 @@ const RestaurantSettingsPage = () => {
     }));
   };
 
-  const handleRemoveEventImage = async (imageUrl: string) => {
-    setDeletingEventImage(imageUrl);
-    setError("");
+  const handleRemoveEventImage = (imageUrl: string) => {
+    // Mark for deletion - actual deletion happens on save
+    setPendingEventDeletions((prev) => [...prev, imageUrl]);
+  };
 
-    try {
-      // Delete from S3
-      const deleteResponse = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_DELETE}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl }),
-      });
-
-      if (!deleteResponse.ok) {
-        throw new Error("Failed to delete image from storage");
-      }
-
-      // Update local state
-      const newEventImages = formData.eventImages.filter((img) => img !== imageUrl);
-      setFormData((prev) => ({
-        ...prev,
-        eventImages: newEventImages,
-      }));
-
-      // Update backend
-      await updateRestaurant(restaurantId, { eventImages: newEventImages });
-
-      setSuccess("Event image removed successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err: any) {
-      setError(err.message || "Failed to remove event image");
-    } finally {
-      setDeletingEventImage(null);
-    }
+  const handleRestoreEventImage = (imageUrl: string) => {
+    // Remove from pending deletions
+    setPendingEventDeletions((prev) => prev.filter((url) => url !== imageUrl));
   };
 
   const handleSaveProfile = () => {
@@ -251,17 +226,37 @@ const RestaurantSettingsPage = () => {
         newEventImageUrls = await uploadResponse.json();
       }
 
+      // Delete images marked for deletion from S3
+      for (const imageUrl of pendingEventDeletions) {
+        try {
+          await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_DELETE}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageUrl }),
+          });
+        } catch (deleteErr) {
+          console.error("Failed to delete image from S3:", deleteErr);
+          // Continue with other deletions even if one fails
+        }
+      }
+
+      // Filter out deleted images from eventImages
+      const remainingEventImages = formData.eventImages.filter(
+        (img) => !pendingEventDeletions.includes(img)
+      );
+
       const updateData: Record<string, any> = {
         restaurant_name: formData.restaurant_name,
         restaurant_description: formData.description,
         images: formData.images,
-        eventImages: [...formData.eventImages, ...newEventImageUrls],
+        eventImages: [...remainingEventImages, ...newEventImageUrls],
       };
 
       await updateRestaurant(restaurantId, updateData);
 
-      // Clear pending images after successful upload
+      // Clear pending states after successful save
       setPendingEventImages([]);
+      setPendingEventDeletions([]);
 
       setSuccess("Restaurant settings updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
@@ -318,12 +313,17 @@ const RestaurantSettingsPage = () => {
           onImageRemove={handleRemoveImage}
           pendingEventImages={pendingEventImages}
           onPendingEventImagesChange={setPendingEventImages}
+          pendingEventDeletions={pendingEventDeletions}
           onEventImageRemove={handleRemoveEventImage}
+          onEventImageRestore={handleRestoreEventImage}
           onSave={handleSaveProfile}
-          onCancel={() => setActiveSection(null)}
+          onCancel={() => {
+            setPendingEventImages([]);
+            setPendingEventDeletions([]);
+            setActiveSection(null);
+          }}
           uploadingImage={uploadingImage}
           uploadingEventImage={uploadingEventImage}
-          deletingEventImage={deletingEventImage}
           saving={saving}
           error={error}
           success={success}

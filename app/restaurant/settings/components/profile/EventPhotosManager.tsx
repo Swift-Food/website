@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, Loader, X, Calendar, Pencil } from "lucide-react";
+import { Upload, Loader, X, Calendar, Pencil, Undo2 } from "lucide-react";
 import Image from "next/image";
 import { ImageCropModal, CropResult } from "./ImageCropModal";
 
@@ -23,18 +23,20 @@ interface EventPhotosManagerProps {
   images: string[]; // Already uploaded S3 URLs
   pendingImages: PendingEventImage[];
   onPendingImagesChange: (images: PendingEventImage[]) => void;
+  pendingDeletions: string[]; // Images marked for deletion
   onImageRemove: (imageUrl: string) => void;
+  onImageRestore: (imageUrl: string) => void;
   uploadingImage: boolean;
-  deletingImage: string | null;
 }
 
 export const EventPhotosManager = ({
   images,
   pendingImages,
   onPendingImagesChange,
+  pendingDeletions,
   onImageRemove,
+  onImageRestore,
   uploadingImage,
-  deletingImage,
 }: EventPhotosManagerProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -237,25 +239,36 @@ export const EventPhotosManager = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           {/* Uploaded images */}
           {images.map((image, index) => {
-            const isDeleting = deletingImage === image;
+            const isPendingDeletion = pendingDeletions.includes(image);
 
             return (
               <div key={`uploaded-${index}`} className="relative group">
                 <div
-                  className={`w-full aspect-square rounded-xl overflow-hidden border-2 border-gray-200 relative cursor-pointer transition-all ${
-                    isDeleting ? 'opacity-50' : 'hover:border-purple-400 hover:shadow-lg'
+                  className={`w-full aspect-square rounded-xl overflow-hidden border-2 relative transition-all cursor-pointer ${
+                    isPendingDeletion
+                      ? 'border-red-300'
+                      : 'border-gray-200 hover:border-purple-400 hover:shadow-lg'
                   }`}
-                  onClick={() => !isDeleting && handleEditUploaded(index)}
+                  onClick={() => isPendingDeletion ? onImageRestore(image) : handleEditUploaded(index)}
                 >
                   <Image
                     src={image}
                     alt={`Event ${index + 1}`}
                     fill
-                    className="object-cover"
+                    className={`object-cover ${isPendingDeletion ? 'grayscale opacity-40' : ''}`}
                     unoptimized
                   />
 
-                  {!isDeleting && (
+                  {isPendingDeletion ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="bg-white rounded-full p-3 shadow-lg">
+                          <Undo2 size={20} className="text-gray-600" />
+                        </div>
+                        <span className="text-white text-sm font-medium bg-black/60 px-2 py-1 rounded">Restore</span>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-1">
                         <div className="bg-white rounded-full p-3 shadow-lg">
@@ -266,14 +279,15 @@ export const EventPhotosManager = ({
                     </div>
                   )}
 
-                  {isDeleting && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <Loader size={24} className="animate-spin text-white" />
+                  {/* Pending deletion badge */}
+                  {isPendingDeletion && (
+                    <div className="absolute bottom-2 left-2 bg-red-600 text-white text-xs font-medium px-2 py-1 rounded-full shadow-lg">
+                      Will be deleted
                     </div>
                   )}
                 </div>
 
-                {!isDeleting && (
+                {!isPendingDeletion && (
                   <button
                     type="button"
                     onClick={(e) => {
