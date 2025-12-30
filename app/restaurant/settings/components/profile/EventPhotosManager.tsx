@@ -3,13 +3,20 @@
 import { useState, useRef } from "react";
 import { Upload, Loader, X, Calendar, Pencil } from "lucide-react";
 import Image from "next/image";
-import { ImageCropModal } from "./ImageCropModal";
+import { ImageCropModal, CropResult } from "./ImageCropModal";
 
 // Pending image with both original and cropped versions
+export interface CropSettings {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
 export interface PendingEventImage {
   originalDataUrl: string; // Original for re-cropping
   croppedBlob: Blob; // Cropped version to upload
   croppedDataUrl: string; // Cropped preview
+  cropSettings: CropSettings; // Remember crop position
 }
 
 interface EventPhotosManagerProps {
@@ -41,6 +48,7 @@ export const EventPhotosManager = ({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingType, setEditingType] = useState<"uploaded" | "pending" | null>(null);
   const [editingOriginalDataUrl, setEditingOriginalDataUrl] = useState<string | null>(null);
+  const [initialCropSettings, setInitialCropSettings] = useState<CropSettings | null>(null);
 
   const blobToDataUrl = (blob: Blob): Promise<string> => {
     return new Promise((resolve) => {
@@ -77,7 +85,8 @@ export const EventPhotosManager = ({
     setCurrentCropIndex(index);
   };
 
-  const handleCropComplete = async (croppedBlob: Blob) => {
+  const handleCropComplete = async (result: CropResult) => {
+    const { blob: croppedBlob, cropSettings } = result;
     const croppedDataUrl = await blobToDataUrl(croppedBlob);
 
     // Editing an uploaded image - convert to pending
@@ -89,6 +98,7 @@ export const EventPhotosManager = ({
         originalDataUrl: editingOriginalDataUrl,
         croppedBlob,
         croppedDataUrl,
+        cropSettings,
       };
 
       onPendingImagesChange([...pendingImages, newPendingImage]);
@@ -97,6 +107,7 @@ export const EventPhotosManager = ({
       setEditingIndex(null);
       setEditingType(null);
       setEditingOriginalDataUrl(null);
+      setInitialCropSettings(null);
       return;
     }
 
@@ -107,6 +118,7 @@ export const EventPhotosManager = ({
         ...newPending[editingIndex],
         croppedBlob,
         croppedDataUrl,
+        cropSettings,
       };
       onPendingImagesChange(newPending);
 
@@ -114,6 +126,7 @@ export const EventPhotosManager = ({
       setEditingIndex(null);
       setEditingType(null);
       setEditingOriginalDataUrl(null);
+      setInitialCropSettings(null);
       return;
     }
 
@@ -123,6 +136,7 @@ export const EventPhotosManager = ({
       originalDataUrl,
       croppedBlob,
       croppedDataUrl,
+      cropSettings,
     };
 
     const newCropped = [...croppedFromBatch, newPendingImage];
@@ -148,6 +162,7 @@ export const EventPhotosManager = ({
       setEditingIndex(null);
       setEditingType(null);
       setEditingOriginalDataUrl(null);
+      setInitialCropSettings(null);
       return;
     }
 
@@ -194,6 +209,8 @@ export const EventPhotosManager = ({
     // Use the ORIGINAL image for cropping, not the cropped one
     setEditingOriginalDataUrl(pendingImages[index].originalDataUrl);
     setCurrentImageSrc(pendingImages[index].originalDataUrl);
+    // Restore previous crop settings
+    setInitialCropSettings(pendingImages[index].cropSettings);
   };
 
   const handleRemovePending = (index: number) => {
@@ -364,6 +381,8 @@ export const EventPhotosManager = ({
       {currentImageSrc && (
         <ImageCropModal
           imageSrc={currentImageSrc}
+          initialCrop={initialCropSettings ? { x: initialCropSettings.x, y: initialCropSettings.y } : undefined}
+          initialZoom={initialCropSettings?.zoom}
           onCropComplete={handleCropComplete}
           onCancel={handleCropCancel}
         />

@@ -4,9 +4,20 @@ import { useState, useCallback } from "react";
 import Cropper, { Area } from "react-easy-crop";
 import { X, Check, RotateCw } from "lucide-react";
 
+export interface CropResult {
+  blob: Blob;
+  cropSettings: {
+    x: number;
+    y: number;
+    zoom: number;
+  };
+}
+
 interface ImageCropModalProps {
   imageSrc: string;
-  onCropComplete: (croppedBlob: Blob) => void;
+  initialCrop?: { x: number; y: number };
+  initialZoom?: number;
+  onCropComplete: (result: CropResult) => void;
   onCancel: () => void;
 }
 
@@ -57,11 +68,13 @@ async function getCroppedImg(
 
 export const ImageCropModal = ({
   imageSrc,
+  initialCrop = { x: 0, y: 0 },
+  initialZoom = 1,
   onCropComplete,
   onCancel,
 }: ImageCropModalProps) => {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [crop, setCrop] = useState(initialCrop);
+  const [zoom, setZoom] = useState(initialZoom);
   const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -87,7 +100,10 @@ export const ImageCropModal = ({
     setIsProcessing(true);
     try {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
-      onCropComplete(croppedBlob);
+      onCropComplete({
+        blob: croppedBlob,
+        cropSettings: { x: crop.x, y: crop.y, zoom },
+      });
     } catch (error) {
       console.error("Error cropping image:", error);
     } finally {
@@ -106,6 +122,7 @@ export const ImageCropModal = ({
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-bold text-gray-900">Crop Image</h3>
           <button
+            type="button"
             onClick={onCancel}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
