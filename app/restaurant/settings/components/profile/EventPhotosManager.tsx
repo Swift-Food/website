@@ -76,6 +76,8 @@ export const EventPhotosManager = ({
     setCroppedFromBatch([]);
     setEditingIndex(null);
     setEditingType(null);
+    setEditingOriginalDataUrl(null);
+    setInitialCropSettings(null);
     startCroppingBatch(fileData, 0);
 
     e.target.value = "";
@@ -394,6 +396,7 @@ export const EventPhotosManager = ({
       {/* Crop Modal */}
       {currentImageSrc && (
         <ImageCropModal
+          key={currentImageSrc}
           imageSrc={currentImageSrc}
           initialCrop={initialCropSettings ? { x: initialCropSettings.x, y: initialCropSettings.y } : undefined}
           initialZoom={initialCropSettings?.zoom}
