@@ -251,6 +251,52 @@ const RestaurantSettingsPage = () => {
     }
   };
 
+  const handleReplaceEventImage = async (oldUrl: string, file: File) => {
+    setError("");
+
+    try {
+      // Upload new image
+      const formDataUpload = new FormData();
+      formDataUpload.append("uploads", file);
+
+      const uploadResponse = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD_BATCH}`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload new image");
+      }
+
+      const [newImageUrl]: string[] = await uploadResponse.json();
+
+      // Delete old image from S3
+      await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_DELETE}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: oldUrl }),
+      });
+
+      // Replace URL in array (maintain position)
+      const newEventImages = formData.eventImages.map((img) =>
+        img === oldUrl ? newImageUrl : img
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        eventImages: newEventImages,
+      }));
+
+      // Update backend
+      await updateRestaurant(restaurantId, { eventImages: newEventImages });
+
+      setSuccess("Event image updated successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to replace event image");
+    }
+  };
+
   const handleSaveProfile = () => {
     setError("");
 
@@ -331,6 +377,7 @@ const RestaurantSettingsPage = () => {
           onImageUpload={handleImageUpload}
           onImageRemove={handleRemoveImage}
           onEventImagesUpload={handleEventImagesUpload}
+          onEventImageReplace={handleReplaceEventImage}
           onEventImageRemove={handleRemoveEventImage}
           onSave={handleSaveProfile}
           onCancel={() => setActiveSection(null)}

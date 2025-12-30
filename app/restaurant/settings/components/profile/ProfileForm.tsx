@@ -14,6 +14,7 @@ interface ProfileFormProps {
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
   onEventImagesUpload: (files: File[]) => Promise<void>;
+  onEventImageReplace: (oldUrl: string, file: File) => Promise<void>;
   onEventImageRemove: (imageUrl: string) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -35,6 +36,7 @@ export const ProfileForm = ({
   onImageUpload,
   onImageRemove,
   onEventImagesUpload,
+  onEventImageReplace,
   onEventImageRemove,
   onSave,
   onCancel,
@@ -103,6 +105,7 @@ export const ProfileForm = ({
             <EventPhotosManager
               images={eventImages}
               onImagesUpload={onEventImagesUpload}
+              onImageReplace={onEventImageReplace}
               onImageRemove={onEventImageRemove}
               uploadingImage={uploadingEventImage}
               deletingImage={deletingEventImage}
