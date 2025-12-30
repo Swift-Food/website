@@ -6,6 +6,7 @@ import { Loader } from "lucide-react";
 import { cateringService } from "@/services/api/catering.api";
 import { SettingsMenu } from "../components/SettingsMenu";
 import { ProfileForm } from "../components/profile/ProfileForm";
+import { PendingEventImage } from "../components/profile/EventPhotosManager";
 import { InventorySection } from "../components/inventory/InventorySection";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
@@ -45,6 +46,7 @@ const RestaurantSettingsPage = () => {
 
   const [uploadingEventImage, setUploadingEventImage] = useState(false);
   const [deletingEventImage, setDeletingEventImage] = useState<string | null>(null);
+  const [pendingEventImages, setPendingEventImages] = useState<PendingEventImage[]>([]);
 
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
 
@@ -174,48 +176,6 @@ const RestaurantSettingsPage = () => {
     }));
   };
 
-  const handleEventImagesUpload = async (files: File[]) => {
-    if (files.length === 0) return;
-
-    setUploadingEventImage(true);
-    setError("");
-
-    try {
-      const formDataUpload = new FormData();
-      for (const file of files) {
-        formDataUpload.append("uploads", file);
-      }
-
-      const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD_BATCH}`, {
-        method: "POST",
-        body: formDataUpload,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to upload images: ${response.status}`);
-      }
-
-      const imageUrls: string[] = await response.json();
-
-      // Update local state
-      const newEventImages = [...formData.eventImages, ...imageUrls];
-      setFormData((prev) => ({
-        ...prev,
-        eventImages: newEventImages,
-      }));
-
-      // Immediately save to backend
-      await updateRestaurant(restaurantId, { eventImages: newEventImages });
-
-      setSuccess("Event images uploaded successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err: any) {
-      setError(err.message || "Failed to upload event images");
-    } finally {
-      setUploadingEventImage(false);
-    }
-  };
-
   const handleRemoveEventImage = async (imageUrl: string) => {
     setDeletingEventImage(imageUrl);
     setError("");
@@ -251,52 +211,6 @@ const RestaurantSettingsPage = () => {
     }
   };
 
-  const handleReplaceEventImage = async (oldUrl: string, file: File) => {
-    setError("");
-
-    try {
-      // Upload new image
-      const formDataUpload = new FormData();
-      formDataUpload.append("uploads", file);
-
-      const uploadResponse = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD_BATCH}`, {
-        method: "POST",
-        body: formDataUpload,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error("Failed to upload new image");
-      }
-
-      const [newImageUrl]: string[] = await uploadResponse.json();
-
-      // Delete old image from S3
-      await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_DELETE}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: oldUrl }),
-      });
-
-      // Replace URL in array (maintain position)
-      const newEventImages = formData.eventImages.map((img) =>
-        img === oldUrl ? newImageUrl : img
-      );
-
-      setFormData((prev) => ({
-        ...prev,
-        eventImages: newEventImages,
-      }));
-
-      // Update backend
-      await updateRestaurant(restaurantId, { eventImages: newEventImages });
-
-      setSuccess("Event image updated successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err: any) {
-      setError(err.message || "Failed to replace event image");
-    }
-  };
-
   const handleSaveProfile = () => {
     setError("");
 
@@ -315,13 +229,39 @@ const RestaurantSettingsPage = () => {
     setShowConfirmModal(false);
 
     try {
+      let newEventImageUrls: string[] = [];
+
+      // Upload pending event images if any
+      if (pendingEventImages.length > 0) {
+        const formDataUpload = new FormData();
+        for (const pending of pendingEventImages) {
+          const file = new File([pending.croppedBlob], "event-image.jpg", { type: "image/jpeg" });
+          formDataUpload.append("uploads", file);
+        }
+
+        const uploadResponse = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD_BATCH}`, {
+          method: "POST",
+          body: formDataUpload,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload event images");
+        }
+
+        newEventImageUrls = await uploadResponse.json();
+      }
+
       const updateData: Record<string, any> = {
         restaurant_name: formData.restaurant_name,
         restaurant_description: formData.description,
         images: formData.images,
+        eventImages: [...formData.eventImages, ...newEventImageUrls],
       };
 
       await updateRestaurant(restaurantId, updateData);
+
+      // Clear pending images after successful upload
+      setPendingEventImages([]);
 
       setSuccess("Restaurant settings updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
@@ -376,8 +316,8 @@ const RestaurantSettingsPage = () => {
           onDescriptionChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
           onImageUpload={handleImageUpload}
           onImageRemove={handleRemoveImage}
-          onEventImagesUpload={handleEventImagesUpload}
-          onEventImageReplace={handleReplaceEventImage}
+          pendingEventImages={pendingEventImages}
+          onPendingEventImagesChange={setPendingEventImages}
           onEventImageRemove={handleRemoveEventImage}
           onSave={handleSaveProfile}
           onCancel={() => setActiveSection(null)}

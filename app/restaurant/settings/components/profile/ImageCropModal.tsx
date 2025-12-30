@@ -146,6 +146,7 @@ export const ImageCropModal = ({
           {/* Action buttons */}
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={handleRotate}
               className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
             >
@@ -153,12 +154,14 @@ export const ImageCropModal = ({
               Rotate
             </button>
             <button
+              type="button"
               onClick={onCancel}
               className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleConfirm}
               disabled={isProcessing}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors disabled:bg-gray-300"

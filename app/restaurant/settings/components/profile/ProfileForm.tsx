@@ -2,7 +2,7 @@
 
 import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react";
 import { ImageUploadSection } from "./ImageUploadSection";
-import { EventPhotosManager } from "./EventPhotosManager";
+import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
 
 interface ProfileFormProps {
   restaurantName: string;
@@ -13,8 +13,8 @@ interface ProfileFormProps {
   onDescriptionChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
-  onEventImagesUpload: (files: File[]) => Promise<void>;
-  onEventImageReplace: (oldUrl: string, file: File) => Promise<void>;
+  pendingEventImages: PendingEventImage[];
+  onPendingEventImagesChange: (images: PendingEventImage[]) => void;
   onEventImageRemove: (imageUrl: string) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -35,8 +35,8 @@ export const ProfileForm = ({
   onDescriptionChange,
   onImageUpload,
   onImageRemove,
-  onEventImagesUpload,
-  onEventImageReplace,
+  pendingEventImages,
+  onPendingEventImagesChange,
   onEventImageRemove,
   onSave,
   onCancel,
@@ -104,8 +104,8 @@ export const ProfileForm = ({
             {/* Event Images */}
             <EventPhotosManager
               images={eventImages}
-              onImagesUpload={onEventImagesUpload}
-              onImageReplace={onEventImageReplace}
+              pendingImages={pendingEventImages}
+              onPendingImagesChange={onPendingEventImagesChange}
               onImageRemove={onEventImageRemove}
               uploadingImage={uploadingEventImage}
               deletingImage={deletingEventImage}
