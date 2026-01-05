@@ -344,3 +344,22 @@ export function hasItemsNeedingReview(
       !item.restaurantReviews?.includes(restaurantId)
   );
 }
+
+/**
+ * Calculate total restaurant net earnings from an order
+ * Sums menu item restaurantNetAmount across all sessions/order items
+ */
+export function calculateRestaurantNetEarnings(
+  order: CateringOrderResponse,
+  restaurantId: string
+): number {
+  // For multi-meal orders, sum across all sessions
+  if (order.mealSessions && order.mealSessions.length > 0) {
+    return order.mealSessions.reduce((total, session) => {
+      return total + calculateSessionNetEarnings(session, restaurantId);
+    }, 0);
+  }
+
+  // For legacy orders, use the order-level calculation
+  return calculateOrderNetEarnings(order, restaurantId);
+}
