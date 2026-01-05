@@ -26,14 +26,10 @@ function calculateSessionNetEarnings(
 
   if (!restaurantOrder) return 0;
 
-  // ALWAYS sum up net earnings from menu items - this is the accurate source
-  // Do NOT fall back to restaurantOrder.restaurantNetAmount as it may contain
-  // incorrect values (equal to customerTotal) in legacy data
-  const menuItemsSum = restaurantOrder.menuItems?.reduce((total, menuItem) => {
+  // Sum up net earnings from menu items
+  return restaurantOrder.menuItems?.reduce((total, menuItem) => {
     return total + (menuItem.restaurantNetAmount || 0);
-  }, 0) || 0;
-
-  return menuItemsSum;
+  }, 0) || restaurantOrder.restaurantNetAmount || 0;
 }
 
 /**
@@ -70,7 +66,17 @@ function calculateOrderNetEarnings(
   order: CateringOrderResponse,
   restaurantId: string
 ): number {
-  // Calculate from restaurants array - sum menu item net amounts
+  // Try new API fields first
+  if (order.restaurantsTotalNet !== undefined) {
+    return order.restaurantsTotalNet;
+  }
+
+  // Legacy fallback
+  if (order.restaurantTotalCost !== undefined) {
+    return order.restaurantTotalCost;
+  }
+
+  // Calculate from restaurants array
   const restaurants = order.restaurants || order.orderItems || [];
   const restaurantOrder = restaurants.find(
     (item: any) => item.restaurantId === restaurantId
@@ -78,30 +84,9 @@ function calculateOrderNetEarnings(
 
   if (!restaurantOrder) return 0;
 
-  // ALWAYS sum menu items - this is the accurate source
-  // Do NOT fall back to restaurantOrder.restaurantNetAmount or totalPrice
-  // as these may contain incorrect values in legacy data
-  const menuItemsSum = restaurantOrder.menuItems?.reduce((total: number, menuItem: any) => {
-    return total + (menuItem.restaurantNetAmount || 0);
-  }, 0) || 0;
-
-  // If menu items have net amounts, use that
-  if (menuItemsSum > 0) {
-    return menuItemsSum;
-  }
-
-  // Only use order-level fields if they're from the new API (not legacy)
-  if (order.restaurantsTotalNet !== undefined && order.restaurantsTotalNet > 0) {
-    return order.restaurantsTotalNet;
-  }
-
-  // Last resort: try restaurantNetEarning if it exists and is different from customerTotal
-  if (restaurantOrder.restaurantNetEarning !== undefined &&
-      restaurantOrder.restaurantNetEarning !== restaurantOrder.customerTotal) {
-    return restaurantOrder.restaurantNetEarning;
-  }
-
-  return 0;
+  return restaurantOrder.restaurantNetAmount ||
+         restaurantOrder.restaurantNetEarning ||
+         restaurantOrder.totalPrice || 0;
 }
 
 /**
@@ -343,23 +328,4 @@ export function hasItemsNeedingReview(
       item.status === 'admin_reviewed' &&
       !item.restaurantReviews?.includes(restaurantId)
   );
-}
-
-/**
- * Calculate total restaurant net earnings from an order
- * Sums menu item restaurantNetAmount across all sessions/order items
- */
-export function calculateRestaurantNetEarnings(
-  order: CateringOrderResponse,
-  restaurantId: string
-): number {
-  // For multi-meal orders, sum across all sessions
-  if (order.mealSessions && order.mealSessions.length > 0) {
-    return order.mealSessions.reduce((total, session) => {
-      return total + calculateSessionNetEarnings(session, restaurantId);
-    }, 0);
-  }
-
-  // For legacy orders, use the order-level calculation
-  return calculateOrderNetEarnings(order, restaurantId);
 }

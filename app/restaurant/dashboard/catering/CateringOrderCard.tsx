@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 import { formatDeliveryAddress } from "./utils/address.utils";
-import { calculateRestaurantNetEarnings } from "./utils/flatten-orders.utils";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
 
 interface CateringOrderCardProps {
@@ -54,6 +53,21 @@ export const CateringOrderCard = ({
     return restaurants.filter((item: any) => item.restaurantId === restaurantId);
   };
 
+  // Calculate restaurant net earnings from order
+  const calculateRestaurantNetEarnings = (): number => {
+    const restaurantItems = getRestaurantOrderItems();
+    return restaurantItems.reduce((total: number, item: any) => {
+      if (item.restaurantNetAmount !== undefined) {
+        return total + item.restaurantNetAmount;
+      }
+      // Fallback: sum from menu items
+      const menuItemTotal = item.menuItems?.reduce((sum: number, menuItem: any) => {
+        return sum + (menuItem.restaurantNetAmount || 0);
+      }, 0) || 0;
+      return total + menuItemTotal;
+    }, 0);
+  };
+
   // Calculate customer total for this restaurant
   const calculateCustomerTotal = (): number => {
     const restaurantItems = getRestaurantOrderItems();
@@ -69,7 +83,7 @@ export const CateringOrderCard = ({
     }, 0);
   };
 
-  const restaurantNetEarnings = calculateRestaurantNetEarnings(order, restaurantId);
+  const restaurantNetEarnings = calculateRestaurantNetEarnings();
   const customerTotal = calculateCustomerTotal();
   const restaurantOrderItems = getRestaurantOrderItems();
 
