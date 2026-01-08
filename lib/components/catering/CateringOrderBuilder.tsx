@@ -118,6 +118,7 @@ interface SessionEditorProps {
   sessionIndex: number;
   onUpdate: (index: number, updates: Partial<MealSessionState>) => void;
   onClose: (cancelled: boolean) => void;
+  restaurants: Restaurant[];
 }
 
 function SessionEditor({
@@ -125,6 +126,7 @@ function SessionEditor({
   sessionIndex,
   onUpdate,
   onClose,
+  restaurants,
 }: SessionEditorProps) {
   const [sessionName, setSessionName] = useState(session.sessionName);
   const [sessionDate, setSessionDate] = useState(session.sessionDate);
@@ -149,6 +151,7 @@ function SessionEditor({
     }
     return "AM";
   });
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleCancel = () => {
     onClose(true);
@@ -166,6 +169,9 @@ function SessionEditor({
   };
 
   const handleSave = () => {
+    // Clear any previous errors
+    setValidationError(null);
+
     // Calculate event time if hour and minute are set
     let eventTime = "";
     if (selectedHour && selectedMinute) {
@@ -177,12 +183,71 @@ function SessionEditor({
 
     // Validate that date and time are set before saving
     if (!sessionDate) {
-      alert("Please select a date for this session.");
+      setValidationError("Please select a date for this session.");
       return;
     }
     if (!eventTime) {
-      alert("Please select a time for this session.");
+      setValidationError("Please select a time for this session.");
       return;
+    }
+
+    // Validate catering operation hours
+    // Get unique restaurant IDs from session items
+    const restaurantIds = new Set(
+      session.orderItems.map((oi) => oi.item.restaurantId)
+    );
+
+    // Check each restaurant's catering hours
+    for (const restaurantId of restaurantIds) {
+      const restaurant = restaurants.find((r) => r.id === restaurantId);
+      if (!restaurant) continue;
+
+      const cateringHours = restaurant.cateringOperatingHours;
+      if (!cateringHours || cateringHours.length === 0) continue;
+
+      // Get day of week from selected date
+      const selectedDateTime = new Date(sessionDate + "T00:00:00");
+      const dayOfWeek = selectedDateTime
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase();
+
+      // Find the schedule for this day
+      const daySchedule = cateringHours.find(
+        (schedule) => schedule.day.toLowerCase() === dayOfWeek
+      );
+
+      if (!daySchedule || !daySchedule.enabled) {
+        setValidationError(
+          `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date.`
+        );
+        return;
+      }
+
+      // Check if time is within operating hours
+      if (daySchedule.open && daySchedule.close) {
+        const [eventHour, eventMinute] = eventTime.split(":").map(Number);
+        const [openHour, openMinute] = daySchedule.open.split(":").map(Number);
+        const [closeHour, closeMinute] = daySchedule.close
+          .split(":")
+          .map(Number);
+
+        const eventMinutes = eventHour * 60 + eventMinute;
+        const openMinutes = openHour * 60 + openMinute;
+        const closeMinutes = closeHour * 60 + closeMinute;
+
+        if (eventMinutes < openMinutes || eventMinutes > closeMinutes) {
+          const formatTime = (hour: number, minute: number) => {
+            const period = hour >= 12 ? "PM" : "AM";
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
+          };
+
+          setValidationError(
+            `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${formatTime(openHour, openMinute)} and ${formatTime(closeHour, closeMinute)}. Please select a time within these hours.`
+          );
+          return;
+        }
+      }
     }
 
     onUpdate(sessionIndex, {
@@ -231,7 +296,10 @@ function SessionEditor({
             <input
               type="date"
               value={sessionDate}
-              onChange={(e) => setSessionDate(e.target.value)}
+              onChange={(e) => {
+                setSessionDate(e.target.value);
+                setValidationError(null);
+              }}
               min={getMinDate()}
               max={getMaxDate()}
               className="w-full px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none bg-white min-w-0 box-border"
@@ -247,7 +315,10 @@ function SessionEditor({
             <div className="flex items-center gap-2">
               <select
                 value={selectedHour}
-                onChange={(e) => setSelectedHour(e.target.value)}
+                onChange={(e) => {
+                  setSelectedHour(e.target.value);
+                  setValidationError(null);
+                }}
                 className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">HH</option>
@@ -260,7 +331,10 @@ function SessionEditor({
               <span className="text-gray-400">:</span>
               <select
                 value={selectedMinute}
-                onChange={(e) => setSelectedMinute(e.target.value)}
+                onChange={(e) => {
+                  setSelectedMinute(e.target.value);
+                  setValidationError(null);
+                }}
                 className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 {MINUTE_OPTIONS.map((opt) => (
@@ -271,7 +345,10 @@ function SessionEditor({
               </select>
               <select
                 value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
+                onChange={(e) => {
+                  setSelectedPeriod(e.target.value);
+                  setValidationError(null);
+                }}
                 className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="AM">AM</option>
@@ -280,6 +357,25 @@ function SessionEditor({
             </div>
           </div>
         </div>
+
+        {/* Validation Error */}
+        {validationError && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <p className="text-sm text-red-700">{validationError}</p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3 mt-6">
@@ -979,6 +1075,15 @@ export default function CateringOrderBuilder() {
       removeMealSession(sessionIndex);
     }
 
+    // Clear validation error for this session if it was successfully updated
+    if (sessionIndex !== null && !cancelled) {
+      setSessionValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[sessionIndex];
+        return newErrors;
+      });
+    }
+
     setEditingSessionIndex(null);
     setIsNewSession(false);
 
@@ -1073,6 +1178,9 @@ export default function CateringOrderBuilder() {
   // State for remove session confirmation modal
   const [sessionToRemove, setSessionToRemove] = useState<number | null>(null);
 
+  // State for catering hours validation errors
+  const [sessionValidationErrors, setSessionValidationErrors] = useState<Record<number, string>>({});
+
   // Handle checkout - validate all sessions have date and time
   const handleCheckout = () => {
     // First check for empty sessions (if more than one session exists)
@@ -1120,7 +1228,91 @@ export default function CateringOrderBuilder() {
       }
     }
 
-    // All sessions are complete, proceed to contact details (step 2)
+    // Validate catering operation hours for all sessions
+    const errors: Record<number, string> = {};
+    for (let i = 0; i < mealSessions.length; i++) {
+      const session = mealSessions[i];
+      if (session.orderItems.length === 0) continue;
+
+      // Get unique restaurant IDs from session items
+      const restaurantIds = new Set(
+        session.orderItems.map((oi) => oi.item.restaurantId)
+      );
+
+      // Check each restaurant's catering hours
+      for (const restaurantId of restaurantIds) {
+        const restaurant = restaurants.find((r) => r.id === restaurantId);
+        if (!restaurant) continue;
+
+        const cateringHours = restaurant.cateringOperatingHours;
+        if (!cateringHours || cateringHours.length === 0) continue;
+
+        // Get day of week from session date
+        const selectedDateTime = new Date(session.sessionDate + "T00:00:00");
+        const dayOfWeek = selectedDateTime
+          .toLocaleDateString("en-US", { weekday: "long" })
+          .toLowerCase();
+
+        // Find the schedule for this day
+        const daySchedule = cateringHours.find(
+          (schedule) => schedule.day.toLowerCase() === dayOfWeek
+        );
+
+        if (!daySchedule || !daySchedule.enabled) {
+          errors[i] = `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date for this session.`;
+          break;
+        }
+
+        // Check if time is within operating hours
+        if (daySchedule.open && daySchedule.close && session.eventTime) {
+          const [eventHour, eventMinute] = session.eventTime.split(":").map(Number);
+          const [openHour, openMinute] = daySchedule.open.split(":").map(Number);
+          const [closeHour, closeMinute] = daySchedule.close
+            .split(":")
+            .map(Number);
+
+          const eventMinutes = eventHour * 60 + eventMinute;
+          const openMinutes = openHour * 60 + openMinute;
+          const closeMinutes = closeHour * 60 + closeMinute;
+
+          if (eventMinutes < openMinutes || eventMinutes > closeMinutes) {
+            const formatTime = (hour: number, minute: number) => {
+              const period = hour >= 12 ? "PM" : "AM";
+              const hour12 = hour % 12 || 12;
+              return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
+            };
+
+            errors[i] = `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${formatTime(openHour, openMinute)} and ${formatTime(closeHour, closeMinute)}. Please select a time within these hours for this session.`;
+            break;
+          }
+        }
+      }
+    }
+
+    // If there are validation errors, display them and scroll to first error
+    if (Object.keys(errors).length > 0) {
+      setSessionValidationErrors(errors);
+      const firstErrorSessionIndex = parseInt(Object.keys(errors)[0]);
+      setActiveSessionIndex(firstErrorSessionIndex);
+      setExpandedSessionIndex(firstErrorSessionIndex);
+      // Scroll to the first error session
+      setTimeout(() => {
+        const element = sessionAccordionRefs.current.get(firstErrorSessionIndex);
+        if (element) {
+          const headerOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 150);
+      return;
+    }
+
+    // All sessions are complete, clear any validation errors and proceed to contact details (step 2)
+    setSessionValidationErrors({});
     setCurrentStep(2);
   };
 
@@ -1367,6 +1559,7 @@ export default function CateringOrderBuilder() {
           sessionIndex={editingSessionIndex}
           onUpdate={updateMealSession}
           onClose={handleEditorClose}
+          restaurants={restaurants}
         />
       )}
 
@@ -1471,6 +1664,41 @@ export default function CateringOrderBuilder() {
                           onRemoveSession={(e) => handleRemoveSession(index, e)}
                           canRemove={mealSessions.length > 1}
                         >
+                          {/* Validation Error Banner */}
+                          {sessionValidationErrors[index] && (
+                            <div className="mb-4 p-4 bg-red-50 border-2 border-red-500 rounded-xl flex items-start gap-3">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-red-800 mb-1">
+                                  Catering Hours Conflict
+                                </p>
+                                <p className="text-sm text-red-700">
+                                  {sessionValidationErrors[index]}
+                                </p>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingSessionIndex(index);
+                                  }}
+                                  className="mt-3 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                                >
+                                  Edit Session Time
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Selected Items for this session */}
                           {session.orderItems.length > 0 && (
                             <div className="mb-4 min-w-0 overflow-hidden">
@@ -1693,6 +1921,41 @@ export default function CateringOrderBuilder() {
                         onRemoveSession={(e) => handleRemoveSession(index, e)}
                         canRemove={true}
                       >
+                        {/* Validation Error Banner */}
+                        {sessionValidationErrors[index] && (
+                          <div className="mb-4 p-4 bg-red-50 border-2 border-red-500 rounded-xl flex items-start gap-3">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-red-800 mb-1">
+                                Catering Hours Conflict
+                              </p>
+                              <p className="text-sm text-red-700">
+                                {sessionValidationErrors[index]}
+                              </p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingSessionIndex(index);
+                                }}
+                                className="mt-3 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                              >
+                                Edit Session Time
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Selected Items for this session */}
                         {session.orderItems.length > 0 && (
                           <div className="mb-4 min-w-0 overflow-hidden">

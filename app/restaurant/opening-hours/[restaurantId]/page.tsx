@@ -160,6 +160,8 @@ const OpeningHoursPage = () => {
   };
 
   const updateRestaurant = async (id: string, updates: Record<string, any>) => {
+    console.log("updates sent", JSON.stringify(updates))
+    
     const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -223,11 +225,12 @@ const OpeningHoursPage = () => {
           day: day.day,
           open: day.openTime,
           close: day.closeTime,
+          enabled: true,
         };
       });
 
       await updateRestaurant(restaurantId, {
-        openingHours: result,
+        cateringOperatingHours: result,
       });
 
       setSuccess("Opening hours updated successfully!");
