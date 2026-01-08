@@ -738,7 +738,13 @@ export default function CateringOrderBuilder() {
         }
         // Map to MenuItem format for MenuItemCard
         const mappedItems = data.map(mapToMenuItem);
-        setMenuItems(mappedItems);
+
+        // Sort items: items with images first, then items without images
+        const itemsWithImage = mappedItems.filter((item) => item.image && item.image.trim() !== "");
+        const itemsWithoutImage = mappedItems.filter((item) => !item.image || item.image.trim() === "");
+        const sortedItems = [...itemsWithImage, ...itemsWithoutImage];
+
+        setMenuItems(sortedItems);
       } catch (error) {
         console.error("Failed to fetch menu items:", error);
         setMenuItemsError("Failed to load menu items");
@@ -1479,8 +1485,8 @@ export default function CateringOrderBuilder() {
                             </div>
                           )}
 
-                          {/* Categories and Subcategories - Sticky */}
-                          <div className="sticky top-[68px] z-30 -mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
+                          {/* Categories and Subcategories */}
+                          <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
                             {/* Categories Row */}
                             <div>
                               {categoriesLoading ? (
@@ -1521,7 +1527,7 @@ export default function CateringOrderBuilder() {
                             {/* Subcategories Row */}
                             {selectedCategory &&
                               selectedCategory.subcategories.length > 0 && (
-                                <div className="pb-1">
+                                <div className="bg-white pb-1 pt-1">
                                   <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                     <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
                                       {selectedCategory.name}:
@@ -1702,7 +1708,7 @@ export default function CateringOrderBuilder() {
                         )}
 
                         {/* Categories and Subcategories - Sticky */}
-                        <div className="sticky top-[68px] z-30 -mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
+                        <div className="top-[68px] z-30 -mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
                           {/* Categories Row */}
                           <div>
                             {categoriesLoading ? (

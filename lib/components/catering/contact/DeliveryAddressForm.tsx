@@ -95,7 +95,7 @@ export default function DeliveryAddressForm({
             hasValidAddress={hasValidAddress}
           />
 
-          <UCLBuildingSelector onSelect={handleUCLBuildingSelect} />
+          {/* <UCLBuildingSelector onSelect={handleUCLBuildingSelect} /> */}
 
           {/* Address Line 1 */}
           <div>

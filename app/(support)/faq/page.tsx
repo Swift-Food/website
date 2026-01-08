@@ -136,7 +136,7 @@ export default function FAQ() {
         {
           question: "What is the largest event Swift can support?",
           answer:
-            "We can accommodate events serving up to 10,000 people. For very large orders, contacting us early ensures the best possible coordination.",
+            "We can accommodate events serving up to 2,500 people. For very large orders, contacting us early ensures the best possible coordination.",
         },
         {
           question: "How early should I book for a 500-person event?",

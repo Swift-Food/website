@@ -265,14 +265,14 @@ export default function RestaurantCatalogue({
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 mt-1">
+                  {/* <div className="flex items-center gap-1 mt-1">
                     <span className="text-yellow-500 text-sm md:text-sm">
                       ★
                     </span>
                     <span className="text-sm md:text-sm text-base-content/70">
                       {restaurant.averageRating}
                     </span>
-                  </div>
+                  </div> */}
 
                   {restaurant.minCateringOrderQuantity &&
                     restaurant.minCateringOrderQuantity > 1 && (

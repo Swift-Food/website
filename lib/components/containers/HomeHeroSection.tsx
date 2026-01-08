@@ -82,10 +82,10 @@ flex flex-col justify-center gap-2 md:gap-4 p-6 max-lg:p-4 max-sm:p-3 max-lg:tex
             animation-delay: 0.4s;
           }
         `}</style>
-        <span className="inline-block">REAL,</span>
+        <span className="inline-block">SIMPLE,</span>
         <br />
-        <span className="inline-block">LOCAL</span>{" "}
-        <span className="inline-block">& FAST</span>
+        <span className="inline-block">LOCAL,</span>{" "}
+        <span className="inline-block">RELIABLE</span>
       </div>
       {/* <p
         className={`text-7xl font-bold text-primary max-lg:text-6xl max-sm:text-4xl  ${styles.montFont}`}
