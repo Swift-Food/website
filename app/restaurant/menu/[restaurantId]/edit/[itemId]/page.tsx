@@ -59,7 +59,8 @@ const EditMenuItemPage = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
-  const [feedsPerUnit, setFeedsPerUnit] = useState<number>(1);
+  const [feedsPerUnit, setFeedsPerUnit] = useState<string>("1");
+  const [cateringQuantityUnit, setCateringQuantityUnit] = useState<string>("1");
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -190,7 +191,8 @@ const EditMenuItemPage = () => {
       setSelectedAllergens(item.allergens || []);
       setSelectedDietaryFilters(item.dietaryFilters || []);
       setAddons(item.addons || []);
-      setFeedsPerUnit(item.feedsPerUnit || 1);
+      setFeedsPerUnit(String(item.feedsPerUnit || 1));
+      setCateringQuantityUnit(String(item.cateringQuantityUnit || 1));
     } catch (err: any) {
       setError(err.message || "Failed to load menu item");
     } finally {
@@ -431,7 +433,8 @@ const EditMenuItemPage = () => {
         allergens: selectedAllergens || [],
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
-        feedsPerUnit,
+        feedsPerUnit: parseInt(feedsPerUnit) || 1,
+        cateringQuantityUnit: parseInt(cateringQuantityUnit) || 1,
       };
 
       await cateringService.updateMenuItem(itemId, updateData);
@@ -603,11 +606,30 @@ const EditMenuItemPage = () => {
                   min="1"
                   max="100"
                   value={feedsPerUnit}
-                  onChange={(e) => setFeedsPerUnit(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setFeedsPerUnit(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Number of people this item feeds (1-100)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Catering Quantity Unit
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={cateringQuantityUnit}
+                  onChange={(e) => setCateringQuantityUnit(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Catering quantity unit size (1-1000)
                 </p>
               </div>
             </div>

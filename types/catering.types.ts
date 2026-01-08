@@ -818,4 +818,5 @@ export interface UpdateMenuItemDto {
   style?: MenuItemStyle;
   status?: MenuItemStatus;
   feedsPerUnit?: number;
+  cateringQuantityUnit?: number;
 }
