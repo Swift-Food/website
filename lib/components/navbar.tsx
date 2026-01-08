@@ -54,7 +54,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`bg-white transition-transform duration-300 ${
+      className={`bg-white transition-transform duration-300 border-b-2 border-primary ${
         isEventOrderPage
           ? ""
           : `sticky top-0 z-50 ${hideNavbar ? "-translate-y-full" : "translate-y-0"}`
@@ -118,7 +118,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-      <div className="wrapper">
+      {/* <div className="wrapper">
         <div className="marquee-text">
           <div className="marquee-text-track">
             <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
@@ -139,7 +139,7 @@ export default function Navbar() {
             </p>
           </div>
         </div>
-      </div>
+      </div> */}
     </nav>
   );
 }

@@ -60,14 +60,15 @@ export default function OurStorySection() {
               className="text-pink-500 text-lg sm:text-xl font-mono text-center whitespace-pre-line"
               style={{ letterSpacing: "0.05em" }}
             >
-              Swift Food was created by students for students in London. We
-              wanted a faster way to get great local food delivered — without
-              the high prices or long waits. <br />
-              <br /> We work with independent local businesses, helping support
-              the community while giving students more variety and better meals.{" "}
+              Swift Food was created after seeing the same problem repeat itself across events: finding a catering partner that could scale without things falling apart.
               <br /> <br />
-              Our goal is simple: fast delivery, affordable food, and a platform
-              that puts local first.
+              For events of hundreds or thousands, organisers weren’t just looking for food. They needed reliability, speed, flexibility, and confidence that everything would run smoothly on the day. That balance was surprisingly hard to find.
+              <br /> <br />
+              We decided to focus entirely on solving that problem. Swift Food is built to handle large-scale catering while maintaining quality, affordability, and a strong customer experience, working closely with proven local partners to deliver at scale.
+              <br /> <br />
+              <strong>We exist to make catering one less thing organisers have to worry about.</strong>
+
+             
             </p>
           </div>
         </div>
@@ -88,14 +89,13 @@ export default function OurStorySection() {
             className="text-pink-500 text-base font-mono text-center whitespace-pre-line"
             style={{ letterSpacing: "0.05em" }}
           >
-            Swift Food was created by students for students in London. We wanted
-            a faster way to get great local food delivered — without the high
-            prices or long waits. <br /> <br />
-            We work with independent local businesses, helping support the
-            community while giving students more variety and better meals.{" "}
+            Swift Food was created after seeing the same problem repeat itself across events: finding a catering partner that could scale without things falling apart.
             <br /> <br />
-            Our goal is simple: fast delivery, affordable food, and a platform
-            that puts local first.
+            For events of hundreds or thousands, organisers weren’t just looking for food. They needed reliability, speed, flexibility, and confidence that everything would run smoothly on the day. That balance was surprisingly hard to find.
+            <br /> <br />
+            We decided to focus entirely on solving that problem. Swift Food is built to handle large-scale catering while maintaining quality, affordability, and a strong customer experience, working closely with proven local partners to deliver at scale.
+            <br /> <br />
+            <strong>We exist to make catering one less thing organisers have to worry about.</strong>
           </p>
         </div>
       </div>

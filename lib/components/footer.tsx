@@ -39,34 +39,8 @@ export default function Footer() {
         </section>
       </div>
       <div className="py-6 flex justify-end items-center gap-4 max-lg:justify-start">
-        <a 
-          href="https://www.xiaohongshu.com/user/profile/681a5e79000000000e01e079?xsec_token=YBJMunRjaQm_KF1W5GX9o1s5G_Lry_BjCc5BSfTiBtNNA=&xsec_source=app_share&xhsshare=CopyLink&appuid=5fcaee6e0000000001004ff6&apptime=1753284553&share_id=8a0c750a339f41e7921535a37a5fff01"
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
-            <Image
-              src={"/socials/social.png"}
-              width={40}
-              height={40}
-              alt="social"
-            />
-          </button>
-        </a>
-        <a 
-          href="https://www.tiktok.com/@swiftfood_uk"
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
-            <Image
-              src={"/socials/tiktok.png"}
-              width={24}
-              height={24}
-              alt="social"
-            />
-          </button>
-        </a>
+
+ 
         {/* <Link href={"www.tiktok.com/@swiftfood_uk"}>
           <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
             <Image
@@ -85,6 +59,20 @@ export default function Footer() {
           <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
             <Image
               src={"/socials/instagram.png"}
+              width={24}
+              height={24}
+              alt="social"
+            />
+          </button>
+        </a>
+        <a 
+          href="https://www.linkedin.com/company/swiftfooduk/posts/?feedView=all" 
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          <button className="btn btn-square btn-outline btn-primary rounded-xl p-1">
+            <Image
+              src={"/socials/linkedin.png"}
               width={24}
               height={24}
               alt="social"

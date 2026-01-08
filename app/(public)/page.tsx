@@ -37,7 +37,7 @@ export default function Home() {
       <OurStorySection />
       <section
         ref={differentSectionRef}
-        className="w-full bg-base-100 py-10 px-4"
+        className="w-full bg-base-100 py-20 px-4"
       >
         <div>
           <h2
@@ -62,19 +62,15 @@ export default function Home() {
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
               >
-                MUTIPLE STORES,
+                Built for scale,
                 <br />
-                ONE DELIVERY
+                not just food
               </h3>
               <p
                 className="text-primary text-center font-mono font-bold"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
               >
-                EVERYTHING YOU
-                <br />
-                CRAVE, DELIVERED TOGETHER
-                <br />
-                IN ONE GO.
+                Designed to handle high-volume events - coordinating all under one operational plan shown on your dashboard
               </p>
             </div>
             <div
@@ -88,17 +84,18 @@ export default function Home() {
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
               >
-                £5 FLAT DELIVERY RATE
+                One order.
+                <br />
+                Multiple restaurants.
+                <br />
+                Zero chaos.
               </h3>
               <p
                 className="text-primary text-center font-mono font-bold"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
               >
-                ALL EVENT ORDERS HAVE A
-                <br />
-                £5 DELIVERY FEE.
-                <br />
-                NO HIDDEN COSTS.
+                Offer variety from multiple restaurants without juggling vendors, invoices, or logistics. We manage it all as one execution.
+
               </p>
             </div>
             <div
@@ -112,19 +109,15 @@ export default function Home() {
                 className="text-primary font-extrabold text-2xl text-center mb-4"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
               >
-                SUPPORT LOCAL
-                <br />
-                FOOD MARKETS
+                End-to-end
+                <br/> 
+                delivery control
               </h3>
               <p
                 className="text-primary text-center font-mono font-bold"
                 style={{ fontFamily: "IBM Plex Mono, monospace" }}
               >
-                HELP STREET FOOD VENDORS
-                <br />
-                AND LOCAL RESTAURANTS
-                <br />
-                THRIVE IN EVERY ORDER.
+                Our in-house delivery team means tighter timing, clearer communication, and no reliance on third-party couriers during critical service windows.
               </p>
             </div>
           </div>
