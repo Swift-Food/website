@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Force dynamic rendering - don't let Netlify cache this route
+export const dynamic = "force-dynamic";
+
 /**
  * API route to proxy images from external URLs
  * This bypasses CORS restrictions for PDF generation
