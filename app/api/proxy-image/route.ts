@@ -46,7 +46,10 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "no-store, must-revalidate", // Don't cache proxy responses
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "CDN-Cache-Control": "no-store", // Netlify edge cache
+        "Netlify-CDN-Cache-Control": "no-store", // Netlify durable cache
+        "Vary": "*", // Prevent caching based on URL params
       },
     });
   } catch (error) {
