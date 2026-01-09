@@ -421,8 +421,28 @@ export default function OrderItemsByCategory({
 
             {/* Session Pricing Summary */}
             <div className="border-t border-gray-200 pt-4 mt-4">
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                <div className="flex justify-between text-gray-900 font-bold">
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-2">
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>Subtotal:</span>
+                  <span>£{Number(session.subtotal || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>Delivery Fee:</span>
+                  <span>£{Number(session.deliveryFee || 0).toFixed(2)}</span>
+                </div>
+                {session.promoDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Promo Discount:</span>
+                    <span>-£{Number(session.promoDiscount || 0).toFixed(2)}</span>
+                  </div>
+                )}
+                {session.promotionDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Restaurant Promotion:</span>
+                    <span>-£{Number(session.promotionDiscount || 0).toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-gray-900 font-bold border-t border-gray-300 pt-2 mt-2">
                   <span>Session Total:</span>
                   <span className="text-pink-600">
                     £{Number(session.sessionTotal || 0).toFixed(2)}
