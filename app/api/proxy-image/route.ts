@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "public, max-age=86400", // Cache for 24 hours
+        "Cache-Control": "no-store, must-revalidate", // Don't cache proxy responses
       },
     });
   } catch (error) {
