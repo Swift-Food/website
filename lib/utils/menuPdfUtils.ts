@@ -82,7 +82,7 @@ const extractMenuItems = (orderItems: PricingOrderItem[]): MenuItemForPdf[] => {
         restaurantName: restaurant.restaurantName,
         categoryName: item.categoryName || item.groupTitle,
         subcategoryName: item.subcategory?.name,
-        image: item.image,
+        image: item.menuItemImage,
         addons: addons.length > 0 ? addons : undefined,
       });
     });
@@ -880,7 +880,7 @@ export function transformOrderToPdfData(
             description: (menuItem as any).description,
             allergens: (menuItem as any).allergens,
             unitPrice: menuItem.customerUnitPrice,
-            image: (menuItem as any).image,
+            image: menuItem.menuItemImage,
             addons: addons?.length > 0 ? addons : undefined,
           });
         }
@@ -929,7 +929,7 @@ export function transformOrderToPdfData(
           description: (menuItem as any).description,
           allergens: (menuItem as any).allergens,
           unitPrice: menuItem.customerUnitPrice,
-          image: (menuItem as any).image,
+          image: menuItem.menuItemImage,
           addons: addons?.length > 0 ? addons : undefined,
         });
       }

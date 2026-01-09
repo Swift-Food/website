@@ -35,6 +35,7 @@ export interface GuestTicketAddon {
 export interface GuestTicketMenuItem {
   menuItemId: string;
   menuItemName: string;
+  menuItemImage?: string;
   quantity: number;
   customerUnitPrice: number;
   customerTotalPrice: number;

@@ -27,6 +27,7 @@ export interface PricingAddon {
 export interface PricingMenuItem {
   menuItemId: string;
   menuItemName: string;
+  menuItemImage?: string;
   /** @deprecated Use menuItemName instead - kept for backward compatibility with old orders */
   name?: string;
   quantity: number;
