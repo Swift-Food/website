@@ -221,6 +221,11 @@ export default function Step3ContactInfo() {
       } else if (!validateUKPostcode(formData.zipcode)) {
         newErrors.zipcode = "Please enter a valid UK postcode (e.g., SW1A 1AA)";
       }
+
+      // Validate that latitude and longitude are present (ensures Google autocomplete selection)
+      if (!formData.latitude || !formData.longitude) {
+        newErrors.addressLine1 = "Please select an address from the Google autocomplete dropdown";
+      }
     }
 
     setErrors(newErrors);
@@ -688,6 +693,25 @@ export default function Step3ContactInfo() {
     }));
   };
 
+  const handleClearAddress = () => {
+    setSelectedPlaceId(null);
+    setFormData((prev) => ({
+      ...prev,
+      addressLine1: "",
+      city: "",
+      zipcode: "",
+      latitude: undefined,
+      longitude: undefined,
+    }));
+    // Clear any address-related errors
+    setErrors((prev) => ({
+      ...prev,
+      addressLine1: undefined,
+      city: undefined,
+      zipcode: undefined,
+    }));
+  };
+
 
   // Handle view menu preview - now downloads PDF
   const handleViewMenu = async () => {
@@ -719,7 +743,11 @@ export default function Step3ContactInfo() {
       }));
 
       // Transform to PDF data format (now async to fetch images)
-      const pdfData = await transformLocalSessionsToPdfData(sessionsForPreview, true);
+      const pdfData = await transformLocalSessionsToPdfData(
+        sessionsForPreview,
+        true,
+        pricing?.deliveryFee
+      );
 
       // Generate and download PDF
       const blob = await pdf(
@@ -1011,6 +1039,7 @@ export default function Step3ContactInfo() {
                   errors={errors}
                   onFieldChange={handleChange}
                   onPlaceSelect={handlePlaceSelect}
+                  onClearAddress={handleClearAddress}
                   hasValidAddress={selectedPlaceId !== null && formData.addressLine1 !== ""}
                 />
      

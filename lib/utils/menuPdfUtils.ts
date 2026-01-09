@@ -725,10 +725,10 @@ export async function buildMenuHTMLFromLocalState(
             ${
               sessions.length > 0
                 ? `
-              <!-- Grand Total -->
+              <!-- Total Catering Cost -->
               <div style="background: #fce7f3; border-radius: 12px; padding: 20px; margin-top: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="font-size: 18px; font-weight: 700; color: #be185d;">Estimated Total:</span>
+                  <span style="font-size: 18px; font-weight: 700; color: #be185d;">Total Catering Cost:</span>
                   <span style="font-size: 24px; font-weight: 700; color: #be185d;">
                     £${grandTotal.toFixed(2)}
                   </span>
@@ -855,6 +855,7 @@ export function transformOrderToPdfData(
 
     for (const session of sortedSessions) {
       const categoryMap = new Map<string, PdfMenuItem[]>();
+      let sessionItemsSubtotal = 0;
 
       // Group items by category across all restaurants in this session
       for (const restaurant of session.orderItems) {
@@ -865,6 +866,10 @@ export function transformOrderToPdfData(
           if (!categoryMap.has(categoryName)) {
             categoryMap.set(categoryName, []);
           }
+
+          // Calculate item total (unit price × quantity + addons)
+          const itemTotal = menuItem.customerTotalPrice || 0;
+          sessionItemsSubtotal += itemTotal;
 
           // Transform addons for PDF
           const addons = (menuItem as any).selectedAddons?.map((addon: any) => ({
@@ -896,13 +901,14 @@ export function transformOrderToPdfData(
         sessionName: session.sessionName,
         time: session.eventTime,
         categories,
-        subtotal: session.sessionTotal,
+        subtotal: sessionItemsSubtotal, // Use calculated items subtotal, not session.sessionTotal
       });
     }
   } else {
     // Legacy single-session format
     const categoryMap = new Map<string, PdfMenuItem[]>();
     const orderItems = order.restaurants || order.orderItems || [];
+    let itemsSubtotal = 0;
 
     for (const restaurant of orderItems as PricingOrderItem[]) {
       for (const menuItem of restaurant.menuItems) {
@@ -914,6 +920,10 @@ export function transformOrderToPdfData(
         if (!categoryMap.has(categoryName)) {
           categoryMap.set(categoryName, []);
         }
+
+        // Calculate item total
+        const itemTotal = menuItem.customerTotalPrice || 0;
+        itemsSubtotal += itemTotal;
 
         // Transform addons for PDF
         const addons = (menuItem as any).selectedAddons?.map((addon: any) => ({
@@ -944,15 +954,25 @@ export function transformOrderToPdfData(
       sessionName: "Menu",
       time: order.eventTime,
       categories,
-      subtotal: order.subtotal,
+      subtotal: itemsSubtotal, // Use calculated items subtotal
     });
   }
+
+  // Parse delivery fee and total price to ensure they're numbers
+  const deliveryFee = typeof order.deliveryFee === 'string'
+    ? parseFloat(order.deliveryFee)
+    : order.deliveryFee;
+
+  const finalTotalValue = order.finalTotal || order.customerFinalTotal;
+  const totalPrice = typeof finalTotalValue === 'string'
+    ? parseFloat(finalTotalValue)
+    : finalTotalValue;
 
   return {
     sessions,
     showPrices,
-    deliveryCharge: order.deliveryFee,
-    totalPrice: order.finalTotal || order.customerFinalTotal,
+    deliveryCharge: deliveryFee,
+    totalPrice: totalPrice,
     logoUrl: "/Logo_Circle.png",
   };
 }
@@ -996,7 +1016,8 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
  */
 export async function transformLocalSessionsToPdfData(
   mealSessions: LocalMealSession[],
-  showPrices: boolean = true
+  showPrices: boolean = true,
+  deliveryFee?: number
 ): Promise<CateringMenuPdfProps> {
   const sessions: PdfSession[] = [];
   let grandTotal = 0;
@@ -1095,10 +1116,14 @@ export async function transformLocalSessionsToPdfData(
     });
   }
 
+  // Calculate total including delivery fee
+  const totalWithDelivery = grandTotal + (deliveryFee || 0);
+
   return {
     sessions,
     showPrices,
-    totalPrice: grandTotal,
+    deliveryCharge: deliveryFee,
+    totalPrice: totalWithDelivery,
     logoUrl: "/Logo_Circle.png",
   };
 }

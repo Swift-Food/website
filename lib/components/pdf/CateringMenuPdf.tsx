@@ -395,7 +395,7 @@ const MenuContent: React.FC<{
         {showPrices && session.subtotal !== undefined && (
           <View style={styles.subtotalContainer}>
             <Text style={styles.subtotalText}>
-              Sub Total: £ {session.subtotal.toLocaleString()}
+              Subtotal: £{session.subtotal.toFixed(2)}
             </Text>
           </View>
         )}
@@ -405,17 +405,25 @@ const MenuContent: React.FC<{
     {showPrices &&
       (deliveryCharge !== undefined || totalPrice !== undefined) && (
         <View style={styles.totalsContainer}>
-          {deliveryCharge !== undefined && deliveryCharge > 0 && (
+          {/* Calculate and show overall subtotal (sum of all sessions) */}
+          {/* {sessions.length > 0 && (
             <View style={styles.deliveryRow}>
               <Text style={styles.deliveryText}>
-                Delivery Charge: £ {deliveryCharge}
+                Subtotal: £{sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0).toFixed(2)}
               </Text>
             </View>
           )}
+          {deliveryCharge !== undefined && deliveryCharge > 0 && (
+            <View style={styles.deliveryRow}>
+              <Text style={styles.deliveryText}>
+                Delivery Charge: £{Number(deliveryCharge).toFixed(2)}
+              </Text>
+            </View>
+          )} */}
           {totalPrice !== undefined && (
             <View style={styles.totalRow}>
               <Text style={styles.totalText}>
-                Total Price: £ {totalPrice.toLocaleString()}
+                Total Catering Cost:  £{sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0).toFixed(2)}
               </Text>
             </View>
           )}

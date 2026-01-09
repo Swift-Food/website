@@ -85,6 +85,7 @@ export default function CateringDashboardPage() {
 
     try {
       const pdfData = transformOrderToPdfData(order, true);
+      console.log("pdf data is", JSON.stringify(pdfData))
       const blob = await pdf(
         <CateringMenuPdf
           sessions={pdfData.sessions}
