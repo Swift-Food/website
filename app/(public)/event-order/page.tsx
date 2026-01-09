@@ -10,7 +10,7 @@ function CateringSteps() {
     currentStep,
     // setCurrentStep
   } = useCatering();
-  console.log("current step is", currentStep)
+
   const steps = [
     { label: "Menu Selection", step: 1 },
     { label: "Contact & Delivery", step: 2 },

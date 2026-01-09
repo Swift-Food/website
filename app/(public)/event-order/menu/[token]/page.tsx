@@ -26,7 +26,7 @@ export default function FullMenuPage() {
       setLoading(true);
       setError(null);
       const data = await cateringService.getOrderByToken(token);
-      console.log("Order data:", JSON.stringify(data, null, 2));
+ 
       setOrder(data);
     } catch (err: any) {
       setError(err.message || "Failed to load order");

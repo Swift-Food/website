@@ -32,6 +32,7 @@ import {
 import { CategoryWithSubcategories } from "@/types/catering.types";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
 import { API_ENDPOINTS } from "@/lib/constants/api";
+import { create } from "domain";
 
 class CateringService {
   async searchMenuItems(
@@ -256,6 +257,10 @@ class CateringService {
       deliveryAddress: `${contactInfo.addressLine1}${
         contactInfo.addressLine2 ? ", " + contactInfo.addressLine2 : ""
       }, ${contactInfo.city}, ${contactInfo.zipcode}`,
+      deliveryLocation: {
+        latitude: contactInfo.latitude!,
+        longitude: contactInfo.longitude!,
+      },
       specialRequirements: eventDetails?.specialRequests || "",
       // Use mealSessions instead of orderItems
       mealSessions: mealSessionRequests,
@@ -269,8 +274,8 @@ class CateringService {
       paymentMethod: "stripe_direct",
     };
 
-    console.log("Create Order Dto: ", createDto);
 
+    console.log("order dto", JSON.stringify(createDto))
     const response = await fetchWithAuth(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
       headers: {
@@ -395,11 +400,13 @@ class CateringService {
 
   async calculateCateringPricing(
     orderItems: CateringRestaurantOrderRequest[],
-    promoCodes?: string[]
+    promoCodes?: string[],
+    deliveryLocation?: { latitude: number; longitude: number }
   ): Promise<CateringPricingResult> {
     const pricingData = {
       orderItems,
       promoCodes,
+      ...(deliveryLocation && { deliveryLocation }),
     };
 
     const response = await fetchWithAuth(
@@ -426,7 +433,8 @@ class CateringService {
    */
   async calculateCateringPricingWithMealSessions(
     mealSessions: MealSessionState[],
-    promoCodes?: string[]
+    promoCodes?: string[],
+    deliveryLocation?: { latitude: number; longitude: number }
   ): Promise<CateringPricingResult> {
     // Helper function to group items by restaurant for a single session
     const groupItemsByRestaurant = (
@@ -495,8 +503,9 @@ class CateringService {
     const pricingData = {
       mealSessions: mealSessionRequests,
       promoCodes,
+      ...(deliveryLocation && { deliveryLocation }),
     };
-
+  
     const response = await fetchWithAuth(
       `${API_BASE_URL}/pricing/catering-verify-cart`,
       {

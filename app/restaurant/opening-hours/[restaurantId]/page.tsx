@@ -160,7 +160,7 @@ const OpeningHoursPage = () => {
   };
 
   const updateRestaurant = async (id: string, updates: Record<string, any>) => {
-    console.log("updates sent", JSON.stringify(updates))
+ 
     
     const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
       method: "PATCH",

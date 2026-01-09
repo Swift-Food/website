@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { CateringOrderResponse } from "@/types/api";
 import { Receipt } from "lucide-react";
 
@@ -9,6 +9,12 @@ interface OrderSummaryProps {
 }
 
 export default function OrderSummary({ order }: OrderSummaryProps) {
+  const [showDeliveryBreakdown, setShowDeliveryBreakdown] = useState(false);
+
+
+  // Extract delivery breakdown from meal sessions if available
+  const deliveryBreakdown = (order as any).mealSessions?.[0]?.deliveryFeeBreakdown;
+  const distanceInMiles = (order as any).mealSessions?.[0]?.distanceInMiles;
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6">
       <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
@@ -23,11 +29,50 @@ export default function OrderSummary({ order }: OrderSummaryProps) {
           </span>
         </div>
 
-        <div className="flex justify-between text-gray-700 text-sm sm:text-base">
-          <span className="font-medium">Delivery Fee:</span>
-          <span className="font-semibold">
-            £{Number(order.deliveryFee).toFixed(2)}
-          </span>
+        <div className="space-y-1">
+          <div className="flex justify-between items-start text-gray-700 text-sm sm:text-base gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+              <span className="font-medium whitespace-nowrap">Delivery Fee:</span>
+              {distanceInMiles && (
+                <span className="text-xs text-gray-500">
+                  ({distanceInMiles.toFixed(1)} mi)
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="font-semibold">
+                £{Number(order.deliveryFee).toFixed(2)}
+              </span>
+              {deliveryBreakdown && (order as any).mealSessions && (
+                <button
+                  onClick={() => setShowDeliveryBreakdown(!showDeliveryBreakdown)}
+                  className="text-xs text-pink-600 hover:underline whitespace-nowrap"
+                  type="button"
+                >
+                  {showDeliveryBreakdown ? "hide" : "details"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Delivery fee breakdown - Show per session */}
+          {showDeliveryBreakdown && (order as any).mealSessions && (
+            <div className="pl-4 space-y-1 text-xs text-gray-600">
+              {(order as any).mealSessions.map((session: any, index: number) => (
+                <div key={index} className="flex justify-between">
+                  <span>{session.sessionName}:</span>
+                  <span>£{session.deliveryFee.toFixed(2)}</span>
+                </div>
+              ))}
+              {deliveryBreakdown?.requiresCustomQuote && (
+                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-900">
+                  <p className="text-xs">
+                    ⚠️ Delivery exceeded 6 miles. Custom quote applied.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {order.promoDiscount && order.promoDiscount > 0 && (

@@ -114,13 +114,17 @@ class ContactDetailsPricingService {
   }
 
   /**
-   * Calculate pricing with promo codes
+   * Calculate pricing with promo codes and optional delivery location
    */
-  async calculatePricing(selectedItems: SelectedMenuItem[], promoCodes: string[]) {
+  async calculatePricing(
+    selectedItems: SelectedMenuItem[],
+    promoCodes: string[],
+    deliveryLocation?: { latitude: number; longitude: number }
+  ) {
     const groupedItems = this.groupItemsByRestaurant(selectedItems);
     const orderItems = this.buildOrderItems(groupedItems);
 
-    return await cateringService.calculateCateringPricing(orderItems, promoCodes);
+    return await cateringService.calculateCateringPricing(orderItems, promoCodes, deliveryLocation);
   }
 }
 

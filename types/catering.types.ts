@@ -459,6 +459,18 @@ export interface CateringPricingResult {
   promoDiscount?: number;
   total: number;
   error?: string;
+
+  // NEW: Distance-based delivery fee fields
+  distanceInMiles?: number;
+  deliveryFeeBreakdown?: {
+    baseFee: number;              // Always £6
+    portionFee: number;            // £6, £8, or £8+£4/50 portions
+    drinksFee: number;             // Always 0 for now
+    subtotal: number;              // Sum of above
+    distanceMultiplier: number;    // 1.0x, 1.2x, 1.5x, or 2.0x
+    finalDeliveryFee: number;      // Subtotal × multiplier
+    requiresCustomQuote: boolean;  // true if >6 miles
+  };
 }
 
 export interface PromoCodeValidation {

@@ -102,6 +102,10 @@ export interface CreateCateringOrderRequest {
   guestCount?: number;
   eventType?: string;
   deliveryAddress: string;
+  deliveryLocation: {
+    latitude: number;
+    longitude: number;
+  };
   specialRequirements?: string; // General requirements (applies to all sessions)
 
   // Corporate/Organization

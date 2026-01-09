@@ -144,7 +144,7 @@ const EditMenuItemPage = () => {
       ];
 
       setExistingGroups(allGroups);
-      console.log("item is", JSON.stringify(item))
+   
       // Populate form with item data
       setName(item.name || "");
       setDescription(item.description || "");

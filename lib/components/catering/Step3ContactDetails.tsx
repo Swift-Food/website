@@ -324,7 +324,7 @@ export default function Step3ContactInfo() {
           eventId || undefined
         );
 
-      // console.log("Catering order response: ", createCateringOrderResponse);
+     
 
       markOrderAsSubmitted();
       setShowPaymentModal(false);
@@ -447,10 +447,17 @@ export default function Step3ContactInfo() {
   const calculatePricing = async () => {
     setCalculatingPricing(true);
     try {
+      // Build delivery location if available
+      const deliveryLocation =
+        formData.latitude && formData.longitude
+          ? { latitude: formData.latitude, longitude: formData.longitude }
+          : undefined;
+
       // Use meal sessions for pricing calculation to get proper per-session delivery fees
       const pricingResult = await cateringService.calculateCateringPricingWithMealSessions(
         mealSessions,
-        promoCodes
+        promoCodes,
+        deliveryLocation
       );
 
       if (!pricingResult.isValid) {
@@ -458,7 +465,7 @@ export default function Step3ContactInfo() {
         setPricing(null);
         return;
       }
-
+    
       setPricing(pricingResult);
     } catch (error) {
       console.error("Error calculating pricing:", error);
@@ -577,7 +584,7 @@ export default function Step3ContactInfo() {
   useEffect(() => {
     calculatePricing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [promoCodes, mealSessions]);
+  }, [promoCodes, mealSessions, formData.latitude, formData.longitude]);
 
   const handleApplyPromoCode = async (code: string) => {
     setValidatingPromo(true);
@@ -900,7 +907,7 @@ export default function Step3ContactInfo() {
                 {/* Delivery fee */}
                 <div className="flex justify-between text-sm text-base-content/70">
                   <span>Delivery Cost</span>
-                  <span>£{pricing.deliveryFee.toFixed(2)}</span>
+                  <span>£{pricing.deliveryFee}</span>
                 </div>
 
                 {/* Promo code discount */}

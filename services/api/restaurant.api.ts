@@ -167,7 +167,7 @@ export const restaurantApi = {
     token: string,
     accountId?: string | null
   ): Promise<WithdrawalRequest[]> => {
-    console.log("accountId", accountId);
+ 
     const url = accountId
       ? `${API_BASE_URL}/withdrawals/history/${userId}/restaurant?accountId=${accountId}`
       : `${API_BASE_URL}/withdrawals/history/${userId}/restaurant`;

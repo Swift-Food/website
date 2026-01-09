@@ -166,7 +166,7 @@ export default function SelectedItemsByCategory({
       0
     );
     const subtotal = itemPrice * quantity + addonTotal;
-    console.log("selected item info", item)
+  
     return (
       <div
         key={originalIndex}
