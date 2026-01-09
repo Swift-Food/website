@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: 'no-store' });
 
     if (!response.ok) {
       return NextResponse.json(
