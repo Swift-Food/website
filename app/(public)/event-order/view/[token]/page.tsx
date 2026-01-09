@@ -56,6 +56,8 @@ export default function CateringDashboardPage() {
       const currentUser = data.sharedAccessUsers?.find(
         (u) => u.accessToken === token
       );
+      console.log("data is", JSON.stringify(data))
+      console.log("current user is", currentUser)
       setCurrentUserRole(currentUser?.role || null);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
@@ -138,6 +140,7 @@ export default function CateringDashboardPage() {
   }
 
   const isManager = currentUserRole === "editor";
+  console.log("current user role", currentUserRole)
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">

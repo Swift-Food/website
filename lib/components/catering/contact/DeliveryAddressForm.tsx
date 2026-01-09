@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { ContactInfo } from "@/types/catering.types";
 import AddressAutocomplete from "./AddressAutocomplete";
-import UCLBuildingSelector from "./UCLBuildingSelector";
-import uclBuildings from "@/public/data/ucl-buildings.json";
 
 interface ValidationErrors {
   addressLine1?: string;
@@ -15,6 +13,7 @@ interface DeliveryAddressFormProps {
   errors: ValidationErrors;
   onFieldChange: (field: keyof ContactInfo, value: string) => void;
   onPlaceSelect: (place: google.maps.places.PlaceResult) => void;
+  onClearAddress?: () => void;
   hasValidAddress?: boolean;
 }
 
@@ -30,16 +29,10 @@ export default function DeliveryAddressForm({
   errors,
   onFieldChange,
   onPlaceSelect,
+  onClearAddress,
   hasValidAddress,
 }: DeliveryAddressFormProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-
-  const handleUCLBuildingSelect = (building: (typeof uclBuildings)[0]) => {
-    onFieldChange("addressLine1", building.addressLine1);
-    onFieldChange("addressLine2", building.name + ", UCL");
-    onFieldChange("city", building.city);
-    onFieldChange("zipcode", building.zipcode);
-  };
 
   // Check if section is complete
   const isComplete =
@@ -87,6 +80,7 @@ export default function DeliveryAddressForm({
         <div className="space-y-3">
           <AddressAutocomplete
             onPlaceSelect={onPlaceSelect}
+            onClearAddress={onClearAddress}
             error={
               errors.addressLine1?.includes("United Kingdom")
                 ? errors.addressLine1
@@ -95,9 +89,7 @@ export default function DeliveryAddressForm({
             hasValidAddress={hasValidAddress}
           />
 
-          {/* <UCLBuildingSelector onSelect={handleUCLBuildingSelect} /> */}
-
-          {/* Address Line 1 */}
+          {/* Address Line 1 - Read Only */}
           <div>
             <label className="block text-xs font-semibold mb-2 text-base-content">
               Address Line 1*
@@ -107,9 +99,9 @@ export default function DeliveryAddressForm({
               name="addressLine1"
               required
               value={formData.addressLine1 || ""}
-              onChange={(e) => onFieldChange("addressLine1", e.target.value)}
-              placeholder="Street address"
-              className={`w-full px-3 py-2 text-sm bg-base-200/50 border rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+              readOnly
+              placeholder="Select from search above"
+              className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed ${
                 errors.addressLine1 &&
                 !errors.addressLine1.includes("United Kingdom")
                   ? "border-error"
@@ -139,7 +131,7 @@ export default function DeliveryAddressForm({
             />
           </div>
 
-          {/* City and Postcode */}
+          {/* City and Postcode - Read Only */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-2 text-base-content">
@@ -150,9 +142,9 @@ export default function DeliveryAddressForm({
                 name="city"
                 required
                 value={formData.city || ""}
-                onChange={(e) => onFieldChange("city", e.target.value)}
-                placeholder="City"
-                className={`w-full px-3 py-2 text-sm bg-base-200/50 border rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                readOnly
+                placeholder="Auto-filled"
+                className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed ${
                   errors.city ? "border-error" : "border-base-300"
                 }`}
               />
@@ -169,23 +161,16 @@ export default function DeliveryAddressForm({
                 name="zipcode"
                 required
                 value={formData.zipcode || ""}
-                onChange={(e) => {
-                  const newPostcode = e.target.value.toUpperCase();
-                  onFieldChange("zipcode", newPostcode);
-                }}
-                placeholder="SW1A 1AA"
-                className={`w-full px-3 py-2 text-sm bg-base-200/50 border rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
+                readOnly
+                placeholder="Auto-filled"
+                className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed ${
                   errors.zipcode ? "border-error" : "border-base-300"
                 }`}
               />
               {errors.zipcode && (
                 <p className="mt-1 text-xs text-error">✗ {errors.zipcode}</p>
               )}
-              {!errors.zipcode &&
-                formData.zipcode &&
-                validateUKPostcode(formData.zipcode) && (
-                  <p className="mt-1 text-xs text-success">✓ Valid postcode</p>
-                )}
+
             </div>
           </div>
         </div>
