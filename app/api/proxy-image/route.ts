@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// CRITICAL: force-dynamic ensures Next.js runs this handler fresh for each request
+// Without this, Next.js may cache the route and return the same response for all URLs
+export const dynamic = "force-dynamic";
+
 /**
  * API route to proxy images from external URLs
  * This bypasses CORS restrictions for PDF generation
