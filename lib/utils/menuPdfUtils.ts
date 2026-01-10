@@ -1016,8 +1016,8 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
   try {
     // In development, use proxy to bypass CORS
     // In production, fetch directly (S3 CORS must be configured)
-    // const isDev = process.env.NODE_ENV === "development";
-    const fetchUrl = true //isDev
+    const isDev = process.env.NODE_ENV === "development";
+    const fetchUrl = isDev
       ? `/api/proxy-image?v=4&url=${encodeURIComponent(url)}`
       : url;
 
