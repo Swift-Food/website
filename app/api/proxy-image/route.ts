@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Force dynamic rendering - don't let Netlify cache this route
-export const dynamic = "force-dynamic";
-
 /**
  * API route to proxy images from external URLs
  * This bypasses CORS restrictions for PDF generation
@@ -46,10 +43,9 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-        "CDN-Cache-Control": "no-store", // Netlify edge cache
-        "Netlify-CDN-Cache-Control": "no-store", // Netlify durable cache
-        "Vary": "*", // Prevent caching based on URL params
+        // Cache for 7 days - each unique URL (including query params) gets its own cache entry
+        // The server-side fetch uses cache: 'no-store' to always get fresh from S3
+        "Cache-Control": "public, max-age=604800, immutable",
       },
     });
   } catch (error) {
