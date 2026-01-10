@@ -978,9 +978,39 @@ export function transformOrderToPdfData(
 }
 
 /**
+ * Convert a blob to JPEG format using canvas (for WebP compatibility with react-pdf)
+ */
+async function convertToJpeg(blob: Blob): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(blob);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(objectUrl);
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(null);
+    };
+    img.src = objectUrl;
+  });
+}
+
+/**
  * Fetch an image and convert to base64 data URL
  * In development: Uses a proxy API route to bypass CORS issues
  * In production: Fetches directly (requires S3 CORS to be configured)
+ * Note: WebP images are converted to JPEG for react-pdf compatibility
  */
 async function fetchImageAsBase64(url: string): Promise<string | null> {
   try {
@@ -997,6 +1027,13 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
       return null;
     }
     const blob = await response.blob();
+
+    // Check if it's a WebP image - react-pdf doesn't support WebP
+    const isWebP = blob.type === 'image/webp' || url.toLowerCase().endsWith('.webp');
+    if (isWebP) {
+      return await convertToJpeg(blob);
+    }
+
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
