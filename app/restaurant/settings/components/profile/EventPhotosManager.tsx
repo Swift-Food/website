@@ -193,7 +193,7 @@ export const EventPhotosManager = ({
 
     try {
       // Fetch original via proxy and store it
-      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+      const proxyUrl = `/api/proxy-image?v=2&url=${encodeURIComponent(imageUrl)}`;
       const response = await fetch(proxyUrl);
       const blob = await response.blob();
       const dataUrl = await blobToDataUrl(blob);
