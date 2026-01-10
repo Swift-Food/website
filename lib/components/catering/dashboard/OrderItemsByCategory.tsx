@@ -15,12 +15,14 @@ import {
   Calendar,
   Clock,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { categoryService } from "@/services/api/category.api";
 
 interface OrderItemsByCategoryProps {
   order: CateringOrderResponse;
   onViewMenu?: () => void;
+  isGeneratingPdf?: boolean;
 }
 
 // Extended PricingMenuItem with category/subcategory info from backend
@@ -52,6 +54,7 @@ interface CategoryGroup {
 export default function OrderItemsByCategory({
   order,
   onViewMenu,
+  isGeneratingPdf,
 }: OrderItemsByCategoryProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
@@ -480,11 +483,20 @@ export default function OrderItemsByCategory({
         {onViewMenu && (
           <button
             onClick={onViewMenu}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
+            disabled={isGeneratingPdf}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Download Menu</span>
-            <span className="sm:hidden">Menu</span>
+            {isGeneratingPdf ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">
+              {isGeneratingPdf ? "Generating..." : "Download Menu"}
+            </span>
+            <span className="sm:hidden">
+              {isGeneratingPdf ? "..." : "Menu"}
+            </span>
           </button>
         )}
       </div>

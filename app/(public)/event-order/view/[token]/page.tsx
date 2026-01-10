@@ -33,6 +33,7 @@ export default function CateringDashboardPage() {
   const [currentUserRole, setCurrentUserRole] = useState<
     "viewer" | "editor" | "manager" | null
   >(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   useEffect(() => {
     loadOrder();
@@ -81,11 +82,11 @@ export default function CateringDashboardPage() {
 
   // Handle PDF download
   const handleDownloadPdf = async () => {
-    if (!order) return;
+    if (!order || generatingPdf) return;
 
+    setGeneratingPdf(true);
     try {
       const pdfData = transformOrderToPdfData(order, true);
-      console.log("pdf data is", JSON.stringify(pdfData))
       const blob = await pdf(
         <CateringMenuPdf
           sessions={pdfData.sessions}
@@ -107,6 +108,8 @@ export default function CateringDashboardPage() {
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setGeneratingPdf(false);
     }
   };
 
@@ -177,7 +180,7 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <OrderItemsByCategory order={order} onViewMenu={handleDownloadPdf} />
+            <OrderItemsByCategory order={order} onViewMenu={handleDownloadPdf} isGeneratingPdf={generatingPdf} />
           </div>
 
           {/* Sidebar */}

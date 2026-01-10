@@ -16,6 +16,7 @@ export default function FullMenuPage() {
   const [order, setOrder] = useState<CateringOrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   useEffect(() => {
     loadOrder();
@@ -36,8 +37,9 @@ export default function FullMenuPage() {
   };
 
   const handleSaveAsPdf = async () => {
-    if (!order) return;
+    if (!order || generatingPdf) return;
 
+    setGeneratingPdf(true);
     try {
       // Transform order data to PDF format
       const pdfData = transformOrderToPdfData(order, true);
@@ -65,6 +67,8 @@ export default function FullMenuPage() {
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setGeneratingPdf(false);
     }
   };
 
@@ -259,10 +263,15 @@ export default function FullMenuPage() {
               </button>
               <button
                 onClick={handleSaveAsPdf}
-                className="flex items-center gap-2 bg-white text-pink-600 px-4 py-2 rounded-lg font-medium hover:bg-pink-50 transition-colors"
+                disabled={generatingPdf}
+                className="flex items-center gap-2 bg-white text-pink-600 px-4 py-2 rounded-lg font-medium hover:bg-pink-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Download className="h-4 w-4" />
-                Save PDF
+                {generatingPdf ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {generatingPdf ? "Generating..." : "Save PDF"}
               </button>
             </div>
           </div>
