@@ -47,9 +47,11 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
-        // Cache for 7 days - each unique URL (including query params) gets its own cache entry
-        // The server-side fetch uses cache: 'no-store' to always get fresh from S3
-        "Cache-Control": "public, max-age=604800, immutable",
+        // Disable ALL caching - Netlify Edge ignores query params in cache key
+        // This ensures each unique image URL gets fetched fresh
+        "Cache-Control": "private, no-store, no-cache, must-revalidate",
+        "CDN-Cache-Control": "no-store",
+        "Netlify-CDN-Cache-Control": "no-store",
       },
     });
   } catch (error) {
