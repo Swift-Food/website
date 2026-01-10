@@ -1713,9 +1713,8 @@ export default function CateringOrderBuilder() {
                             </div>
                           )}
 
-                          {/* Categories and Subcategories */}
+                          {/* Categories Row */}
                           <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
-                            {/* Categories Row */}
                             <div>
                               {categoriesLoading ? (
                                 <div className="flex items-center gap-3 overflow-x-auto pb-2">
@@ -1751,45 +1750,45 @@ export default function CateringOrderBuilder() {
                                 </div>
                               )}
                             </div>
-
-                            {/* Subcategories Row */}
-                            {selectedCategory &&
-                              selectedCategory.subcategories.length > 0 && (
-                                <div className="bg-white pb-1 pt-1">
-                                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                                    <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
-                                      {selectedCategory.name}:
-                                    </span>
-                                    {selectedCategory.subcategories.map(
-                                      (subcategory) => (
-                                        <button
-                                          key={subcategory.id}
-                                          onClick={() =>
-                                            handleSubcategoryClick(subcategory)
-                                          }
-                                          className={`
-                                    flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
-                                    ${
-                                      selectedSubcategory?.id === subcategory.id
-                                        ? "bg-primary text-white"
-                                        : "bg-white text-primary hover:bg-secondary/20"
-                                    }
-                                  `}
-                                        >
-                                          {subcategory.name}
-                                          {selectedSubcategory?.id ===
-                                            subcategory.id && (
-                                            <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
-                                              ×
-                                            </span>
-                                          )}
-                                        </button>
-                                      )
-                                    )}
-                                  </div>
-                                </div>
-                              )}
                           </div>
+
+                          {/* Subcategories Row - Sticky */}
+                          {selectedCategory &&
+                            selectedCategory.subcategories.length > 0 && (
+                              <div className="sticky top-[70px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
+                                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                  <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                                    {selectedCategory.name}:
+                                  </span>
+                                  {selectedCategory.subcategories.map(
+                                    (subcategory) => (
+                                      <button
+                                        key={subcategory.id}
+                                        onClick={() =>
+                                          handleSubcategoryClick(subcategory)
+                                        }
+                                        className={`
+                                  flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
+                                  ${
+                                    selectedSubcategory?.id === subcategory.id
+                                      ? "bg-primary text-white"
+                                      : "bg-white text-primary hover:bg-secondary/20"
+                                  }
+                                `}
+                                      >
+                                        {subcategory.name}
+                                        {selectedSubcategory?.id ===
+                                          subcategory.id && (
+                                          <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                            ×
+                                          </span>
+                                        )}
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
 
                           {/* Menu Items */}
                           <div className="bg-base-100 rounded-xl p-4 mt-2">
@@ -1970,9 +1969,8 @@ export default function CateringOrderBuilder() {
                           </div>
                         )}
 
-                        {/* Categories and Subcategories - Sticky */}
-                        <div className="top-[68px] z-30 -mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
-                          {/* Categories Row */}
+                        {/* Categories Row */}
+                        <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
                           <div>
                             {categoriesLoading ? (
                               <div className="flex items-center gap-3 overflow-x-auto pb-2">
@@ -2008,23 +2006,24 @@ export default function CateringOrderBuilder() {
                               </div>
                             )}
                           </div>
+                        </div>
 
-                          {/* Subcategories Row */}
-                          {selectedCategory &&
-                            selectedCategory.subcategories.length > 0 && (
-                              <div className="pb-1">
-                                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                                  <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
-                                    {selectedCategory.name}:
-                                  </span>
-                                  {selectedCategory.subcategories.map(
-                                    (subcategory) => (
-                                      <button
-                                        key={subcategory.id}
-                                        onClick={() =>
-                                          handleSubcategoryClick(subcategory)
-                                        }
-                                        className={`
+                        {/* Subcategories Row - Sticky */}
+                        {selectedCategory &&
+                          selectedCategory.subcategories.length > 0 && (
+                            <div className="sticky top-[70px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
+                              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                                  {selectedCategory.name}:
+                                </span>
+                                {selectedCategory.subcategories.map(
+                                  (subcategory) => (
+                                    <button
+                                      key={subcategory.id}
+                                      onClick={() =>
+                                        handleSubcategoryClick(subcategory)
+                                      }
+                                      className={`
                                   flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
                                   ${
                                     selectedSubcategory?.id === subcategory.id
@@ -2032,21 +2031,20 @@ export default function CateringOrderBuilder() {
                                       : "bg-white text-primary hover:bg-secondary/20"
                                   }
                                 `}
-                                      >
-                                        {subcategory.name}
-                                        {selectedSubcategory?.id ===
-                                          subcategory.id && (
-                                          <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
-                                            ×
-                                          </span>
-                                        )}
-                                      </button>
-                                    )
-                                  )}
-                                </div>
+                                    >
+                                      {subcategory.name}
+                                      {selectedSubcategory?.id ===
+                                        subcategory.id && (
+                                        <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                          ×
+                                        </span>
+                                      )}
+                                    </button>
+                                  )
+                                )}
                               </div>
-                            )}
-                        </div>
+                            </div>
+                          )}
 
                         {/* Menu Items */}
                         <div className="bg-base-100 rounded-xl p-4 mt-2">
