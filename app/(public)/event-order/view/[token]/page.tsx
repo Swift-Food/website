@@ -200,7 +200,7 @@ export default function CateringDashboardPage() {
                   orderCompletedAt={
                     typeof order.updatedAt === "string"
                       ? order.updatedAt
-                      : order.updatedAt.toISOString()
+                      : order.updatedAt?.toISOString() ?? new Date().toISOString()
                   }
                   totalAmount={order.finalTotal ?? 0}
                   orderItems={order.restaurants || order.orderItems || []}
