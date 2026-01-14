@@ -706,6 +706,10 @@ export default function CateringOrderBuilder() {
     const bundleId = searchParams.get("bundleId");
     if (!bundleId) return;
 
+    // Get date and time from URL params (from events website)
+    const sessionDate = searchParams.get("sessionDate"); // Format: YYYY-MM-DD
+    const sessionTime = searchParams.get("sessionTime"); // Format: HH:MM (24h)
+
     const prefillFromBundle = async () => {
       try {
         // Fetch bundle data
@@ -763,6 +767,14 @@ export default function CateringOrderBuilder() {
             );
           }
         });
+
+        // Update session with date and time from URL params
+        if (sessionDate || sessionTime) {
+          updateMealSession(activeSessionIndex, {
+            ...(sessionDate && { sessionDate }),
+            ...(sessionTime && { eventTime: sessionTime }),
+          });
+        }
       } catch (error) {
         console.error("Error loading bundle:", error);
       }
