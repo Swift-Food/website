@@ -349,6 +349,17 @@ export default function Step3ContactInfo() {
       console.error("Error Stack:", error?.stack);
       console.error("Full Error Object:", JSON.stringify(error, null, 2));
 
+      // Handle London delivery validation error - show inline instead of alert
+      if (error?.message?.includes("London")) {
+        setErrors((prev) => ({
+          ...prev,
+          addressLine1: error.message,
+        }));
+        setShowPaymentModal(false);
+        console.error("=== END ERROR LOG ===");
+        return;
+      }
+
       // Check if it's a network error
       if (
         error?.message?.includes("fetch") ||
@@ -452,13 +463,11 @@ export default function Step3ContactInfo() {
   const calculatePricing = async () => {
     setCalculatingPricing(true);
     try {
-      // Build delivery location if available
       const deliveryLocation =
         formData.latitude && formData.longitude
           ? { latitude: formData.latitude, longitude: formData.longitude }
           : undefined;
 
-      // Use meal sessions for pricing calculation to get proper per-session delivery fees
       const pricingResult = await cateringService.calculateCateringPricingWithMealSessions(
         mealSessions,
         promoCodes,
@@ -466,15 +475,21 @@ export default function Step3ContactInfo() {
       );
 
       if (!pricingResult.isValid) {
-        alert(pricingResult.error || "Unable to calculate pricing");
+        // Show London delivery error inline
+        if (pricingResult.error?.includes("London")) {
+          setErrors((prev) => ({ ...prev, addressLine1: pricingResult.error }));
+        }
         setPricing(null);
         return;
       }
-    
+
+      // Clear any previous London error on successful pricing
+      if (errors.addressLine1?.includes("London")) {
+        setErrors((prev) => ({ ...prev, addressLine1: undefined }));
+      }
       setPricing(pricingResult);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error calculating pricing:", error);
-      alert("Failed to calculate pricing. Please try again.");
       setPricing(null);
     } finally {
       setCalculatingPricing(false);
@@ -674,10 +689,11 @@ export default function Step3ContactInfo() {
         addressLine1: "Sorry, we only deliver to addresses within the United Kingdom.",
       }));
     } else {
-      // Clear address errors
+      // Clear client-side address errors only (not server-side London validation errors)
+      // The London error will be set/cleared by calculatePricing based on API response
       setErrors((prev) => ({
         ...prev,
-        addressLine1: undefined,
+        addressLine1: prev.addressLine1?.includes("London") ? prev.addressLine1 : undefined,
         city: undefined,
         zipcode: undefined,
       }));
@@ -939,7 +955,7 @@ export default function Step3ContactInfo() {
                 </div>
 
                 {/* Promo code discount */}
-                {(pricing.promoDiscount ?? 0) > 0 && (
+                {(pricing.promoDiscount ?? 0) > 2 && (
                   <div className="flex justify-between text-sm text-success font-medium">
                     <span>Promo Code Discount</span>
                     <span>-£{pricing.promoDiscount!.toFixed(2)}</span>

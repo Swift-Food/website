@@ -275,7 +275,7 @@ class CateringService {
     };
 
 
-    console.log("order dto", JSON.stringify(createDto))
+
     const response = await fetchWithAuth(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
       headers: {
@@ -285,8 +285,16 @@ class CateringService {
     });
 
     if (!response.ok) {
-      console.error("Failed to submit catering order: ", response);
-      throw new Error("Failed to submit catering order");
+      const error = await response.json().catch(() => ({}));
+      console.error("Failed to submit catering order: ", response, error);
+
+      // Check for London delivery validation error (can be in message or error field)
+      const errorMessage = error.message || error.error;
+      if (response.status === 400 && errorMessage?.includes("London")) {
+        throw new Error(errorMessage);
+      }
+
+      throw new Error(errorMessage || "Failed to submit catering order");
     }
 
     return response.json();
@@ -409,22 +417,33 @@ class CateringService {
       ...(deliveryLocation && { deliveryLocation }),
     };
 
-    const response = await fetchWithAuth(
-      `${API_BASE_URL}/pricing/catering-verify-cart`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pricingData),
+    try {
+      const response = await fetchWithAuth(
+        `${API_BASE_URL}/pricing/catering-verify-cart`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pricingData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        console.error("Pricing calculation failed - status:", response.status, "error:", JSON.stringify(error));
+
+        // NestJS BadRequestException returns: { message: string, error: string, statusCode: number }
+        const errorMessage = error.message;
+        if (errorMessage?.includes("London")) {
+          throw new Error(errorMessage);
+        }
+        throw new Error(errorMessage || "Failed to calculate pricing");
       }
-    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("Pricing calculation failed:", error);
-      throw new Error("Failed to calculate pricing");
+      return response.json();
+    } catch (error: any) {
+      console.error("Pricing API error:", error);
+      throw error;
     }
-
-    return response.json();
   }
 
   /**
@@ -505,23 +524,47 @@ class CateringService {
       promoCodes,
       ...(deliveryLocation && { deliveryLocation }),
     };
-  
-    const response = await fetchWithAuth(
-      `${API_BASE_URL}/pricing/catering-verify-cart`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pricingData),
+
+    try {
+      const response = await fetchWithAuth(
+        `${API_BASE_URL}/pricing/catering-verify-cart`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pricingData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        console.error("Pricing calculation failed - status:", response.status, "error:", JSON.stringify(error));
+
+        // NestJS BadRequestException returns: { message: string, error: string, statusCode: number }
+        const errorMessage = error.message;
+
+        // Return error as a pricing result instead of throwing
+        // This allows the component to handle it properly
+        return {
+          isValid: false,
+          subtotal: 0,
+          deliveryFee: 0,
+          total: 0,
+          error: errorMessage || "Failed to calculate pricing",
+        } as CateringPricingResult;
       }
-    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("Pricing calculation failed:", error);
-      throw new Error("Failed to calculate pricing");
+      return response.json();
+    } catch (error: any) {
+      console.error("Pricing API error:", error);
+      // Return error as a pricing result instead of throwing
+      return {
+        isValid: false,
+        subtotal: 0,
+        deliveryFee: 0,
+        total: 0,
+        error: error.message || "Failed to calculate pricing",
+      } as CateringPricingResult;
     }
-
-    return response.json();
   }
 
   async validatePromoCode(

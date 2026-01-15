@@ -82,7 +82,8 @@ export default function DeliveryAddressForm({
             onPlaceSelect={onPlaceSelect}
             onClearAddress={onClearAddress}
             error={
-              errors.addressLine1?.includes("United Kingdom")
+              errors.addressLine1?.includes("United Kingdom") ||
+              errors.addressLine1?.includes("London")
                 ? errors.addressLine1
                 : undefined
             }
@@ -103,13 +104,15 @@ export default function DeliveryAddressForm({
               placeholder="Select from search above"
               className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed ${
                 errors.addressLine1 &&
-                !errors.addressLine1.includes("United Kingdom")
+                !errors.addressLine1.includes("United Kingdom") &&
+                !errors.addressLine1.includes("London")
                   ? "border-error"
                   : "border-base-300"
               }`}
             />
             {errors.addressLine1 &&
-              !errors.addressLine1.includes("United Kingdom") && (
+              !errors.addressLine1.includes("United Kingdom") &&
+              !errors.addressLine1.includes("London") && (
                 <p className="mt-1 text-xs text-error">
                   ✗ {errors.addressLine1}
                 </p>
