@@ -1045,7 +1045,7 @@ export default function Step3ContactInfo() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Selected Items - Left Side */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <AllMealSessionsItems showActions={false} onViewMenu={handleViewMenu} />
+            <AllMealSessionsItems showActions={false} onViewMenu={handleViewMenu} isGeneratingPdf={generatingPdf} />
           </div>
 
           {/* Contact Form Card - Right Side */}
