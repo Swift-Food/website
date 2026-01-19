@@ -59,8 +59,8 @@ const EditMenuItemPage = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
-  const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
-  const [cateringQuantityUnit, setCateringQuantityUnit] = useState<string>("");
+  // const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
+  // const [cateringQuantityUnit, setCateringQuantityUnit] = useState<string>("");
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -192,8 +192,8 @@ const EditMenuItemPage = () => {
       setSelectedAllergens(item.allergens || []);
       setSelectedDietaryFilters(item.dietaryFilters || []);
       setAddons(item.addons || []);
-      setFeedsPerUnit(item.feedsPerUnit ? String(item.feedsPerUnit) : "");
-      setCateringQuantityUnit(item.cateringQuantityUnit ? String(item.cateringQuantityUnit) : "");
+      // setFeedsPerUnit(item.feedsPerUnit ? String(item.feedsPerUnit) : "");
+      // setCateringQuantityUnit(item.cateringQuantityUnit ? String(item.cateringQuantityUnit) : "");
     } catch (err: any) {
       setError(err.message || "Failed to load menu item");
     } finally {
@@ -435,8 +435,8 @@ const EditMenuItemPage = () => {
         allergens: selectedAllergens || [],
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
-        ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
-        ...(cateringQuantityUnit ? { cateringQuantityUnit: parseInt(cateringQuantityUnit) } : {}),
+        // ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
+        // ...(cateringQuantityUnit ? { cateringQuantityUnit: parseInt(cateringQuantityUnit) } : {}),
       };
 
       await cateringService.updateMenuItem(itemId, updateData);
@@ -599,7 +599,7 @@ const EditMenuItemPage = () => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Feeds Per Unit
                 </label>
@@ -635,7 +635,7 @@ const EditMenuItemPage = () => {
                 <p className="text-xs text-gray-500 mt-1">
                   Catering quantity unit size (optional)
                 </p>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center">

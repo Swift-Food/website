@@ -58,7 +58,7 @@ const NewMenuItemPage = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
-  const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
+  // const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -386,7 +386,7 @@ const NewMenuItemPage = () => {
         allergens: selectedAllergens || [],
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
-        ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
+        // ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
       };
 
       await cateringService.createMenuItem(createData);
@@ -551,7 +551,7 @@ const NewMenuItemPage = () => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Feeds Per Unit
                 </label>
@@ -567,7 +567,7 @@ const NewMenuItemPage = () => {
                 <p className="text-xs text-gray-500 mt-1">
                   Number of people this item feeds (optional)
                 </p>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center">
