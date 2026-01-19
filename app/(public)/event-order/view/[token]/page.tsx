@@ -21,7 +21,7 @@ import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import RefundsList from "@/lib/components/catering/dashboard/refundList";
 import OrderSummary from "@/lib/components/catering/dashboard/OrderSummary";
-import { RestaurantStatusTimeline } from "@/lib/components/catering/dashboard/RestaurantStatusTimeline";
+import { OrderStatusTimeline } from "@/lib/components/catering/dashboard/OrderStatusTimeline";
 
 export default function CateringDashboardPage() {
   const params = useParams();
@@ -173,17 +173,8 @@ export default function CateringDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <OrderStatusTimeline status={order.status} />
             <OrderDetails order={order} />
-            {order.restaurants && order.restaurants.length > 0 && (
-              <div className="space-y-4">
-                {order.restaurants.map((restaurant) => (
-                  <RestaurantStatusTimeline
-                    key={restaurant.restaurantId}
-                    restaurant={restaurant}
-                  />
-                ))}
-              </div>
-            )}
             {isManager && (
               <DeliveryTimeManager
                 order={order}
