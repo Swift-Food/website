@@ -21,6 +21,7 @@ import { CateringOrdersList } from "./catering/CateringOrdersList";
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import { RefundRequestsList } from "./refunds/refundRequestList";
+import { TaxInvoicesList } from "./tax-invoices/TaxInvoicesList";
 import { CateringOrderResponse } from "@/types/api";
 
 interface RestaurantDashboardProps {
@@ -53,7 +54,7 @@ export const RestaurantDashboard = ({
     []
   );
   const [activeTab, setActiveTab] = useState<
-    "withdrawals" | "catering" | "refunds"
+    "withdrawals" | "catering" | "refunds" | "tax-invoices"
   >("withdrawals");
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     null
@@ -571,6 +572,16 @@ export const RestaurantDashboard = ({
                       </span>
                     )}
                   </button>
+                  <button
+                    onClick={() => setActiveTab("tax-invoices")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === "tax-invoices"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Tax Invoices
+                  </button>
                 </nav>
               </div>
             </div>
@@ -586,7 +597,7 @@ export const RestaurantDashboard = ({
                 />
                 <WithdrawalHistory history={history} />
               </div>
-            ) : activeTab == "catering" ? (
+            ) : activeTab === "catering" ? (
               <div className="bg-white rounded-lg p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
                   Event Orders
@@ -601,7 +612,7 @@ export const RestaurantDashboard = ({
                   selectedAccountId={selectedAccountId}
                 />
               </div>
-            ) : (
+            ) : activeTab === "refunds" ? (
               <div className="bg-white rounded-lg p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
                   Refund Requests
@@ -611,7 +622,18 @@ export const RestaurantDashboard = ({
                   onProcessRefund={handleProcessRefund}
                 />
               </div>
-            )}
+            ) : activeTab === "tax-invoices" ? (
+              <div className="bg-white rounded-lg p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">
+                  Tax Invoices
+                </h2>
+                <TaxInvoicesList
+                  restaurantId={restaurantId}
+                  selectedAccountId={selectedAccountId}
+                  token={token}
+                />
+              </div>
+            ) : null}
           </>
         )}
 
