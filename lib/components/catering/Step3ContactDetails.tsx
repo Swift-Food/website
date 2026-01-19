@@ -765,10 +765,10 @@ export default function Step3ContactInfo() {
       }));
 
       // Transform to PDF data format (now async to fetch images)
+      // Don't pass delivery fee - show as TBC (same as CateringOrderBuilder)
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
-        true,
-        pricing?.deliveryFee
+        true
       );
 
       // Generate and download PDF
