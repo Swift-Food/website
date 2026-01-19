@@ -58,7 +58,7 @@ const NewMenuItemPage = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
-  const [feedsPerUnit, setFeedsPerUnit] = useState<number>(1);
+  const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -386,9 +386,10 @@ const NewMenuItemPage = () => {
         allergens: selectedAllergens || [],
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
-        feedsPerUnit,
+        ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
       };
 
+      console.log("Creating menu item with data:", createData);
       await cateringService.createMenuItem(createData);
       setSuccess("Menu item created successfully!");
       setTimeout(() => {
@@ -560,11 +561,12 @@ const NewMenuItemPage = () => {
                   min="1"
                   max="100"
                   value={feedsPerUnit}
-                  onChange={(e) => setFeedsPerUnit(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setFeedsPerUnit(e.target.value)}
+                  placeholder="Optional"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Number of people this item feeds (1-100)
+                  Number of people this item feeds (optional)
                 </p>
               </div>
             </div>

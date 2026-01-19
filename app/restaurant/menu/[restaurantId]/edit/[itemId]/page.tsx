@@ -59,8 +59,8 @@ const EditMenuItemPage = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
-  const [feedsPerUnit, setFeedsPerUnit] = useState<string>("1");
-  const [cateringQuantityUnit, setCateringQuantityUnit] = useState<string>("1");
+  const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
+  const [cateringQuantityUnit, setCateringQuantityUnit] = useState<string>("");
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -192,8 +192,8 @@ const EditMenuItemPage = () => {
       setSelectedAllergens(item.allergens || []);
       setSelectedDietaryFilters(item.dietaryFilters || []);
       setAddons(item.addons || []);
-      setFeedsPerUnit(String(item.feedsPerUnit || 1));
-      setCateringQuantityUnit(String(item.cateringQuantityUnit || 1));
+      setFeedsPerUnit(item.feedsPerUnit ? String(item.feedsPerUnit) : "");
+      setCateringQuantityUnit(item.cateringQuantityUnit ? String(item.cateringQuantityUnit) : "");
     } catch (err: any) {
       setError(err.message || "Failed to load menu item");
     } finally {
@@ -435,8 +435,8 @@ const EditMenuItemPage = () => {
         allergens: selectedAllergens || [],
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
-        feedsPerUnit: parseInt(feedsPerUnit) || 1,
-        cateringQuantityUnit: parseInt(cateringQuantityUnit) || 1,
+        ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
+        ...(cateringQuantityUnit ? { cateringQuantityUnit: parseInt(cateringQuantityUnit) } : {}),
       };
 
       await cateringService.updateMenuItem(itemId, updateData);
@@ -610,10 +610,11 @@ const EditMenuItemPage = () => {
                   value={feedsPerUnit}
                   onChange={(e) => setFeedsPerUnit(e.target.value)}
                   onWheel={(e) => e.currentTarget.blur()}
+                  placeholder="Optional"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Number of people this item feeds (1-100)
+                  Number of people this item feeds (optional)
                 </p>
               </div>
 
@@ -628,10 +629,11 @@ const EditMenuItemPage = () => {
                   value={cateringQuantityUnit}
                   onChange={(e) => setCateringQuantityUnit(e.target.value)}
                   onWheel={(e) => e.currentTarget.blur()}
+                  placeholder="Optional"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Catering quantity unit size (1-1000)
+                  Catering quantity unit size (optional)
                 </p>
               </div>
             </div>

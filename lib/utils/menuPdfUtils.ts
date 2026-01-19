@@ -77,7 +77,7 @@ const extractMenuItems = (orderItems: PricingOrderItem[]): MenuItemForPdf[] => {
         name: item.menuItemName || item.name,
         quantity: item.quantity,
         cateringQuantityUnit: item.cateringQuantityUnit || 1,
-        feedsPerUnit: item.feedsPerUnit || 10,
+        feedsPerUnit: item.feedsPerUnit || 1,
         price: item.customerTotalPrice || 0,
         restaurantName: restaurant.restaurantName,
         categoryName: item.categoryName || item.groupTitle,

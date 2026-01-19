@@ -33,8 +33,8 @@ export default function MenuItemCard({
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
   // const displayPrice =
   //   item.isDiscount && discountPrice > 0 ? discountPrice : price;
-  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
-  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 10;
+  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 1;
+  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 1;
 
   // Convert backend quantity to portions for display
   const portionQuantity = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 0;
