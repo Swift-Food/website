@@ -871,13 +871,13 @@ export async function transformOrderToPdfData(
   // Fetch all images in parallel and create a map of URL -> base64
   const imageMap = new Map<string, string | null>();
   if (imageUrls.size > 0) {
-    console.log(`Fetching ${imageUrls.size} images for PDF...`);
+    // console.log(`Fetching ${imageUrls.size} images for PDF...`);
     const fetchPromises = Array.from(imageUrls).map(async (url) => {
       const base64 = await fetchImageAsBase64(url);
       imageMap.set(url, base64);
     });
     await Promise.all(fetchPromises);
-    console.log(`Fetched ${imageMap.size} images`);
+    // console.log(`Fetched ${imageMap.size} images`);
   }
 
   // Handle multi-meal sessions
@@ -1131,13 +1131,13 @@ export async function transformLocalSessionsToPdfData(
   // Fetch all images in parallel and create a map of URL -> base64
   const imageMap = new Map<string, string | null>();
   if (imageUrls.size > 0) {
-    console.log(`Fetching ${imageUrls.size} images for PDF...`);
+    // console.log(`Fetching ${imageUrls.size} images for PDF...`);
     const fetchPromises = Array.from(imageUrls).map(async (url) => {
       const base64 = await fetchImageAsBase64(url);
       imageMap.set(url, base64);
     });
     await Promise.all(fetchPromises);
-    console.log(`Fetched ${imageMap.size} images`);
+    // console.log(`Fetched ${imageMap.size} images`);
   }
 
   for (const session of sortedSessions) {

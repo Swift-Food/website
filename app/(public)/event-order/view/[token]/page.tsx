@@ -58,8 +58,6 @@ export default function CateringDashboardPage() {
       const currentUser = data.sharedAccessUsers?.find(
         (u) => u.accessToken === token
       );
-      console.log("data is", data)
-      console.log("current user is", currentUser)
       setCurrentUserRole(currentUser?.role || null);
     } catch (err: any) {
       setError(err.message || "Failed to load order");

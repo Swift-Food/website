@@ -95,7 +95,7 @@ export const restaurantApi = {
     token: string,
     accountId?: string
   ): Promise<{ onboardingUrl: string }> => {
-    console.log("onboarding details sent", userId, accountId)
+    // console.log("onboarding details sent", userId, accountId)
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant-user/${userId}/stripe-refresh`,
       {

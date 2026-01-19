@@ -389,7 +389,6 @@ const NewMenuItemPage = () => {
         ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
       };
 
-      console.log("Creating menu item with data:", createData);
       await cateringService.createMenuItem(createData);
       setSuccess("Menu item created successfully!");
       setTimeout(() => {

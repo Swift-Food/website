@@ -1427,30 +1427,30 @@ export default function CateringOrderBuilder() {
       );
 
       // DEBUG: Log image URLs being passed to PDF
-      console.log("=== PDF Image Debug ===");
-      sessionsForPreview.forEach((session, sIdx) => {
-        console.log(`Session ${sIdx}: ${session.sessionName}`);
-        session.orderItems.forEach((orderItem, iIdx) => {
-          console.log(`  Item ${iIdx}: ${orderItem.item.menuItemName}`);
-          console.log(`    Image URL: ${orderItem.item.image || "NO IMAGE"}`);
-        });
-      });
+      // console.log("=== PDF Image Debug ===");
+      // sessionsForPreview.forEach((session, sIdx) => {
+      //   console.log(`Session ${sIdx}: ${session.sessionName}`);
+      //   session.orderItems.forEach((orderItem, iIdx) => {
+      //     console.log(`  Item ${iIdx}: ${orderItem.item.menuItemName}`);
+      //     console.log(`    Image URL: ${orderItem.item.image || "NO IMAGE"}`);
+      //   });
+      // });
 
       // Transform to PDF data format (now async to fetch images)
       const pdfData = await transformLocalSessionsToPdfData(sessionsForPreview, true);
 
       // DEBUG: Log transformed PDF data
-      console.log("=== Transformed PDF Data ===");
-      pdfData.sessions.forEach((session, sIdx) => {
-        console.log(`Session ${sIdx}: ${session.sessionName}`);
-        session.categories.forEach((cat) => {
-          console.log(`  Category: ${cat.name}`);
-          cat.items.forEach((item, iIdx) => {
-            console.log(`    Item ${iIdx}: ${item.name}`);
-            console.log(`      Image: ${item.image ? (item.image.startsWith("data:") ? "BASE64 IMAGE" : item.image) : "NO IMAGE"}`);
-          });
-        });
-      });
+      // console.log("=== Transformed PDF Data ===");
+      // pdfData.sessions.forEach((session, sIdx) => {
+      //   console.log(`Session ${sIdx}: ${session.sessionName}`);
+      //   session.categories.forEach((cat) => {
+      //     console.log(`  Category: ${cat.name}`);
+      //     cat.items.forEach((item, iIdx) => {
+      //       console.log(`    Item ${iIdx}: ${item.name}`);
+      //       console.log(`      Image: ${item.image ? (item.image.startsWith("data:") ? "BASE64 IMAGE" : item.image) : "NO IMAGE"}`);
+      //     });
+      //   });
+      // });
 
       // Generate and download PDF
       const blob = await pdf(
