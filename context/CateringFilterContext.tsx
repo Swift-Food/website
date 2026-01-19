@@ -3,9 +3,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Allergens, DietaryFilter } from "@/types/menuItem";
 
+export type PricePerPersonRange = "under5" | "5to10" | "10to15" | "over15";
+
 export interface FilterState {
   dietaryRestrictions: DietaryFilter[];
   allergens: Allergens[];
+  pricePerPersonRange: PricePerPersonRange | null;
 }
 
 interface FilterContextType {
@@ -21,6 +24,7 @@ const STORAGE_KEY = "catering-filters";
 const defaultFilters: FilterState = {
   dietaryRestrictions: [],
   allergens: [],
+  pricePerPersonRange: null,
 };
 
 export function CateringFilterProvider({ children }: { children: ReactNode }) {

@@ -13,6 +13,7 @@ interface MenuItemCardProps {
   onUpdateQuantity?: (itemId: string, quantity: number) => void;
   onAddOrderPress?: (item: MenuItem) => void;
   viewOnly?: boolean;
+  onAddToOrder?: (item: MenuItem) => void;
 }
 
 export default function MenuItemCard({
@@ -25,6 +26,7 @@ export default function MenuItemCard({
   onUpdateQuantity,
   onAddOrderPress,
   viewOnly = false,
+  onAddToOrder,
 }: MenuItemCardProps) {
   // console.log("Item: ", JSON.stringify(item, null, 2));
   const price = parseFloat(item.price?.toString() || "0");
@@ -175,20 +177,28 @@ export default function MenuItemCard({
               {/* Price and Add to Order / Quantity */}
               <div className="flex items-end justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  {item.isDiscount && discountPrice > 0 ? (
-                    <div className="flex flex-row items-center justify-start gap-2">
-                      <p className="text-gray-500 text-[10px] line-through">
+                  <div className="flex items-center justify-between">
+                    {item.isDiscount && discountPrice > 0 ? (
+                      <div className="flex flex-row items-center justify-start gap-2">
+                        <p className="text-gray-500 text-[10px] line-through">
+                          £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
+                        </p>
+                        <p className="text-primary font-bold text-sm">
+                          £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-primary font-bold text-sm">
                         £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                       </p>
-                      <p className="text-primary font-bold text-sm">
-                        £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-primary font-bold text-sm">
-                      £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
-                    </p>
-                  )}
+                    )}
+                    {/* Price per person */}
+                    {DISPLAY_FEEDS_PER_UNIT > 1 && (
+                      <span className="text-[10px] text-gray-500">
+                        £{((item.isDiscount && discountPrice > 0 ? discountPrice : price) * BACKEND_QUANTITY_UNIT / DISPLAY_FEEDS_PER_UNIT).toFixed(2)}/pp
+                      </span>
+                    )}
+                  </div>
                   {/* Feeds per unit */}
                   {DISPLAY_FEEDS_PER_UNIT > 1 && (
                     <p className="text-[9px] text-gray-600 mt-0.5">
@@ -201,7 +211,7 @@ export default function MenuItemCard({
                 {!viewOnly && (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 flex items-center gap-2"
                   >
                     {quantity > 0 ? (
                       <>
@@ -335,6 +345,7 @@ export default function MenuItemCard({
         onAddItem={onAddItem}
         onUpdateQuantity={onUpdateQuantity}
         viewOnly={viewOnly}
+        onAddToOrder={onAddToOrder}
       />
 
       {/* Image Lightbox */}

@@ -22,6 +22,7 @@ interface MenuItemModalProps {
   onRemoveItem?: (index: number) => void;
   editingIndex?: number | null;
   viewOnly?: boolean; // When true, shows menu item details without add/edit functionality
+  onAddToOrder?: (item: MenuItem) => void; // Callback for viewOnly mode to redirect to order builder
 }
 
 interface AddonGroup {
@@ -41,6 +42,7 @@ export default function MenuItemModal({
   onRemoveItem,
   editingIndex = null,
   viewOnly = false,
+  onAddToOrder,
 }: MenuItemModalProps) {
   // console.log("Item: ", item);
   const [itemQuantity, setItemQuantity] = useState(1);
@@ -106,10 +108,6 @@ export default function MenuItemModal({
 
   // Group addons and initialize selections
   useEffect(() => {
-    // console.log("Modal item changed:", item);
-    // console.log("Modal item addons:", item?.addons);
-    // console.log("Addons is array?", Array.isArray(item?.addons));
-    // console.log("Addons length:", item?.addons?.length);
 
     if (!item?.addons || item.addons.length === 0) {
       setAddonGroups({});
@@ -117,7 +115,6 @@ export default function MenuItemModal({
       return;
     }
 
-    // console.log("Processing addons:", item.addons);
 
     // Group addons by groupTitle
     const grouped = item.addons.reduce((acc, addon) => {
@@ -976,8 +973,19 @@ export default function MenuItemModal({
           </div>
         </div>
 
-        {/* Sticky Action Buttons - Hidden in viewOnly mode */}
-        {!viewOnly && (
+        {/* Sticky Action Buttons */}
+        {viewOnly ? (
+          onAddToOrder && (
+            <div className="sticky bottom-0 p-4 pt-3 md:p-6 md:pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
+              <button
+                onClick={() => onAddToOrder(item)}
+                className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+              >
+                Add to Order
+              </button>
+            </div>
+          )
+        ) : (
           <div className="sticky bottom-0 p-4 pt-3 md:p-6 md:pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
             {isEditMode ? (
               <div className="space-y-1.5 md:space-y-2">

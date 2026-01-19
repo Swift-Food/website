@@ -67,9 +67,6 @@ export const RestaurantDashboard = ({
       if (accounts.length === 1 && selectedAccountId === null) {
         setSelectedAccountId(accounts[0]);
       }
-    } else if (restaurantUser && selectedAccountId === null) {
-      // Legacy restaurant with single stripeAccountId (no paymentAccounts map)
-      setSelectedAccountId("legacy");
     }
   }, [restaurantUser, selectedAccountId]);
 

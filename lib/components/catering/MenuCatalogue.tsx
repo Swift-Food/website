@@ -30,6 +30,7 @@ interface MenuCatalogueProps {
   hideDateTime?: boolean;
   showBackButton?: boolean;
   onBackClick?: () => void;
+  onAddToOrder?: (item: MenuItem) => void;
 }
 
 const formatCateringHours = (
@@ -235,6 +236,7 @@ export default function MenuCatalogue({
   hideDateTime = false,
   showBackButton = false,
   onBackClick,
+  onAddToOrder,
 }: MenuCatalogueProps) {
   const { filters } = useCateringFilters();
 
@@ -245,7 +247,7 @@ export default function MenuCatalogue({
         onSearchChange={onSearchChange}
         onSearch={onSearch}
         onClearSearch={onClearSearch}
-        hasActiveFilters={filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0}
+        hasActiveFilters={filters.dietaryRestrictions.length > 0 || filters.allergens.length > 0 || filters.pricePerPersonRange !== null}
         onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
         filterModalOpen={filterModalOpen}
         hideDateTime={hideDateTime}
@@ -515,6 +517,7 @@ export default function MenuCatalogue({
                                 onUpdateQuantity={updateItemQuantity}
                                 onAddOrderPress={handleOrderPress}
                                 viewOnly={viewOnly}
+                                onAddToOrder={onAddToOrder}
                               />
                             ))}
                           </div>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { DietaryFilter, Allergens } from "@/types/menuItem";
-import { useCateringFilters } from "@/context/CateringFilterContext";
+import { useCateringFilters, PricePerPersonRange } from "@/context/CateringFilterContext";
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -21,12 +21,16 @@ export default function CateringFilterModal({
   );
   const [selectedDietaryRestrictions, setSelectedDietaryRestrictions] =
     useState<DietaryFilter[]>(filters.dietaryRestrictions);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<PricePerPersonRange | null>(
+    filters.pricePerPersonRange
+  );
 
   // Sync local state with context when modal opens
   useEffect(() => {
     if (isOpen) {
       setSelectedAllergens(filters.allergens);
       setSelectedDietaryRestrictions(filters.dietaryRestrictions);
+      setSelectedPriceRange(filters.pricePerPersonRange);
     }
   }, [isOpen, filters]);
 
@@ -46,6 +50,7 @@ export default function CateringFilterModal({
   const handleNoSaveClose = () => {
     setSelectedAllergens([]);
     setSelectedDietaryRestrictions([]);
+    setSelectedPriceRange(null);
     onClose();
   };
 
@@ -133,16 +138,25 @@ export default function CateringFilterModal({
     [DietaryFilter.NO_DAIRY]: "No dairy",
   };
 
+  // Price per person range options
+  const priceRangeOptions: { value: PricePerPersonRange; label: string }[] = [
+    { value: "under5", label: "Under £5" },
+    { value: "5to10", label: "£5 - £10" },
+    { value: "10to15", label: "£10 - £15" },
+    { value: "over15", label: "Over £15" },
+  ];
+
   const toggleAllergen = (item: Allergens) => {
     setSelectedAllergens((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
     );
   };
 
-  // Clear both allergens and dietary restrictions
+  // Clear all filters
   const clearFiltersLocal = () => {
     setSelectedAllergens([]);
     setSelectedDietaryRestrictions([]);
+    setSelectedPriceRange(null);
   };
 
   const clearAllergens = () => {
@@ -151,6 +165,14 @@ export default function CateringFilterModal({
 
   const clearDietaryRestrictions = () => {
     setSelectedDietaryRestrictions([]);
+  };
+
+  const clearPriceRange = () => {
+    setSelectedPriceRange(null);
+  };
+
+  const togglePriceRange = (range: PricePerPersonRange) => {
+    setSelectedPriceRange((prev) => (prev === range ? null : range));
   };
 
   const toggleDietary = (item: DietaryFilter) => {
@@ -163,6 +185,7 @@ export default function CateringFilterModal({
     setFilters({
       dietaryRestrictions: selectedDietaryRestrictions,
       allergens: selectedAllergens as Allergens[],
+      pricePerPersonRange: selectedPriceRange,
     });
     onClose();
   };
@@ -276,9 +299,42 @@ export default function CateringFilterModal({
               ))}
             </div>
           </div>
+
+          {/* Price Per Person */}
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-semibold text-base-content">
+                Price Per Person
+              </h3>
+              {selectedPriceRange && (
+                <button
+                  onClick={clearPriceRange}
+                  className="text-xs text-primary hover:text-primary/80 font-medium"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {priceRangeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => togglePriceRange(option.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    selectedPriceRange === option.value
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
           {/* Clear Filter Button (mobile) */}
           {(selectedAllergens.length > 0 ||
-            selectedDietaryRestrictions.length > 0) && (
+            selectedDietaryRestrictions.length > 0 ||
+            selectedPriceRange) && (
             <button
               onClick={clearFiltersLocal}
               className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"
@@ -392,9 +448,42 @@ export default function CateringFilterModal({
           </div>
         </div>
 
+        {/* Price Per Person */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-base font-semibold text-base-content">
+              Price Per Person
+            </h3>
+            {selectedPriceRange && (
+              <button
+                onClick={clearPriceRange}
+                className="text-xs text-primary hover:text-primary/80 font-medium"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {priceRangeOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => togglePriceRange(option.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  selectedPriceRange === option.value
+                    ? "bg-primary text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Clear Filter Button (desktop) */}
         {(selectedAllergens.length > 0 ||
-          selectedDietaryRestrictions.length > 0) && (
+          selectedDietaryRestrictions.length > 0 ||
+          selectedPriceRange) && (
           <button
             onClick={clearFiltersLocal}
             className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"

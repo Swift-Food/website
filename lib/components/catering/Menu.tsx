@@ -5,13 +5,38 @@ import { useCatering } from "@/context/CateringContext";
 import { promotionsServices } from "@/services/api/promotion.api";
 import RestaurantCatalogue from "./RestaurantCatalogue";
 import MenuCatalogue from "./MenuCatalogue";
-import { useCateringFilters } from "@/context/CateringFilterContext";
+import { useCateringFilters, PricePerPersonRange } from "@/context/CateringFilterContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 // Re-export types from Step2MenuItems for backwards compatibility
 export { type Restaurant, type Addon, type MenuItem } from "./Step2MenuItems";
 import type { Restaurant, MenuItem } from "./Step2MenuItems";
+
+// Helper function to calculate price per person and check if it matches the range
+const matchesPricePerPersonRange = (
+  item: MenuItem,
+  range: PricePerPersonRange | null
+): boolean => {
+  if (!range) return true;
+
+  const price = parseFloat(item.price?.toString() || "0");
+  const feedsPerUnit = item.feedsPerUnit || 10;
+  const pricePerPerson = price / feedsPerUnit;
+
+  switch (range) {
+    case "under5":
+      return pricePerPerson < 5;
+    case "5to10":
+      return pricePerPerson >= 5 && pricePerPerson <= 10;
+    case "10to15":
+      return pricePerPerson > 10 && pricePerPerson <= 15;
+    case "over15":
+      return pricePerPerson > 15;
+    default:
+      return true;
+  }
+};
 
 export default function Menu() {
   const router = useRouter();
@@ -189,7 +214,8 @@ export default function Menu() {
     const hasNoFilters =
       (!filters.dietaryRestrictions ||
         filters.dietaryRestrictions.length === 0) &&
-      (!filters.allergens || filters.allergens.length === 0);
+      (!filters.allergens || filters.allergens.length === 0) &&
+      !filters.pricePerPersonRange;
 
     if (!catalogueSearchQuery.trim() && hasNoFilters) {
       clearCatalogueSearch();
@@ -210,7 +236,15 @@ export default function Menu() {
         }
       );
 
-      setCatalogueSearchResults(response.menuItems || []);
+      // Apply price per person filter on client side
+      let results = response.menuItems || [];
+      if (filters.pricePerPersonRange) {
+        results = results.filter((item: MenuItem) =>
+          matchesPricePerPersonRange(item, filters.pricePerPersonRange)
+        );
+      }
+
+      setCatalogueSearchResults(results);
     } catch (error) {
       console.error("Error searching menu items:", error);
       setCatalogueSearchResults([]);
@@ -271,6 +305,13 @@ export default function Menu() {
       );
     }
 
+    // Apply price per person filter
+    if (filters.pricePerPersonRange) {
+      filtered = filtered.filter((item) =>
+        matchesPricePerPersonRange(item, filters.pricePerPersonRange)
+      );
+    }
+
     setRestaurantMenuItems(sortByRestaurant(filtered));
     setLoading(false);
   };
@@ -316,7 +357,8 @@ export default function Menu() {
   useEffect(() => {
     if (
       filters.dietaryRestrictions.length > 0 ||
-      filters.allergens.length > 0
+      filters.allergens.length > 0 ||
+      filters.pricePerPersonRange
     ) {
       if (selectedRestaurantId) {
         // Restaurant view - use frontend filtering
@@ -340,6 +382,14 @@ export default function Menu() {
     updateSelectedRestaurant(null);
     clearRestaurantSearch();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Handler for viewOnly mode: store item in localStorage and redirect to order builder
+  const handleAddToOrder = (item: MenuItem) => {
+    // Store the item in localStorage for the order builder to pick up
+    localStorage.setItem("catering_pending_item", JSON.stringify(item));
+    // Redirect to the catering order builder
+    router.push("/event-order");
   };
 
   return (
@@ -368,6 +418,7 @@ export default function Menu() {
               onClearSearch={clearCatalogueSearch}
               viewOnly={true}
               hideDateTime={true}
+              onAddToOrder={handleAddToOrder}
             />
           ) : selectedRestaurantId ? (
             // RESTAURANT MENU VIEW (Frontend-filtered menu)
@@ -390,6 +441,7 @@ export default function Menu() {
               hideDateTime={true}
               showBackButton={true}
               onBackClick={handleBackClick}
+              onAddToOrder={handleAddToOrder}
             />
           ) : (
             // RESTAURANT CATALOGUE VIEW

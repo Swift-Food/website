@@ -592,6 +592,9 @@ export default function CateringOrderBuilder() {
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  // Pending item modal state (for items added from menu view)
+  const [pendingItem, setPendingItem] = useState<MenuItem | null>(null);
+
   // Collapsed categories state for the cart list
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set()
@@ -783,6 +786,25 @@ export default function CateringOrderBuilder() {
     prefillFromBundle();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // Check for pending item from menu view (localStorage)
+  useEffect(() => {
+    const pendingItemJson = localStorage.getItem("catering_pending_item");
+    if (!pendingItemJson) return;
+
+    try {
+      const item = JSON.parse(pendingItemJson) as MenuItem;
+
+      // Clear the pending item from localStorage immediately
+      localStorage.removeItem("catering_pending_item");
+
+      // Open the modal for this item so user can select quantity and addons
+      setPendingItem(item);
+    } catch (error) {
+      console.error("Error parsing pending item:", error);
+      localStorage.removeItem("catering_pending_item");
+    }
+  }, []);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -2174,6 +2196,20 @@ export default function CateringOrderBuilder() {
             removeMenuItemByIndex(activeSessionIndex, index);
             setIsEditModalOpen(false);
             setEditingItemIndex(null);
+          }}
+        />
+      )}
+
+      {/* Pending Item Modal (for items added from menu view) */}
+      {pendingItem && (
+        <MenuItemModal
+          item={pendingItem}
+          isOpen={true}
+          onClose={() => setPendingItem(null)}
+          quantity={0}
+          onAddItem={(item) => {
+            handleAddItem(item);
+            setPendingItem(null);
           }}
         />
       )}
