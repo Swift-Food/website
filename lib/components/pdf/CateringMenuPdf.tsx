@@ -82,6 +82,26 @@ if (fontConfig.fonts.length > 0) {
 
 // Font family references
 const FONT_FAMILY = fontConfig.family;
+
+// Helper to format allergen names (e.g., "cereals_containing_gluten" -> "Cereals Containing Gluten")
+const formatAllergen = (allergen: string): string => {
+  return allergen
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
+// Helper to normalize and format allergens (handles both string and array input)
+const formatAllergens = (allergens: string | string[] | undefined): string => {
+  if (!allergens) return "";
+
+  // If it's a string, it might be comma-separated or a single allergen
+  const allergenArray = typeof allergens === "string"
+    ? allergens.split(",").map(a => a.trim())
+    : allergens;
+
+  return allergenArray.map(formatAllergen).join(", ");
+};
 // =============================================================================
 
 // Types
@@ -96,7 +116,7 @@ export interface PdfMenuItem {
   quantity: number;
   name: string;
   description?: string;
-  allergens?: string[];
+  allergens?: string | string[];
   unitPrice?: number;
   image?: string;
   addons?: PdfAddon[];
@@ -346,9 +366,9 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
         {addonsText && (
           <Text style={styles.menuItemAddons}>{addonsText}</Text>
         )}
-        {item.allergens && item.allergens.length > 0 && (
+        {item.allergens && (Array.isArray(item.allergens) ? item.allergens.length > 0 : item.allergens) && (
           <Text style={styles.menuItemAllergens}>
-            Allergen: {item.allergens.join(", ")}
+            Allergen: {formatAllergens(item.allergens)}
           </Text>
         )}
         {showPrice && item.unitPrice !== undefined && (
