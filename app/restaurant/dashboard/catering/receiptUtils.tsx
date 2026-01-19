@@ -42,6 +42,7 @@ export interface ReceiptResponse {
     restaurantId: string;
     restaurantName?: string;
   };
+  notes?: string; // Optional notes to display at bottom
 }
 
 /**
@@ -201,6 +202,14 @@ export function buildReceiptHTML(
     return `<div style="padding:32px 48px;color:#666;flex:1;">No items to display.</div>`;
   })();
 
+  // notes section (if any)
+  const notesSection = data.notes ? `
+    <div style="padding:24px 48px;background:#fff;border-top:1px solid #e0e0e0;">
+      <h4 style="margin:0 0 12px 0;font-size:14px;color:#333;font-weight:600;">Notes</h4>
+      <div style="font-size:13px;color:#666;white-space:pre-line;">${data.notes}</div>
+    </div>
+  ` : '';
+
   // footer - fixed at bottom
   const footer = `
     <div style="padding:28px 48px;border-top:2px solid #e0e0e0;font-size:13px;color:#666;background:#fafafa;">
@@ -267,6 +276,7 @@ export function buildReceiptHTML(
           <div class="content-wrapper">
             ${financialSummary}
             ${itemsBreakdown}
+            ${notesSection}
           </div>
           ${footer}
         </div>
