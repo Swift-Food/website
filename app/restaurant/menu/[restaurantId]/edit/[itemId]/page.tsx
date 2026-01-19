@@ -76,6 +76,7 @@ const EditMenuItemPage = () => {
     name: "",
     price: 0,
     allergens: [],
+    dietaryRestrictions: [],
     groupTitle: "",
     selectionType: "multiple",
     isRequired: false,
@@ -363,6 +364,7 @@ const EditMenuItemPage = () => {
       name: "",
       price: 0,
       allergens: [],
+      dietaryRestrictions: [],
       groupTitle: "",
       selectionType: "multiple",
       isRequired: false,
@@ -1310,6 +1312,74 @@ const EditMenuItemPage = () => {
                                     })
                                   }
                                   className="hover:bg-red-200 rounded-full p-0.5"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                  </div>
+
+                  {/* Dietary Restrictions */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Dietary Restrictions
+                    </label>
+                    <select
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (
+                          value &&
+                          !(currentAddon.dietaryRestrictions || []).includes(value)
+                        ) {
+                          setCurrentAddon({
+                            ...currentAddon,
+                            dietaryRestrictions: [
+                              ...(currentAddon.dietaryRestrictions || []),
+                              value,
+                            ],
+                          });
+                        }
+                        e.target.value = "";
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                    >
+                      <option value="">Select dietary option...</option>
+                      {DIETARY_FILTERS.filter(
+                        (f) => !(currentAddon.dietaryRestrictions || []).includes(f.value)
+                      ).map((filter) => (
+                        <option key={filter.value} value={filter.value}>
+                          {filter.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    {currentAddon.dietaryRestrictions &&
+                      currentAddon.dietaryRestrictions.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {currentAddon.dietaryRestrictions.map((filterValue) => {
+                            const filter = DIETARY_FILTERS.find(
+                              (f) => f.value === filterValue
+                            );
+                            return (
+                              <span
+                                key={filterValue}
+                                className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
+                              >
+                                {filter?.label || filterValue}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setCurrentAddon({
+                                      ...currentAddon,
+                                      dietaryRestrictions: currentAddon.dietaryRestrictions?.filter(
+                                        (f) => f !== filterValue
+                                      ),
+                                    })
+                                  }
+                                  className="hover:bg-green-200 rounded-full p-0.5"
                                 >
                                   <X size={14} />
                                 </button>

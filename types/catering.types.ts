@@ -738,6 +738,7 @@ export interface MenuItemAddon {
   name: string;
   price: number;
   allergens: string[];
+  dietaryRestrictions?: string[];
   groupTitle?: string;
   selectionType?: "single" | "multiple";
   isRequired?: boolean;
