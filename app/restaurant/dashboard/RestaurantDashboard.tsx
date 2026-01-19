@@ -630,7 +630,6 @@ export const RestaurantDashboard = ({
                 <TaxInvoicesList
                   restaurantId={restaurantId}
                   selectedAccountId={selectedAccountId}
-                  token={token}
                 />
               </div>
             ) : null}

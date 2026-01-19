@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/lib/constants/api";
+import { fetchWithAuth, API_BASE_URL } from "@/lib/api-client/auth-client";
 
 export interface InvoiceListItem {
   year: number;
@@ -50,23 +50,14 @@ export interface CommissionInvoiceData {
  */
 export async function fetchAvailableInvoices(
   restaurantId: string,
-  accountId?: string,
-  token?: string
+  accountId?: string
 ): Promise<InvoiceListItem[]> {
   const params = new URLSearchParams();
   if (accountId) params.set("accountId", accountId);
 
   const url = `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}/commission-invoices?${params}`;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, { headers });
+  const res = await fetchWithAuth(url);
 
   if (!res.ok) {
     const text = await res.text();
@@ -84,25 +75,14 @@ export function openInvoiceInNewWindow(
   restaurantId: string,
   year: number,
   month: number,
-  accountId?: string,
-  token?: string
+  accountId?: string
 ): void {
   const params = new URLSearchParams();
   if (accountId) params.set("accountId", accountId);
 
   const url = `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}/commission-invoice/${year}/${month}/html?${params}`;
 
-  // For authenticated requests, we need to fetch the HTML and open it
-  // But since we're using JWT, the backend will verify the token
-  // We can just open the URL directly if the backend supports it
-  // For now, let's fetch and create a blob URL
-
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  fetch(url, { headers })
+  fetchWithAuth(url)
     .then((res) => {
       if (!res.ok) {
         throw new Error(`Failed to fetch invoice: ${res.status}`);

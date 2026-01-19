@@ -12,13 +12,11 @@ import {
 interface TaxInvoicesListProps {
   restaurantId: string;
   selectedAccountId?: string | null;
-  token?: string;
 }
 
 export const TaxInvoicesList = ({
   restaurantId,
   selectedAccountId,
-  token,
 }: TaxInvoicesListProps) => {
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,8 +34,7 @@ export const TaxInvoicesList = ({
     try {
       const data = await fetchAvailableInvoices(
         restaurantId,
-        selectedAccountId || undefined,
-        token
+        selectedAccountId || undefined
       );
       setInvoices(data);
     } catch (err) {
@@ -56,8 +53,7 @@ export const TaxInvoicesList = ({
       restaurantId,
       invoice.year,
       invoice.month,
-      selectedAccountId || undefined,
-      token
+      selectedAccountId || undefined
     );
 
     // Reset viewing state after a short delay
