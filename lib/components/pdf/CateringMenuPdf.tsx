@@ -343,6 +343,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 700,
   },
+  totalCateringText: {
+    fontSize: 13,
+    fontWeight: 500,
+  },
   totalsContainer: {
     marginTop: 24,
     paddingTop: 16,
@@ -353,16 +357,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   deliveryText: {
-    fontSize: 11,
-    color: "#555",
+    fontSize: 10,
+    color: "#666",
     fontStyle: "italic",
+    fontWeight: 400,
   },
   totalRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
     paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#000",
   },
   totalText: {
     fontSize: 16,
@@ -431,7 +434,7 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
     .join("  |  ");
 
   return (
-    <View style={styles.menuItem}>
+    <View style={styles.menuItem} wrap={false}>
       <View style={styles.menuItemContent}>
         <Text style={styles.menuItemName}>
           {item.quantity}x {item.name}
@@ -481,12 +484,15 @@ const MenuContent: React.FC<{
 }> = ({ sessions, showPrices, deliveryCharge, totalPrice }) => (
   <Page size="A4" style={styles.menuPage} wrap>
     {sessions.map((session, sessionIndex) => (
-      <View key={sessionIndex} wrap={false}>
-        <Text style={styles.dateHeader}>{session.date}</Text>
-        <View style={styles.dateUnderline} />
-        <Text style={styles.sessionHeader}>
-          {session.sessionName} {session.time}
-        </Text>
+      <View key={sessionIndex}>
+        {/* Session header - keep together */}
+        <View wrap={false}>
+          <Text style={styles.dateHeader}>{session.date}</Text>
+          <View style={styles.dateUnderline} />
+          <Text style={styles.sessionHeader}>
+            {session.sessionName} {session.time}
+          </Text>
+        </View>
 
         {session.categories.map((category, catIndex) => (
           <View key={catIndex}>
@@ -520,7 +526,7 @@ const MenuContent: React.FC<{
         <View style={styles.totalsContainer}>
           {/* Total Catering Costs */}
           <View style={styles.deliveryRow}>
-            <Text style={styles.subtotalText}>
+            <Text style={styles.totalCateringText}>
               Total Catering Costs: £{sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0).toFixed(2)}
             </Text>
           </View>

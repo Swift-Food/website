@@ -94,6 +94,9 @@ export default function Step3ContactInfo() {
   const [eventId, setEventId] = useState<string | null>(null);
   const [loadingEventData, setLoadingEventData] = useState(false);
 
+  // PDF generation state
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
   // Calculate estimated total without triggering state updates
   const estimatedTotal = useMemo(() => {
     return selectedItems.reduce((total, { item, quantity }) => {
@@ -731,6 +734,8 @@ export default function Step3ContactInfo() {
 
   // Handle view menu preview - now downloads PDF
   const handleViewMenu = async () => {
+    if (generatingPdf) return;
+    setGeneratingPdf(true);
     try {
       // Convert mealSessions to LocalMealSession format
       const sessionsForPreview: LocalMealSession[] = mealSessions.map((session) => ({
@@ -753,6 +758,7 @@ export default function Step3ContactInfo() {
             selectedAddons: orderItem.item.selectedAddons,
             description: (orderItem.item as any).description,
             allergens: (orderItem.item as any).allergens,
+            dietaryFilters: (orderItem.item as any).dietaryFilters,
           },
           quantity: orderItem.quantity,
         })),
@@ -787,6 +793,8 @@ export default function Step3ContactInfo() {
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setGeneratingPdf(false);
     }
   };
 

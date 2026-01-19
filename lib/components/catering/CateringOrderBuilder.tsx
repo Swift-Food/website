@@ -602,6 +602,9 @@ export default function CateringOrderBuilder() {
 
   // Restaurants state for validation
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+
+  // PDF generation state
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   // Get quantity for an item in the current session
   const getItemQuantity = (itemId: string): number => {
     const session = mealSessions[activeSessionIndex];
@@ -1398,6 +1401,8 @@ export default function CateringOrderBuilder() {
 
   // Handle view menu preview - now downloads PDF
   const handleViewMenu = async () => {
+    if (generatingPdf) return;
+    setGeneratingPdf(true);
     try {
       // Convert mealSessions to LocalMealSession format
       const sessionsForPreview: LocalMealSession[] = mealSessions.map(
@@ -1476,6 +1481,8 @@ export default function CateringOrderBuilder() {
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setGeneratingPdf(false);
     }
   };
 
@@ -1624,25 +1631,37 @@ export default function CateringOrderBuilder() {
           {totalItems > 0 && (
             <button
               onClick={handleViewMenu}
-              className="flex-shrink-0 bg-white rounded-xl shadow-sm border border-base-200 p-4 flex flex-col items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors group"
+              disabled={generatingPdf}
+              className="flex-shrink-0 bg-white rounded-xl shadow-sm border border-base-200 p-4 flex flex-col items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              <span className="hidden md:block text-xs text-gray-500 mt-1 group-hover:text-primary transition-colors">
-                Download Menu
-              </span>
+              {generatingPdf ? (
+                <>
+                  <span className="loading loading-spinner loading-sm text-primary"></span>
+                  <span className="hidden md:block text-xs text-gray-500 mt-1">
+                    Generating...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-primary"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  <span className="hidden md:block text-xs text-gray-500 mt-1 group-hover:text-primary transition-colors">
+                    Download Menu
+                  </span>
+                </>
+              )}
             </button>
           )}
         </div>
