@@ -7,10 +7,10 @@ export default function TermsAndConditions() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-primary mb-4">
-            Terms and Conditions
+            Consumer Terms and Conditions
           </h1>
           <p className="text-gray-600 text-lg">
-            Legal terms governing your use of the Swift Food platform
+            Legal terms governing your use of the Swift Food platform as a customer
           </p>
           <p className="text-gray-500 mt-2">
             Last Updated: 15/08/2025

@@ -7,10 +7,10 @@ export default function SwiftTermsAndConditions() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-primary mb-4">
-            SWIFT FOOD TERMS AND CONDITIONS
+            Partner Terms and Conditions
           </h1>
           <p className="text-gray-600 text-lg">
-            Welcome to Swift Food! Please review our terms and conditions before using our platform.
+            Legal terms governing your partnership with Swift Food as a restaurant partner
           </p>
           <p className="text-gray-500 mt-2">
             Last updated: 9 December 2025

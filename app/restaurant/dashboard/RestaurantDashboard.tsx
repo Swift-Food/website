@@ -317,10 +317,10 @@ export const RestaurantDashboard = ({
               By using this dashboard, you agree to our terms of service.
             </p>
             <a
-              href="/terms"
+              href="/swift-partner-policy"
               className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline mb-3"
             >
-              View Terms and Conditions
+              View Partner Terms and Conditions
             </a>
             <p className="text-sm text-gray-500">
               Commission Rate: 20% (Incl. VAT where applicable)
@@ -642,10 +642,10 @@ export const RestaurantDashboard = ({
             By using this dashboard, you agree to our terms of service.
           </p>
           <a
-            href="/terms"
+            href="/swift-partner-policy"
             className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline mb-3"
           >
-            View Terms and Conditions
+            View Partner Terms and Conditions
           </a>
           <p className="text-sm text-gray-500">
             Commission Rate: 20% (Incl. VAT where applicable)
