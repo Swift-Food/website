@@ -155,20 +155,10 @@ export const WithdrawalForm = ({
                 £{parseFloat(withdrawalAmount).toFixed(2)}
               </span>
             </div>
-            {balance && !balance.canWithdrawWithoutFee && (
-              <div className="flex justify-between text-red-600">
-                <span>Early Withdrawal Fee:</span>
-                <span className="font-medium">-£0.50</span>
-              </div>
-            )}
             <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-gray-200">
               <span>You'll Receive:</span>
               <span>
-                £
-                {(
-                  parseFloat(withdrawalAmount) -
-                  (balance && !balance.canWithdrawWithoutFee ? 0.5 : 0)
-                ).toFixed(2)}
+                £{withdrawalAmount}
               </span>
             </div>
             <p className="text-xs text-gray-600 pt-2">
