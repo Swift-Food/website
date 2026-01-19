@@ -119,23 +119,18 @@ export default function CateringFilterModal({
   const dietaryFilterOptions: DietaryFilter[] = [
     DietaryFilter.HALAL,
     DietaryFilter.VEGETARIAN,
-    DietaryFilter.NONVEGETARIAN,
+
     DietaryFilter.VEGAN,
     DietaryFilter.PESCATERIAN,
-    DietaryFilter.NO_GLUTEN,
-    DietaryFilter.NO_NUT,
-    DietaryFilter.NO_DAIRY,
+
   ];
 
   const DIETARY_LABELS: Record<DietaryFilter, string> = {
     [DietaryFilter.HALAL]: "Halal",
     [DietaryFilter.VEGETARIAN]: "Vegetarian",
-    [DietaryFilter.NONVEGETARIAN]: "Non-vegetarian",
     [DietaryFilter.VEGAN]: "Vegan",
     [DietaryFilter.PESCATERIAN]: "Pescatarian",
-    [DietaryFilter.NO_GLUTEN]: "No gluten",
-    [DietaryFilter.NO_NUT]: "No nuts",
-    [DietaryFilter.NO_DAIRY]: "No dairy",
+
   };
 
   // Price per person range options
