@@ -166,6 +166,7 @@ export interface PdfSession {
   time: string;
   categories: PdfCategory[];
   subtotal?: number;
+  deliveryFee?: number;
 }
 
 export interface CateringMenuPdfProps {
@@ -352,7 +353,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   deliveryText: {
-    fontSize: 12,
+    fontSize: 11,
+    color: "#555",
+    fontStyle: "italic",
   },
   totalRow: {
     flexDirection: "row",
@@ -362,8 +365,8 @@ const styles = StyleSheet.create({
     borderTopColor: "#000",
   },
   totalText: {
-    fontSize: 18,
-    fontWeight: 700,
+    fontSize: 16,
+    fontWeight: 500,
   },
   footer: {
     position: "absolute",
@@ -500,39 +503,41 @@ const MenuContent: React.FC<{
 
         {showPrices && session.subtotal !== undefined && (
           <View style={styles.subtotalContainer}>
-            <Text style={styles.subtotalText}>
-              Subtotal: £{session.subtotal.toFixed(2)}
-            </Text>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={styles.subtotalText}>
+                Subtotal: £{session.subtotal.toFixed(2)}
+              </Text>
+              <Text style={[styles.deliveryText, { marginTop: 10 }]}>
+                Delivery Fee: {session.deliveryFee !== undefined ? `£${session.deliveryFee.toFixed(2)}` : "TBC"}
+              </Text>
+            </View>
           </View>
         )}
       </View>
     ))}
 
-    {showPrices &&
-      (deliveryCharge !== undefined || totalPrice !== undefined) && (
+    {showPrices && (
         <View style={styles.totalsContainer}>
-          {/* Calculate and show overall subtotal (sum of all sessions) */}
-          {/* {sessions.length > 0 && (
-            <View style={styles.deliveryRow}>
-              <Text style={styles.deliveryText}>
-                Subtotal: £{sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0).toFixed(2)}
-              </Text>
-            </View>
-          )}
-          {deliveryCharge !== undefined && deliveryCharge > 0 && (
-            <View style={styles.deliveryRow}>
-              <Text style={styles.deliveryText}>
-                Delivery Charge: £{Number(deliveryCharge).toFixed(2)}
-              </Text>
-            </View>
-          )} */}
-          {totalPrice !== undefined && (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalText}>
-                Total Catering Cost:  £{sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0).toFixed(2)}
-              </Text>
-            </View>
-          )}
+          {/* Total Catering Costs */}
+          <View style={styles.deliveryRow}>
+            <Text style={styles.subtotalText}>
+              Total Catering Costs: £{sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0).toFixed(2)}
+            </Text>
+          </View>
+          {/* Total Delivery Costs */}
+          <View style={styles.deliveryRow}>
+            <Text style={styles.deliveryText}>
+              Total Delivery Costs: {deliveryCharge !== undefined ? `£${deliveryCharge.toFixed(2)}` : "TBC"}
+            </Text>
+          </View>
+          {/* Total Cost */}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalText}>
+              Total Cost: {deliveryCharge !== undefined
+                ? `£${(sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0) + deliveryCharge).toFixed(2)}`
+                : `£${sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0).toFixed(2)} + Delivery Costs TBC`}
+            </Text>
+          </View>
         </View>
       )}
 

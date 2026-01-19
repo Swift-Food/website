@@ -948,6 +948,7 @@ export async function transformOrderToPdfData(
         time: session.eventTime,
         categories,
         subtotal: sessionItemsSubtotal, // Use calculated items subtotal, not session.sessionTotal
+        deliveryFee: session.deliveryFee,
       });
     }
   } else {
@@ -1000,12 +1001,18 @@ export async function transformOrderToPdfData(
       ([name, items]) => ({ name, items })
     );
 
+    // Parse delivery fee for legacy format
+    const legacyDeliveryFee = typeof order.deliveryFee === 'string'
+      ? parseFloat(order.deliveryFee)
+      : order.deliveryFee;
+
     sessions.push({
       date: formatDateForPdf(order.eventDate),
       sessionName: "Menu",
       time: order.eventTime,
       categories,
       subtotal: itemsSubtotal, // Use calculated items subtotal
+      deliveryFee: legacyDeliveryFee,
     });
   }
 
