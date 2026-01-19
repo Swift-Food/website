@@ -1019,7 +1019,7 @@ const EditMenuItemPage = () => {
           </div>
 
           {/* Settings */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h2 className="text-xl font-bold text-gray-900 border-b pb-2">
               Settings
             </h2>
@@ -1102,7 +1102,7 @@ const EditMenuItemPage = () => {
                 </span>
               </label>
             </div>
-          </div>
+          </div> */}
 
           {/* Action Buttons */}
           <div className="flex gap-4 pt-6 border-t">

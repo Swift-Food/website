@@ -13,6 +13,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,9 +80,30 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
             />
           </div>
 
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="acceptTerms"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="acceptTerms" className="ml-2 text-sm text-gray-600">
+              I have read and accept the{" "}
+              <a
+                href="/swift-partner-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Terms and Conditions
+              </a>
+            </label>
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !acceptedTerms}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {loading ? (

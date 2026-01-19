@@ -133,13 +133,13 @@ export const AnalyticsDashboard = ({
       {viewMode === "overview" ? (
         <>
           {/* Today's Performance */}
-          <div>
+          {/* <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Calendar size={20} className="mr-2" />
               Today's Performance
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Total Earnings Today */}
+            
               <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white shadow-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium opacity-90">Total Earnings</span>
@@ -167,7 +167,7 @@ export const AnalyticsDashboard = ({
                 </div>
               </div>
 
-              {/* Orders Today */}
+         
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white shadow-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium opacity-90">Orders Today</span>
@@ -196,7 +196,7 @@ export const AnalyticsDashboard = ({
                 </div>
               </div>
 
-              {/* Items Sold Today */}
+            
               <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white shadow-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium opacity-90">Items Sold</span>
@@ -222,7 +222,7 @@ export const AnalyticsDashboard = ({
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Monthly Performance Comparison */}
           <div>

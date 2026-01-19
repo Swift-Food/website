@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
-import { MenuItemDetails } from "@/types/catering.types";
+import { MenuItemDetails, MenuItemStatus } from "@/types/catering.types";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 const MenuListPage = () => {
@@ -43,6 +43,10 @@ const MenuListPage = () => {
   const [savingOrder, setSavingOrder] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
+  // Status change state
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
   useEffect(() => {
     if (restaurantId) {
       fetchMenuItems();
@@ -56,6 +60,15 @@ const MenuListPage = () => {
   useEffect(() => {
     filterItems();
   }, [menuItems, searchQuery, selectedGroup, selectedStatus]);
+
+  // Close status dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setStatusDropdownOpen(null);
+    if (statusDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [statusDropdownOpen]);
 
   const fetchMenuItems = async () => {
     setLoading(true);
@@ -159,6 +172,25 @@ const MenuListPage = () => {
     } catch (err: any) {
       console.error("Failed to duplicate: ", err);
       setError(err.message || "Failed to duplicate item");
+    }
+  };
+
+  const handleStatusChange = async (itemId: string, newStatus: MenuItemStatus) => {
+    setUpdatingStatus(itemId);
+    try {
+      await cateringService.updateMenuItem(itemId, { status: newStatus });
+      // Update local state
+      setMenuItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? { ...item, status: newStatus } : item
+        )
+      );
+      setStatusDropdownOpen(null);
+    } catch (err: any) {
+      console.error("Failed to update status:", err);
+      setError(err.message || "Failed to update status");
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -628,19 +660,63 @@ const MenuListPage = () => {
               <h3 className="font-bold text-xl text-gray-900 flex-1">
                 {item.name}
               </h3>
-              <span
-                className={`text-xs px-3 py-1 rounded-full ml-2 font-medium ${
-                  item.status === "ACTIVE"
-                    ? "bg-green-100 text-green-800"
-                    : item.status === "DRAFT"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : item.status === "CATERING"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {item.status}
-              </span>
+              <div className="relative ml-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStatusDropdownOpen(statusDropdownOpen === item.id ? null : item.id);
+                  }}
+                  disabled={updatingStatus === item.id}
+                  className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer hover:opacity-80 transition-opacity ${
+                    item.status === "ACTIVE"
+                      ? "bg-green-100 text-green-800"
+                      : item.status === "DRAFT"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : item.status === "CATERING"
+                      ? "bg-blue-100 text-blue-800"
+                      : item.status === "SOLD_OUT"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-gray-100 text-gray-800"
+                  } ${updatingStatus === item.id ? "opacity-50" : ""}`}
+                >
+                  {updatingStatus === item.id ? "..." : item.status}
+                </button>
+                {statusDropdownOpen === item.id && (
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                    {Object.values(MenuItemStatus).map((status) => (
+                      <button
+                        key={status}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (status !== item.status) {
+                            handleStatusChange(item.id, status);
+                          } else {
+                            setStatusDropdownOpen(null);
+                          }
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
+                          status === item.status ? "bg-gray-50 font-medium" : ""
+                        }`}
+                      >
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                            status === "ACTIVE"
+                              ? "bg-green-500"
+                              : status === "DRAFT"
+                              ? "bg-yellow-500"
+                              : status === "CATERING"
+                              ? "bg-blue-500"
+                              : status === "SOLD_OUT"
+                              ? "bg-red-500"
+                              : "bg-gray-500"
+                          }`}
+                        />
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Description - 2 lines */}

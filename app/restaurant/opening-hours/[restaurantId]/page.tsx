@@ -295,7 +295,7 @@ const OpeningHoursPage = () => {
         {/* Form */}
         <form onSubmit={handleSave} className="bg-white rounded-lg p-6">
           {/* Restaurant Status Toggle */}
-          <div className="mb-6 pb-6 border-b">
+          {/* <div className="mb-6 pb-6 border-b">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -326,7 +326,7 @@ const OpeningHoursPage = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Opening Hours */}
           <div className="space-y-4">
