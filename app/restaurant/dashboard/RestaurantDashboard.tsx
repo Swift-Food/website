@@ -317,10 +317,13 @@ export const RestaurantDashboard = ({
             </p>
             <a
               href="/terms"
-              className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+              className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline mb-3"
             >
               View Terms and Conditions
             </a>
+            <p className="text-sm text-gray-500">
+              Commission Rate: 20% (Incl. VAT where applicable)
+            </p>
           </div>
         </div>
       </div>
@@ -619,10 +622,13 @@ export const RestaurantDashboard = ({
           </p>
           <a
             href="/terms"
-            className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+            className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline mb-3"
           >
             View Terms and Conditions
           </a>
+          <p className="text-sm text-gray-500">
+            Commission Rate: 20% (Incl. VAT where applicable)
+          </p>
         </div>
       </div>
     </div>
