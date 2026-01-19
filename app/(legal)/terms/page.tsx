@@ -7,530 +7,619 @@ export default function TermsAndConditions() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-primary mb-4">
-            Consumer Terms and Conditions
+            Swift Food Terms and Conditions
           </h1>
           <p className="text-gray-600 text-lg">
-            Legal terms governing your use of the Swift Food platform as a customer
+            Welcome to Swift Food! We are a food delivery platform that connects you with food vendors, delivering affordable, high-quality meals straight to your door.
           </p>
           <p className="text-gray-500 mt-2">
-            Last Updated: 15/08/2025
+            Last updated: 9 December 2025
+          </p>
+        </div>
+
+        {/* Contact Details */}
+        <div className="bg-primary/5 rounded-lg p-6 mb-10">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Our Contact Details</h2>
+          <div className="space-y-2 text-gray-600">
+            <p><span className="font-medium">Swift Food Services Ltd</span>, a company registered in England and Wales.</p>
+            <p><span className="font-medium">Company Registration Number:</span> 16457702</p>
+            <p><span className="font-medium">Address:</span> 251 Gray&apos;s Inn Road, London, WC1X 8QT, England</p>
+            <p><span className="font-medium">Phone:</span> 07437912217</p>
+            <p>
+              <span className="font-medium">Email:</span>{" "}
+              <a href="mailto:swiftfooduk@gmail.com" className="text-primary hover:underline">
+                swiftfooduk@gmail.com
+              </a>
+            </p>
+          </div>
+          <p className="text-gray-500 text-sm mt-4">
+            Please review our terms and conditions (Terms) before using our platform. If you have any questions in relation to these Terms, please contact us using the contact details above.
           </p>
         </div>
 
         {/* Content */}
         <div className="bg-white rounded-xl border p-8 space-y-10">
 
-          {/* 1. Definitions */}
+          {/* 1. Introduction */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">1. Definitions</h2>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              In these Terms, the following words have the meanings set out below:
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">1. Introduction</h2>
             <div className="space-y-4">
               <div className="border-l-4 border-primary pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Swift Food," "we," "our," or "us"</span> means Swift Food Services Limited, registered in England and Wales with company number 16457702 and registered office at 251 Grays Inn Rd, London WC1X 8QT, United Kingdom.
+                  <span className="font-medium">1.1</span> We provide a platform where restaurants and other food vendors (<span className="font-medium">Swift Partner</span>) and customers looking to place orders for food, including catering (<span className="font-medium">Swift Customers</span>) can connect and transact through our website and mobile application (<span className="font-medium">Platform</span>).
                 </p>
               </div>
               <div className="border-l-4 border-blue-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Platform"</span> means our website at swiftfood.uk, our mobile applications, and any other technology, tools, or services provided by Swift Food that allow you to browse, order, and arrange delivery of food or beverages from Swift Partners.
+                  <span className="font-medium">1.2</span> These Terms contain the terms and conditions on which we supply the Platform and the Swift Food Services to you.
                 </p>
               </div>
               <div className="border-l-4 border-green-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Swift Partner"</span> means any independent restaurant, food stall, market vendor, or other food or beverage business that has agreed to list and sell their products through the Platform.
+                  <span className="font-medium">1.3</span> These Terms are entered into between us and you, together the <span className="font-medium">Parties</span> and each a <span className="font-medium">Party</span>. In these Terms, <span className="font-medium">you</span> or <span className="font-medium">your</span> means (as applicable) the Swift Customer placing an order through the Platform.
                 </p>
               </div>
               <div className="border-l-4 border-purple-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Rider"</span> means any individual who delivers Items ordered through the Platform, whether as a Reserve Driver directly engaged by Swift Food or an independent contractor connected to the Platform.
+                  <span className="font-medium">1.4</span> If you are using the Platform on behalf of your employer or a business entity, you, in your individual capacity, represent and warrant that you are authorised to act on behalf of your employer or the business entity and to bind the entity and the entity&apos;s personnel to these Terms.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 2. Acceptance and Platform Licence */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">2. Acceptance and Platform Licence</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">2.1</span> You accept these Terms by accepting these Terms on the Platform or by placing an Order Request, whichever is earlier.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">2.2</span> We may amend these Terms at any time, by providing written notice to you (including via the Platform). By clicking &quot;I accept&quot;, or similar, or continuing to use the Platform, you accept the amendment. If you do not agree to the amendment and it adversely affects your rights, you may cancel these Terms with effect from the date of the change in these Terms by providing written notice to us within 7 days of us notifying you of the change. If you cancel these Terms, (a) you will no longer be able to use the Platform on and from the date of cancellation, and (b) if you have paid any fees upfront you will be issued a pro-rata refund having regard to the date of termination and the period for which you have paid.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">2.3</span> If you access or download our mobile application from (1) the Apple App Store, you agree to any Usage Rules set forth in the App Store Terms of Service or (2) the Google Play Store, you agree to the Android, Google Inc. Terms and Conditions including the Google Apps Terms of Service.
+                </p>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">2.4</span> We may use Stripe (payment processing), Twilio (SMS notifications), Firebase and Expo (push notifications), AWS S3 (file storage), and third party email delivery services. Your use of the Platform may be subject to the terms and conditions of these third-party providers.
                 </p>
               </div>
               <div className="border-l-4 border-orange-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Items"</span> means the food, drinks, or other goods made available for order through the Platform by a Swift Partner.
+                  <span className="font-medium">2.5</span> Subject to your compliance with these Terms, we grant you a personal, non-exclusive, royalty-free, revocable, worldwide, non-transferable licence to download and use our Platform in accordance with these Terms. All other uses are prohibited without our prior written consent.
+                </p>
+              </div>
+              <div className="border-l-4 border-red-400 pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">2.6</span> When using the Platform, you must not do or attempt to do anything that is unlawful or inappropriate, including:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) anything that would constitute a breach of an individual&apos;s privacy or any other legal rights (including uploading private information or Personal Data without an individual&apos;s consent);</p>
+                  <p>(b) using the Platform to defame, harass, threaten, menace or offend any person;</p>
+                  <p>(c) using the Platform for unlawful purposes;</p>
+                  <p>(d) interfering with any user of the Platform;</p>
+                  <p>(e) tampering with or modifying the Platform (including by transmitting viruses and using trojan horses);</p>
+                  <p>(f) using the Platform to send unsolicited electronic messages;</p>
+                  <p>(g) using data mining, robots, screen scraping or similar data gathering and extraction tools on the Platform; and</p>
+                  <p>(h) facilitating or assisting a third party to do any of the above acts.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 3. Platform summary */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">3. Platform Summary</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">3.1</span> The Platform is a marketplace where you can connect with Swift Partners for food and catering services. We provide the Platform (including hosting and maintaining the Platform) to users, process payments between you and Swift Partners, enable Swift Partners to receive orders, and arrange and provide collection and delivery services (together the <span className="font-medium">Swift Food Services</span>). We will provide the Swift Food Services in accordance with these Terms and all applicable laws, and we warrant to you that the Swift Food Services will be provided using reasonable care and skill.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">3.2</span> You understand and agree that we only make available the Swift Food Services. We are not party to any agreement entered into between a Swift Customer and a Swift Partner, and we have no control over the conduct of Swift Partners or any other users of the Platform.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">3.3</span> A Swift Partner will create a listing with the description of the services they can provide, including the fees for the relevant menu items (<span className="font-medium">Listing Fees</span>), dishes, allergen information, ingredients, portion sizes, minimum order requirements (if any) and minimum notice required for orders (<span className="font-medium">Swift Partner Listing</span>). Allergen information displayed on the Platform is provided by Swift Partners. Swift Customers with allergies or dietary requirements must contact the Swift Partner directly to verify allergen information before placing an Order Request.
+                </p>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">3.4</span> You can use the Platform to view and browse Swift Partner Listings.
+                </p>
+              </div>
+              <div className="border-l-4 border-orange-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">3.5</span> You may request to purchase the provision of food services described in a Swift Partner Listing by submitting an order through the Platform. The order is an offer from you to the Swift Partner to order the food described in the Swift Partner Listing (<span className="font-medium">Order Request</span>). To place an Order Request on the Platform, you must provide your name, delivery address, telephone number and email address.
                 </p>
               </div>
               <div className="border-l-4 border-red-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Order"</span> means a request placed by you through the Platform for Items from a Swift Partner, whether for delivery or collection.
+                  <span className="font-medium">3.6</span> You agree to provide accurate and up to date information when placing an Order Request. You are responsible for ensuring that the delivery address and contact details you provide are correct. We will use your contact details to communicate with you about your order and for delivery purposes. You agree to immediately notify us if you become aware of any unauthorised use of your contact details in connection with any Order Request.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Service Fee"</span> means the additional charge applied to each Order for the provision of our Platform and related services, as displayed at checkout.
+                  <span className="font-medium">3.7</span> Once you submit an Order Request, we may review it before forwarding it to the Swift Partner. We may decline any Order Request that contains errors or invalid promotions. If we decline your Order Request, we will notify you and no payment link will be sent.
                 </p>
               </div>
               <div className="border-l-4 border-teal-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Swift Food Credits"</span> means non-refundable credits issued by Swift Food, redeemable only on the Platform and subject to expiry.
+                  <span className="font-medium">3.8</span> If the Swift Partner accepts your Order Request through the Platform and you pay via the payment link sent, it becomes a <span className="font-medium">Confirmed Order</span>. We will send a confirmation email, a notification via our Platform, or a text message to confirm that the Order Request is a Confirmed Order, to both you and the Swift Partner. Once you have a Confirmed Order, you will receive a tracking link to monitor your order status.
                 </p>
               </div>
               <div className="border-l-4 border-gray-400 pl-4">
                 <p className="text-gray-600 leading-relaxed">
-                  <span className="font-medium">"Force Majeure Event"</span> means any event or circumstance beyond our reasonable control, including but not limited to severe weather, acts of God, strikes, riots, acts of terrorism, accidents, pandemics, or disruptions to transport or communication networks.
+                  <span className="font-medium">3.9</span> Swift Customers and Swift Partners may enter into written agreements in relation to the provision of food and/or catering services. To the extent there is inconsistency between any additional terms and conditions and these Terms, these Terms will prevail.
+                </p>
+              </div>
+              <div className="border-l-4 border-pink-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">3.10</span> By sending an Order Request, you are accepting the additional terms and conditions of the relevant Swift Partners.
                 </p>
               </div>
             </div>
           </section>
 
-          {/* 2. About These Terms */}
+          {/* 4. Minimum Notice Requirements and Changes to Order Requests */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">2. About These Terms</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">2.1 Purpose of These Terms</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              These Terms govern your access to and use of the Platform and form a legally binding agreement between you and Swift Food. They set out your rights and responsibilities when placing Orders and using our services, as well as our obligations to you.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">2.2 Supplementary Policies</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">These Terms should be read alongside our:</p>
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-              <ul className="space-y-2 text-gray-700">
-                <li>• Privacy Policy, which explains how we collect, use, and protect your personal information;</li>
-                <li>• Cookies Policy, which explains how we use cookies and similar technologies on the Platform;</li>
-                <li>• Swift Partner Terms, which apply to Swift Partners listing their Items on our Platform; and</li>
-                <li>• Any other policy we publish that relates to the use of our Platform.</li>
-              </ul>
-            </div>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              If there is any inconsistency between these Terms and the supplementary policies, these Terms will take precedence, unless the supplementary policy states otherwise.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">2.3 Acceptance of Terms</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              By creating an account, placing an Order, or otherwise using the Platform, you confirm that you:
-            </p>
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
-              <p className="text-gray-700 leading-relaxed">
-                (a) accept and agree to be bound by these Terms; and<br/>
-                (b) have the legal capacity to enter into a binding agreement under the laws of England and Wales.
-              </p>
-            </div>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              If you do not agree to these Terms, you must not use the Platform.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">2.4 Changes to These Terms</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              We may amend these Terms from time to time to reflect changes in our business practices, services, applicable laws, or for other valid reasons. Significant changes will be notified via the Platform, by email, or by in-app message.
-            </p>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              The latest version of these Terms will always be available on the Platform. Your continued use of the Platform after updated Terms are posted constitutes your acceptance of those changes. If you do not agree to the updated Terms, you must stop using the Platform immediately.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">2.5 Governing Law</h3>
-            <div className="bg-gray-50 border-l-4 border-gray-400 p-4">
-              <p className="text-gray-700 leading-relaxed">
-                These Terms are governed by the laws of England and Wales, and any disputes will be subject to the exclusive jurisdiction of the courts of England and Wales.
-              </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">4. Minimum Notice Requirements and Changes to Order Requests</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">4.1</span> You must place your Order Request in accordance with the minimum notice period specified by the relevant Swift Partner in the Swift Partner Listing.
+                </p>
+              </div>
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
+                <p className="text-gray-700 leading-relaxed">
+                  <span className="font-medium">4.2 Catering and large Order Requests:</span> For catering services and large volume orders placed through the Platform, once payment has been made, no changes to the order date, time, quantity or menu items are permitted within 5 business days of the scheduled delivery date. The standard 14-day cooling-off period under The Consumer Contracts (Information, Cancellation and Additional Charges) Regulations 2013 does not apply to catering services and large volume orders, as these involve perishable goods and services to be performed on a specific date.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">4.3 Individual Order Requests:</span> Changes to Order Requests may be accommodated at the Swift Partner&apos;s sole discretion and must be requested as soon as possible, after the Order Request is made.
+                </p>
+              </div>
+              <div className="border-l-4 border-red-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">4.4</span> If you fail to provide sufficient notice as required by the Swift Partner, your Order Request may be declined. If you cancel your Order Request after the Swift Partner has begun preparation, you may not be entitled to a refund and may be liable for costs incurred by the Swift Partner.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* 3. Our Services */}
+          {/* 5. Communication */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">3. Our Services</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">3.1 What We Do</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              Swift Food provides a Platform that allows you to browse, order, and arrange delivery of Items from Swift Partners. We facilitate the processing of your Order, coordinate delivery through Riders, and provide customer support in certain cases.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">3.2 Who Prepares Your Order</h3>
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-              <p className="text-gray-700 leading-relaxed">
-                All Items available on the Platform are prepared and supplied by Swift Partners. We do not manufacture, prepare, or package any food or drink ourselves unless otherwise stated. The contract for the supply of the Items is between you and the relevant Swift Partner. Swift Food is not responsible for the quality, safety, or compliance of the Items provided, except to the extent required by law.
-              </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">5. Communication</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">5.1</span> We may contact you via the Platform, or via off-Platform communication channels, such as text message or email, using the details you provided to us when placing an Order Request.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">5.2</span> You can communicate privately with Swift Partners using our private messaging service or offline using the listed contact details before a Confirmed Order is made, regarding allergen and dietary information, or any special requests for the proposed order.
+                </p>
+              </div>
+              <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                <p className="text-gray-700 leading-relaxed">
+                  <span className="font-medium">5.3</span> You and Swift Partners must not use the contact details to organise the provision of the services off the Platform, or otherwise to attempt to circumvent the payment of any service fees to us.
+                </p>
+              </div>
             </div>
+          </section>
 
-            <h3 className="text-xl font-medium text-gray-800 mb-4">3.3 Our Role in Delivery</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">Where delivery is offered, it may be fulfilled by:</p>
-            <div className="space-y-4 mb-6">
-              <div className="border-l-4 border-purple-400 pl-4">
-                <p className="text-gray-600">(a) a Reserve Driver directly engaged by Swift Food; or</p>
+          {/* 6. Payments */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">6. Payments</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">6.1</span> You agree to pay (and your chosen payment method will be charged) the Listing Fees at the time you make an Order Request.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">6.2</span> In consideration for the delivery services we provide, we charge delivery fees (<span className="font-medium">Delivery Fees</span>). The Delivery Fees will be set out on the Platform at the time of you placing an Order Request. The Delivery Fee is payable by you and is retained by us before paying the Listing Fees (minus our service fees) to the Swift Partner.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">6.3</span> We may pre-authorise or charge your payment method for a nominal amount to verify the payment method.
+                </p>
+              </div>
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+                <p className="text-gray-700 leading-relaxed">
+                  <span className="font-medium">6.4</span> All payments are processed in Great British Pounds.
+                </p>
               </div>
               <div className="border-l-4 border-purple-400 pl-4">
-                <p className="text-gray-600">(b) an Independent Rider, which includes self-employed couriers who sign up to the Platform directly or are provided to the Platform through approved courier partners.</p>
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">6.5</span> The payment methods we offer are set out on the Platform. We may offer payment through a third-party provider for example, Stripe. You acknowledge and agree that we have no control over the actions of the third-party provider, and your use of the third-party payment method may be subject to additional terms and conditions. For the avoidance of doubt, we do not hold any funds ourselves. All funds are held and are processed via our third-party provider.
+                </p>
               </div>
-            </div>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              All Riders are responsible for collecting the Items from the Swift Partner and delivering them to the address provided in your Order. We act as an agent on behalf of the Swift Partner for the purpose of arranging delivery.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">3.4 Allergy, Dietary, and Ingredient Information</h3>
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-              <p className="text-gray-700 leading-relaxed">
-                Swift Partners are responsible for providing accurate information about the Items they offer, including allergy and dietary information. While we encourage Partners to supply full details, we cannot guarantee the accuracy or completeness of such information. If you have specific dietary or allergy concerns, you must contact the Swift Partner directly before placing your Order.
-              </p>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">3.5 Availability of the Platform</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              We aim to ensure the Platform is available 24/7, but we do not guarantee uninterrupted access. Access may be suspended temporarily without notice for maintenance, upgrades, or technical issues.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">3.6 Changes to Our Services</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              We may update, modify, or discontinue any part of the Platform or services at any time without liability, provided that such changes do not materially affect any Orders already placed.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">3.7 Limits of Liability</h3>
-            <div className="bg-gray-50 border-l-4 border-gray-400 p-4">
-              <div className="text-gray-700 leading-relaxed space-y-2">
-                <p>To the fullest extent permitted by law:</p>
-                <p>• We are not responsible for any indirect, incidental, or consequential losses arising from your use of the Platform;</p>
-                <p>• Our total liability to you in connection with any Order will be limited to the total price paid for that Order; and</p>
-                <p>• Nothing in these Terms limits your statutory rights as a consumer under UK law.</p>
-                <p>• Swift Food requires all Swift Partners to maintain appropriate insurance in relation to the preparation and sale of food. However, Swift Food is not responsible for verifying the scope of such insurance or for any claims arising directly from the food provided by Swift Partners.</p>
+              <div className="border-l-4 border-orange-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">6.6</span> You must not pay, or attempt to pay, any amount in connection with these Terms by fraudulent or unlawful means. If you make a payment by debit card or credit card, you warrant that you are authorised to use the debit card or credit card to make the payment. If payment is made by direct debit, by providing your bank account details and accepting these Terms, you authorise our nominated third party payment processor to debit your account in accordance with these Terms and you certify that you are either an account holder or an authorised signatory on the account for which you provide details.
+                </p>
               </div>
             </div>
           </section>
 
-          {/* 4. Orders & Payment */}
+          {/* 7. Refunds and Cancellation Policy */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">4. Orders & Payment</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.1 Placing an Order</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You may place an Order through the Platform by selecting Items from a Swift Partner's menu, adding them to your basket, and proceeding through the checkout process. Before confirming your Order, you will be shown a summary of the Items, prices, service fees, delivery charges, and any applicable taxes. You must review this summary carefully before placing your Order.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.2 When an Order is Confirmed</h3>
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-              <p className="text-gray-700 leading-relaxed">
-                Once you place an Order, we will send you an acknowledgement by email, SMS, or in-app notification. This acknowledgement confirms we have received your Order, not that it has been accepted. Your Order is only accepted when the relevant Swift Partner confirms preparation has started. At that point, a contract for the supply of the Items exists between you and the Swift Partner.
-              </p>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.3 Cancellations by You</h3>
-            <div className="space-y-4 mb-6">
-              <p className="text-gray-600 leading-relaxed">• You may cancel an Order at any time before the Swift Partner begins preparing the Items.</p>
-              <p className="text-gray-600 leading-relaxed">• Once preparation has started, you cannot cancel the Order, and you will be charged in full.</p>
-              <p className="text-gray-600 leading-relaxed">• If you believe your Order should be cancelled due to an error or other exceptional circumstances, you must contact us immediately. Refunds in such cases will be assessed on a case-by-case basis.</p>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.4 Cancellations by Us or the Swift Partner</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">An Order may be cancelled if:</p>
-            <div className="space-y-2 mb-4">
-              <p className="text-gray-600">• The Swift Partner is unable to prepare the Items;</p>
-              <p className="text-gray-600">• We cannot allocate a Rider to deliver the Items; or</p>
-              <p className="text-gray-600">• There is an error in the pricing, availability, or description of the Items.</p>
-            </div>
-            <p className="text-gray-600 leading-relaxed mb-6">If your Order is cancelled after payment, you will receive a full refund.</p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.5 Pricing and Payment</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              All prices shown on the Platform are inclusive of applicable taxes unless stated otherwise. Additional fees, such as service fees or delivery charges, will be clearly displayed before checkout.
-            </p>
-            <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-              <p className="text-gray-700 leading-relaxed">
-                • We accept payment via major debit and credit cards, Apple Pay, and other methods shown at checkout.<br/>
-                • Payments are handled securely by our payment partners, who are fully compliant with the Payment Card Industry Data Security Standard (PCI DSS). Swift Food does not directly store or process your card details.
-              </p>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.6 Refunds and Credits</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              If there is an issue with your Order (e.g., missing or incorrect Items, poor quality, or late delivery), you must report it promptly through our customer support form or email.
-            </p>
-            <div className="space-y-4 mb-6">
-              <p className="text-gray-600 leading-relaxed">• Refunds are not automatic and are assessed individually based on the circumstances and any supporting evidence (e.g., photographs, order logs).</p>
-              <p className="text-gray-600 leading-relaxed">• We may offer a cash refund or Swift Food Credits at our sole discretion. Credits are non-refundable, can only be used on the Platform, and may expire after a stated period.</p>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.7 Missing or Incorrect Items</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              If Items are missing from your Order or are incorrect, we will investigate the matter and, where appropriate, provide a refund, replacement, or credit.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.8 Tips</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You may choose to add a tip for the Rider at checkout. 100% of the tip amount, after payment processing fees, is passed to the Rider. Tips are voluntary and non-refundable.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">4.9 Failed Deliveries</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              You are responsible for providing an accurate delivery address and ensuring someone is available to receive the Order.
-            </p>
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
-              <p className="text-gray-700 leading-relaxed">
-                • If the Rider cannot deliver due to an incorrect address, inability to contact you, or an unsafe delivery environment, the Order will be marked as completed and you may be charged in full.<br/>
-                • We will make reasonable efforts to contact you before a delivery is marked as failed.
-              </p>
-            </div>
-          </section>
-
-          {/* 5. Your Account */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">5. Your Account</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">5.1 Creating an Account</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              To place Orders through the Platform, you must create a Swift Food account by providing accurate and complete information, including your name, email address, delivery address, and phone number. You must be at least 18 years old to create an account and place an Order.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">5.2 Account Security</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You are responsible for maintaining the confidentiality of your login credentials and for all activities carried out under your account. You must notify us immediately if you suspect unauthorised access to your account.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">5.3 Account Accuracy</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You agree to keep your account details accurate and up to date, including your delivery address and payment details. Failure to do so may result in failed deliveries or suspension of your account.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">5.4 Account Suspension or Termination by Us</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">We may suspend or terminate your account if:</p>
-            <div className="space-y-2 mb-4">
-              <p className="text-gray-600">• You breach these Terms;</p>
-              <p className="text-gray-600">• We suspect fraud, misuse, or unauthorised activity; or</p>
-              <p className="text-gray-600">• We are required to do so by law or a regulatory authority.</p>
-            </div>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              We will usually notify you before suspending or terminating your account unless doing so would compromise an investigation or violate legal requirements.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">5.5 Deleting Your Account</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              You may request the deletion of your account at any time. Once your account is deleted, you will no longer have access to order history, stored payment methods, or any remaining Swift Food Credits.
-            </p>
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-              <div className="text-gray-700 leading-relaxed">
-                <p className="font-medium mb-2">How to Request Account Deletion:</p>
-                <p className="mb-2">Send an email to swiftfooduk@gmail.com with the subject line:</p>
-                <p className="font-mono bg-white p-2 rounded border mb-3">Account Deletion Request – [Your Full Name]</p>
-                <p className="mb-2">Include in your message:</p>
-                <ul className="space-y-1 ml-4">
-                  <li>• Your full name</li>
-                  <li>• Your registered email address</li>
-                  <li>• Your phone number (if linked to the account)</li>
-                  <li>• A brief confirmation that you want your account permanently deleted</li>
-                </ul>
-                <p className="mt-3">We may require additional verification to confirm your identity before processing your request.</p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">7. Refunds and Cancellation Policy</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">7.1</span> The cancellation, variation, or refund of any food and catering services ordered on this Platform is a matter between you and the Swift Partner.
+                </p>
               </div>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">5.6 Our Retention of Data After Deletion</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Even after your account is deleted, we may retain certain information as required by law (e.g., for tax, fraud prevention, or dispute resolution purposes). This retained information will be handled in accordance with our Privacy Policy.
-            </p>
-          </section>
-
-          {/* 6. Your Use of the Platform */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">6. Your Use of the Platform</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">6.1 Acceptable Use</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              You may use the Platform only for lawful purposes and in accordance with these Terms. You agree not to:
-            </p>
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-              <div className="text-gray-700 leading-relaxed space-y-1">
-                <p>• Use the Platform in any way that violates applicable law or regulation;</p>
-                <p>• Place fake or fraudulent Orders;</p>
-                <p>• Interfere with or disrupt the operation of the Platform, its security features, or its servers;</p>
-                <p>• Attempt to gain unauthorised access to any part of the Platform, accounts, or systems;</p>
-                <p>• Use automated tools or scripts to interact with the Platform (including scraping or data mining);</p>
-                <p>• Misrepresent your identity or provide false information;</p>
-                <p>• Engage in any behaviour that could harm the reputation of Swift Food, our Swift Partners, or our Riders.</p>
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
+                <p className="text-gray-700 leading-relaxed">
+                  <span className="font-medium">7.2</span> You must claim refunds within 3 to 5 days of delivery for catering and large orders, or as otherwise specified by the Swift Partner in a Swift Partner Listing. For the avoidance of doubt, this policy does not create a contractual relationship between us and you.
+                </p>
               </div>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">6.2 User Content</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              If you submit content to the Platform (such as reviews, ratings, or photos), you grant Swift Food a non-exclusive, royalty-free, transferable licence to use, reproduce, modify, and display that content in connection with the Platform and our services. You are responsible for ensuring your content:
-            </p>
-            <div className="space-y-2 mb-4">
-              <p className="text-gray-600">• Is accurate and not misleading;</p>
-              <p className="text-gray-600">• Does not infringe any third-party rights;</p>
-              <p className="text-gray-600">• Is not defamatory, obscene, offensive, or otherwise unlawful.</p>
-            </div>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              We reserve the right to remove or edit any content you submit if we believe it violates these Terms or applicable law.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">6.3 Intellectual Property</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              All content, trademarks, logos, software, and other materials on the Platform are owned by or licensed to Swift Food. You may use them only as necessary to use the Platform in accordance with these Terms. You may not copy, reproduce, distribute, or create derivative works without our prior written consent.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">6.4 Breach of This Section</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">If we reasonably believe you have breached this section, we may:</p>
-            <div className="space-y-2">
-              <p className="text-gray-600">• Suspend or terminate your account;</p>
-              <p className="text-gray-600">• Cancel any Orders in progress;</p>
-              <p className="text-gray-600">• Take legal action against you; and/or</p>
-              <p className="text-gray-600">• Report you to relevant authorities.</p>
-            </div>
-          </section>
-
-          {/* 7. Customer Responsibilities */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">7. Customer Responsibilities</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">7.1 Providing Accurate Information</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You must ensure that all information you provide to Swift Food — including your delivery address, contact details, and payment information — is accurate, complete, and kept up to date.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">7.2 Being Available for Delivery</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You must ensure that someone is available at the delivery address during the estimated delivery time to receive your Order. Riders may contact you via the phone number linked to your account if needed.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">7.3 Access to the Delivery Location</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              You must ensure the Rider can access the delivery address safely and without obstruction. If the Rider is unable to deliver due to:
-            </p>
-            <div className="space-y-2 mb-4">
-              <p className="text-gray-600">• Incorrect address details;</p>
-              <p className="text-gray-600">• No one available to receive the Order;</p>
-              <p className="text-gray-600">• An unsafe delivery environment;</p>
-            </div>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              the Order may be marked as completed and you may be charged in full.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">7.4 Age-Restricted Items</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              If your Order contains age-restricted items (such as alcohol), you may be asked to provide valid photo identification at the point of delivery. Riders reserve the right to refuse delivery if you cannot provide acceptable proof of age.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">7.5 Compliance with Laws</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You must comply with all applicable laws and regulations when using the Platform, including those relating to food safety, alcohol, and public health.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">7.6 Prohibited Behaviour</h3>
-            <div className="bg-red-50 border-l-4 border-red-400 p-4">
-              <p className="text-gray-700 leading-relaxed mb-2">You must not:</p>
-              <div className="space-y-1">
-                <p className="text-gray-700">• Verbally or physically abuse Riders, Swift Partners, or Swift Food staff;</p>
-                <p className="text-gray-700">• Attempt to interfere with or influence the preparation of Orders at a Swift Partner's premises;</p>
-                <p className="text-gray-700">• Engage in discriminatory, harassing, or illegal conduct.</p>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">7.3</span> For disputes between you and Swift Partners, we encourage Parties to attempt to resolve disputes (including claims for returns or refunds) with the other Party directly and in good faith, either on the Platform or through external communication methods. Where a refund is disputed, Stripe may hold the Listing Fees minus our service fees pending resolution. In the event that a dispute cannot be resolved through these means, the Parties may choose to resolve the dispute in any manner agreed between the Parties or otherwise in accordance with applicable laws.
+                </p>
+              </div>
+              <div className="border-l-4 border-gray-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">7.4</span> This clause will survive the termination or expiry of these Terms.
+                </p>
               </div>
             </div>
           </section>
 
-          {/* 8. Our Responsibilities */}
+          {/* 8. Intellectual Property */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">8. Our Responsibilities</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">8.1 Service Provision</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              We provide the Platform that connects customers, Swift Partners, and Riders. While we facilitate Orders and deliveries, the preparation and quality of the Items are the responsibility of the Swift Partner.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">8.2 Quality of Items</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              Swift Partners are solely responsible for the quality, safety, and compliance of the Items they supply. We do not independently verify ingredient lists or allergen information unless explicitly stated.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">8.3 Service Availability</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              We will use reasonable efforts to keep the Platform available and operational but do not guarantee uninterrupted access. We may suspend, withdraw, or modify the Platform without notice for maintenance, updates, or other reasons.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">8.4 Limitation of Liability</h3>
-            <div className="bg-gray-50 border-l-4 border-gray-400 p-4 mb-6">
-              <p className="text-gray-700 leading-relaxed mb-2">To the fullest extent permitted by law:</p>
-              <div className="space-y-1">
-                <p className="text-gray-700">• We are not liable for any indirect, incidental, or consequential losses;</p>
-                <p className="text-gray-700">• Our total liability for any Order is limited to the price you paid for that Order;</p>
-                <p className="text-gray-700">• We are not liable for delays or failures caused by events beyond our reasonable control, including severe weather, accidents, road closures, or strikes.</p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">8. Intellectual Property</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">8.1</span> All intellectual property (including copyright) developed, adapted, modified or created by us or our personnel (including in connection with the Terms, the Platform itself and any content on the Platform (except User Content)) (<span className="font-medium">Our Intellectual Property</span>) will at all times vest, or remain vested, in us.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">8.2</span> We authorise you to use Our Intellectual Property solely for the purposes for which it was intended to be used.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">8.3</span> You must not, without our prior written consent:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) copy, in whole or in part, any of Our Intellectual Property;</p>
+                  <p>(b) reproduce, retransmit, distribute, disseminate, sell, publish, broadcast or circulate any of Our Intellectual Property to any third party; or</p>
+                  <p>(c) breach any Intellectual Property rights connected with the Platform, including (without limitation) altering or modifying any of Our Intellectual Property; causing any of Our Intellectual Property to be framed or embedded in another website; or creating derivative works from any of Our Intellectual Property.</p>
+                </div>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">8.4</span> Nothing in the above clause restricts your ability to publish, post or repost Our Intellectual Property on your social media page or blog, provided that:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) you do not assert that you are the owner of Our Intellectual Property;</p>
+                  <p>(b) unless explicitly agreed by us in writing, you do not assert that you are endorsed or approved by us;</p>
+                  <p>(c) you do not damage or take advantage of our reputation, including in a manner that is illegal, unfair, misleading or deceptive; and</p>
+                  <p>(d) you comply with all other provisions of these Terms.</p>
+                </div>
+              </div>
+              <div className="border-l-4 border-gray-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">8.5</span> This clause will survive the termination or expiry of these Terms.
+                </p>
               </div>
             </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">8.5 Statutory Rights</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              Nothing in these Terms affects your statutory rights under UK consumer law, including your right to receive Items that are as described, of satisfactory quality, and fit for purpose.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">8.6 Issues with Orders</h3>
-            <p className="text-gray-600 leading-relaxed">
-              If something goes wrong with your Order (e.g., missing Items, poor quality, late delivery), you must report it promptly through our customer support form or email. We will investigate and, where appropriate, offer a refund, replacement, or credit in line with Section 4.6.
-            </p>
           </section>
 
-          {/* 9. Changes to These Terms */}
+          {/* 9. Content you upload */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">9. Changes to These Terms</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">9.1 Right to Update</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              We may update or amend these Terms from time to time to reflect changes in our business operations, legal obligations, or customer needs.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">9.2 How We Notify You</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              If we make significant changes, we will give you notice by one or more of the following methods:
-            </p>
-            <div className="space-y-2 mb-6">
-              <p className="text-gray-600">• Posting the updated Terms on the Platform;</p>
-              <p className="text-gray-600">• Sending an email to the address registered to your account;</p>
-              <p className="text-gray-600">• Displaying a prominent in-app or website notification.</p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">9. Content You Upload</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">9.1</span> You may be permitted to post, upload, publish, submit or transmit relevant information and content including reviews (<span className="font-medium">User Content</span>) on the Platform. We may run campaigns via the Platform and via social media that encourage you to post User Content on social media using specific hashtags (#) (<span className="font-medium">Tag</span>).
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">9.2</span> If you make any User Content available on or through the Platform, including on social media using a Tag, you grant to us a worldwide, irrevocable, perpetual, non-exclusive, transferable, royalty-free licence to use the User Content, with the right to use, view, copy, adapt, modify, distribute, license, transfer, communicate, publicly display, publicly perform, transmit, stream, broadcast, access, or otherwise exploit such User Content on, through or by means of the Platform and our social media platforms. We agree to only modify User Content to the extent reasonably required by us. You may request that any of your User Content is removed from the Platform or social media by sending us an email. We will endeavour to action any removal requests within a reasonable time. This does not limit any rights you may have under any applicable privacy laws.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">9.3</span> You agree that you are solely responsible for all User Content that you make available on or through the Platform, including on social media using a Tag. You represent and warrant that:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) you are either the sole and exclusive owner of all User Content or you have all rights, licences, consents and releases that are necessary to grant to us the rights in such User Content (as contemplated by these Terms); and</p>
+                  <p>(b) neither the User Content nor the posting, uploading, publication, submission or transmission of the User Content or our use of the User Content on, through or by means of our Platform (including on social media) will infringe, misappropriate or violate a third party&apos;s Intellectual Property rights, or rights of publicity or privacy, or result in the violation of any applicable law or regulation.</p>
+                </div>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">9.4</span> We do not endorse or approve, and are not responsible for, any User Content. We may, at any time (at our sole discretion), remove any User Content.
+                </p>
+              </div>
+              <div className="border-l-4 border-orange-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">9.5</span> If you believe that any User Content on the Platform is an infringement of your Intellectual Property rights, please contact us using the contact details set out at the top of these Terms, and we may investigate.
+                </p>
+              </div>
+              <div className="border-l-4 border-gray-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">9.6</span> This clause will survive the termination or expiry of these Terms.
+                </p>
+              </div>
             </div>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">9.3 Continued Use</h3>
-            <p className="text-gray-600 leading-relaxed">
-              If you continue to use the Platform after the updated Terms come into effect, you will be deemed to have accepted the changes. If you do not agree with the new Terms, you must stop using the Platform and request the deletion of your account in accordance with Section 5.5.
-            </p>
           </section>
 
-          {/* 10. Governing Law & Jurisdiction */}
+          {/* 10. Warranties */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">10. Governing Law & Jurisdiction</h2>
-            
-            <h3 className="text-xl font-medium text-gray-800 mb-4">10.1 Applicable Law</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              These Terms and any disputes arising from or in connection with them (including non-contractual disputes or claims) are governed by the laws of England and Wales.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">10.2 Jurisdiction</h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              You agree that the courts of England and Wales will have exclusive jurisdiction over any disputes relating to these Terms, your use of the Platform, or any Orders placed through it.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-800 mb-4">10.3 Consumer Rights</h3>
-            <p className="text-gray-600 leading-relaxed">
-              If you are a consumer resident in the UK, you may also be entitled to bring proceedings in your local courts. Nothing in this section limits your statutory rights.
-            </p>
-          </section>
-
-          {/* 11. Contact Information */}
-          <section className="bg-primary/5 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">11. Contact Information</h2>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              If you have any questions, feedback, or complaints about these Terms or the Platform, you can contact us using the details below:
-            </p>
-            <div className="space-y-2 text-gray-600">
-              <p><span className="font-medium">Swift Food Services Limited</span></p>
-              <p>Registered in England and Wales (Company No. 16457702)</p>
-              <p>Registered Address: 251 Grays Inn Rd, London WC1X 8QT, United Kingdom</p>
-              <p>
-                <span className="font-medium">Email:</span>{" "}
-                <a 
-                  href="mailto:swiftfooduk@gmail.com" 
-                  className="text-primary hover:underline font-medium"
-                >
-                  swiftfooduk@gmail.com
-                </a>
-              </p>
-              <p>
-                <span className="font-medium">Website Contact Form:</span>{" "}
-                <a 
-                  href="https://swiftfood.uk/contact" 
-                  className="text-primary hover:underline font-medium"
-                >
-                  https://swiftfood.uk/contact
-                </a>
-              </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">10. Warranties</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">10.1</span> You represent, warrant and agree that:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) you will not use our Platform, including Our Intellectual Property, in any way that competes with our business;</p>
+                  <p>(b) there are no legal restrictions preventing you from entering into these Terms; and</p>
+                  <p>(c) all information and documentation that you provide to us in connection with these Terms is true, correct and complete.</p>
+                </div>
+              </div>
             </div>
-            <p className="text-gray-500 text-sm mt-4">
-              We aim to respond to all enquiries within 5 business days, but response times may vary depending on the nature of your request.
-            </p>
           </section>
+
+          {/* 11. Data Protection */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">11. Data Protection</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">11.1</span> We understand that protecting your Personal Data is important. We set out how we handle your Personal Data in our Privacy Policy, available on our website.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">11.2</span> We process your Personal Data, and Swift Partners process your Personal Data, as separate and independent controllers. This means that we and Swift Partners are responsible for the Personal Data we each process.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 12. Limitations on liability */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">12. Limitations on Liability</h2>
+            <div className="space-y-4">
+              <div className="bg-gray-50 border-l-4 border-gray-500 p-4">
+                <p className="text-gray-700 leading-relaxed mb-3">
+                  <span className="font-medium">12.1</span> Nothing in these Terms limits any Liability which cannot legally be limited, including Liability for:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-700">
+                  <p>(a) death or personal injury caused by negligence;</p>
+                  <p>(b) fraud or fraudulent misrepresentation;</p>
+                  <p>(c) breach of the terms implied by section 2 of the Supply of Goods and Services Act 1982 (title and quiet possession); and</p>
+                  <p>(d) defective products under the Consumer Protection Act 1987.</p>
+                </div>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">12.2</span> This clause 12.2 applies if you are a &apos;consumer&apos; as defined in the Consumer Rights Act 2015 and to the extent that the Platform is considered digital content. If the Platform is defective and it damages a device or digital content belonging to you and this is caused by our failure to use reasonable care and skill, we will either repair the damage or pay you compensation. However, we will not be liable for damage which you could have avoided by following our advice to apply an update offered to you free of charge or for damage which was caused by you failing to correctly follow installation instructions or to have in place the minimum system requirements advised by us.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">12.3</span> To the maximum extent permitted by law, we will not be liable for, and you waive and release us from and against, any Liability caused or contributed to by, arising from or connected with:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) any third party services, or any unavailability of the Platform due to a failure of the third party services; and</p>
+                  <p>(b) any aspect of your interactions with the Swift Partner including the services offered by the Swift Partner, the description of the services requested or offered, any advice provided, the performance of services (including catering services) or supply of food by the Swift Partner, or the accuracy of allergen information provided by the Swift Partner.</p>
+                </div>
+              </div>
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
+                <p className="text-gray-700 leading-relaxed mb-3">
+                  <span className="font-medium">12.4</span> Subject to clause 12.2 (damage caused by defective content) and clause 12.1 (liability which cannot legally be limited), but despite anything to the contrary, to the maximum extent permitted by law:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-700">
+                  <p>(a) you agree to indemnify us for any Liability we incur due to (i) any claim (including from any tax authority) for any VAT for which you are responsible that you did not correctly declare or remit to the relevant tax authority, (ii) your breach of the Acceptance and Platform Licence clause (clause 2), and (iii) your breach of the Intellectual Property clause (clause 8) of these Terms;</p>
+                  <p>(b) we will have no liability to you for any loss of profit, loss of business, loss of data, business interruption, or loss of business opportunity;</p>
+                  <p>(c) a Party&apos;s liability for any liability under these Terms will be reduced proportionately to the extent the relevant liability was caused or contributed to by the negligent or unlawful acts or omissions of, or breach of this Agreement, by the other Party; and</p>
+                  <p>(d) our aggregate liability for any and all Liability arising from or in connection with these Terms will be limited to 100% of the relevant Listing Fee (or if none are payable, £100).</p>
+                </div>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">12.5</span> We have given commitments as to the compliance of the Platform with these Terms and applicable laws in clause 3.1. In view of these commitments, the terms implied by sections 3, 4 and 5 of the Supply of Goods and Services Act 1982 are, to the maximum extent permitted by law, excluded from these Terms.
+                </p>
+              </div>
+              <div className="border-l-4 border-gray-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">12.6</span> This clause 12 will survive the termination or expiry of these Terms.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 13. Termination */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">13. Termination</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">13.1</span> As a Swift Customer, you may cease using the Platform at any time.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">13.2</span> We may terminate these Terms at our discretion, effective immediately, including if we no longer intend to operate the Platform (<span className="font-medium">Termination for Convenience</span>).
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">13.3</span> These Terms may be terminated upon written notice by a Party (<span className="font-medium">Non-Defaulting Party</span>) if:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) the other Party (<span className="font-medium">Defaulting Party</span>) breaches a material term of these Terms and that breach has not been remedied within 10 business days of the Defaulting Party being notified of the breach by the Non-Defaulting Party; or</p>
+                  <p>(b) the Defaulting Party is bankrupt, goes into liquidation, administration, or receivership, or otherwise suffers a similar insolvency event in any jurisdiction in the world.</p>
+                </div>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">13.4</span> Should we suspect that you are in breach of these Terms, we may refuse to process any Order Requests from you while we investigate the suspected breach, or we may refuse to provide the Swift Food Services to you (acting reasonably).
+                </p>
+              </div>
+              <div className="border-l-4 border-orange-400 pl-4">
+                <p className="text-gray-600 leading-relaxed mb-3">
+                  <span className="font-medium">13.5</span> Upon expiry or termination of these Terms:
+                </p>
+                <div className="ml-4 space-y-2 text-gray-600">
+                  <p>(a) we will remove your access to the Platform;</p>
+                  <p>(b) we will immediately cease providing the Swift Food Services;</p>
+                  <p>(c) we will cancel any existing Confirmed Orders and you will lose any Listing Fees and other amounts paid other than where termination is due to our Termination for Convenience, in which case the Listing Fees minus the Delivery Fee will be refunded to you;</p>
+                  <p>(d) subject to our obligations to retain certain Personal Data for legal, regulatory, tax or accounting purposes, we will delete your Personal Data on termination of these Terms; and</p>
+                  <p>(e) where we terminate the Terms as a result of your unrectified default, you also agree to pay us our reasonable additional costs directly arising from such termination, including recovery fees.</p>
+                </div>
+              </div>
+              <div className="border-l-4 border-red-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">13.6</span> Where termination is due to our breach of these Terms or due to our Termination for Convenience, we agree to refund you for any prepaid unused Listing Fees on a pro-rata basis.
+                </p>
+              </div>
+              <div className="border-l-4 border-indigo-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">13.7</span> Termination of these Terms will not affect any rights or liabilities that a Party has accrued under it.
+                </p>
+              </div>
+              <div className="border-l-4 border-gray-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">13.8</span> This clause will survive the termination or expiry of these Terms.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 14. General */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">14. General</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.1 Assignment:</span> Subject to the below clause 14.2, a Party must not assign or deal with the whole or any part of its rights or obligations under these Terms without the prior written consent of the other Party (such consent is not to be unreasonably withheld).
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.2 Assignment of Debt:</span> You agree that we may assign or transfer any debt owed by you to us, arising under or in connection with these Terms, to a debt collector, debt collection agency, or other third party.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.3 Contracts (Rights of Third Parties) Act 1999:</span> Notwithstanding any other provision of these Terms, nothing in these Terms confers or is intended to confer any right to enforce any of its terms on any person who is not a party to it.
+                </p>
+              </div>
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+                <p className="text-gray-700 leading-relaxed">
+                  <span className="font-medium">14.4 Disputes:</span> Alternative dispute resolution is a process where an independent body considers the facts of a dispute and seeks to resolve it, without you having to go to court. If you are not happy with how we have handled any complaint, you may want to contact the alternative dispute resolution provider we use. You can submit a complaint to The Centre for Effective Dispute Resolution via their website at{" "}
+                  <a href="https://www.cedr.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    https://www.cedr.com/
+                  </a>
+                  . The Centre for Effective Dispute Resolution will not charge you for making a complaint and if you are not satisfied with the outcome you can still bring legal proceedings.
+                </p>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.5 Entire Terms:</span> Subject to your consumer law rights, these Terms contains the entire understanding between the Parties and the Parties agree that no representation or statement has been made to, or relied upon by, either of the Parties, except as expressly stipulated in these Terms, and these Terms supersedes all previous discussions, communications, negotiations, understandings, representations, warranties, commitments and agreements, in respect of its subject matter.
+                </p>
+              </div>
+              <div className="border-l-4 border-orange-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.6 Force Majeure:</span> Neither Party will be liable for any delay or failure to perform their respective obligations under these Terms if such delay or failure is caused or contributed to by a Force Majeure Event, provided the Party seeking to rely on the benefit of this clause, as soon as reasonably practical, notifies the other party in writing about the Force Majeure Event and the extent to which it is unable to perform its obligations, and uses reasonable endeavours to minimise the duration and adverse consequences of the Force Majeure Event.
+                </p>
+              </div>
+              <div className="border-l-4 border-red-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.7 Further assurance:</span> Each Party must promptly do all things and execute all further instruments necessary to give full force and effect to these Terms and their obligations under it.
+                </p>
+              </div>
+              <div className="border-l-4 border-indigo-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.8 Governing law:</span> These Terms are governed by the laws of England and Wales. Each Party irrevocably and unconditionally submits to the exclusive jurisdiction of the courts operating in England and Wales and any courts entitled to hear appeals from those courts and waives any right to object to proceedings being brought in those courts.
+                </p>
+              </div>
+              <div className="border-l-4 border-teal-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.9 Notices:</span> Any notice given under these Terms must be in writing addressed to us at the details set out at the beginning of these Terms or to you at the contact details you provided when placing your Order Request. Any notice may be sent by standard post or email, and will be deemed to have been served on the expiry of 48 hours in the case of post, or at the time of transmission in the case of transmission by email.
+                </p>
+              </div>
+              <div className="border-l-4 border-pink-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.10 Publicity:</span> You agree that we may advertise or publicise the broad nature of our supply of the Swift Food Services to you, including on our website or in our promotional material.
+                </p>
+              </div>
+              <div className="border-l-4 border-gray-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.11 Relationship of Parties:</span> These Terms are not intended to create a partnership, joint venture, employment or agency relationship between the Parties.
+                </p>
+              </div>
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.12 Severance:</span> If a provision of these Terms is held to be void, invalid, illegal or unenforceable, that provision is to be read down as narrowly as necessary to allow it to be valid or enforceable, failing which, that provision (or that part of that provision) will be severed from these Terms without affecting the validity or enforceability of the remainder of that provision or the other provisions in these Terms.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">14.13 Third party sites:</span> The Platform may contain links to websites operated by third parties. Unless we tell you otherwise, we do not control, endorse or approve, and are not responsible for, the content on those websites. We recommend that you make your own investigations with respect to the suitability of those websites. If you purchase goods or services from a third party website linked from the Platform, such third party provides the goods and services to you, not us. We may receive a benefit (which may include a referral fee or a commission) should you visit certain third-party websites via a link on the Platform (<span className="font-medium">Affiliate Link</span>) or for featuring certain products or services on the Platform. We will make it clear by notice to you which (if any) products or services we receive a benefit to feature on the Platform, or which (if any) third party links are Affiliate Links.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 15. Definitions */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">15. Definitions</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">15.1 Force Majeure Event</span> means any event or circumstance which is beyond a Party&apos;s reasonable control.
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">15.2 Intellectual Property</span> means any copyright, registered or unregistered designs, patents or trade marks, business names, get-up, goodwill, domain names, know-how, inventions, processes, trade secrets or Confidential Information, circuit layouts, software, computer programs, databases or source codes, including any application, or right to apply, for registration of, and any improvements, enhancements or modifications of, the foregoing.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">15.3 Liability</span> means any expense, cost, liability, loss, damage, claim, notice, entitlement, investigation, demand, proceeding or judgment (whether under statute, contract, equity, tort (including negligence), misrepresentation, restitution, indemnity or otherwise), howsoever arising, whether direct or indirect and/or whether present, unascertained, future or contingent and whether involving a third party or a Party to these Terms or otherwise.
+                </p>
+              </div>
+              <div className="border-l-4 border-purple-400 pl-4">
+                <p className="text-gray-600 leading-relaxed">
+                  <span className="font-medium">15.4 Personal Data</span> has the meaning given in the Data Protection Act 2018.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Footer */}
+          <div className="pt-6 border-t text-center text-gray-500 text-sm">
+            <p>© LegalVision Law UK Ltd</p>
+          </div>
 
         </div>
       </div>
