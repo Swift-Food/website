@@ -309,6 +309,19 @@ export const RestaurantDashboard = ({
             paymentAccounts={restaurantUser?.paymentAccounts}
             selectedAccountId={selectedAccountId}
           />
+
+          {/* Terms and Conditions Link */}
+          <div className="mt-12 pt-6 border-t border-gray-200 text-center">
+            <p className="text-sm text-gray-500 mb-3">
+              By using this dashboard, you agree to our terms of service.
+            </p>
+            <a
+              href="/terms"
+              className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+            >
+              View Terms and Conditions
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -598,6 +611,19 @@ export const RestaurantDashboard = ({
             )}
           </>
         )}
+
+        {/* Terms and Conditions Link */}
+        <div className="mt-12 pt-6 border-t border-gray-200 text-center">
+          <p className="text-sm text-gray-500 mb-3">
+            By using this dashboard, you agree to our terms of service.
+          </p>
+          <a
+            href="/terms"
+            className="inline-block text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+          >
+            View Terms and Conditions
+          </a>
+        </div>
       </div>
     </div>
   );
