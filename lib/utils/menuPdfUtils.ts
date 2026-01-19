@@ -835,12 +835,50 @@ const formatDateForPdf = (dateStr: string | Date): string => {
 /**
  * Transform CateringOrderResponse to PDF data format
  * Groups items by CATEGORY (not restaurant) as per design requirements
+ * Now async to handle image fetching for CORS compatibility
  */
-export function transformOrderToPdfData(
+export async function transformOrderToPdfData(
   order: CateringOrderResponse,
   showPrices: boolean = true
-): CateringMenuPdfProps {
+): Promise<CateringMenuPdfProps> {
   const sessions: PdfSession[] = [];
+
+  // Collect all unique image URLs for batch fetching
+  const imageUrls = new Set<string>();
+
+  // Gather image URLs from meal sessions or legacy format
+  if (order.mealSessions && order.mealSessions.length > 0) {
+    for (const session of order.mealSessions) {
+      for (const restaurant of session.orderItems || []) {
+        for (const menuItem of restaurant.menuItems || []) {
+          if (menuItem.menuItemImage) {
+            imageUrls.add(menuItem.menuItemImage);
+          }
+        }
+      }
+    }
+  } else {
+    const orderItems = order.restaurants || order.orderItems || [];
+    for (const restaurant of orderItems as PricingOrderItem[]) {
+      for (const menuItem of restaurant.menuItems || []) {
+        if (menuItem.menuItemImage) {
+          imageUrls.add(menuItem.menuItemImage);
+        }
+      }
+    }
+  }
+
+  // Fetch all images in parallel and create a map of URL -> base64
+  const imageMap = new Map<string, string | null>();
+  if (imageUrls.size > 0) {
+    console.log(`Fetching ${imageUrls.size} images for PDF...`);
+    const fetchPromises = Array.from(imageUrls).map(async (url) => {
+      const base64 = await fetchImageAsBase64(url);
+      imageMap.set(url, base64);
+    });
+    await Promise.all(fetchPromises);
+    console.log(`Fetched ${imageMap.size} images`);
+  }
 
   // Handle multi-meal sessions
   if (order.mealSessions && order.mealSessions.length > 0) {
@@ -858,8 +896,8 @@ export function transformOrderToPdfData(
       let sessionItemsSubtotal = 0;
 
       // Group items by category across all restaurants in this session
-      for (const restaurant of session.orderItems) {
-        for (const menuItem of restaurant.menuItems) {
+      for (const restaurant of session.orderItems || []) {
+        for (const menuItem of restaurant.menuItems || []) {
           const categoryName =
             (menuItem as any).category?.name || (menuItem as any).categoryName || "Other";
 
@@ -879,13 +917,17 @@ export function transformOrderToPdfData(
             groupTitle: addon.groupTitle,
           }));
 
+          // Use base64 image if available, otherwise use original URL
+          const originalImageUrl = menuItem.menuItemImage;
+          const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
+
           categoryMap.get(categoryName)!.push({
             quantity: menuItem.quantity,
             name: menuItem.menuItemName,
             description: (menuItem as any).description,
             allergens: (menuItem as any).allergens,
             unitPrice: menuItem.customerUnitPrice,
-            image: menuItem.menuItemImage,
+            image: base64Image || originalImageUrl,
             addons: addons?.length > 0 ? addons : undefined,
           });
         }
@@ -911,7 +953,7 @@ export function transformOrderToPdfData(
     let itemsSubtotal = 0;
 
     for (const restaurant of orderItems as PricingOrderItem[]) {
-      for (const menuItem of restaurant.menuItems) {
+      for (const menuItem of restaurant.menuItems || []) {
         const categoryName =
           (menuItem as any).category?.name ||
           (menuItem as any).categoryName ||
@@ -933,13 +975,17 @@ export function transformOrderToPdfData(
           groupTitle: addon.groupTitle,
         }));
 
+        // Use base64 image if available, otherwise use original URL
+        const originalImageUrl = menuItem.menuItemImage;
+        const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
+
         categoryMap.get(categoryName)!.push({
           quantity: menuItem.quantity,
           name: menuItem.menuItemName,
           description: (menuItem as any).description,
           allergens: (menuItem as any).allergens,
           unitPrice: menuItem.customerUnitPrice,
-          image: menuItem.menuItemImage,
+          image: base64Image || originalImageUrl,
           addons: addons?.length > 0 ? addons : undefined,
         });
       }

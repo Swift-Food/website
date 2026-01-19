@@ -58,7 +58,7 @@ export default function CateringDashboardPage() {
       const currentUser = data.sharedAccessUsers?.find(
         (u) => u.accessToken === token
       );
-      console.log("data is", JSON.stringify(data))
+      console.log("data is", data)
       console.log("current user is", currentUser)
       setCurrentUserRole(currentUser?.role || null);
     } catch (err: any) {
@@ -87,7 +87,8 @@ export default function CateringDashboardPage() {
 
     setGeneratingPdf(true);
     try {
-      const pdfData = transformOrderToPdfData(order, true);
+      // transformOrderToPdfData is now async to handle image fetching for CORS compatibility
+      const pdfData = await transformOrderToPdfData(order, true);
       const blob = await pdf(
         <CateringMenuPdf
           sessions={pdfData.sessions}

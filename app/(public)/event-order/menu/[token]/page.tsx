@@ -41,8 +41,8 @@ export default function FullMenuPage() {
 
     setGeneratingPdf(true);
     try {
-      // Transform order data to PDF format
-      const pdfData = transformOrderToPdfData(order, true);
+      // Transform order data to PDF format (now async to handle image fetching)
+      const pdfData = await transformOrderToPdfData(order, true);
 
       // Generate PDF
       const blob = await pdf(
