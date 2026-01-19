@@ -102,6 +102,38 @@ const formatAllergens = (allergens: string | string[] | undefined): string => {
 
   return allergenArray.map(formatAllergen).join(", ");
 };
+
+// Dietary filter configuration with colors and abbreviations
+const DIETARY_CONFIG: Record<string, { abbrev: string; label: string; color: string; bgColor: string }> = {
+  vegetarian: { abbrev: "V", label: "Vegetarian", color: "#fff", bgColor: "#22c55e" },
+  vegan: { abbrev: "VG", label: "Vegan", color: "#fff", bgColor: "#15803d" },
+  halal: { abbrev: "H", label: "Halal", color: "#fff", bgColor: "#0d9488" },
+  pescatarian: { abbrev: "P", label: "Pescatarian", color: "#fff", bgColor: "#3b82f6" },
+  no_nut: { abbrev: "NN", label: "No Nuts", color: "#fff", bgColor: "#f97316" },
+  no_dairy: { abbrev: "ND", label: "No Dairy", color: "#fff", bgColor: "#a855f7" },
+  no_gluten: { abbrev: "GF", label: "Gluten Free", color: "#fff", bgColor: "#a16207" },
+  nonvegetarian: { abbrev: "NV", label: "Non-Veg", color: "#fff", bgColor: "#dc2626" },
+};
+
+// Get all unique dietary filters from sessions for the legend
+const getAllDietaryFilters = (sessions: PdfSession[]): string[] => {
+  const filters = new Set<string>();
+  sessions.forEach(session => {
+    session.categories.forEach(category => {
+      category.items.forEach(item => {
+        if (item.dietaryFilters) {
+          item.dietaryFilters.forEach(filter => {
+            const key = filter.toLowerCase();
+            if (DIETARY_CONFIG[key]) {
+              filters.add(key);
+            }
+          });
+        }
+      });
+    });
+  });
+  return Array.from(filters);
+};
 // =============================================================================
 
 // Types
@@ -117,6 +149,7 @@ export interface PdfMenuItem {
   name: string;
   description?: string;
   allergens?: string | string[];
+  dietaryFilters?: string[];
   unitPrice?: number;
   image?: string;
   addons?: PdfAddon[];
@@ -239,6 +272,46 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     color: "#333",
     marginBottom: 4,
+  },
+  menuItemDietaryFilters: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 3,
+    marginBottom: 4,
+    marginTop: 2,
+  },
+  dietaryBadge: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 3,
+    marginRight: 3,
+  },
+  dietaryBadgeText: {
+    fontSize: 7,
+    fontWeight: 700,
+  },
+  dietaryLegend: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: "#999",
+    gap: 8,
+  },
+  dietaryLegendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  dietaryLegendBadge: {
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    borderRadius: 2,
+  },
+  dietaryLegendText: {
+    fontSize: 6,
+    color: "#666",
   },
   menuItemPrice: {
     fontSize: 10,
@@ -371,6 +444,19 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
             Allergen: {formatAllergens(item.allergens)}
           </Text>
         )}
+        {item.dietaryFilters && item.dietaryFilters.length > 0 && (
+          <View style={styles.menuItemDietaryFilters}>
+            {item.dietaryFilters.map((filter, idx) => {
+              const config = DIETARY_CONFIG[filter.toLowerCase()];
+              if (!config) return null;
+              return (
+                <View key={idx} style={[styles.dietaryBadge, { backgroundColor: config.bgColor }]}>
+                  <Text style={[styles.dietaryBadgeText, { color: config.color }]}>{config.abbrev}</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
         {showPrice && item.unitPrice !== undefined && (
           <Text style={styles.menuItemPrice}>
             Unit Price £{" "}
@@ -451,7 +537,24 @@ const MenuContent: React.FC<{
       )}
 
     <View style={styles.footer} fixed>
-      <Text style={styles.footerText}>
+      {/* Dietary Legend */}
+      {getAllDietaryFilters(sessions).length > 0 && (
+        <View style={styles.dietaryLegend}>
+          {getAllDietaryFilters(sessions).map((filterKey) => {
+            const config = DIETARY_CONFIG[filterKey];
+            if (!config) return null;
+            return (
+              <View key={filterKey} style={styles.dietaryLegendItem}>
+                <View style={[styles.dietaryLegendBadge, { backgroundColor: config.bgColor }]}>
+                  <Text style={[styles.dietaryBadgeText, { color: config.color, fontSize: 5 }]}>{config.abbrev}</Text>
+                </View>
+                <Text style={styles.dietaryLegendText}>{config.label}</Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
+      <Text style={[styles.footerText, { marginTop: 4 }]}>
         *Images are for illustrative purposes only. Actual dishes may vary in
         appearance, portion size, and presentation due to preparation and
         ingredient differences.

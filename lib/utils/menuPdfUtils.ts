@@ -543,6 +543,9 @@ export interface LocalMealSession {
       feedsPerUnit?: number;
       categoryName?: string;
       subcategoryName?: string;
+      description?: string;
+      allergens?: string[];
+      dietaryFilters?: string[];
       selectedAddons?: Array<{
         name: string;
         price: number;
@@ -926,6 +929,7 @@ export async function transformOrderToPdfData(
             name: menuItem.menuItemName,
             description: (menuItem as any).description,
             allergens: (menuItem as any).allergens,
+            dietaryFilters: (menuItem as any).dietaryFilters,
             unitPrice: menuItem.customerUnitPrice,
             image: base64Image || originalImageUrl,
             addons: addons?.length > 0 ? addons : undefined,
@@ -984,6 +988,7 @@ export async function transformOrderToPdfData(
           name: menuItem.menuItemName,
           description: (menuItem as any).description,
           allergens: (menuItem as any).allergens,
+          dietaryFilters: (menuItem as any).dietaryFilters,
           unitPrice: menuItem.customerUnitPrice,
           image: base64Image || originalImageUrl,
           addons: addons?.length > 0 ? addons : undefined,
@@ -1176,6 +1181,7 @@ export async function transformLocalSessionsToPdfData(
         name: (item as any).menuItemName,
         description: (item as any).description,
         allergens: (item as any).allergens,
+        dietaryFilters: (item as any).dietaryFilters,
         unitPrice,
         image: base64Image || originalImageUrl,
         addons: addons?.length > 0 ? addons : undefined,
