@@ -9,9 +9,6 @@ export default function TermsAndConditions() {
           <h1 className="text-4xl font-bold text-primary mb-4">
             Swift Food Consumer Terms and Conditions
           </h1>
-          <p className="text-gray-600 text-lg">
-            Welcome to Swift Food! We are a food delivery platform that connects you with food vendors, delivering affordable, high-quality meals straight to your door.
-          </p>
           <p className="text-gray-500 mt-2">
             Last updated: 9 December 2025
           </p>
