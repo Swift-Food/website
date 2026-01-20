@@ -13,6 +13,7 @@ export interface TutorialStep {
   showNext?: boolean; // Show "Next" button
   showSkip?: boolean; // Show "Skip Tutorial" button
   highlightPadding?: number; // Padding around highlight
+  highlightExtendBottom?: number; // Extra height to extend highlight downward
   onBeforeShow?: () => void; // Called before showing this step
 }
 
@@ -185,7 +186,7 @@ export default function TutorialTooltip({
                   x={highlightRect.left - (step.highlightPadding ?? 8)}
                   y={highlightRect.top - (step.highlightPadding ?? 8)}
                   width={highlightRect.width + (step.highlightPadding ?? 8) * 2}
-                  height={highlightRect.height + (step.highlightPadding ?? 8) * 2}
+                  height={highlightRect.height + (step.highlightPadding ?? 8) * 2 + (step.highlightExtendBottom ?? 0)}
                   rx="12"
                   fill="black"
                 />
@@ -216,8 +217,8 @@ export default function TutorialTooltip({
                 ${highlightRect.left - (step.highlightPadding ?? 8)}px 100%,
                 ${highlightRect.left - (step.highlightPadding ?? 8)}px ${highlightRect.top - (step.highlightPadding ?? 8)}px,
                 ${highlightRect.right + (step.highlightPadding ?? 8)}px ${highlightRect.top - (step.highlightPadding ?? 8)}px,
-                ${highlightRect.right + (step.highlightPadding ?? 8)}px ${highlightRect.bottom + (step.highlightPadding ?? 8)}px,
-                ${highlightRect.left - (step.highlightPadding ?? 8)}px ${highlightRect.bottom + (step.highlightPadding ?? 8)}px,
+                ${highlightRect.right + (step.highlightPadding ?? 8)}px ${highlightRect.bottom + (step.highlightPadding ?? 8) + (step.highlightExtendBottom ?? 0)}px,
+                ${highlightRect.left - (step.highlightPadding ?? 8)}px ${highlightRect.bottom + (step.highlightPadding ?? 8) + (step.highlightExtendBottom ?? 0)}px,
                 ${highlightRect.left - (step.highlightPadding ?? 8)}px 100%,
                 100% 100%,
                 100% 0%
