@@ -121,6 +121,20 @@
   animation: float-alt 18s ease-in-out infinite;
 }
 
+/* Line fill animation for scroll indicator - runway style */
+@keyframes line-fill {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-line-fill {
+  animation: line-fill 1.5s ease-in-out infinite;
+}
+
 /* Reveal animation for scroll-based sections */
 .reveal {
   opacity: 0;

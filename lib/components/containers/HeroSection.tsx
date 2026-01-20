@@ -109,11 +109,11 @@ export default function HeroSection() {
           isVisible ? "opacity-100" : "opacity-0"
         }`}
       >
-        <div className="w-px h-16 bg-gradient-to-b from-[#fa43ad] to-transparent relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1/2 bg-[#fa43ad]/60 animate-bounce"></div>
+        <div className="w-px h-16 bg-gray-200 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-[#fa43ad] animate-line-fill origin-top"></div>
         </div>
         <svg
-          className="w-4 h-4 mt-4 text-gray-300 animate-bounce"
+          className="w-4 h-4 mt-4 text-[#fa43ad] animate-bounce"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
