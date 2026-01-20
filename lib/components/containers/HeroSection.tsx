@@ -12,10 +12,10 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <div className="relative pt-24 -mt-24">
+    <div className="relative h-[100dvh] min-h-[600px]">
       {/* ShaderGradient Background - extends above for overscroll */}
-      <div className="absolute -top-48 left-0 right-0 bottom-0 z-0 pointer-events-none">
-        <ShaderGradientCanvas style={{ pointerEvents: "none", height: "calc(100% + 48px)" }}>
+      <div className="absolute -top-24 left-0 right-0 bottom-0 z-0 pointer-events-none">
+        <ShaderGradientCanvas style={{ pointerEvents: "none", height: "calc(100% + 96px)" }}>
           <ShaderGradient
             animate="on"
             brightness={1.2}
@@ -78,7 +78,7 @@ export default function HeroSection() {
         </ShaderGradientCanvas>
       </div>
 
-      <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12">
+      <section className="relative h-full flex flex-col items-center justify-center pt-20 pb-16 sm:pt-24 sm:pb-20">
         <div className="relative z-10 max-w-6xl px-4 md:px-6 text-center">
         <div className="flex flex-col items-center">
           <span
@@ -141,15 +141,15 @@ export default function HeroSection() {
 
       <a
         href="#social-proof"
-        className={`hidden sm:flex absolute bottom-10 left-1/2 -translate-x-1/2 flex-col items-center transition-all duration-1000 delay-[1200ms] ${
+        className={`flex absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 flex-col items-center transition-all duration-1000 delay-[1200ms] ${
           isVisible ? "opacity-100" : "opacity-0"
         }`}
       >
-        <div className="w-px h-16 bg-gray-200 relative overflow-hidden">
+        <div className="w-px h-10 sm:h-16 bg-gray-200 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-[#fa43ad] animate-line-fill origin-top"></div>
         </div>
         <svg
-          className="w-4 h-4 mt-4 text-[#fa43ad] animate-bounce"
+          className="w-3 h-3 sm:w-4 sm:h-4 mt-3 sm:mt-4 text-[#fa43ad] animate-bounce"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
