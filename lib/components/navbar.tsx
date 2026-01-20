@@ -28,10 +28,10 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
-          isScrolled || !isHomePage
-            ? "bg-white/40 backdrop-blur-sm border-gray-200 py-3"
-            : "bg-transparent border-transparent py-5"
+        className={`z-50 transition-all duration-300 border-b ${
+          isHomePage
+            ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/40 backdrop-blur-sm border-gray-200 py-3" : "bg-transparent border-transparent py-5"}`
+            : "relative bg-white border-gray-200 py-3"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
@@ -140,9 +140,6 @@ export default function Navbar() {
           </div>
         )}
       </nav>
-
-      {/* Spacer for non-homepage routes to prevent content from going under fixed navbar */}
-      {!isHomePage && <div className="h-16 md:h-20" />}
     </>
   );
 }
