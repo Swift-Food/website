@@ -123,6 +123,37 @@
   animation: float-alt 18s ease-in-out infinite;
 }
 
+/* Organic drifting animations for mesh gradient */
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes drift-alt {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, 20px) scale(0.95); }
+  66% { transform: translate(20px, -30px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.animate-drift {
+  animation: drift 15s ease-in-out infinite;
+}
+
+.animate-drift-alt {
+  animation: drift-alt 20s ease-in-out infinite;
+}
+
+.animate-drift-reverse {
+  animation: drift 18s ease-in-out infinite reverse;
+}
+
+.animate-drift-alt-delayed {
+  animation: drift-alt 25s ease-in-out infinite 1s;
+}
+
 /* Line fill animation for scroll indicator - runway style */
 @keyframes line-fill {
   0% {

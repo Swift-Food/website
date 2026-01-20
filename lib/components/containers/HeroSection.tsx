@@ -2,22 +2,33 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ShaderGradientCanvas, ShaderGradient } from "shadergradient";
+// import { ShaderGradientCanvas, ShaderGradient } from "shadergradient";
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);
-  const [gradientReady, setGradientReady] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
-    // Delay showing the gradient to hide the initial shader compilation/render
-    const timer = setTimeout(() => setGradientReady(true), 400);
-    return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="relative h-[100dvh] min-h-[600px]">
-      {/* ShaderGradient Background - extends above for overscroll */}
+      {/* Mesh Gradient Background */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Pink Glow (Brand Primary) */}
+        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] md:w-[900px] md:h-[900px] bg-[#ff4fa5]/30 rounded-full blur-[120px] animate-drift opacity-70"></div>
+
+        {/* Soft Blue Glow (Secondary Accent) */}
+        <div className="absolute bottom-[5%] right-[-10%] w-[700px] h-[700px] md:w-[1000px] md:h-[1000px] bg-cyan-200/40 rounded-full blur-[150px] animate-drift-alt opacity-60"></div>
+
+        {/* Violet Core (Depth) */}
+        <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-indigo-100/60 rounded-full blur-[100px] animate-drift-reverse opacity-50"></div>
+
+        {/* Peach Bottom (Warmth) */}
+        <div className="absolute bottom-[-10%] left-[10%] w-[500px] h-[500px] bg-rose-100/40 rounded-full blur-[110px] animate-drift-alt-delayed opacity-40"></div>
+      </div>
+
+      {/* ShaderGradient Background - commented out
       <div className={`absolute -top-24 left-0 right-0 bottom-0 z-0 pointer-events-none transition-opacity duration-500 ${gradientReady ? 'opacity-100' : 'opacity-0'}`}>
         <ShaderGradientCanvas style={{ pointerEvents: "none", height: "calc(100% + 96px)" }}>
           <ShaderGradient
@@ -48,39 +59,9 @@ export default function HeroSection() {
             uStrength={2.1}
             uTime={0.2}
           />
-          {/* Old waterPlane config:
-          <ShaderGradient
-            animate="on"
-            brightness={1.3}
-            cAzimuthAngle={180}
-            cDistance={2.9}
-            cPolarAngle={120}
-            cameraZoom={1}
-            color1="#ebedff"
-            color2="#f3f2f8"
-            color3="#dbf8ff"
-            envPreset="city"
-            grain="off"
-            lightType="3d"
-            positionX={0}
-            positionY={1.8}
-            positionZ={0}
-            reflection={0.1}
-            rotationX={0}
-            rotationY={0}
-            rotationZ={-90}
-            type="waterPlane"
-            uAmplitude={0}
-            uDensity={2}
-            uFrequency={5.5}
-            uSpeed={0.1}
-            uStrength={2}
-            uTime={0.2}
-          />
-          */}
-
         </ShaderGradientCanvas>
       </div>
+      */}
 
       <section className="relative h-full flex flex-col items-center justify-center pt-20 pb-16 sm:pt-24 sm:pb-20">
         <div className="relative z-10 max-w-6xl px-4 md:px-6 text-center">
