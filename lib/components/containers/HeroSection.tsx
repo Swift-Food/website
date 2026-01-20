@@ -15,8 +15,8 @@ export default function HeroSection() {
     <div className="relative h-[100dvh] min-h-[600px]">
       {/* Mesh Gradient Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Pink Glow (Brand Primary) */}
-        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] md:w-[900px] md:h-[900px] bg-[#ff4fa5]/30 rounded-full blur-[120px] animate-drift opacity-70"></div>
+        {/* Pink Glow (Brand Primary) - moves across top half */}
+        <div className="absolute top-[-20%] left-[10%] w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-[#ff4fa5]/35 rounded-full blur-[120px] animate-drift-wide opacity-70"></div>
 
         {/* Soft Blue Glow (Secondary Accent) */}
         <div className="absolute bottom-[5%] right-[-10%] w-[700px] h-[700px] md:w-[1000px] md:h-[1000px] bg-cyan-200/40 rounded-full blur-[150px] animate-drift-alt opacity-60"></div>
