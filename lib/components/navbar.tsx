@@ -12,6 +12,9 @@ export default function Navbar() {
 
   // Check if we're on the homepage for transparent navbar
   const isHomePage = pathname === "/";
+  // Check if we're on pages that should have sticky navbar
+  const isMenuPage = pathname === "/menu";
+  const shouldBeSticky = isHomePage || isMenuPage;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,7 +34,9 @@ export default function Navbar() {
         className={`z-50 transition-all duration-300 border-b ${
           isHomePage
             ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/40 backdrop-blur-sm border-gray-200 py-3" : "bg-transparent border-transparent py-5"}`
-            : "relative bg-white border-gray-200 py-3"
+            : isMenuPage
+              ? "sticky top-0 bg-white border-gray-200 py-3"
+              : "relative bg-white border-gray-200 py-3"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">

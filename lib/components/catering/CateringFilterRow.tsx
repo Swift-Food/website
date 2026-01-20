@@ -122,7 +122,7 @@ export default function CateringFilterRow({
   return (
     <>
       {/* Desktop Layout */}
-      <div className="hidden md:flex md:sticky top-[70px] md:top-[80px] z-40 md:-mx-4 md:px-4 md:pt-3 md:pb-2 mb-[-1px] overflow-visible relative bg-base-100/80 backdrop-blur-xs">
+      <div className="hidden md:flex md:sticky top-[60px] z-40 md:-mx-4 md:px-4 md:pt-3 md:pb-2 mb-[-1px] overflow-visible relative bg-base-100/80 backdrop-blur-xs">
         <div className="flex items-center justify-center gap-4 relative w-full max-w-[100vw]">
           {/* Back Button (optional) */}
           {showBackButton && onBackClick && (
@@ -543,7 +543,7 @@ export default function CateringFilterRow({
       )}
 
       {/* Mobile Search and Filter Row */}
-      <div className="md:hidden sticky top-[70px] z-40 -mx-4 px-4 py-3 mb-6 bg-base-100/80 backdrop-blur-sm">
+      <div className="md:hidden sticky top-[55px] z-40 -mx-4 px-4 py-3 mb-6 bg-base-100/80 backdrop-blur-sm">
         <div className="flex items-center gap-2 w-full">
           {/* Back Button (optional) */}
           {showBackButton && onBackClick && (
