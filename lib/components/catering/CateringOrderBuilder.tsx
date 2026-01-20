@@ -2040,10 +2040,10 @@ export default function CateringOrderBuilder() {
                             </div>
                           </div>
 
-                          {/* Subcategories Row - Sticky */}
+                          {/* Subcategories Row - Sticky (disabled during tutorial to allow proper highlight) */}
                           {selectedCategory &&
                             selectedCategory.subcategories.length > 0 && (
-                              <div className="sticky top-[52px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
+                              <div className={`${currentTutorialStep?.id === "categories" ? "" : "sticky top-[52px]"} z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5`}>
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                   <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
                                     {selectedCategory.name}:
@@ -2258,12 +2258,9 @@ export default function CateringOrderBuilder() {
                         )}
 
                         {/* Categories, Subcategories, and Menu Items Container */}
-                        <div>
+                        <div ref={expandedSessionIndex === index ? categoriesRowRef : undefined}>
                           {/* Categories Row */}
-                          <div
-                            ref={expandedSessionIndex === index ? categoriesRowRef : undefined}
-                            className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1"
-                          >
+                          <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
                             <div>
                               {categoriesLoading ? (
                                 <div className="flex items-center gap-3 overflow-x-auto pb-2">
@@ -2301,10 +2298,10 @@ export default function CateringOrderBuilder() {
                             </div>
                           </div>
 
-                          {/* Subcategories Row - Sticky */}
+                          {/* Subcategories Row - Sticky (disabled during tutorial to allow proper highlight) */}
                           {selectedCategory &&
                             selectedCategory.subcategories.length > 0 && (
-                              <div className="sticky top-[52px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
+                              <div className={`${currentTutorialStep?.id === "categories" ? "" : "sticky top-[52px]"} z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5`}>
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                   <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
                                     {selectedCategory.name}:
