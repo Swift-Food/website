@@ -62,13 +62,18 @@ export default function TutorialTooltip({
     const targetCenterX = targetRect.left + targetRect.width / 2;
     const targetCenterY = targetRect.top + targetRect.height / 2;
 
+    // Account for highlight extensions when positioning
+    const highlightExtendBottom = step.highlightExtendBottom ?? 0;
+    const highlightPadding = step.highlightPadding ?? 8;
+
     switch (step.position) {
       case "top":
-        top = targetRect.top - tooltipRect.height - gap;
+        top = targetRect.top - tooltipRect.height - gap - highlightPadding;
         left = targetCenterX - tooltipRect.width / 2;
         break;
       case "bottom":
-        top = targetRect.bottom + gap;
+        // Position below the extended highlight area
+        top = targetRect.bottom + gap + highlightExtendBottom + highlightPadding;
         left = targetCenterX - tooltipRect.width / 2;
         break;
       case "left":
