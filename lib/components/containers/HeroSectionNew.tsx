@@ -9,6 +9,9 @@ const HeroSectionNew: React.FC = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const targetProgressRef = useRef(0);
+  const currentProgressRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
 
   const handleOrderClick = () => {
     router.push("/event-order");
@@ -32,13 +35,33 @@ const HeroSectionNew: React.FC = () => {
       // Desktop: 400vh container = 300vh scrollable (3x)
       const scrollableDistance = windowHeight * (mobile ? 1.5 : 3);
       const progress = Math.min(Math.max(-rect.top / scrollableDistance, 0), 1);
-      setScrollProgress(progress);
+      targetProgressRef.current = progress;
+    };
+
+    // Smooth interpolation loop
+    const animate = () => {
+      const target = targetProgressRef.current;
+      const current = currentProgressRef.current;
+      // Lerp factor: higher = snappier, lower = smoother
+      // Mobile uses slightly higher factor for responsiveness
+      const lerpFactor = window.innerWidth < 768 ? 0.15 : 0.12;
+      const diff = target - current;
+
+      if (Math.abs(diff) > 0.0001) {
+        currentProgressRef.current = current + diff * lerpFactor;
+        setScrollProgress(currentProgressRef.current);
+      }
+
+      rafRef.current = requestAnimationFrame(animate);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    rafRef.current = requestAnimationFrame(animate);
+
     return () => {
       window.removeEventListener("resize", checkMobile);
       window.removeEventListener("scroll", handleScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
@@ -79,18 +102,19 @@ const HeroSectionNew: React.FC = () => {
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
         {/* Expansion Module: The main visual container */}
         <div
-          className="relative z-20 flex items-center justify-center overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.2)] transition-all duration-150 ease-out"
+          className="relative z-20 flex items-center justify-center overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.2)]"
           style={{
             width: `${moduleWidth}vw`,
             height: `${moduleHeight}vh`,
             borderRadius: `${moduleRadius}px`,
             backgroundColor: "black",
+            willChange: "width, height, border-radius",
           }}
         >
           {/* Background Image: Fades out as we approach the 'Ready to order' reveal */}
           <div
-            className="absolute inset-0 z-0 transition-opacity duration-500"
-            style={{ opacity: 1 - revealOpacity * 0.9 }}
+            className="absolute inset-0 z-0"
+            style={{ opacity: 1 - revealOpacity * 0.9, willChange: "opacity" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -99,6 +123,7 @@ const HeroSectionNew: React.FC = () => {
               className="w-full h-full object-cover"
               style={{
                 transform: `scale(${1.1 + expansionProgress * 0.15})`,
+                willChange: "transform, filter",
                 filter: `brightness(${0.6 - expansionProgress * (isMobile ? 0.4 : 0.3)}) contrast(1.1) saturate(0.8)`,
               }}
             />
@@ -110,7 +135,8 @@ const HeroSectionNew: React.FC = () => {
             className="relative z-10 flex flex-col items-center justify-center text-center px-6 max-w-4xl"
             style={{
               transform: `scale(${textScale})`,
-              opacity: 1 - revealOpacity * 1.8, // Fades out faster than reveal fades in to avoid messy overlap
+              opacity: 1 - revealOpacity * 1.8,
+              willChange: "transform, opacity",
             }}
           >
             <div className="flex items-center gap-4 mb-6 md:mb-8">
@@ -138,6 +164,7 @@ const HeroSectionNew: React.FC = () => {
               style={{
                 opacity: 1 - expansionProgress * 1.5,
                 transform: `translateY(${expansionProgress * 40}px)`,
+                willChange: "transform, opacity",
               }}
             >
               <p className="text-white/80 text-sm md:text-lg font-light leading-relaxed max-w-xl mb-10">
@@ -220,12 +247,14 @@ const HeroSectionNew: React.FC = () => {
           style={{
             opacity: revealOpacity,
             backgroundColor: `rgba(0, 0, 0, ${revealOpacity})`,
+            willChange: "opacity",
           }}
         >
           <div
-            className="text-center px-8 flex flex-col items-center transition-all duration-150 ease-out"
+            className="text-center px-8 flex flex-col items-center"
             style={{
               transform: `translateY(${revealTranslateY}px)`,
+              willChange: "transform",
             }}
           >
             <p className="text-[#ff4fa5] text-[10px] font-black uppercase tracking-[0.6em] mb-4 md:mb-6">
