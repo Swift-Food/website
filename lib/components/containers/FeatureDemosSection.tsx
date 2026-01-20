@@ -101,7 +101,7 @@ export default function FeatureDemosSection() {
   return (
     <section
       ref={sectionRef}
-      className="py-32 bg-[#fafafa] px-6 border-y border-gray-100"
+      className="py-32 bg-[#fafafa] px-6 border-y border-gray-100 overflow-x-hidden"
     >
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
@@ -134,7 +134,7 @@ export default function FeatureDemosSection() {
             className={`flex flex-col reveal ${isRevealed ? "active" : ""}`}
             style={{ transitionDelay: "200ms" }}
           >
-            <div className="aspect-square bg-white border border-gray-100 mb-10 relative p-12 flex items-center justify-center group cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-700">
+            <div className="aspect-square bg-white border border-gray-100 mb-10 relative p-12 flex items-center justify-center group cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-700 overflow-hidden">
               <div className="w-full aspect-[1/1.4] bg-white shadow-2xl border border-gray-100 transform -rotate-3 p-8 flex flex-col space-y-5 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-105">
                 <div className="flex justify-between items-start">
                   <div className="w-10 h-10 bg-[#fa43ad] rounded-sm"></div>
