@@ -28,37 +28,52 @@ function ProgressBarDemo() {
       <div className="mt-10 space-y-4">
         <div
           className={`flex justify-between items-center transition-opacity duration-300 ${
-            progress > 20 ? "opacity-100" : "opacity-20"
+            progress > 10 ? "opacity-100" : "opacity-20"
           }`}
         >
           <span className="flex items-center gap-2">
             <div
               className={`w-1.5 h-1.5 rounded-full ${
-                progress > 30 ? "bg-[#fa43ad]" : "bg-white"
+                progress > 25 ? "bg-[#fa43ad]" : "bg-white"
               }`}
             ></div>
-            KITCHEN PREP
+            PENDING REVIEW
           </span>
-          <span className="text-[9px]">{progress > 30 ? "COMPLETE" : "PREPARING"}</span>
+          <span className="text-[9px]">{progress > 25 ? "APPROVED" : "REVIEWING"}</span>
         </div>
         <div
           className={`flex justify-between items-center transition-opacity duration-300 ${
-            progress > 50 ? "opacity-100" : "opacity-20"
+            progress > 30 ? "opacity-100" : "opacity-20"
           }`}
         >
           <span className="flex items-center gap-2">
             <div
               className={`w-1.5 h-1.5 rounded-full ${
-                progress > 70 ? "bg-[#fa43ad]" : "bg-white"
+                progress > 50 ? "bg-[#fa43ad]" : "bg-white"
+              }`}
+            ></div>
+            PAYMENT
+          </span>
+          <span className="text-[9px]">{progress > 50 ? "COMPLETE" : "PROCESSING"}</span>
+        </div>
+        <div
+          className={`flex justify-between items-center transition-opacity duration-300 ${
+            progress > 55 ? "opacity-100" : "opacity-20"
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <div
+              className={`w-1.5 h-1.5 rounded-full ${
+                progress > 75 ? "bg-[#fa43ad]" : "bg-white"
               }`}
             ></div>
             OUT FOR DELIVERY
           </span>
-          <span className="text-[9px]">{progress > 70 ? "ON THE WAY" : "QUEUED"}</span>
+          <span className="text-[9px]">{progress > 75 ? "ON THE WAY" : "QUEUED"}</span>
         </div>
         <div
           className={`flex justify-between items-center transition-opacity duration-300 ${
-            progress > 90 ? "opacity-100" : "opacity-20"
+            progress > 80 ? "opacity-100" : "opacity-20"
           }`}
         >
           <span className="flex items-center gap-2">
@@ -67,7 +82,7 @@ function ProgressBarDemo() {
                 progress >= 100 ? "bg-[#fa43ad]" : "bg-white"
               }`}
             ></div>
-            FINAL ARRIVAL
+            ARRIVAL
           </span>
           <span className="text-[9px]">{progress >= 100 ? "ARRIVED" : "ETA 12:45"}</span>
         </div>
