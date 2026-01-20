@@ -209,32 +209,77 @@ const formatDate = (date: string | Date): string => {
 };
 
 /**
- * Extract menu items from order items
+ * Extract menu items from order items (splits by protein choice)
  */
 const extractMenuItems = (orderItems: PricingOrderItem[]): MenuItemForPdf[] => {
   const items: MenuItemForPdf[] = [];
 
   orderItems.forEach((restaurant) => {
     restaurant.menuItems.forEach((item: any) => {
-      const addons = (item.selectedAddons || []).map((addon: any) => ({
+      type AddonType = { name: string; quantity: number; price: number; groupTitle?: string };
+      const allAddons: AddonType[] = (item.selectedAddons || []).map((addon: any) => ({
         name: addon.name,
         quantity: addon.quantity || 1,
         price: addon.customerUnitPrice || addon.price || 0,
         groupTitle: addon.groupTitle,
       }));
 
-      items.push({
-        name: item.menuItemName || item.name,
-        quantity: item.quantity,
-        cateringQuantityUnit: item.cateringQuantityUnit || 1,
-        feedsPerUnit: item.feedsPerUnit || 1,
-        price: item.customerTotalPrice || 0,
-        restaurantName: restaurant.restaurantName,
-        categoryName: item.categoryName || item.groupTitle,
-        subcategoryName: item.subcategory?.name,
-        image: item.menuItemImage,
-        addons: addons.length > 0 ? addons : undefined,
-      });
+      // Separate protein and non-protein addons
+      const proteinAddons = allAddons.filter(
+        (addon: AddonType) => addon.groupTitle && isProteinGroup(addon.groupTitle)
+      );
+      const nonProteinAddons = allAddons.filter(
+        (addon: AddonType) => !addon.groupTitle || !isProteinGroup(addon.groupTitle)
+      );
+
+      // Check if we need to split by protein
+      const shouldSplit =
+        proteinAddons.length > 1 ||
+        (proteinAddons.length === 1 && proteinAddons[0].quantity < item.quantity);
+
+      if (shouldSplit) {
+        // Split into separate items per protein type
+        for (const proteinAddon of proteinAddons) {
+          const qty = proteinAddon.quantity || 1;
+          const ratio = qty / item.quantity;
+          const itemPrice = (item.customerTotalPrice || 0) * ratio;
+
+          // Proportionally distribute non-protein addons
+          const otherAddons = nonProteinAddons
+            .map((addon: AddonType) => ({
+              ...addon,
+              quantity: Math.round(addon.quantity * ratio),
+            }))
+            .filter((a: AddonType) => a.quantity > 0);
+
+          items.push({
+            name: `${item.menuItemName || item.name} (${proteinAddon.name})`,
+            quantity: qty,
+            cateringQuantityUnit: item.cateringQuantityUnit || 1,
+            feedsPerUnit: item.feedsPerUnit || 1,
+            price: itemPrice,
+            restaurantName: restaurant.restaurantName,
+            categoryName: item.categoryName || item.groupTitle,
+            subcategoryName: item.subcategory?.name,
+            image: item.menuItemImage,
+            addons: otherAddons.length > 0 ? otherAddons : undefined,
+          });
+        }
+      } else {
+        // No split needed
+        items.push({
+          name: item.menuItemName || item.name,
+          quantity: item.quantity,
+          cateringQuantityUnit: item.cateringQuantityUnit || 1,
+          feedsPerUnit: item.feedsPerUnit || 1,
+          price: item.customerTotalPrice || 0,
+          restaurantName: restaurant.restaurantName,
+          categoryName: item.categoryName || item.groupTitle,
+          subcategoryName: item.subcategory?.name,
+          image: item.menuItemImage,
+          addons: allAddons.length > 0 ? allAddons : undefined,
+        });
+      }
     });
   });
 
