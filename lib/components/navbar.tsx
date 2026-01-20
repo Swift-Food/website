@@ -14,7 +14,6 @@ export default function Navbar() {
   const isHomePage = pathname === "/";
   // Check if we're on pages that should have sticky navbar
   const isMenuPage = pathname === "/menu";
-  const shouldBeSticky = isHomePage || isMenuPage;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,7 +30,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`z-50 transition-all duration-300 border-b ${
+        className={`z-50 transition-all duration-300  ${
           isHomePage
             ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/40 backdrop-blur-sm border-gray-200 py-3" : "bg-transparent border-transparent py-5"}`
             : isMenuPage

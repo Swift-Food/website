@@ -7,7 +7,6 @@
   default: true;
   prefersdark: false;
 
-  --color-background: #f7f8f9;
 
   /* Primary colors - Hot Pink */
   --color-primary: #fa43ad; /* Hot Pink */
@@ -29,9 +28,10 @@
 
   /* Base colors */
   --color-base-100: #f7f8f9; /* White background */
-  --color-base-200: #fafafa; /* Light gray */
+  --color-base-200: #efeae0; /* Light gray */
   --color-base-300: #e5e7eb; /* Border color */
   --color-base-content: #282828; /* Dark text */
+
 
   /* Status colors */
   --color-info: #94daf0; /* Light blue */

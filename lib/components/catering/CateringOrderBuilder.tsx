@@ -573,6 +573,9 @@ export default function CateringOrderBuilder() {
   const sessionAccordionRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const dayRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
+  // Sticky nav detection
+  const [isNavSticky, setIsNavSticky] = useState(false);
+
   // Category state
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
   const [selectedCategory, setSelectedCategory] =
@@ -706,6 +709,18 @@ export default function CateringOrderBuilder() {
       }
     };
     fetchRestaurants();
+  }, []);
+
+  // Detect when sticky nav becomes stuck
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsNavSticky(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Check initial state
+
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Prefill cart from bundle query parameter
@@ -1490,7 +1505,9 @@ export default function CateringOrderBuilder() {
     <div className="min-h-screen bg-base-100">
       {/* Sticky Navigation - Toggles between Dates and Sessions */}
       <div
-        className="sticky top-0 z-40 bg-white shadow-sm border-b border-base-200"
+        className={`sticky top-0 z-40 bg-base-100 transition-shadow duration-200 ${
+          isNavSticky ? "shadow-sm border-b border-base-200" : ""
+        }`}
       >
         <div className="max-w-6xl mx-auto px-2 py-2">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
