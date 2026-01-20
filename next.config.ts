@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 // Force Netlify rebuild
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
   async headers() {
     return [
       {
