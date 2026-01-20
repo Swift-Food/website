@@ -134,7 +134,7 @@ const HeroSectionNew: React.FC = () => {
             </div>
 
             <div
-              className="mt-8 md:mt-10 transition-all duration-500"
+              className="mt-8 md:mt-10"
               style={{
                 opacity: 1 - expansionProgress * 1.5,
                 transform: `translateY(${expansionProgress * 40}px)`,
