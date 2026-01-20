@@ -2258,9 +2258,12 @@ export default function CateringOrderBuilder() {
                         )}
 
                         {/* Categories, Subcategories, and Menu Items Container */}
-                        <div ref={expandedSessionIndex === index ? categoriesRowRef : undefined}>
+                        <div>
                           {/* Categories Row */}
-                          <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
+                          <div
+                            ref={expandedSessionIndex === index ? categoriesRowRef : undefined}
+                            className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1"
+                          >
                             <div>
                               {categoriesLoading ? (
                                 <div className="flex items-center gap-3 overflow-x-auto pb-2">

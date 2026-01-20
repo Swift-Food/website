@@ -39,6 +39,27 @@ function ProgressBarDemo() {
 
       {/* Progress bar */}
       <div className="relative mb-10">
+        {/* Truck icon */}
+        <div
+          className="absolute -top-5 transition-all duration-300 ease-out"
+          style={{ left: `calc(${(currentStep / steps.length) * 100}% - 10px)` }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-[#fa43ad] drop-shadow-[0_0_8px_rgba(250,67,173,0.6)]"
+          >
+            <path
+              d="M16 3H1v13h15V3zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
         <div className="h-1 bg-white/10 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-[#fa43ad] to-[#fb6fbb] transition-all duration-300 ease-out shadow-[0_0_20px_rgba(250,67,173,0.5)]"
