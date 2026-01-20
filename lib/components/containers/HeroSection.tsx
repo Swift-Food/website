@@ -116,7 +116,7 @@ export default function HeroSection() {
             }`}
           >
             Plan, scale, and deliver world-class catering for up to 3,000 attendees
-            in under a minute. Simple. Reliable. Sharp.
+            in under a minute. Simple. Local. Reliable.
           </p>
 
           <div

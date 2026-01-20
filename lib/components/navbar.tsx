@@ -115,35 +115,84 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-white py-4 px-4">
-            <div className="flex flex-col space-y-4">
-              <Link
-                href="/menu"
-                className="text-sm font-medium tracking-wide uppercase hover:text-[#fa43ad] transition-colors py-2"
-                onClick={closeMobileMenu}
-              >
-                Menus
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm font-medium tracking-wide uppercase hover:text-[#fa43ad] transition-colors py-2"
-                onClick={closeMobileMenu}
-              >
-                Contact Us
-              </Link>
-              <Link
-                href="/event-order"
-                className="text-sm font-medium tracking-wide uppercase hover:text-[#fa43ad] transition-colors py-2"
-                onClick={closeMobileMenu}
-              >
-                Event Ordering
-              </Link>
-            </div>
-          </div>
-        )}
       </nav>
+
+      {/* Mobile Menu Slide-out Panel */}
+      <div
+        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
+          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/20"
+          onClick={closeMobileMenu}
+        />
+
+        {/* Panel */}
+        <div
+          className={`absolute top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xl shadow-2xl transition-transform duration-300 ease-out ${
+            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {/* Close Button */}
+          <div className="flex justify-start p-4">
+            <button
+              onClick={closeMobileMenu}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Close menu"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Menu Items */}
+          <div className="flex flex-col px-6 py-4 space-y-6">
+            <Link
+              href="/menu"
+              className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
+              onClick={closeMobileMenu}
+            >
+              Menus
+            </Link>
+            <Link
+              href="/contact"
+              className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
+              onClick={closeMobileMenu}
+            >
+              Contact Us
+            </Link>
+            <Link
+              href="/event-order"
+              className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
+              onClick={closeMobileMenu}
+            >
+              Event Ordering
+            </Link>
+          </div>
+
+          {/* Order Button at Bottom */}
+          <div className="absolute bottom-8 left-6 right-6">
+            <Link href="/event-order" onClick={closeMobileMenu}>
+              <button className="w-full bg-[#fa43ad] text-white py-3 rounded-none hover:bg-[#e03a9a] transition-all duration-300 text-sm font-bold tracking-widest uppercase">
+                Order Now
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
