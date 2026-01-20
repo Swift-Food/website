@@ -14,7 +14,7 @@ export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 overflow-hidden bg-white">
       {/* ShaderGradient Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="fixed top-0 left-0 w-screen h-screen z-0 pointer-events-none">
         <ShaderGradientCanvas style={{ pointerEvents: "none" }}>
           <ShaderGradient
             animate="on"
