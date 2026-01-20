@@ -32,7 +32,7 @@ export default function Navbar() {
       <nav
         className={`z-50 transition-all duration-300 py-5  ${
           isHomePage
-            ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/40 backdrop-blur-sm border-gray-200" : "bg-transparent border-transparent"}`
+            ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/20 backdrop-blur-sm border-gray-200" : "bg-transparent border-transparent"}`
             : isMenuPage
               ? "sticky top-0 bg-white border-gray-200"
               : "relative bg-white border-gray-200"

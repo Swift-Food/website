@@ -26,9 +26,11 @@ const HeroSectionNew: React.FC = () => {
       if (!sectionRef.current) return;
       const rect = sectionRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
+      const mobile = window.innerWidth < 768;
 
-      // Total scrollable distance is container height (400vh) - viewport height (100vh) = 300vh
-      const scrollableDistance = windowHeight * 3;
+      // Mobile: 250vh container = 150vh scrollable (1.5x)
+      // Desktop: 400vh container = 300vh scrollable (3x)
+      const scrollableDistance = windowHeight * (mobile ? 1.5 : 3);
       const progress = Math.min(Math.max(-rect.top / scrollableDistance, 0), 1);
       setScrollProgress(progress);
     };
@@ -73,7 +75,7 @@ const HeroSectionNew: React.FC = () => {
   const revealTranslateY = (1 - revealOpacity) * 60 - holdProgress * 20;
 
   return (
-    <div ref={sectionRef} className="relative h-[400vh] bg-white">
+    <div ref={sectionRef} className="relative h-[250vh] md:h-[400vh] bg-white">
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
         {/* Expansion Module: The main visual container */}
         <div
@@ -113,7 +115,7 @@ const HeroSectionNew: React.FC = () => {
           >
             <div className="flex items-center gap-4 mb-6 md:mb-8">
               <div className="h-px w-6 bg-[#ff4fa5]"></div>
-              <span className="text-[9px] font-black tracking-[0.8em] uppercase text-white/60">
+              <span className="text-[12px] font-black tracking-[0.8em] uppercase text-white/60">
                 Event Catering
               </span>
               <div className="h-px w-6 bg-[#ff4fa5]"></div>
