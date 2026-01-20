@@ -7,6 +7,8 @@
   default: true;
   prefersdark: false;
 
+  --color-background: #f7f8f9;
+
   /* Primary colors - Hot Pink */
   --color-primary: #fa43ad; /* Hot Pink */
   --color-primary-content: #ffffff;
