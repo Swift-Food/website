@@ -732,10 +732,18 @@ export default function CateringOrderBuilder() {
   // Tutorial initialization - check if tutorial has been completed
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem(TUTORIAL_STORAGE_KEY);
-    if (!tutorialCompleted && mealSessions.length === 1 && mealSessions[0].orderItems.length === 0) {
+    if (tutorialCompleted) {
+      // Tutorial was completed before, mark as completed
+      setTutorialPhase("completed");
+      setTutorialStep(null);
+    } else if (mealSessions.length === 1 && mealSessions[0].orderItems.length === 0) {
       // Start tutorial if not completed and cart is empty
       setTutorialPhase("initial");
       setTutorialStep(0);
+    } else {
+      // Has items but never completed tutorial - mark as completed so help button shows
+      setTutorialPhase("completed");
+      setTutorialStep(null);
     }
   }, []);
 
@@ -2249,85 +2257,85 @@ export default function CateringOrderBuilder() {
                           </div>
                         )}
 
-                        {/* Categories Row */}
-                        <div
-                          ref={index === 0 ? categoriesRowRef : undefined}
-                          className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1"
-                        >
-                          <div>
-                            {categoriesLoading ? (
-                              <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                                {[...Array(6)].map((_, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
-                                  />
-                                ))}
-                              </div>
-                            ) : categoriesError ? (
-                              <div className="text-center py-4 text-red-500">
-                                {categoriesError}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                {categories.map((category) => (
-                                  <button
-                                    key={category.id}
-                                    onClick={() => handleCategoryClick(category)}
-                                    className={`
-                                  flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
-                                  ${
-                                    selectedCategory?.id === category.id
-                                      ? "bg-primary text-white"
-                                      : "bg-base-200 text-gray-700 hover:bg-base-300"
-                                  }
-                                `}
-                                  >
-                                    {category.name}
-                                  </button>
-                                ))}
+                        {/* Categories and Subcategories Container */}
+                        <div ref={expandedSessionIndex === index ? categoriesRowRef : undefined}>
+                          {/* Categories Row */}
+                          <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
+                            <div>
+                              {categoriesLoading ? (
+                                <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                                  {[...Array(6)].map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                                    />
+                                  ))}
+                                </div>
+                              ) : categoriesError ? (
+                                <div className="text-center py-4 text-red-500">
+                                  {categoriesError}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                  {categories.map((category) => (
+                                    <button
+                                      key={category.id}
+                                      onClick={() => handleCategoryClick(category)}
+                                      className={`
+                                    flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                                    ${
+                                      selectedCategory?.id === category.id
+                                        ? "bg-primary text-white"
+                                        : "bg-base-200 text-gray-700 hover:bg-base-300"
+                                    }
+                                  `}
+                                    >
+                                      {category.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Subcategories Row - Sticky */}
+                          {selectedCategory &&
+                            selectedCategory.subcategories.length > 0 && (
+                              <div className="sticky top-[70px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
+                                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                  <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
+                                    {selectedCategory.name}:
+                                  </span>
+                                  {selectedCategory.subcategories.map(
+                                    (subcategory) => (
+                                      <button
+                                        key={subcategory.id}
+                                        onClick={() =>
+                                          handleSubcategoryClick(subcategory)
+                                        }
+                                        className={`
+                                    flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
+                                    ${
+                                      selectedSubcategory?.id === subcategory.id
+                                        ? "bg-primary text-white"
+                                        : "bg-white text-primary hover:bg-secondary/20"
+                                    }
+                                  `}
+                                      >
+                                        {subcategory.name}
+                                        {selectedSubcategory?.id ===
+                                          subcategory.id && (
+                                          <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                                            ×
+                                          </span>
+                                        )}
+                                      </button>
+                                    )
+                                  )}
+                                </div>
                               </div>
                             )}
-                          </div>
                         </div>
-
-                        {/* Subcategories Row - Sticky */}
-                        {selectedCategory &&
-                          selectedCategory.subcategories.length > 0 && (
-                            <div className="sticky top-[70px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
-                              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                                <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
-                                  {selectedCategory.name}:
-                                </span>
-                                {selectedCategory.subcategories.map(
-                                  (subcategory) => (
-                                    <button
-                                      key={subcategory.id}
-                                      onClick={() =>
-                                        handleSubcategoryClick(subcategory)
-                                      }
-                                      className={`
-                                  flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-primary/50
-                                  ${
-                                    selectedSubcategory?.id === subcategory.id
-                                      ? "bg-primary text-white"
-                                      : "bg-white text-primary hover:bg-secondary/20"
-                                  }
-                                `}
-                                    >
-                                      {subcategory.name}
-                                      {selectedSubcategory?.id ===
-                                        subcategory.id && (
-                                        <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
-                                          ×
-                                        </span>
-                                      )}
-                                    </button>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          )}
 
                         {/* Menu Items */}
                         <div className="bg-base-100 rounded-xl p-4 mt-2">
@@ -2367,7 +2375,7 @@ export default function CateringOrderBuilder() {
                                 {menuItems.map((item, itemIdx) => (
                                   <div
                                     key={item.id}
-                                    ref={index === 0 && itemIdx === 0 ? firstMenuItemRef : undefined}
+                                    ref={expandedSessionIndex === index && itemIdx === 0 ? firstMenuItemRef : undefined}
                                   >
                                     <MenuItemCard
                                       item={item}
@@ -2725,6 +2733,34 @@ export default function CateringOrderBuilder() {
         currentStepIndex={tutorialStep ?? 0}
         totalSteps={getTutorialSteps().length}
       />
+
+      {/* Tutorial Help Button - Reset Tutorial */}
+      <button
+        onClick={() => {
+          localStorage.removeItem(TUTORIAL_STORAGE_KEY);
+          setNavMode("dates");
+          setSelectedDayDate(null);
+          setTutorialPhase("initial");
+          setTutorialStep(0);
+        }}
+        className="fixed bottom-4 left-4 md:bottom-8 md:left-8 w-10 h-10 md:w-12 md:h-12 bg-white border border-base-300 rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition-colors z-40"
+        title="Restart Tutorial"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 md:h-6 md:w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </button>
     </div>
   );
 }

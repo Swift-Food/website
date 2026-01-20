@@ -228,12 +228,14 @@ export default function TutorialTooltip({
 
         {/* Content */}
         <div className="relative">
-          {/* Step indicator */}
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-white/70">
-              Step {currentStepIndex + 1} of {totalSteps}
-            </span>
-          </div>
+          {/* Step indicator - only show if more than 1 step */}
+          {totalSteps > 1 && (
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-white/70">
+                Step {currentStepIndex + 1} of {totalSteps}
+              </span>
+            </div>
+          )}
 
           <h4 className="font-semibold text-base mb-1">{step.title}</h4>
           <p className="text-sm text-white/90 mb-4">{step.description}</p>
