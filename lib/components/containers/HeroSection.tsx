@@ -12,10 +12,39 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 overflow-hidden bg-white">
-      {/* ShaderGradient Background */}
-      <div className="fixed top-0 left-0 w-screen h-screen z-0 pointer-events-none">
-        <ShaderGradientCanvas style={{ pointerEvents: "none" }}>
+    <div className="relative pt-24 -mt-24">
+      {/* ShaderGradient Background - extends above for overscroll */}
+      <div className="absolute -top-48 left-0 right-0 bottom-0 z-0 pointer-events-none">
+        <ShaderGradientCanvas style={{ pointerEvents: "none", height: "calc(100% + 48px)" }}>
+          <ShaderGradient
+            animate="on"
+            brightness={1.2}
+            cAzimuthAngle={180}
+            cDistance={2.09}
+            cPolarAngle={120}
+            cameraZoom={1}
+            color1="#f7f9ff"
+            color2="#f3f2f8"
+            color3="#ebffff"
+            envPreset="city"
+            grain="off"
+            lightType="3d"
+            positionX={0}
+            positionY={1.8}
+            positionZ={0}
+            reflection={0.1}
+            rotationX={0}
+            rotationY={0}
+            rotationZ={-90}
+            type="plane"
+            uAmplitude={0}
+            uDensity={0.3}
+            uFrequency={5.5}
+            uSpeed={0.1}
+            uStrength={2.1}
+            uTime={0.2}
+          />
+          {/* Old waterPlane config:
           <ShaderGradient
             animate="on"
             brightness={1.3}
@@ -44,10 +73,13 @@ export default function HeroSection() {
             uStrength={2}
             uTime={0.2}
           />
+          */}
+
         </ShaderGradientCanvas>
       </div>
 
-      <div className="relative z-10 max-w-6xl px-4 md:px-6 text-center">
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12">
+        <div className="relative z-10 max-w-6xl px-4 md:px-6 text-center">
         <div className="flex flex-col items-center">
           <span
             className={`inline-block px-4 py-2 mb-6 md:mb-8 text-[9px] md:text-[10px] font-bold tracking-widest md:tracking-[0.25em] uppercase border border-gray-200 rounded-full bg-white text-gray-500 transition-all duration-1000 delay-100 leading-tight max-w-[280px] md:max-w-none ${
@@ -125,6 +157,7 @@ export default function HeroSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </a>
-    </section>
+      </section>
+    </div>
   );
 }
