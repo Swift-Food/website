@@ -30,12 +30,12 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`z-50 transition-all duration-300  ${
+        className={`z-50 transition-all duration-300 py-5  ${
           isHomePage
-            ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/40 backdrop-blur-sm border-gray-200 py-3" : "bg-transparent border-transparent py-5"}`
+            ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/40 backdrop-blur-sm border-gray-200" : "bg-transparent border-transparent"}`
             : isMenuPage
-              ? "sticky top-0 bg-white border-gray-200 py-3"
-              : "relative bg-white border-gray-200 py-3"
+              ? "sticky top-0 bg-white border-gray-200"
+              : "relative bg-white border-gray-200"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
