@@ -62,7 +62,10 @@ function getDietaryFiltersForProtein(proteinName: string): string[] {
  */
 function isProteinGroup(groupTitle: string): boolean {
   const lower = groupTitle.toLowerCase();
-  return lower.includes("protein") || lower.includes("meat") || lower.includes("choice of");
+  return lower.includes("protein") ||
+         lower.includes("meat") ||
+         lower.includes("choice") ||
+         lower.includes("choose");
 }
 
 /**
