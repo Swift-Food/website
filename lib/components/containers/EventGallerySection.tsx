@@ -83,12 +83,13 @@ export default function EventGallerySection() {
                 Scaled to your ambition
               </h2>
               <p className="text-gray-400 font-light text-lg">
-                From intimate 50-person workshops to massive 3,000-person multi-day
+                From intimate 50-portion workshops to massive 3,000-portion multi-day
                 hackathons.
               </p>
             </div>
             <button className="hidden md:block text-xs font-bold tracking-widest border-b border-gray-300 pb-1 hover:text-[#fa43ad] hover:border-[#fa43ad] transition-all uppercase">
-              View Case Studies
+              View Our Events
+              {/* View Case Studies */}
             </button>
           </div>
         </div>
