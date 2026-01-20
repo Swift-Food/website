@@ -55,35 +55,28 @@ export default function TutorialTooltip({
     // Calculate tooltip position based on specified position
     let top = 0;
     let left = 0;
-    let arrowTop = 0;
-    let arrowLeft = 0;
-
     const gap = 12; // Gap between tooltip and target
+
+    // Calculate ideal centered position
+    const targetCenterX = targetRect.left + targetRect.width / 2;
+    const targetCenterY = targetRect.top + targetRect.height / 2;
 
     switch (step.position) {
       case "top":
         top = targetRect.top - tooltipRect.height - gap;
-        left = targetRect.left + targetRect.width / 2 - tooltipRect.width / 2;
-        arrowTop = tooltipRect.height - 6;
-        arrowLeft = tooltipRect.width / 2 - 8;
+        left = targetCenterX - tooltipRect.width / 2;
         break;
       case "bottom":
         top = targetRect.bottom + gap;
-        left = targetRect.left + targetRect.width / 2 - tooltipRect.width / 2;
-        arrowTop = -6;
-        arrowLeft = tooltipRect.width / 2 - 8;
+        left = targetCenterX - tooltipRect.width / 2;
         break;
       case "left":
-        top = targetRect.top + targetRect.height / 2 - tooltipRect.height / 2;
+        top = targetCenterY - tooltipRect.height / 2;
         left = targetRect.left - tooltipRect.width - gap;
-        arrowTop = tooltipRect.height / 2 - 8;
-        arrowLeft = tooltipRect.width - 6;
         break;
       case "right":
-        top = targetRect.top + targetRect.height / 2 - tooltipRect.height / 2;
+        top = targetCenterY - tooltipRect.height / 2;
         left = targetRect.right + gap;
-        arrowTop = tooltipRect.height / 2 - 8;
-        arrowLeft = -6;
         break;
     }
 
@@ -96,6 +89,31 @@ export default function TutorialTooltip({
     if (top < viewportPadding) top = viewportPadding;
     if (top + tooltipRect.height > window.innerHeight - viewportPadding) {
       top = window.innerHeight - tooltipRect.height - viewportPadding;
+    }
+
+    // Calculate arrow position to point at target center
+    let arrowTop = 0;
+    let arrowLeft = 0;
+    const arrowSize = 8;
+
+    switch (step.position) {
+      case "top":
+        arrowTop = tooltipRect.height - 6;
+        // Arrow should point at target center, adjusted for tooltip shift
+        arrowLeft = Math.max(12, Math.min(tooltipRect.width - 20, targetCenterX - left - arrowSize));
+        break;
+      case "bottom":
+        arrowTop = -6;
+        arrowLeft = Math.max(12, Math.min(tooltipRect.width - 20, targetCenterX - left - arrowSize));
+        break;
+      case "left":
+        arrowLeft = tooltipRect.width - 6;
+        arrowTop = Math.max(12, Math.min(tooltipRect.height - 20, targetCenterY - top - arrowSize));
+        break;
+      case "right":
+        arrowLeft = -6;
+        arrowTop = Math.max(12, Math.min(tooltipRect.height - 20, targetCenterY - top - arrowSize));
+        break;
     }
 
     setPosition({ top, left });
