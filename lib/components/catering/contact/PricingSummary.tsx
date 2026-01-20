@@ -53,16 +53,24 @@ export default function PricingSummary({
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {!distanceInMiles ? (
-                <span className="text-warning font-medium">TBC</span>
+                <span className="text-base-content/50 text-xs italic">Enter address for quote</span>
               ) : (
                 <>
-                {deliveryBreakdown && (
+                  {deliveryBreakdown && (
                     <button
                       onClick={() => setShowDeliveryBreakdown(!showDeliveryBreakdown)}
-                      className="text-xs text-primary hover:underline whitespace-nowrap"
+                      className="text-base-content/40 hover:text-base-content/70"
                       type="button"
+                      aria-label={showDeliveryBreakdown ? "Hide breakdown" : "Show breakdown"}
                     >
-                      {showDeliveryBreakdown ? "hide" : "details"}
+                      <svg
+                        className={`w-4 h-4 transition-transform ${showDeliveryBreakdown ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </button>
                   )}
                   <span>£{pricing.deliveryFee.toFixed(2)}</span>
@@ -105,11 +113,20 @@ export default function PricingSummary({
         <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
           <span>Total</span>
           <div className="text-right">
-            <p>£{pricing.total.toFixed(2)}</p>
-            {(pricing.totalDiscount ?? 0) > 0 && (
-              <p className="text-xs line-through text-base-content/50">
-                £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
-              </p>
+            {!distanceInMiles ? (
+              <div>
+                <p>£{pricing.subtotal.toFixed(2)}</p>
+                <p className="text-xs font-normal text-base-content/50">+ delivery (address required)</p>
+              </div>
+            ) : (
+              <>
+                <p>£{pricing.total.toFixed(2)}</p>
+                {(pricing.totalDiscount ?? 0) > 0 && (
+                  <p className="text-xs line-through text-base-content/50">
+                    £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -88,6 +88,10 @@ function processMenuItemForPdf(
   const image = base64Image || originalImageUrl;
 
   const selectedAddons = menuItem.selectedAddons || [];
+
+  // Debug: log addon data to understand structure
+  console.log("[PDF DEBUG] Item:", menuItem.menuItemName, "qty:", menuItem.quantity);
+  console.log("[PDF DEBUG] selectedAddons:", JSON.stringify(selectedAddons, null, 2));
   const proteinAddons = selectedAddons.filter((addon: any) =>
     addon.groupTitle && isProteinGroup(addon.groupTitle)
   );
@@ -1319,11 +1323,16 @@ export async function transformLocalSessionsToPdfData(
         categoryMap.set(categoryName, []);
       }
 
+      // Calculate prices including addons
       const price = parseFloat((item as any).price || "0");
       const discountPrice = parseFloat((item as any).discountPrice || "0");
       const unitPrice =
         (item as any).isDiscount && discountPrice > 0 ? discountPrice : price;
-      const itemTotal = unitPrice * orderItem.quantity;
+      const addonTotal = ((item as any).selectedAddons || []).reduce(
+        (sum: number, addon: any) => sum + (addon.price || 0) * (addon.quantity || 0),
+        0
+      );
+      const itemTotal = (unitPrice * orderItem.quantity) + addonTotal;
       sessionTotal += itemTotal;
 
       // Use base64 image if available, otherwise use original URL
@@ -1338,15 +1347,33 @@ export async function transformLocalSessionsToPdfData(
         groupTitle: addon.groupTitle,
       }));
 
+      // Aggregate dietary filters from protein addons
+      const proteinAddons = ((item as any).selectedAddons || []).filter(
+        (addon: any) => addon.groupTitle && isProteinGroup(addon.groupTitle)
+      );
+      let dietaryFilters = (item as any).dietaryFilters || [];
+      if (proteinAddons.length > 0) {
+        const proteinDietaryFilters = new Set<string>();
+        proteinAddons.forEach((addon: any) => {
+          const filters = getDietaryFiltersForProtein(addon.name);
+          filters.forEach((f: string) => proteinDietaryFilters.add(f));
+        });
+        if (proteinDietaryFilters.size > 0) {
+          dietaryFilters = Array.from(proteinDietaryFilters);
+        }
+      }
+
       categoryMap.get(categoryName)!.push({
         quantity: orderItem.quantity,
         name: (item as any).menuItemName,
         description: (item as any).description,
         allergens: (item as any).allergens,
-        dietaryFilters: (item as any).dietaryFilters,
+        dietaryFilters,
         unitPrice,
         image: base64Image || originalImageUrl,
         addons: addons?.length > 0 ? addons : undefined,
+        cateringQuantityUnit: (item as any).cateringQuantityUnit || 1,
+        feedsPerUnit: (item as any).feedsPerUnit || 1,
       });
     }
 

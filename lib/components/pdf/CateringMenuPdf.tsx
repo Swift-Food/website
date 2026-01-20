@@ -153,6 +153,8 @@ export interface PdfMenuItem {
   unitPrice?: number;
   image?: string;
   addons?: PdfAddon[];
+  cateringQuantityUnit?: number;
+  feedsPerUnit?: number;
 }
 
 export interface PdfCategory {
@@ -319,6 +321,11 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 4,
   },
+  menuItemPortions: {
+    fontSize: 9,
+    color: "#666",
+    marginTop: 2,
+  },
   menuItemAddons: {
     fontSize: 9,
     color: "#444",
@@ -433,6 +440,12 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
     })
     .join("  |  ");
 
+  // Calculate portions and serves
+  const cateringQuantityUnit = item.cateringQuantityUnit || 1;
+  const feedsPerUnit = item.feedsPerUnit || 1;
+  const numPortions = Math.round(item.quantity / cateringQuantityUnit);
+  const totalServes = Math.round(numPortions * feedsPerUnit);
+
   return (
     <View style={styles.menuItem} wrap={false}>
       <View style={styles.menuItemContent}>
@@ -463,6 +476,9 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
             })}
           </View>
         )}
+        <Text style={styles.menuItemPortions}>
+          {numPortions} portion{numPortions !== 1 ? "s" : ""} • Serves ~{totalServes} people
+        </Text>
         {showPrice && item.unitPrice !== undefined && (
           <Text style={styles.menuItemPrice}>
             Unit Price £{" "}
