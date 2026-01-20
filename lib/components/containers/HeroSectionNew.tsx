@@ -168,8 +168,8 @@ const HeroSectionNew: React.FC = () => {
               }}
             >
               <p className="text-white/80 text-sm md:text-lg font-light leading-relaxed max-w-xl mb-10">
-                Plan, scale, and deliver world-class catering for{" "}
-                <br className="hidden md:block" /> up to 3,000 attendees in
+                Plan, order, and deliver world-class catering for{" "}
+                <br className="hidden md:block" /> 3,000 portions in
                 under a minute.
               </p>
 
