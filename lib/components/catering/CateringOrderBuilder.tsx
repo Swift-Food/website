@@ -2043,7 +2043,7 @@ export default function CateringOrderBuilder() {
                           {/* Subcategories Row - Sticky */}
                           {selectedCategory &&
                             selectedCategory.subcategories.length > 0 && (
-                              <div className="sticky top-[70px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
+                              <div className="sticky top-[52px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                   <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
                                     {selectedCategory.name}:
@@ -2257,7 +2257,7 @@ export default function CateringOrderBuilder() {
                           </div>
                         )}
 
-                        {/* Categories and Subcategories Container */}
+                        {/* Categories, Subcategories, and Menu Items Container */}
                         <div ref={expandedSessionIndex === index ? categoriesRowRef : undefined}>
                           {/* Categories Row */}
                           <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
@@ -2301,7 +2301,7 @@ export default function CateringOrderBuilder() {
                           {/* Subcategories Row - Sticky */}
                           {selectedCategory &&
                             selectedCategory.subcategories.length > 0 && (
-                              <div className="sticky top-[70px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
+                              <div className="sticky top-[52px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                   <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
                                     {selectedCategory.name}:
@@ -2335,9 +2335,8 @@ export default function CateringOrderBuilder() {
                                 </div>
                               </div>
                             )}
-                        </div>
 
-                        {/* Menu Items */}
+                          {/* Menu Items */}
                         <div className="bg-base-100 rounded-xl p-4 mt-2">
                           {menuItemsLoading ? (
                             <div className="text-center py-4">
@@ -2397,6 +2396,7 @@ export default function CateringOrderBuilder() {
                               </div>
                             </div>
                           )}
+                        </div>
                         </div>
                       </SessionAccordion>
                     ))}

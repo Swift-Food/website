@@ -17,7 +17,7 @@ export default function SocialProofSection() {
   return (
     <section
       id="social-proof"
-      className="py-20 bg-white border-y border-gray-100 overflow-hidden"
+      className="relative z-10 py-20 bg-white border-y border-gray-100 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 mb-10 text-center">
         <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-400">
