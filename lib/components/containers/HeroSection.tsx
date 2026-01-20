@@ -115,8 +115,9 @@ export default function HeroSection() {
               isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
             }`}
           >
-            Plan, scale, and deliver world-class catering for up to 3,000 attendees
-            in under a minute. Simple. Local. Reliable.
+            Plan, scale, and deliver world-class catering for up to 3,000 attendees in under a minute.
+            <br />
+            Simple. Local. Reliable.
           </p>
 
           <div

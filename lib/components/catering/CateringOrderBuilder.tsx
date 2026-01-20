@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
 import {
@@ -14,6 +14,7 @@ import { cateringService } from "@/services/api/catering.api";
 import MenuItemCard from "./MenuItemCard";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
+import TutorialTooltip, { TutorialStep } from "./TutorialTooltip";
 import SelectedItemsByCategory from "./SelectedItemsByCategory";
 import {
   LocalMealSession,
@@ -608,6 +609,23 @@ export default function CateringOrderBuilder() {
 
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  // Tutorial state
+  const TUTORIAL_STORAGE_KEY = "catering_tutorial_completed";
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
+  const [tutorialPhase, setTutorialPhase] = useState<
+    "initial" | "navigation" | "categories" | "menu_items" | "completed"
+  >("initial");
+
+  // Refs for tutorial targets
+  const addDayButtonRef = useRef<HTMLButtonElement>(null);
+  const addDayNavButtonRef = useRef<HTMLButtonElement>(null);
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+  const firstDayTabRef = useRef<HTMLButtonElement>(null);
+  const firstSessionPillRef = useRef<HTMLButtonElement>(null);
+  const addSessionNavButtonRef = useRef<HTMLButtonElement>(null);
+  const categoriesRowRef = useRef<HTMLDivElement>(null);
+  const firstMenuItemRef = useRef<HTMLDivElement>(null);
   // Get quantity for an item in the current session
   const getItemQuantity = (itemId: string): number => {
     const session = mealSessions[activeSessionIndex];
@@ -709,6 +727,182 @@ export default function CateringOrderBuilder() {
       }
     };
     fetchRestaurants();
+  }, []);
+
+  // Tutorial initialization - check if tutorial has been completed
+  useEffect(() => {
+    const tutorialCompleted = localStorage.getItem(TUTORIAL_STORAGE_KEY);
+    if (!tutorialCompleted && mealSessions.length === 1 && mealSessions[0].orderItems.length === 0) {
+      // Start tutorial if not completed and cart is empty
+      setTutorialPhase("initial");
+      setTutorialStep(0);
+    }
+  }, []);
+
+  // Tutorial step definitions for each phase
+  const getTutorialSteps = useCallback((): TutorialStep[] => {
+    switch (tutorialPhase) {
+      case "initial":
+        return [
+          {
+            id: "add-day",
+            targetRef: addDayNavButtonRef,
+            title: "Add a Day",
+            description:
+              "To add meal sessions to your catering order, first add which day you would like your delivery.",
+            position: "bottom",
+            requiresClick: true,
+            showSkip: true,
+          },
+        ];
+
+      case "navigation":
+        return [
+          {
+            id: "back-button",
+            targetRef: backButtonRef,
+            title: "View Your Days",
+            description:
+              "Click the back button to see all the days in your order.",
+            position: "bottom",
+            requiresClick: true,
+            showSkip: true,
+          },
+          {
+            id: "add-day-nav",
+            targetRef: addDayNavButtonRef,
+            title: "Add More Days",
+            description:
+              "You can add more days to your order by clicking here.",
+            position: "bottom",
+            showNext: true,
+            showSkip: true,
+          },
+          {
+            id: "day-tab",
+            targetRef: firstDayTabRef,
+            title: "Select a Day",
+            description:
+              "Click on a day to view the sessions scheduled for that day.",
+            position: "bottom",
+            requiresClick: true,
+            showSkip: true,
+          },
+          {
+            id: "session-pill",
+            targetRef: firstSessionPillRef,
+            title: "Go to Session",
+            description:
+              "Click on a session to jump directly to that session's menu order.",
+            position: "bottom",
+            requiresClick: true,
+            showSkip: true,
+          },
+          {
+            id: "add-session-nav",
+            targetRef: addSessionNavButtonRef,
+            title: "Add More Sessions",
+            description:
+              "You can add more meal sessions to this day by clicking here.",
+            position: "bottom",
+            showNext: true,
+            showSkip: true,
+          },
+        ];
+
+      case "categories":
+        return [
+          {
+            id: "categories",
+            targetRef: categoriesRowRef,
+            title: "Browse Categories",
+            description:
+              "Browse food items by category. Click on a category to see available items, and use subcategories to filter further.",
+            position: "bottom",
+            showNext: true,
+            showSkip: true,
+            highlightPadding: 12,
+          },
+        ];
+
+      case "menu_items":
+        return [
+          {
+            id: "menu-item",
+            targetRef: firstMenuItemRef,
+            title: "Add Items to Your Order",
+            description:
+              "Click on a menu item card to see more details, or click the + button to quickly add it to your session.",
+            position: "top",
+            showNext: true,
+            showSkip: false,
+            highlightPadding: 8,
+          },
+        ];
+
+      default:
+        return [];
+    }
+  }, [tutorialPhase]);
+
+  // Get current tutorial step
+  const currentTutorialStep = useMemo(() => {
+    if (tutorialStep === null || tutorialPhase === "completed") return null;
+    const steps = getTutorialSteps();
+    return steps[tutorialStep] || null;
+  }, [tutorialStep, tutorialPhase, getTutorialSteps]);
+
+  // Handle tutorial next step
+  const handleTutorialNext = useCallback(() => {
+    const steps = getTutorialSteps();
+    const nextStep = (tutorialStep ?? 0) + 1;
+
+    if (nextStep >= steps.length) {
+      // Move to next phase or complete
+      switch (tutorialPhase) {
+        case "initial":
+          // After adding a day, wait for the session to be created
+          // The navigation phase will be triggered by handleConfirmAddDay
+          setTutorialStep(null);
+          break;
+        case "navigation":
+          // Move to categories phase
+          setTutorialPhase("categories");
+          setTutorialStep(0);
+          break;
+        case "categories":
+          // Move to menu items phase
+          setTutorialPhase("menu_items");
+          setTutorialStep(0);
+          break;
+        case "menu_items":
+          // Tutorial complete
+          setTutorialPhase("completed");
+          setTutorialStep(null);
+          localStorage.setItem(TUTORIAL_STORAGE_KEY, "true");
+          break;
+        default:
+          break;
+      }
+    } else {
+      setTutorialStep(nextStep);
+    }
+  }, [tutorialStep, tutorialPhase, getTutorialSteps]);
+
+  // Handle skip tutorial
+  const handleSkipTutorial = useCallback(() => {
+    setTutorialPhase("completed");
+    setTutorialStep(null);
+    localStorage.setItem(TUTORIAL_STORAGE_KEY, "true");
+  }, []);
+
+  // Trigger navigation tutorial after day is created
+  const triggerNavigationTutorial = useCallback(() => {
+    // Small delay to allow UI to update
+    setTimeout(() => {
+      setTutorialPhase("navigation");
+      setTutorialStep(0);
+    }, 500);
   }, []);
 
   // Detect when sticky nav becomes stuck
@@ -1122,6 +1316,7 @@ export default function CateringOrderBuilder() {
 
   const handleEditorClose = (cancelled: boolean) => {
     const sessionIndex = editingSessionIndex;
+    const wasNewSession = isNewSession;
 
     // If cancelled and this was a new session, remove it
     if (cancelled && isNewSession && sessionIndex !== null) {
@@ -1156,6 +1351,11 @@ export default function CateringOrderBuilder() {
           });
         }
       }, 150);
+
+      // Trigger navigation tutorial if this was the first session created
+      if (wasNewSession && tutorialPhase === "initial") {
+        triggerNavigationTutorial();
+      }
     }
   };
 
@@ -1514,9 +1714,10 @@ export default function CateringOrderBuilder() {
             {navMode === "dates" ? (
               <>
                 {/* Date Tabs */}
-                {dayGroups.filter((day) => day.date !== "unscheduled").map((day) => (
+                {dayGroups.filter((day) => day.date !== "unscheduled").map((day, idx) => (
                   <button
                     key={day.date}
+                    ref={idx === 0 ? firstDayTabRef : undefined}
                     onClick={() => handleDateClick(day.date)}
                     className="flex-shrink-0 px-4 py-2 rounded-lg bg-base-200 text-gray-600 hover:bg-primary/10 transition-all"
                   >
@@ -1528,6 +1729,7 @@ export default function CateringOrderBuilder() {
                 ))}
                 {/* Add Day Button */}
                 <button
+                  ref={addDayNavButtonRef}
                   onClick={handleAddDay}
                   className="flex-shrink-0 px-4 py-2 rounded-lg border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors"
                 >
@@ -1539,6 +1741,7 @@ export default function CateringOrderBuilder() {
               <>
                 {/* Back Button - matches height of pink container */}
                 <button
+                  ref={backButtonRef}
                   onClick={handleBackToDates}
                   className="flex-shrink-0 w-10 self-stretch rounded-lg bg-base-200 text-gray-600 hover:bg-primary/10 transition-all flex items-center justify-center"
                 >
@@ -1575,6 +1778,10 @@ export default function CateringOrderBuilder() {
                           ref={(el) => {
                             if (el) sessionButtonRefs.current.set(index, el);
                             else sessionButtonRefs.current.delete(index);
+                            // Set first session pill ref for tutorial
+                            if (i === 0 && el) {
+                              (firstSessionPillRef as React.MutableRefObject<HTMLButtonElement | null>).current = el;
+                            }
                           }}
                           onClick={() => handleSessionPillClick(index)}
                           style={{ animationDelay: `${(i + 1) * 50}ms` }}
@@ -1599,6 +1806,7 @@ export default function CateringOrderBuilder() {
                 {/* Add Session button - outside the pink container */}
                 {selectedDayDate && selectedDayDate !== "unscheduled" && (
                   <button
+                    ref={addSessionNavButtonRef}
                     onClick={() => handleAddSessionToDay(selectedDayDate)}
                     className="flex-shrink-0 px-2.5 py-1 self-stretch rounded-lg border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors animate-[fadeIn_0.3s_ease-out_0.2s_both] flex flex-col items-center justify-center"
                   >
@@ -2042,7 +2250,10 @@ export default function CateringOrderBuilder() {
                         )}
 
                         {/* Categories Row */}
-                        <div className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1">
+                        <div
+                          ref={index === 0 ? categoriesRowRef : undefined}
+                          className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1"
+                        >
                           <div>
                             {categoriesLoading ? (
                               <div className="flex items-center gap-3 overflow-x-auto pb-2">
@@ -2153,23 +2364,27 @@ export default function CateringOrderBuilder() {
                                   selectedCategory.name}
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {menuItems.map((item) => (
-                                  <MenuItemCard
+                                {menuItems.map((item, itemIdx) => (
+                                  <div
                                     key={item.id}
-                                    item={item}
-                                    quantity={getItemQuantity(item.id)}
-                                    isExpanded={expandedItemId === item.id}
-                                    onToggleExpand={() =>
-                                      setExpandedItemId(
-                                        expandedItemId === item.id
-                                          ? null
-                                          : item.id
-                                      )
-                                    }
-                                    onAddItem={handleAddItem}
-                                    onUpdateQuantity={handleUpdateQuantity}
-                                    onAddOrderPress={handleAddOrderPress}
-                                  />
+                                    ref={index === 0 && itemIdx === 0 ? firstMenuItemRef : undefined}
+                                  >
+                                    <MenuItemCard
+                                      item={item}
+                                      quantity={getItemQuantity(item.id)}
+                                      isExpanded={expandedItemId === item.id}
+                                      onToggleExpand={() =>
+                                        setExpandedItemId(
+                                          expandedItemId === item.id
+                                            ? null
+                                            : item.id
+                                        )
+                                      }
+                                      onAddItem={handleAddItem}
+                                      onUpdateQuantity={handleUpdateQuantity}
+                                      onAddOrderPress={handleAddOrderPress}
+                                    />
+                                  </div>
                                 ))}
                               </div>
                             </div>
@@ -2201,6 +2416,7 @@ export default function CateringOrderBuilder() {
           {/* Add Day at bottom */}
           <div className={`relative mt-6 ${totalDays > 0 ? "md:ml-14" : ""}`}>
             <button
+              ref={addDayButtonRef}
               onClick={handleAddDay}
               className="w-full p-4 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
             >
@@ -2500,6 +2716,15 @@ export default function CateringOrderBuilder() {
           </div>
         </button>
       )}
+
+      {/* Tutorial Tooltip */}
+      <TutorialTooltip
+        step={currentTutorialStep}
+        onNext={handleTutorialNext}
+        onSkip={handleSkipTutorial}
+        currentStepIndex={tutorialStep ?? 0}
+        totalSteps={getTutorialSteps().length}
+      />
     </div>
   );
 }
