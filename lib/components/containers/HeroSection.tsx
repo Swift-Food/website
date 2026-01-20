@@ -6,15 +6,19 @@ import { ShaderGradientCanvas, ShaderGradient } from "shadergradient";
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);
+  const [gradientReady, setGradientReady] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    // Delay showing the gradient to hide the initial shader compilation/render
+    const timer = setTimeout(() => setGradientReady(true), 400);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="relative h-[100dvh] min-h-[600px]">
       {/* ShaderGradient Background - extends above for overscroll */}
-      <div className="absolute -top-24 left-0 right-0 bottom-0 z-0 pointer-events-none">
+      <div className={`absolute -top-24 left-0 right-0 bottom-0 z-0 pointer-events-none transition-opacity duration-500 ${gradientReady ? 'opacity-100' : 'opacity-0'}`}>
         <ShaderGradientCanvas style={{ pointerEvents: "none", height: "calc(100% + 96px)" }}>
           <ShaderGradient
             animate="on"
