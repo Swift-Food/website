@@ -8,6 +8,153 @@
 import { CateringOrderResponse } from "@/types/api";
 import { PricingOrderItem } from "@/types/api/pricing.api.types";
 
+// =============================================================================
+// PROTEIN TO DIETARY FILTER MAPPING
+// Used to split items by protein choice and assign correct dietary tags
+// =============================================================================
+const PROTEIN_DIETARY_MAP: Record<string, string[]> = {
+  // Non-vegetarian proteins
+  chicken: ["nonvegetarian"],
+  beef: ["nonvegetarian"],
+  lamb: ["nonvegetarian"],
+  pork: ["nonvegetarian"],
+  duck: ["nonvegetarian"],
+  turkey: ["nonvegetarian"],
+  meat: ["nonvegetarian"],
+  // Pescatarian proteins
+  fish: ["pescatarian"],
+  salmon: ["pescatarian"],
+  tuna: ["pescatarian"],
+  prawns: ["pescatarian"],
+  shrimp: ["pescatarian"],
+  seafood: ["pescatarian"],
+  cod: ["pescatarian"],
+  // Vegan proteins
+  tofu: ["vegan", "vegetarian"],
+  tempeh: ["vegan", "vegetarian"],
+  "plant-based": ["vegan", "vegetarian"],
+  "plant based": ["vegan", "vegetarian"],
+  seitan: ["vegan", "vegetarian"],
+  jackfruit: ["vegan", "vegetarian"],
+  // Vegetarian proteins
+  paneer: ["vegetarian"],
+  egg: ["vegetarian"],
+  eggs: ["vegetarian"],
+  halloumi: ["vegetarian"],
+  cheese: ["vegetarian"],
+};
+
+/**
+ * Get dietary filters for a protein name
+ */
+function getDietaryFiltersForProtein(proteinName: string): string[] {
+  const lowerName = proteinName.toLowerCase().trim();
+  for (const [key, filters] of Object.entries(PROTEIN_DIETARY_MAP)) {
+    if (lowerName.includes(key)) {
+      return filters;
+    }
+  }
+  return []; // Unknown protein - no dietary filter
+}
+
+/**
+ * Check if a groupTitle indicates a protein choice
+ */
+function isProteinGroup(groupTitle: string): boolean {
+  const lower = groupTitle.toLowerCase();
+  return lower.includes("protein") || lower.includes("meat") || lower.includes("choice of");
+}
+
+/**
+ * Process a menu item and return PDF items (may split by protein)
+ * Returns array because one menu item may become multiple PDF items when split by protein
+ */
+interface ProcessedPdfItem {
+  item: PdfMenuItem;
+  itemTotal: number;
+}
+
+function processMenuItemForPdf(
+  menuItem: any,
+  imageMap: Map<string, string | null>
+): ProcessedPdfItem[] {
+  const results: ProcessedPdfItem[] = [];
+
+  const originalImageUrl = menuItem.menuItemImage;
+  const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
+  const image = base64Image || originalImageUrl;
+
+  const selectedAddons = menuItem.selectedAddons || [];
+  const proteinAddons = selectedAddons.filter((addon: any) =>
+    addon.groupTitle && isProteinGroup(addon.groupTitle)
+  );
+  const nonProteinAddons = selectedAddons.filter((addon: any) =>
+    !addon.groupTitle || !isProteinGroup(addon.groupTitle)
+  );
+
+  // Determine if we need to split by protein
+  const shouldSplit = proteinAddons.length > 1 ||
+    (proteinAddons.length === 1 && proteinAddons[0].quantity < menuItem.quantity);
+
+  if (shouldSplit) {
+    // Split into separate items per protein type
+    for (const proteinAddon of proteinAddons) {
+      const qty = proteinAddon.quantity || 1;
+      const unitPrice = menuItem.customerUnitPrice || 0;
+      const dietaryFilters = getDietaryFiltersForProtein(proteinAddon.name);
+
+      // Proportionally distribute non-protein addons
+      const ratio = qty / menuItem.quantity;
+      const otherAddons = nonProteinAddons
+        .map((addon: any) => ({
+          name: addon.name,
+          quantity: Math.round((addon.quantity || 1) * ratio),
+          price: addon.customerUnitPrice || addon.price,
+          groupTitle: addon.groupTitle,
+        }))
+        .filter((a: any) => a.quantity > 0);
+
+      results.push({
+        item: {
+          quantity: qty,
+          name: `${menuItem.menuItemName} (${proteinAddon.name})`,
+          description: menuItem.description,
+          allergens: menuItem.allergens,
+          dietaryFilters: dietaryFilters.length > 0 ? dietaryFilters : menuItem.dietaryFilters,
+          unitPrice,
+          image,
+          addons: otherAddons.length > 0 ? otherAddons : undefined,
+        },
+        itemTotal: unitPrice * qty,
+      });
+    }
+  } else {
+    // No split needed - return single item
+    const addons = selectedAddons.map((addon: any) => ({
+      name: addon.name,
+      quantity: addon.quantity || 1,
+      price: addon.customerUnitPrice || addon.price,
+      groupTitle: addon.groupTitle,
+    }));
+
+    results.push({
+      item: {
+        quantity: menuItem.quantity,
+        name: menuItem.menuItemName,
+        description: menuItem.description,
+        allergens: menuItem.allergens,
+        dietaryFilters: menuItem.dietaryFilters,
+        unitPrice: menuItem.customerUnitPrice,
+        image,
+        addons: addons.length > 0 ? addons : undefined,
+      },
+      itemTotal: menuItem.customerTotalPrice || 0,
+    });
+  }
+
+  return results;
+}
+
 interface MenuItemForPdf {
   name: string;
   quantity: number;
@@ -908,32 +1055,12 @@ export async function transformOrderToPdfData(
             categoryMap.set(categoryName, []);
           }
 
-          // Calculate item total (unit price × quantity + addons)
-          const itemTotal = menuItem.customerTotalPrice || 0;
-          sessionItemsSubtotal += itemTotal;
-
-          // Transform addons for PDF
-          const addons = (menuItem as any).selectedAddons?.map((addon: any) => ({
-            name: addon.name,
-            quantity: addon.quantity || 1,
-            price: addon.customerUnitPrice || addon.price,
-            groupTitle: addon.groupTitle,
-          }));
-
-          // Use base64 image if available, otherwise use original URL
-          const originalImageUrl = menuItem.menuItemImage;
-          const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
-
-          categoryMap.get(categoryName)!.push({
-            quantity: menuItem.quantity,
-            name: menuItem.menuItemName,
-            description: (menuItem as any).description,
-            allergens: (menuItem as any).allergens,
-            dietaryFilters: (menuItem as any).dietaryFilters,
-            unitPrice: menuItem.customerUnitPrice,
-            image: base64Image || originalImageUrl,
-            addons: addons?.length > 0 ? addons : undefined,
-          });
+          // Process item (handles protein splitting automatically)
+          const processedItems = processMenuItemForPdf(menuItem, imageMap);
+          for (const { item, itemTotal } of processedItems) {
+            categoryMap.get(categoryName)!.push(item);
+            sessionItemsSubtotal += itemTotal;
+          }
         }
       }
 
@@ -968,32 +1095,12 @@ export async function transformOrderToPdfData(
           categoryMap.set(categoryName, []);
         }
 
-        // Calculate item total
-        const itemTotal = menuItem.customerTotalPrice || 0;
-        itemsSubtotal += itemTotal;
-
-        // Transform addons for PDF
-        const addons = (menuItem as any).selectedAddons?.map((addon: any) => ({
-          name: addon.name,
-          quantity: addon.quantity || 1,
-          price: addon.customerUnitPrice || addon.price,
-          groupTitle: addon.groupTitle,
-        }));
-
-        // Use base64 image if available, otherwise use original URL
-        const originalImageUrl = menuItem.menuItemImage;
-        const base64Image = originalImageUrl ? imageMap.get(originalImageUrl) : null;
-
-        categoryMap.get(categoryName)!.push({
-          quantity: menuItem.quantity,
-          name: menuItem.menuItemName,
-          description: (menuItem as any).description,
-          allergens: (menuItem as any).allergens,
-          dietaryFilters: (menuItem as any).dietaryFilters,
-          unitPrice: menuItem.customerUnitPrice,
-          image: base64Image || originalImageUrl,
-          addons: addons?.length > 0 ? addons : undefined,
-        });
+        // Process item (handles protein splitting automatically)
+        const processedItems = processMenuItemForPdf(menuItem, imageMap);
+        for (const { item, itemTotal } of processedItems) {
+          categoryMap.get(categoryName)!.push(item);
+          itemsSubtotal += itemTotal;
+        }
       }
     }
 
