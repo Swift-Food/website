@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ShaderGradientCanvas, ShaderGradient } from "shadergradient";
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -12,10 +13,39 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 overflow-hidden bg-white">
-      {/* Abstract Background Accents */}
-      <div className="absolute inset-0 grid-pattern opacity-40 z-0"></div>
-      <div className="absolute top-1/4 -right-24 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-pink-50 rounded-full blur-[80px] md:blur-[120px] z-0 opacity-70 animate-float"></div>
-      <div className="absolute bottom-1/4 -left-24 w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-gray-50 rounded-full blur-[60px] md:blur-[100px] z-0 opacity-70 animate-float-alt"></div>
+      {/* ShaderGradient Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <ShaderGradientCanvas style={{ pointerEvents: "none" }}>
+          <ShaderGradient
+            animate="on"
+            brightness={1.3}
+            cAzimuthAngle={180}
+            cDistance={2.9}
+            cPolarAngle={120}
+            cameraZoom={1}
+            color1="#ebedff"
+            color2="#f3f2f8"
+            color3="#dbf8ff"
+            envPreset="city"
+            grain="off"
+            lightType="3d"
+            positionX={0}
+            positionY={1.8}
+            positionZ={0}
+            reflection={0.1}
+            rotationX={0}
+            rotationY={0}
+            rotationZ={-90}
+            type="waterPlane"
+            uAmplitude={0}
+            uDensity={2}
+            uFrequency={5.5}
+            uSpeed={0.1}
+            uStrength={2}
+            uTime={0.2}
+          />
+        </ShaderGradientCanvas>
+      </div>
 
       <div className="relative z-10 max-w-6xl px-4 md:px-6 text-center">
         <div className="flex flex-col items-center">
