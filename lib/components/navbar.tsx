@@ -117,7 +117,7 @@ export default function Navbar() {
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200 py-4 px-4">
+          <div className="md:hidden bg-white py-4 px-4">
             <div className="flex flex-col space-y-4">
               <Link
                 href="/menu"
