@@ -3,89 +3,97 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
+const steps = [
+  { label: "SUBMITTED", status: "Received", pending: "Waiting" },
+  { label: "REVIEWING", status: "Approved", pending: "Processing" },
+  { label: "PAYMENT", status: "Processed", pending: "Waiting" },
+  { label: "CONFIRMED", status: "Preparing", pending: "Waiting" },
+  { label: "DELIVERED", status: "Complete", pending: "Waiting" },
+];
+
 function ProgressBarDemo() {
-  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setProgress((prev) => (prev >= 100 ? 0 : prev + 1));
-    }, 40);
+      setCurrentStep((prev) => (prev >= steps.length ? 0 : prev + 0.03));
+    }, 80);
     return () => clearInterval(interval);
   }, []);
 
+  const activeStep = Math.floor(currentStep);
+
   return (
-    <div className="w-full h-full flex flex-col justify-center p-10 bg-[#0a0a0a] text-white font-mono text-[10px] overflow-hidden">
-      <div className="flex justify-between mb-3">
-        <span className="tracking-widest">ORDER #4920 STATUS</span>
-        <span className="text-[#fa43ad] font-bold">{progress}%</span>
+    <div className="w-full h-full flex flex-col justify-center p-8 bg-[#0a0a0a] text-white font-mono">
+      {/* Header */}
+      <div className="flex justify-between items-start mb-10">
+        <div>
+          <div className="text-[10px] text-white/40 tracking-[0.2em] mb-1">ORDER</div>
+          <div className="text-2xl font-bold tracking-tight">#4920</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#fa43ad] animate-pulse shadow-[0_0_10px_rgba(250,67,173,0.6)]" />
+          <span className="text-[10px] text-white/40 tracking-widest">LIVE</span>
+        </div>
       </div>
-      <div className="w-full h-8 border border-white/5 p-1 relative">
-        <div
-          className="h-full bg-[#fa43ad] transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(250,67,173,0.4)]"
-          style={{ width: `${progress}%` }}
-        ></div>
+
+      {/* Progress bar */}
+      <div className="relative mb-10">
+        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[#fa43ad] to-[#fb6fbb] transition-all duration-300 ease-out shadow-[0_0_20px_rgba(250,67,173,0.5)]"
+            style={{ width: `${(currentStep / steps.length) * 100}%` }}
+          />
+        </div>
       </div>
-      <div className="mt-10 space-y-4">
-        <div
-          className={`flex justify-between items-center transition-opacity duration-300 ${
-            progress > 10 ? "opacity-100" : "opacity-20"
-          }`}
-        >
-          <span className="flex items-center gap-2">
+
+      {/* Steps */}
+      <div className="space-y-4">
+        {steps.map((step, index) => {
+          const isComplete = index < activeStep;
+          const isCurrent = index === activeStep;
+          const isPending = index > activeStep;
+
+          return (
             <div
-              className={`w-1.5 h-1.5 rounded-full ${
-                progress > 25 ? "bg-[#fa43ad]" : "bg-white"
+              key={step.label}
+              className={`flex items-center justify-between transition-all duration-500 ${
+                isPending ? "opacity-30" : "opacity-100"
               }`}
-            ></div>
-            PENDING REVIEW
-          </span>
-          <span className="text-[9px]">{progress > 25 ? "APPROVED" : "REVIEWING"}</span>
-        </div>
-        <div
-          className={`flex justify-between items-center transition-opacity duration-300 ${
-            progress > 30 ? "opacity-100" : "opacity-20"
-          }`}
-        >
-          <span className="flex items-center gap-2">
-            <div
-              className={`w-1.5 h-1.5 rounded-full ${
-                progress > 50 ? "bg-[#fa43ad]" : "bg-white"
-              }`}
-            ></div>
-            PAYMENT
-          </span>
-          <span className="text-[9px]">{progress > 50 ? "COMPLETE" : "PROCESSING"}</span>
-        </div>
-        <div
-          className={`flex justify-between items-center transition-opacity duration-300 ${
-            progress > 55 ? "opacity-100" : "opacity-20"
-          }`}
-        >
-          <span className="flex items-center gap-2">
-            <div
-              className={`w-1.5 h-1.5 rounded-full ${
-                progress > 75 ? "bg-[#fa43ad]" : "bg-white"
-              }`}
-            ></div>
-            OUT FOR DELIVERY
-          </span>
-          <span className="text-[9px]">{progress > 75 ? "ON THE WAY" : "QUEUED"}</span>
-        </div>
-        <div
-          className={`flex justify-between items-center transition-opacity duration-300 ${
-            progress > 80 ? "opacity-100" : "opacity-20"
-          }`}
-        >
-          <span className="flex items-center gap-2">
-            <div
-              className={`w-1.5 h-1.5 rounded-full ${
-                progress >= 100 ? "bg-[#fa43ad]" : "bg-white"
-              }`}
-            ></div>
-            ARRIVAL
-          </span>
-          <span className="text-[9px]">{progress >= 100 ? "ARRIVED" : "ETA 12:45"}</span>
-        </div>
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                    isComplete
+                      ? "border-[#fa43ad] bg-[#fa43ad]"
+                      : isCurrent
+                      ? "border-[#fa43ad] bg-transparent"
+                      : "border-white/20 bg-transparent"
+                  }`}
+                >
+                  {isComplete && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  {isCurrent && (
+                    <div className="w-2 h-2 rounded-full bg-[#fa43ad] animate-pulse" />
+                  )}
+                </div>
+                <span className={`text-[11px] tracking-wider ${isCurrent ? "text-white" : "text-white/60"}`}>
+                  {step.label}
+                </span>
+              </div>
+              <span
+                className={`text-[10px] tracking-wide ${
+                  isComplete ? "text-[#fa43ad]" : isCurrent ? "text-white/80" : "text-white/30"
+                }`}
+              >
+                {isComplete ? step.status : step.pending}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -201,11 +209,8 @@ export default function FeatureDemosSection() {
             className={`flex flex-col reveal ${isRevealed ? "active" : ""}`}
             style={{ transitionDelay: "400ms" }}
           >
-            <div className="aspect-square bg-black mb-10 border border-black overflow-hidden relative shadow-2xl group transition-all duration-700">
+            <div className="aspect-square bg-[#0a0a0a] mb-10 border border-white/5 overflow-hidden relative shadow-2xl group transition-all duration-700">
               <ProgressBarDemo />
-              <div className="absolute top-4 right-4 text-[8px] text-[#fa43ad]/50 uppercase tracking-widest font-mono group-hover:text-[#fa43ad] transition-colors">
-                Live Feed Active
-              </div>
             </div>
             <h3 className="text-2xl font-black tracking-tighter mb-4 uppercase">
               Mission Control
