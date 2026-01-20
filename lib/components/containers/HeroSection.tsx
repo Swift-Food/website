@@ -63,7 +63,11 @@ export default function HeroSection() {
                 isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
               }`}
             >
-              The default <span className="text-[#fa43ad]">caterer</span>
+              The default
+            </span>
+            <span className={`block transition-all duration-1000 delay-400 transform text-primary ${ isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0" }`}
+            > 
+            caterer
             </span>
             <span
               className={`block transition-all duration-1000 delay-500 transform ${

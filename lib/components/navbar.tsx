@@ -30,7 +30,7 @@ export default function Navbar() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
           isScrolled || !isHomePage
-            ? "bg-white/80 backdrop-blur-md border-gray-200 py-3"
+            ? "bg-white/40 backdrop-blur-sm border-gray-200 py-3"
             : "bg-transparent border-transparent py-5"
         }`}
       >
