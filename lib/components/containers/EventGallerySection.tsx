@@ -8,6 +8,7 @@ export default function EventGallerySection() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const isMobile = window.innerWidth < 768;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -15,7 +16,7 @@ export default function EventGallerySection() {
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.3 }
+      { threshold: isMobile ? 0.1 : 0.3 }
     );
 
     if (sectionRef.current) {
