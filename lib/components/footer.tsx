@@ -51,6 +51,11 @@ export default function Footer() {
               Contact
             </h4>
             <ul className="space-y-4 text-sm text-gray-500 font-light">
+            <li>
+                <Link href="/contact" className="hover:text-black transition-colors">
+                  Contact Us
+                </Link>
+              </li>
               <li>
                 <a
                   href="mailto:swiftfooduk@gmail.com"
@@ -59,11 +64,7 @@ export default function Footer() {
                   swiftfooduk@gmail.com
                 </a>
               </li>
-              <li>
-                <Link href="/contact" className="hover:text-black transition-colors">
-                  Contact Us
-                </Link>
-              </li>
+             
               <li>
                 <a
                   href="https://www.instagram.com/swiftfood_uk/"
