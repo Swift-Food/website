@@ -25,7 +25,7 @@ export default function SocialProofSection() {
 
       <div className="marquee-container">
         <div className="marquee-content flex items-center">
-          {[...logos, ...logos].map((logo, idx) => (
+          {[...logos, ...logos, ...logos, ...logos, ...logos, ...logos].map((logo, idx) => (
             <div
               key={idx}
               className="mx-12 flex items-center gap-3 transition-all cursor-default"
