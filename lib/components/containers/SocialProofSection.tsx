@@ -28,17 +28,9 @@ export default function SocialProofSection() {
           {[...logos, ...logos].map((logo, idx) => (
             <div
               key={idx}
-              className="mx-12 flex items-center gap-3 grayscale hover:grayscale-0 transition-all cursor-default"
+              className="mx-12 flex items-center gap-3 transition-all cursor-default"
             >
-              {logo.image && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={logo.image}
-                  alt={logo.name}
-                  className="h-8 md:h-10 w-auto object-contain"
-                />
-              )}
-              <span className="text-3xl md:text-4xl font-black text-black hover:text-[#fa43ad] transition-colors">
+              <span className="text-3xl md:text-4xl font-black text-zinc-500 hover:text-[#fa43ad] transition-colors">
                 {logo.name.toUpperCase()}
               </span>
             </div>
