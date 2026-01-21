@@ -15,7 +15,7 @@ export default function EventGallerySection() {
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.65 }
+      { threshold: 0.3 }
     );
 
     if (sectionRef.current) {
