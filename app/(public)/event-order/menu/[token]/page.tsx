@@ -164,6 +164,7 @@ export default function FullMenuPage() {
         </h4>
         <div className="space-y-3">
           {items.map((item: any, idx: number) => {
+            console.log("item is", JSON.stringify(item))
             const cateringUnit = item.cateringQuantityUnit || 1;
             const feedsPerUnit = item.feedsPerUnit || 10;
             const numUnits = item.quantity / cateringUnit;

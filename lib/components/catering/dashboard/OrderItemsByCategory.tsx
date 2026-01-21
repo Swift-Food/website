@@ -212,8 +212,9 @@ export default function OrderItemsByCategory({
   // Render a single menu item
   const renderItemRow = (groupedItem: GroupedItem, keyPrefix: string) => {
     const { item, restaurantName } = groupedItem;
+
     const cateringUnit = item.cateringQuantityUnit || 1;
-    const feedsPerUnit = item.feedsPerUnit || 10;
+    const feedsPerUnit = item.feedsPerUnit || 1;
     const numUnits = item.quantity / cateringUnit;
     const totalFeeds = numUnits * feedsPerUnit;
 

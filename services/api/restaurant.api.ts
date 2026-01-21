@@ -182,6 +182,8 @@ export const restaurantApi = {
     restaurantId: string,
     selectedAccountId?: string | null
   ): Promise<CateringOrderResponse[]> => {
+    console.log("id sent", restaurantId, selectedAccountId)
+    console.log("url sent", `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`)
     const url = selectedAccountId
       ? `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}?accountId=${selectedAccountId}`
       : `${API_BASE_URL}/catering-orders/restaurant/${restaurantId}`;

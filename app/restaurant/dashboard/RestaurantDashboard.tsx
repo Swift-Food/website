@@ -24,6 +24,11 @@ import { RefundRequestsList } from "./refunds/refundRequestList";
 import { TaxInvoicesList } from "./tax-invoices/TaxInvoicesList";
 import { CateringOrderResponse } from "@/types/api";
 
+// Restaurant IDs that are exempt from Stripe onboarding requirement
+const STRIPE_EXEMPT_RESTAURANT_IDS: string[] = [
+  "4a5c55ab-dc2c-4ff1-b010-863707308ad8"
+];
+
 interface RestaurantDashboardProps {
   userId: string;
   restaurantUserId: string;
@@ -215,7 +220,9 @@ export const RestaurantDashboard = ({
     );
   }
 
-  if (!stripeStatus?.complete) {
+  const isStripeExempt = STRIPE_EXEMPT_RESTAURANT_IDS.includes(restaurantId);
+
+  if (!stripeStatus?.complete && !isStripeExempt) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-6xl mx-auto py-8">

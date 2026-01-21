@@ -115,8 +115,9 @@ export default function OrderItems({ order }: OrderItemsProps) {
             <div className="space-y-2 sm:space-y-3">
               {restaurant.menuItems.map((item: any, itemIdx: number) => {
                 const cateringUnit = item.cateringQuantityUnit || 1;
-                const feedsPerUnit = item.feedsPerUnit || 10;
+                const feedsPerUnit = item.feedsPerUnit || 1;
                 const numUnits = item.quantity / cateringUnit;
+                console.log("the item is", JSON.stringify(item))
                 const totalFeeds = numUnits * feedsPerUnit;
 
                 // Support both 'addons' and 'selectedAddons' property names
