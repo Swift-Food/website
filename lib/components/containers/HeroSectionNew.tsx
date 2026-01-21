@@ -257,15 +257,15 @@ const HeroSectionNew: React.FC = () => {
               willChange: "transform",
             }}
           >
-            <p className="text-[#ff4fa5] text-[10px] font-black uppercase tracking-[0.6em] mb-4 md:mb-6">
+            {/* <p className="text-[#ff4fa5] text-[10px] font-black uppercase tracking-[0.6em] mb-4 md:mb-6">
               Ready to order?
-            </p>
+            </p> */}
             <h2 className="text-4xl md:text-8xl font-black text-white uppercase tracking-tighter mb-8 md:mb-12 drop-shadow-2xl">
-              Ready to <span className="text-[#ff4fa5]">order?</span>
+              Ready to <span className="text-primary">order?</span>
             </h2>
             <button
               onClick={handleOrderClick}
-              className="group pointer-events-auto rounded-xl bg-white text-black px-12 py-6 md:px-16 md:py-8 text-[10px] md:text-xs font-black uppercase tracking-[0.5em] flex items-center gap-6 hover:bg-[#ff4fa5] hover:text-white transition-all shadow-[0_0_80px_rgba(255,79,165,0.4)]"
+              className="group pointer-events-auto rounded-xl bg-white text-black px-10 py-4 md:px-16 md:py-8 text-[14px] md:text-lg font-black uppercase tracking-[0.5em] flex items-center gap-6 hover:bg-[#ff4fa5] hover:text-white transition-all shadow-[0_0_80px_rgba(255,79,165,0.4)]"
             >
               Order now <MoveUpRight size={18} />
             </button>
