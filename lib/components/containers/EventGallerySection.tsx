@@ -28,39 +28,39 @@ export default function EventGallerySection() {
   const events = [
     {
       id: 2,
-      title: "DevConf Europe",
-      count: "2,800 attendees",
-      category: "Conference",
+      title: "Epiminds Hackathon",
+      count: "310+ portions",
+      category: "Hackathon ",
       img: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=800&auto=format&fit=crop",
     },
     {
       id: 3,
-      title: "AI Summit 2024",
-      count: "900 attendees",
-      category: "Summit",
+      title: "Iterate - RL London Hackathon",
+      count: "620+ portions",
+      category: "Hackathon",
       img: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop",
     },
     {
       id: 4,
-      title: "Next.js Conf",
-      count: "3,000 attendees",
-      category: "Tech Conf",
+      title: "Great Agent Hack",
+      count: "1000+ portions",
+      category: "Hackathon",
       img: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=800&auto=format&fit=crop",
     },
     {
       id: 5,
-      title: "Startup Weekend",
-      count: "350 attendees",
-      category: "Workshop",
+      title: "AgentVerse Hackathon",
+      count: "940+ portions",
+      category: "Hackathon",
       img: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=800&auto=format&fit=crop",
     },
-    {
-      id: 6,
-      title: "Google I/O London",
-      count: "1,200 attendees",
-      category: "Roadshow",
-      img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop",
-    },
+    // {
+    //   id: 6,
+    //   title: "Google I/O London",
+    //   count: "1,200 portions",
+    //   category: "Roadshow",
+    //   img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop",
+    // },
   ];
 
   return (
@@ -88,10 +88,10 @@ export default function EventGallerySection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-wrap justify-center gap-6">
           {/* Stat card */}
           <div
-            className={`relative overflow-hidden bg-primary aspect-[4/3] flex flex-col items-center justify-center reveal ${
+            className={`relative overflow-hidden bg-primary aspect-[4/3] flex flex-col items-center justify-center reveal w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] ${
               isRevealed ? "active" : ""
             }`}
           >
@@ -103,7 +103,7 @@ export default function EventGallerySection() {
           {events.map((event, index) => (
             <div
               key={event.id}
-              className={`group relative overflow-hidden bg-black aspect-[4/3] reveal ${
+              className={`group relative overflow-hidden bg-black aspect-[4/3] reveal w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] ${
                 isRevealed ? "active" : ""
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
