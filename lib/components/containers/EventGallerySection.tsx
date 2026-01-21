@@ -27,40 +27,33 @@ export default function EventGallerySection() {
 
   const events = [
     {
-      id: 2,
+      id: 1,
       title: "Epiminds Hackathon",
       count: "310+ portions",
-      category: "Hackathon ",
-      img: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=800&auto=format&fit=crop",
+      category: "Hackathon",
+      img: "/HomeSection/Epiminds.jpg",
     },
     {
-      id: 3,
+      id: 2,
       title: "Iterate - RL London Hackathon",
       count: "620+ portions",
       category: "Hackathon",
-      img: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop",
+      img: "/HomeSection/RL_Hackathon.JPG",
     },
     {
-      id: 4,
+      id: 3,
       title: "Great Agent Hack",
       count: "1000+ portions",
       category: "Hackathon",
-      img: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=800&auto=format&fit=crop",
+      img: "/HomeSection/Great_Agent_Hack.jpg",
     },
     {
-      id: 5,
+      id: 4,
       title: "AgentVerse Hackathon",
       count: "940+ portions",
       category: "Hackathon",
-      img: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=800&auto=format&fit=crop",
+      img: "/HomeSection/Agent Verse.JPG",
     },
-    // {
-    //   id: 6,
-    //   title: "Google I/O London",
-    //   count: "1,200 portions",
-    //   category: "Roadshow",
-    //   img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop",
-    // },
   ];
 
   return (
@@ -81,10 +74,9 @@ export default function EventGallerySection() {
                 hackathons.
               </p>
             </div>
-            <button className="hidden md:block text-xs font-bold tracking-widest border-b border-gray-300 pb-1 hover:text-[#fa43ad] hover:border-[#fa43ad] transition-all uppercase">
+            {/* <button className="hidden md:block text-xs font-bold tracking-widest border-b border-gray-300 pb-1 hover:text-[#fa43ad] hover:border-[#fa43ad] transition-all uppercase">
               View Our Events
-              {/* View Case Studies */}
-            </button>
+            </button> */}
           </div>
         </div>
 
