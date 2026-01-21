@@ -1,17 +1,15 @@
 "use client";
 
+interface Logo {
+  name: string;
+  image?: string; // Optional path to SVG, PNG, or JPEG in /public
+}
+
 export default function SocialProofSection() {
-  const logos = [
-    "GOOGLE",
-    "STRIPE",
-    "NEXT.JS",
-    "VERCEL",
-    "PRISMA",
-    "OPENAI",
-    "CLAUDE",
-    "FESTIVAL",
-    "TECHCRUNCH",
-    "GITHUB",
+  const logos: Logo[] = [
+    { name: "Epiminds" },
+    { name: "Iterate" },
+    { name: "Unicorn Mafia", image: "/logos/unicorn-mafia.svg" },
   ];
 
   return (
@@ -22,8 +20,6 @@ export default function SocialProofSection() {
       <div className="max-w-7xl mx-auto px-6 mb-10 text-center">
         <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-400">
           Trusted by
-          {/* We've catered for */}
-          {/* Trusted by event planners at */}
         </p>
       </div>
 
@@ -32,9 +28,19 @@ export default function SocialProofSection() {
           {[...logos, ...logos].map((logo, idx) => (
             <div
               key={idx}
-              className="mx-12 text-3xl md:text-4xl font-black text-gray-200 grayscale hover:text-[#fa43ad] hover:grayscale-0 transition-all cursor-default"
+              className="mx-12 flex items-center gap-3 grayscale hover:grayscale-0 transition-all cursor-default"
             >
-              {logo}
+              {logo.image && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logo.image}
+                  alt={logo.name}
+                  className="h-8 md:h-10 w-auto object-contain"
+                />
+              )}
+              <span className="text-3xl md:text-4xl font-black text-black hover:text-[#fa43ad] transition-colors">
+                {logo.name.toUpperCase()}
+              </span>
             </div>
           ))}
         </div>
