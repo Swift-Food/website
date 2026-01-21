@@ -3,13 +3,14 @@
 interface Logo {
   name: string;
   image?: string; // Optional path to SVG, PNG, or JPEG in /public
+  link: string;
 }
 
 export default function SocialProofSection() {
   const logos: Logo[] = [
-    { name: "Epiminds" },
-    { name: "Iterate" },
-    { name: "Unicorn Mafia", image: "/logos/unicorn-mafia.svg" },
+    { name: "Epiminds", link: "https://epiminds.com/" },
+    { name: "Iterate", link: "https://www.linkedin.com/company/iteratehackathons/" },
+    { name: "Unicorn Mafia", image: "/logos/unicorn-mafia.svg", link: "https://www.unicrnmafia.com/" },
   ];
 
   return (
@@ -26,14 +27,17 @@ export default function SocialProofSection() {
       <div className="marquee-container">
         <div className="marquee-content flex items-center">
           {[...logos, ...logos, ...logos, ...logos, ...logos, ...logos].map((logo, idx) => (
-            <div
+            <a
               key={idx}
-              className="mx-12 flex items-center gap-3 transition-all cursor-default"
+              href={logo.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-12 flex items-center gap-3 transition-all cursor-pointer"
             >
               <span className="text-3xl md:text-4xl font-black text-zinc-500 hover:text-[#fa43ad] transition-colors">
                 {logo.name.toUpperCase()}
               </span>
-            </div>
+            </a>
           ))}
         </div>
       </div>
