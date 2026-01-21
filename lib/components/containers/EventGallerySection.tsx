@@ -5,6 +5,7 @@ import Image from "next/image";
 
 export default function EventGallerySection() {
   const [isRevealed, setIsRevealed] = useState(false);
+  const [activeCard, setActiveCard] = useState<number | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,51 +94,61 @@ export default function EventGallerySection() {
               Events catered
             </span>
           </div>
-          {events.map((event, index) => (
-            <div
-              key={event.id}
-              className={`group relative overflow-hidden bg-black aspect-[4/3] reveal w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] ${
-                isRevealed ? "active" : ""
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-            >
-              <Image
-                src={event.img}
-                alt={event.title}
-                fill
-                className="object-cover opacity-80 group-hover:scale-105 group-hover:opacity-30 transition-all duration-1000 ease-out"
-              />
-              <div className="absolute inset-0 p-10 flex flex-col justify-end translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                <span className="text-[10px] font-bold text-[#fa43ad] tracking-widest uppercase mb-3">
-                  {event.category}
-                </span>
-                <h3 className="text-3xl font-black text-white uppercase mb-2">
-                  {event.title}
-                </h3>
-                <div className="flex items-center space-x-2">
-                  <div className="w-1 h-1 bg-[#fa43ad] rounded-full"></div>
-                  <p className="text-gray-300 text-xs font-bold tracking-widest uppercase">
-                    {event.count}
-                  </p>
+          {events.map((event, index) => {
+            const isActive = activeCard === event.id;
+            return (
+              <div
+                key={event.id}
+                className={`group relative overflow-hidden bg-black aspect-[4/3] reveal w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] cursor-pointer ${
+                  isRevealed ? "active" : ""
+                }`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+                onClick={() => setActiveCard(isActive ? null : event.id)}
+              >
+                <Image
+                  src={event.img}
+                  alt={event.title}
+                  fill
+                  className={`object-cover opacity-80 group-hover:scale-105 group-hover:opacity-30 transition-all duration-1000 ease-out ${
+                    isActive ? "scale-105 opacity-30" : ""
+                  }`}
+                />
+                <div className={`absolute inset-0 p-10 flex flex-col justify-end transition-all duration-500 ${
+                  isActive ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+                }`}>
+                  <span className="text-[10px] font-bold text-[#fa43ad] tracking-widest uppercase mb-3">
+                    {event.category}
+                  </span>
+                  <h3 className="text-3xl font-black text-white uppercase mb-2">
+                    {event.title}
+                  </h3>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1 h-1 bg-[#fa43ad] rounded-full"></div>
+                    <p className="text-gray-300 text-xs font-bold tracking-widest uppercase">
+                      {event.count}
+                    </p>
+                  </div>
                 </div>
+{/*                <div className={`absolute top-8 right-8 w-12 h-12 border border-white/10 rounded-full flex items-center justify-center text-white transition-all duration-500 hover:bg-[#fa43ad] hover:border-[#fa43ad] ${
+                  isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                }`}>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
+                  </svg>
+                </div> */}
               </div>
-              <div className="absolute top-8 right-8 w-12 h-12 border border-white/10 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-500 hover:bg-[#fa43ad] hover:border-[#fa43ad]">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
-                  />
-                </svg>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
