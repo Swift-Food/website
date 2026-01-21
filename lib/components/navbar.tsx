@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./navbar.module.css";
+import { useScroll } from "@/context/ScrollContext";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { navbarDark } = useScroll();
 
   // Check if we're on the homepage for transparent navbar
   const isHomePage = pathname === "/";
@@ -57,7 +59,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-10 text-sm font-medium tracking-wide">
+          <div className={`hidden md:flex items-center space-x-10 text-sm font-medium tracking-wide transition-colors duration-300 ${navbarDark ? "text-white" : "text-black"}`}>
             <Link
               href="/menu"
               className="hover:text-[#fa43ad] transition-colors uppercase"
@@ -85,7 +87,7 @@ export default function Navbar() {
               </button>
             </Link>
             <button
-              className="text-black p-1"
+              className={`${navbarDark ? "text-white" : "text-black"} p-1 transition-colors duration-300`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle menu"
             >

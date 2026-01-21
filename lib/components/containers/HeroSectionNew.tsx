@@ -3,9 +3,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, MoveUpRight } from "lucide-react";
+import { useScroll } from "@/context/ScrollContext";
 
 const HeroSectionNew: React.FC = () => {
   const router = useRouter();
+  const { setNavbarDark } = useScroll();
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -64,6 +66,32 @@ const HeroSectionNew: React.FC = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
+
+  // Update navbar color based on whether the dark image is behind the navbar
+  useEffect(() => {
+    const checkNavbarColor = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      // Hero is visible when its bottom is still in the viewport
+      const isInHero = rect.bottom > 100;
+
+      // On desktop, only set dark when image has expanded enough to cover navbar
+      // moduleHeight starts at 75%, gap at top = (100 - 75) / 2 = 12.5vh
+      // Need gap < navbar height (~80px). At scrollProgress > 0.2, gap is small enough
+      const mobile = window.innerWidth < 768;
+      const needsExpansion = !mobile && currentProgressRef.current < 0.2;
+
+      setNavbarDark(isInHero && !needsExpansion);
+    };
+
+    window.addEventListener("scroll", checkNavbarColor, { passive: true });
+    checkNavbarColor();
+
+    return () => {
+      window.removeEventListener("scroll", checkNavbarColor);
+      setNavbarDark(false);
+    };
+  }, [setNavbarDark]);
 
   /**
    * PHASES (normalized 0-1):
