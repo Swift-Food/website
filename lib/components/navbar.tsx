@@ -71,7 +71,7 @@ export default function Navbar() {
               Contact Us
             </Link>
             <Link href="/event-order">
-              <button className="bg-[#fa43ad] text-white px-6 py-2.5 rounded-none hover:bg-[#e03a9a] transition-all duration-300 active:scale-95 shadow-lg shadow-black/5 uppercase text-xs font-bold tracking-widest">
+              <button className="bg-[#fa43ad] text-white rounded-xl px-6 py-2.5  hover:bg-[#e03a9a] transition-all duration-300 active:scale-95 shadow-lg shadow-black/5 uppercase text-xs font-bold tracking-widest">
                 Order Now
               </button>
             </Link>

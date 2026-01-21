@@ -124,7 +124,7 @@ const HeroSectionNew: React.FC = () => {
               style={{
                 transform: `scale(${1.1 + expansionProgress * 0.15})`,
                 willChange: "transform, filter",
-                filter: `brightness(${1.0 - expansionProgress * (isMobile ? 0.4 : 0.3)}) contrast(1.1) saturate(0.8)`,
+                filter: `brightness(${0.8 - expansionProgress * (isMobile ? 0.4 : 0.3)}) contrast(1.1) saturate(0.8)`,
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/80"></div>
@@ -139,22 +139,22 @@ const HeroSectionNew: React.FC = () => {
               willChange: "transform, opacity",
             }}
           >
-            <div className="flex items-center gap-4 mb-6 md:mb-8">
+            {/* <div className="flex items-center gap-4 mb-6 md:mb-8">
               <div className="h-px w-6 bg-[#ff4fa5]"></div>
               <span className="text-[12px] font-black tracking-[0.8em] uppercase text-white/60">
                 Event Catering
               </span>
               <div className="h-px w-6 bg-[#ff4fa5]"></div>
-            </div>
+            </div> */}
 
             <div className="flex flex-col items-center">
-              <h1 className="text-3xl md:text-[3.5vw] font-black tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
+              <h1 className="text-3xl md:text-[3.5vw] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
                 The default
               </h1>
-              <h1 className="text-4xl md:text-[5vw] font-serif italic text-[#ff4fa5] leading-[0.85] my-2 lowercase drop-shadow-xl">
-                caterer
+              <h1 className="text-4xl md:text-[5vw] text-[#ff4fa5] leading-[0.85] my-4 drop-shadow-xl font-black">
+                CATERER
               </h1>
-              <h1 className="text-3xl md:text-[3.5vw] font-black tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
+              <h1 className="text-3xl md:text-[3.5vw] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
                 for tech events
               </h1>
             </div>
@@ -169,14 +169,14 @@ const HeroSectionNew: React.FC = () => {
             >
               <p className="text-white/80 text-sm md:text-lg font-light leading-relaxed max-w-xl mb-10">
                 Plan, order, and deliver world-class catering for{" "}
-                <br className="hidden md:block" /> 3,000 portions in
+                <br className="hidden md:block" /> 3,000 people in
                 under a minute.
               </p>
 
               <div className="flex flex-col items-center gap-6">
                 <button
                   onClick={handleOrderClick}
-                  className="group bg-[#ff4fa5] text-white px-10 py-5 text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-4 hover:bg-white hover:text-black transition-all shadow-2xl"
+                  className="group bg-[#ff4fa5] rounded-xl text-white px-10 py-4 text-[14px] font-black uppercase tracking-[0.4em] flex items-center gap-4 hover:bg-white hover:text-black transition-all shadow-2xl"
                 >
                   Order Now{" "}
                   <ArrowRight
@@ -184,15 +184,15 @@ const HeroSectionNew: React.FC = () => {
                     className="group-hover:translate-x-1 transition-transform"
                   />
                 </button>
-                <p className="text-[9px] font-black uppercase tracking-[0.6em] text-white/30 pointer-events-none">
+                {/* <p className="text-[9px] font-black uppercase tracking-[0.6em] text-white/30 pointer-events-none">
                   SIMPLE • LOCAL • RELIABLE
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
 
           {/* Corner HUD UI Indicators */}
-          <div
+          {/* <div
             className="absolute top-12 left-12 flex items-center gap-3 transition-opacity duration-300"
             style={{
               opacity:
@@ -204,9 +204,9 @@ const HeroSectionNew: React.FC = () => {
             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">
               SYSTEM_ACTIVE
             </span>
-          </div>
+          </div> */}
 
-          <div
+          {/* <div
             className="absolute bottom-12 right-12 flex items-center gap-4 transition-opacity duration-300"
             style={{
               opacity:
@@ -222,7 +222,7 @@ const HeroSectionNew: React.FC = () => {
                 99.9% RELIABLE
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Scroll Metric Indicator (Hidden on Mobile) */}
@@ -258,14 +258,14 @@ const HeroSectionNew: React.FC = () => {
             }}
           >
             <p className="text-[#ff4fa5] text-[10px] font-black uppercase tracking-[0.6em] mb-4 md:mb-6">
-              Ready to deploy?
+              Ready to order?
             </p>
             <h2 className="text-4xl md:text-8xl font-black text-white uppercase tracking-tighter mb-8 md:mb-12 drop-shadow-2xl">
               Ready to <span className="text-[#ff4fa5]">order?</span>
             </h2>
             <button
               onClick={handleOrderClick}
-              className="group pointer-events-auto bg-white text-black px-12 py-6 md:px-16 md:py-8 text-[10px] md:text-xs font-black uppercase tracking-[0.5em] flex items-center gap-6 hover:bg-[#ff4fa5] hover:text-white transition-all shadow-[0_0_80px_rgba(255,79,165,0.4)]"
+              className="group pointer-events-auto rounded-xl bg-white text-black px-12 py-6 md:px-16 md:py-8 text-[10px] md:text-xs font-black uppercase tracking-[0.5em] flex items-center gap-6 hover:bg-[#ff4fa5] hover:text-white transition-all shadow-[0_0_80px_rgba(255,79,165,0.4)]"
             >
               Order now <MoveUpRight size={18} />
             </button>
@@ -277,9 +277,9 @@ const HeroSectionNew: React.FC = () => {
                 </span>
                 <div className="h-px w-8 md:w-12 bg-white/20"></div>
               </div>
-              <p className="text-[9px] font-black uppercase tracking-[0.6em] text-white/20">
+              {/* <p className="text-[9px] font-black uppercase tracking-[0.6em] text-white/20">
                 SIMPLE • LOCAL • RELIABLE
-              </p>
+              </p> */}
             </div>
           </div>
         </div>
