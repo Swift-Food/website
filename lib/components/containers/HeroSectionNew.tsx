@@ -118,7 +118,7 @@ const HeroSectionNew: React.FC = () => {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=2000&auto=format&fit=crop"
+              src="/HomeSection/WhatsApp Image 2026-01-21 at 15.12.23 (1).jpeg"
               alt="Premium Event Catering"
               className="w-full h-full object-cover"
               style={{
