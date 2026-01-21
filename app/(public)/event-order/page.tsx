@@ -18,7 +18,7 @@ function CateringSteps() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w mx-auto">
+      <div className="py-2 max-w mx-auto bg-base-100">
         {currentStep !== 1 && (
           <div className="my-10 mr-10 ml-10 max-w mx-auto">
             <div className="text-sm text-gray-500 mb-2">

@@ -1,24 +1,19 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Custom Swift Food Theme */
+/* Custom Swift Food Theme - Modern Design with Pink Accents */
 @plugin "daisyui/theme" {
   name: "Swift";
   default: true;
-  prefersdark: true;
+  prefersdark: false;
 
-  /* Primary colors from your palette */
+
+  /* Primary colors - Hot Pink */
   --color-primary: #fa43ad; /* Hot Pink */
   --color-primary-content: #ffffff;
-  
+
   /* Secondary colors */
-  --color-secondary: #ffd4ee;
-  --color-secondary: #edcadb;
-  --color-secondary: #fae5e3;
-  --color-secondary: #f6d9e1;
-  --color-secondary: #f1cce1;
-  --color-secondary: 	hsl(340, 100%, 88%);
-  /* --color-secondary: 	hsl(340, 100%, 88%); Light Pink */
+  --color-secondary: hsl(340, 100%, 88%); /* Light Pink */
   --color-secondary-content: #282828;
 
   --color-text-grey: #6A6A6A;
@@ -29,16 +24,17 @@
 
   /* Neutral colors */
   --color-neutral: #282828; /* Dark Gray */
-  --color-neutral-content: #f6f5f3; /* Light Gray */
+  --color-neutral-content: #f6f5f3;
 
   /* Base colors */
-  --color-base-100: #f6f5f3; /* Light background */
-  --color-base-200: #efeae0; /* Slightly darker background - beige */
-  --color-base-300: #e5ddd0; /* Border/divider color */
+  --color-base-100: #f7f8f9; /* White background */
+  --color-base-200: #efeae0; /* Light gray */
+  --color-base-300: #e5e7eb; /* Border color */
   --color-base-content: #282828; /* Dark text */
 
+
   /* Status colors */
-  --color-info: #94daf0; /* Light blue (your existing) */
+  --color-info: #94daf0; /* Light blue */
   --color-success: #4ade80; /* Green */
   --color-warning: #ffcd5e; /* Yellow */
   --color-error: #f87171; /* Red */
@@ -49,6 +45,7 @@
   --dark-pink: #FA43AD;
   --hot-pink: #FFB3E6;
   --beige: #EFEAE0;
+  --swift-pink: #fa43ad;
 }
 
 /* Custom utility classes */
@@ -80,17 +77,135 @@
   border-color: var(--hot-pink);
 }
 
+/* Grid pattern for hero background */
+.grid-pattern {
+  background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Marquee animation for social proof */
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-content {
+  display: inline-flex;
+  animation: marquee 50s linear infinite;
+}
+
+.marquee-content:hover {
+  animation-play-state: paused;
+}
+
+/* Float animations for hero background blobs */
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20px, 20px); }
+}
+
+@keyframes float-alt {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, -20px); }
+}
+
+.animate-float {
+  animation: float 15s ease-in-out infinite;
+}
+
+.animate-float-alt {
+  animation: float-alt 18s ease-in-out infinite;
+}
+
+/* Organic drifting animations for mesh gradient */
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(150px, -80px) scale(1.15); }
+  66% { transform: translate(80px, 60px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes drift-alt {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-120px, 60px) scale(0.95); }
+  66% { transform: translate(100px, -50px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes drift-wide {
+  0% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(40vw, 40vh) scale(1.1); }
+  50% { transform: translate(50vw, 20vh) scale(0.95); }
+  75% { transform: translate(30vw, 50vh) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.animate-drift {
+  animation: drift 8s ease-in-out infinite;
+}
+
+.animate-drift-wide {
+  animation: drift-wide 12s ease-in-out infinite;
+}
+
+.animate-drift-alt {
+  animation: drift-alt 10s ease-in-out infinite;
+}
+
+.animate-drift-reverse {
+  animation: drift 9s ease-in-out infinite reverse;
+}
+
+.animate-drift-alt-delayed {
+  animation: drift-alt 12s ease-in-out infinite 0.5s;
+}
+
+/* Line fill animation for scroll indicator - runway style */
+@keyframes line-fill {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-line-fill {
+  animation: line-fill 1.5s ease-in-out infinite;
+}
+
+/* Reveal animation for scroll-based sections */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 html {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
   min-height: 100vh;
-  background-color: #f6f5f3;
+  background-color: #ffffff;
+  color: #282828;
 }
 .marquee-text {
   overflow: hidden;
