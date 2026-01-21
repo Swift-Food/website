@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { MenuItem, Addon } from "./Step2MenuItems";
 import { ALLERGENS } from "@/lib/constants/allergens";
+
+// Dietary icon mapping
+const DIETARY_ICON_MAP: Record<string, { file: string; label: string }> = {
+  vegetarian: { file: "vegetarian.png", label: "Vegetarian" },
+  vegan: { file: "vegan.png", label: "Vegan" },
+  halal: { file: "halal.png", label: "Halal" },
+  pescatarian: { file: "pescatarian.png", label: "Pescatarian" },
+  no_nut: { file: "no_nut.png", label: "Nut-Free" },
+  no_dairy: { file: "no_dairy.png", label: "Dairy-Free" },
+};
 
 // Utility function to format allergen enum values into human-readable labels
 const formatAllergen = (allergen: string): string => {
@@ -778,9 +789,33 @@ export default function MenuItemModal({
                               key={index}
                               className="w-full flex items-center justify-between p-3 rounded-lg border border-base-300 bg-base-100"
                             >
-                              <span className="text-sm text-base-content">
-                                {addon.name}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-base-content">
+                                  {addon.name}
+                                </span>
+                                {addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0 && (
+                                  <div className="flex items-center gap-0.5">
+                                    {addon.dietaryRestrictions.map((restriction) => {
+                                      const iconInfo = DIETARY_ICON_MAP[restriction];
+                                      if (!iconInfo) return null;
+                                      return (
+                                        <div
+                                          key={restriction}
+                                          className="relative w-4 h-4"
+                                          title={iconInfo.label}
+                                        >
+                                          <Image
+                                            src={`/dietary-icons/unfilled/${iconInfo.file}`}
+                                            alt={iconInfo.label}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
                               {parseFloat(addon.price) > 0 && (
                                 <span className="text-sm font-medium text-primary">
                                   +£{parseFloat(addon.price).toFixed(2)}
@@ -804,9 +839,33 @@ export default function MenuItemModal({
                             }
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 flex-1">
-                              <span className="text-sm text-base-content">
-                                {addon.name}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-base-content">
+                                  {addon.name}
+                                </span>
+                                {addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0 && (
+                                  <div className="flex items-center gap-0.5">
+                                    {addon.dietaryRestrictions.map((restriction) => {
+                                      const iconInfo = DIETARY_ICON_MAP[restriction];
+                                      if (!iconInfo) return null;
+                                      return (
+                                        <div
+                                          key={restriction}
+                                          className="relative w-4 h-4"
+                                          title={iconInfo.label}
+                                        >
+                                          <Image
+                                            src={`/dietary-icons/unfilled/${iconInfo.file}`}
+                                            alt={iconInfo.label}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
                               {parseFloat(addon.price) > 0 && (
                                 <span className="text-xs font-medium text-primary">
                                   +£{parseFloat(addon.price).toFixed(2)}
@@ -943,6 +1002,28 @@ export default function MenuItemModal({
                               <span className="text-sm text-base-content">
                                 {addon.name}
                               </span>
+                              {addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0 && (
+                                <div className="flex items-center gap-0.5">
+                                  {addon.dietaryRestrictions.map((restriction) => {
+                                    const iconInfo = DIETARY_ICON_MAP[restriction];
+                                    if (!iconInfo) return null;
+                                    return (
+                                      <div
+                                        key={restriction}
+                                        className="relative w-4 h-4"
+                                        title={iconInfo.label}
+                                      >
+                                        <Image
+                                          src={`/dietary-icons/unfilled/${iconInfo.file}`}
+                                          alt={iconInfo.label}
+                                          fill
+                                          className="object-contain"
+                                        />
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                             {parseFloat(addon.price) > 0 && (
                               <span className="text-sm font-medium text-primary">

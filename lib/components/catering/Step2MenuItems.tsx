@@ -43,6 +43,7 @@ export interface Addon {
   name: string;
   price: string;
   allergens: string;
+  dietaryRestrictions?: string[];
   groupTitle: string;
   isRequired: boolean;
   selectionType: "single" | "multiple";

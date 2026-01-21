@@ -749,7 +749,7 @@ export enum MenuItemStatus {
   INACTIVE = "INACTIVE",
   DRAFT = "DRAFT",
   SOLD_OUT = "SOLD_OUT",
-  CATERING = "CATERING",
+  // CATERING = "CATERING",
 }
 
 export enum MenuItemStyle {

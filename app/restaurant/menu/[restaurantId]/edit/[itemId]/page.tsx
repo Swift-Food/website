@@ -94,7 +94,7 @@ const EditMenuItemPage = () => {
         cateringService.getRestaurantMenuItems(restaurantId),
         cateringService.getCategories(),
       ]);
-
+      
       // Get menuGroupSettings from restaurant
       let menuGroupSettings: Record<string, { displayOrder: number }> = {};
       if (
@@ -188,7 +188,7 @@ const EditMenuItemPage = () => {
 
       setSelectedCategories(categoryIds);
       setSelectedSubcategories(subcategoryIds);
-
+      console.log("ite", JSON.stringify(item))
       setSelectedAllergens(item.allergens || []);
       setSelectedDietaryFilters(item.dietaryFilters || []);
       setAddons(item.addons || []);

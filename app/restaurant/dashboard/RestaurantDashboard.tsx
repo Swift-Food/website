@@ -60,7 +60,7 @@ export const RestaurantDashboard = ({
   );
   const [activeTab, setActiveTab] = useState<
     "withdrawals" | "catering" | "refunds" | "tax-invoices"
-  >("withdrawals");
+  >("catering");
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     () => {
       if (restaurantUser?.paymentAccounts) {
@@ -544,17 +544,7 @@ export const RestaurantDashboard = ({
             <div className="mb-8">
               <div className="border-b border-gray-200">
                 <nav className="flex space-x-8">
-                  <button
-                    onClick={() => setActiveTab("withdrawals")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                      activeTab === "withdrawals"
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    Withdrawals
-                  </button>
-                  <button
+                <button
                     onClick={() => setActiveTab("catering")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === "catering"
@@ -569,6 +559,17 @@ export const RestaurantDashboard = ({
                       </span>
                     )}
                   </button>
+                  <button
+                    onClick={() => setActiveTab("withdrawals")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === "withdrawals"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Withdrawals
+                  </button>
+                  
                   <button
                     onClick={() => setActiveTab("refunds")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
