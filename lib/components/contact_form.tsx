@@ -68,7 +68,7 @@ const ContactForm = () => {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 bg-white pt-20">
         <div className="text-center max-w-md animate-in fade-in zoom-in duration-500">
-          <div className="w-20 h-20 bg-pink-50 text-[#ff4fa5] rounded-full flex items-center justify-center mx-auto mb-8">
+          <div className="w-20 h-20 bg-pink-50 text-primary rounded-full flex items-center justify-center mx-auto mb-8">
             <CheckCircle2 size={40} strokeWidth={1.5} />
           </div>
           <h2 className="text-4xl font-black tracking-tighter uppercase mb-4 text-black">Thank you</h2>
@@ -77,7 +77,7 @@ const ContactForm = () => {
           </p>
           <button
             onClick={resetForm}
-            className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4fa5] border-b-2 border-[#ff4fa5] pb-1 hover:text-black hover:border-black transition-all"
+            className="text-[10px] font-black uppercase tracking-[0.4em] text-primary border-b-2 border-primary pb-1 hover:text-black hover:border-black transition-all"
           >
             Back to contact form
           </button>
@@ -95,7 +95,7 @@ const ContactForm = () => {
           <div className="lg:col-span-5 flex flex-col justify-center">
             <div className="mb-12">
               <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase text-black leading-none mb-6">
-                Contact <span className="font-serif italic text-[#ff4fa5] lowercase">us</span>
+                Contact us
               </h1>
               <div className="space-y-4">
                 <p className="text-xl text-black font-bold leading-tight">
@@ -110,7 +110,7 @@ const ContactForm = () => {
             <div className="space-y-10">
               {/* Integration Note */}
               <div className="flex gap-6">
-                <div className="flex-shrink-0 w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-[#ff4fa5]">
+                <div className="flex-shrink-0 w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-primary">
                   <Globe size={20} />
                 </div>
                 <div>
@@ -123,14 +123,14 @@ const ContactForm = () => {
 
               {/* Direct Email Note */}
               <div className="flex gap-6">
-                <div className="flex-shrink-0 w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-[#ff4fa5]">
+                <div className="flex-shrink-0 w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-primary">
                   <Mail size={20} />
                 </div>
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-black mb-2">Don't like forms?</h3>
                   <a
                     href="mailto:swiftfooduk@gmail.com"
-                    className="text-lg font-black tracking-tight text-[#ff4fa5] hover:text-black transition-colors"
+                    className="text-lg font-black tracking-tight text-primary hover:text-black transition-colors"
                   >
                     swiftfooduk@gmail.com
                   </a>
@@ -167,7 +167,7 @@ const ContactForm = () => {
                       required
                       type="text"
                       placeholder="Enter your last name"
-                      className="w-full bg-white border-transparent border-b-gray-100 border-b-2 px-0 py-4 focus:ring-0 focus:border-[#ff4fa5] transition-all text-black font-medium"
+                      className="w-full bg-white border-transparent border-b-gray-100 border-b-2 px-0 py-4 focus:ring-0 focus:border-primary transition-all text-black font-medium"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange("lastName", e.target.value)}
                     />
@@ -180,7 +180,7 @@ const ContactForm = () => {
                     required
                     type="email"
                     placeholder="name@company.com"
-                    className="w-full bg-white border-transparent border-b-gray-100 border-b-2 px-0 py-4 focus:ring-0 focus:border-[#ff4fa5] transition-all text-black font-medium"
+                    className="w-full bg-white border-transparent border-b-gray-100 border-b-2 px-0 py-4 focus:ring-0 focus:border-primary transition-all text-black font-medium"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                   />
@@ -192,7 +192,7 @@ const ContactForm = () => {
                     required
                     rows={4}
                     placeholder="How can we help you?"
-                    className="w-full bg-white border-transparent border-b-gray-100 border-b-2 px-0 py-4 focus:ring-0 focus:border-[#ff4fa5] transition-all text-black font-medium resize-none"
+                    className="w-full bg-white border-transparent border-b-gray-100 border-b-2 px-0 py-4 focus:ring-0 focus:border-primary transition-all text-black font-medium resize-none"
                     value={formData.message}
                     onChange={(e) => handleInputChange("message", e.target.value)}
                   />
