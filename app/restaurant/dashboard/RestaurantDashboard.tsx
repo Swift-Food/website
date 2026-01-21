@@ -62,23 +62,29 @@ export const RestaurantDashboard = ({
     "withdrawals" | "catering" | "refunds" | "tax-invoices"
   >("withdrawals");
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
-    null
+    () => {
+      if (restaurantUser?.paymentAccounts) {
+        const accounts = Object.keys(restaurantUser.paymentAccounts);
+        if (accounts.length === 1) {
+          return accounts[0];
+        }
+      }
+      return null;
+    }
   );
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
 
-  // Auto-select account if there's only one OR set to 'legacy' for old single-account restaurants
-  useEffect(() => {
-    if (restaurantUser?.paymentAccounts) {
-      const accounts = Object.keys(restaurantUser.paymentAccounts);
-      if (accounts.length === 1 && selectedAccountId === null) {
-        setSelectedAccountId(accounts[0]);
-      }
-    }
-  }, [restaurantUser, selectedAccountId]);
-
   const fetchData = async () => {
+    console.log(`[fetchData] Starting fetch with selectedAccountId: ${selectedAccountId}`);
     setLoading(true);
     try {
+      // For single-account restaurants, don't filter catering orders by account
+      // so that unassigned/pending orders are still visible
+      const hasSingleAccount =
+        restaurantUser?.paymentAccounts &&
+        Object.keys(restaurantUser.paymentAccounts).length === 1;
+      const cateringAccountFilter = hasSingleAccount ? null : selectedAccountId;
+
       const results = await Promise.allSettled([
         restaurantApi.checkStripeStatus(restaurantUserId, selectedAccountId),
         restaurantApi.getBalance(restaurantUserId, token, selectedAccountId),
@@ -87,7 +93,7 @@ export const RestaurantDashboard = ({
           token,
           selectedAccountId
         ),
-        restaurantApi.getCateringOrders(restaurantId, selectedAccountId),
+        restaurantApi.getCateringOrders(restaurantId, cateringAccountFilter),
         refundService.getRestaurantRefundRequests(restaurantId),
       ]);
 
@@ -114,9 +120,9 @@ export const RestaurantDashboard = ({
       }
 
       if (cateringResult.status === "fulfilled") {
-        setCateringOrders(
-          (cateringResult.value || []) as unknown as CateringOrderResponse[]
-        );
+        const orders = (cateringResult.value || []) as unknown as CateringOrderResponse[];
+        console.log(`[fetchData] Catering orders received: ${orders.length} (accountFilter: ${cateringAccountFilter})`);
+        setCateringOrders(orders);
       }
 
       if (refundsResult.status === "fulfilled") {
