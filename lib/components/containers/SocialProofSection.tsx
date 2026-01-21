@@ -21,7 +21,9 @@ export default function SocialProofSection() {
     >
       <div className="max-w-7xl mx-auto px-6 mb-10 text-center">
         <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-400">
-          Trusted by event planners at
+          Trusted by
+          {/* We've catered for */}
+          {/* Trusted by event planners at */}
         </p>
       </div>
 

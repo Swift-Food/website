@@ -80,7 +80,8 @@ export default function EventGallerySection() {
                 Our Portfolio
               </span>
               <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 uppercase">
-                Scaled to your ambition
+                Events we've catered for
+                {/* Scaled to your ambition */}
               </h2>
               <p className="text-gray-400 font-light text-lg">
                 From intimate 50-portion workshops to massive 3,000-portion multi-day
