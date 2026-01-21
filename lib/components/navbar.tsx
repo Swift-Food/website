@@ -1,145 +1,198 @@
 "use client";
 
-import React from "react";
-import { Menu } from "@deemlol/next-icons";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
 import styles from "./navbar.module.css";
-import { useScroll } from "@/context/ScrollContext";
 
-function NavbarAction({ onLinkClick }: { onLinkClick?: () => void }) {
-  return (
-    <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black ">
-      <Link href={"/event-order"} onClick={onLinkClick}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white text-lg">
-          EVENT ORDERING
-        </button>
-      </Link>
-      {/* <Link href={"/#aboutus"} onClick={onLinkClick}> */}
-      <Link href={"/menu"} onClick={onLinkClick}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary  hover:bg-primary border-0 hover:text-white text-lg">
-          MENU
-        </button>
-      </Link>
-      <Link href={"/contact"} onClick={onLinkClick}>
-        <button className="btn btn-md btn-ghost rounded-full text-primary hover:bg-primary border-0 hover:text-white text-lg">
-          CONTACT US
-        </button>
-      </Link>
-
-      {/* <button className="btn btn-md btn-outline btn-primary rounded-full">
-        Sign up
-      </button>
-      <button className="btn btn-md btn-outline btn-primary rounded-full">
-        Log in
-      </button> */}
-    </div>
-  );
-}
 export default function Navbar() {
-  const closeDrawer = () => {
-    const drawerCheckbox = document.getElementById(
-      "my-drawer"
-    ) as HTMLInputElement;
-    if (drawerCheckbox) {
-      drawerCheckbox.checked = false;
-    }
-  };
-  const { hideNavbar } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // Don't use sticky navbar on event-order page (scrolls with page instead)
-  const isEventOrderPage = pathname?.startsWith("/event-order");
+  // Check if we're on the homepage for transparent navbar
+  const isHomePage = pathname === "/";
+  // Check if we're on pages that should have sticky navbar
+  const isMenuPage = pathname === "/menu";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
 
   return (
-    <nav
-      className={`bg-white transition-transform duration-300 border-b-2 border-primary ${
-        isEventOrderPage
-          ? ""
-          : `sticky top-0 z-50 ${hideNavbar ? "-translate-y-full" : "translate-y-0"}`
-      }`}
-    >
-      <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 bg-secondary gap-5 flex-nowrap">
-        {/* <div className="hidden md:block w-full max-w-xs"> */}
-        {/* <SearchBar /> */}
-        {/* </div> */}
-        <div className="invisible max-xl:hidden whitespace-nowrap">
-          <NavbarAction />
-        </div>
-        <Link href={"/"} className="cursor-pointer">
-          <div className="flex items-center gap-4 cursor-pointer h-full whitespace-nowrap group relative">
-            {/* <Image
-            src="/logo.png"
-            width={40}
-            height={40}
-            alt="swift foods logo"
-          /> */}
-            <div className="relative">
-              <div
-                className={`font-bold text-primary text-3xl md:text-5xl cursor-pointer ${styles.montFont} leading-none whitespace-nowrap`}
-              >
-                <span className={styles.logoTicker}>
-                  <span className={styles.logoTrack}>
-                    <span>SWIFT FOOD</span>
-                    <span className="text-xl text-center">
-                      SIMPLE, LOCAL, RELIABLE
-                    </span>
+    <>
+      <nav
+        className={`z-50 transition-all duration-300 py-5  ${
+          isHomePage
+            ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/20 backdrop-blur-sm border-gray-200" : "bg-transparent border-transparent"}`
+            : isMenuPage
+              ? "sticky top-0 bg-white border-gray-200"
+              : "relative bg-white border-gray-200"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="shrink-0 group">
+            <div
+              className={`font-bold text-[#fa43ad] text-2xl md:text-4xl cursor-pointer ${styles.montFont} leading-none whitespace-nowrap`}
+            >
+              <span className={styles.logoTicker}>
+                <span className={styles.logoTrack}>
+                  <span>SWIFT FOOD</span>
+                  <span className="text-lg md:text-2xl text-center">
+                    SIMPLE, LOCAL, RELIABLE
                   </span>
                 </span>
-                <span className="sr-only">Swift Food — Real, Local & Fast</span>
-              </div>
+              </span>
+              <span className="sr-only">Swift Food — Simple, Local, Reliable</span>
             </div>
-          </div>
-        </Link>
-        <div className="visible max-md:hidden whitespace-nowrap">
-          <NavbarAction />
-        </div>
-        <div className="drawer w-fit hidden max-md:block">
-          <input id="my-drawer" type="checkbox" className="drawer-toggle" />
-          <div className="drawer-content">
-            <label
-              className="btn btn-ghost btn-square drawer-button hover:bg-primary/10 border-0"
-              htmlFor="my-drawer"
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-10 text-sm font-medium tracking-wide">
+            <Link
+              href="/menu"
+              className="hover:text-[#fa43ad] transition-colors uppercase"
             >
-              <Menu size={28} color="var(--color-primary)" />
-            </label>
+              Menus
+            </Link>
+            <Link
+              href="/contact"
+              className="hover:text-[#fa43ad] transition-colors uppercase"
+            >
+              Contact Us
+            </Link>
+            <Link href="/event-order">
+              <button className="bg-[#fa43ad] text-white rounded-xl px-6 py-2.5  hover:bg-[#e03a9a] transition-all duration-300 active:scale-95 shadow-lg shadow-black/5 uppercase text-xs font-bold tracking-widest">
+                Order Now
+              </button>
+            </Link>
           </div>
-          <div className="drawer-side">
-            <label
-              htmlFor="my-drawer"
-              aria-label="close sidebar"
-              className="drawer-overlay"
-            ></label>
-            <div className="h-full bg-white w-[80%]">
-              <div className="px-3 mt-4">{/* <SearchBar /> */}</div>
-              <NavbarAction onLinkClick={closeDrawer} />
-            </div>
+
+          {/* Mobile Navigation */}
+          <div className="flex items-center md:hidden space-x-2">
+            <Link href="/event-order">
+              <button className="bg-[#fa43ad] text-white px-4 py-2 rounded-none text-[10px] font-bold tracking-widest uppercase">
+                Order
+              </button>
+            </Link>
+            <button
+              className="text-black p-1"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {isMobileMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </nav>
+
+      {/* Mobile Menu Slide-out Panel */}
+      <div
+        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
+          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/20"
+          onClick={closeMobileMenu}
+        />
+
+        {/* Panel */}
+        <div
+          className={`absolute top-0 right-0 h-full w-64 bg-white/80 backdrop-blur-xl shadow-2xl transition-transform duration-300 ease-out ${
+            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {/* Close Button */}
+          <div className="flex justify-start p-4">
+            <button
+              onClick={closeMobileMenu}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Close menu"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Menu Items */}
+          <div className="flex flex-col px-6 py-4 space-y-6">
+            <Link
+              href="/menu"
+              className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
+              onClick={closeMobileMenu}
+            >
+              Menus
+            </Link>
+            <Link
+              href="/contact"
+              className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
+              onClick={closeMobileMenu}
+            >
+              Contact Us
+            </Link>
+            <Link
+              href="/event-order"
+              className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
+              onClick={closeMobileMenu}
+            >
+              Event Ordering
+            </Link>
+          </div>
+
+          {/* Order Button at Bottom */}
+          <div className="absolute bottom-8 left-6 right-6">
+            <Link href="/event-order" onClick={closeMobileMenu}>
+              <button className="w-full bg-[#fa43ad] text-white py-3 rounded-none hover:bg-[#e03a9a] transition-all duration-300 text-sm font-bold tracking-widest uppercase">
+                Order Now
+              </button>
+            </Link>
           </div>
         </div>
       </div>
-      {/* <div className="wrapper">
-        <div className="marquee-text">
-          <div className="marquee-text-track">
-            <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
-            <p aria-hidden="true">
-              JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!
-            </p>
-            <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
-            <p aria-hidden="true">
-              JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!
-            </p>
-            <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
-            <p aria-hidden="true">
-              JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!
-            </p>
-            <p>JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!</p>
-            <p aria-hidden="true">
-              JOIN SWIFT FOOD ON APP STORE & GOOGLE PLAY!
-            </p>
-          </div>
-        </div>
-      </div> */}
-    </nav>
+    </>
   );
 }

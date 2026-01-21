@@ -13,17 +13,17 @@ interface ImageTextContainerProps {
   onClick?: () => void;
 }
 
-export const ImageTextContainer: FC<ImageTextContainerProps> = ({ 
-  imageSrc, 
-  imageAlt = "Image", 
-  text, 
+export const ImageTextContainer: FC<ImageTextContainerProps> = ({
+  imageSrc,
+  imageAlt = "Image",
+  text,
   className = "",
   textClassName = "",
   imageClassName = "",
   onClick
 }) => {
   return (
-    <div 
+    <div
       className={`
         rounded-lg 
         border 
@@ -50,7 +50,7 @@ export const ImageTextContainer: FC<ImageTextContainerProps> = ({
           className="object-cover rounded-lg"
         />
       </div>
-      
+
       {/* Text Container - Fixed height with overflow handling */}
       <div className="flex-1 flex items-center justify-center w-full">
         <p className={`text-center text-gray-700 text-sm line-clamp-4 ${textClassName}`}>
