@@ -124,7 +124,7 @@ const HeroSectionNew: React.FC = () => {
               style={{
                 transform: `scale(${1.1 + expansionProgress * 0.15})`,
                 willChange: "transform, filter",
-                filter: `brightness(${0.6 - expansionProgress * (isMobile ? 0.4 : 0.3)}) contrast(1.1) saturate(0.8)`,
+                filter: `brightness(${1.1 - expansionProgress * (isMobile ? 0.4 : 0.3)}) contrast(1.1) saturate(0.8)`,
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/80"></div>
