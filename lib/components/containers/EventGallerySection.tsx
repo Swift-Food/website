@@ -27,13 +27,6 @@ export default function EventGallerySection() {
 
   const events = [
     {
-      id: 1,
-      title: "HackTheNorth",
-      count: "1,500 attendees",
-      category: "Hackathon",
-      img: "https://images.unsplash.com/photo-1540575861501-7ce0e220beff?q=80&w=800&auto=format&fit=crop",
-    },
-    {
       id: 2,
       title: "DevConf Europe",
       count: "2,800 attendees",
@@ -96,6 +89,17 @@ export default function EventGallerySection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Stat card */}
+          <div
+            className={`relative overflow-hidden bg-primary aspect-[4/3] flex flex-col items-center justify-center reveal ${
+              isRevealed ? "active" : ""
+            }`}
+          >
+            <span className="text-7xl md:text-8xl font-black text-white">60+</span>
+            <span className="text-sm font-bold tracking-[0.3em] uppercase text-white/70 mt-2">
+              Events catered
+            </span>
+          </div>
           {events.map((event, index) => (
             <div
               key={event.id}
