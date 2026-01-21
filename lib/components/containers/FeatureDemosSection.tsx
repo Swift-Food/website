@@ -156,11 +156,17 @@ export default function FeatureDemosSection() {
           >
             <div className="aspect-square bg-white border border-gray-100 mb-10 overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-700 relative">
               <Image
+                src="/HomeSection/Easy-Selection2.png"
+                alt="Easy Selection UI"
+                fill
+                className="object-cover object-center transition-all duration-1000"
+              />
+              {/* <Image
                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop"
                 alt="UI Selection"
                 fill
                 className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
-              />
+              /> */}
               <div className="absolute inset-0 bg-[#fa43ad]/5 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <h3 className="text-2xl font-black tracking-tighter mb-4 uppercase">
