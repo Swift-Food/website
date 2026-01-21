@@ -11,6 +11,8 @@ export default function SocialProofSection() {
     { name: "Epiminds", link: "https://epiminds.com/" },
     { name: "Iterate", link: "https://www.linkedin.com/company/iteratehackathons/" },
     { name: "Unicorn Mafia", image: "/logos/unicorn-mafia.svg", link: "https://www.unicrnmafia.com/" },
+    { name: "UCL AI Society", image: "/logos/unicorn-mafia.svg", link: "https://uclaisociety.co.uk/" },
+    { name: "Holistic AI", image: "", link: "https://www.holisticai.com/" },
   ];
 
   return (
