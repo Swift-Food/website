@@ -26,6 +26,8 @@ export interface SelectedAddon {
   customerUnitPrice?: number; // New field matching backend DTO
   quantity: number;
   groupTitle: string;
+  allergens?: string | string[];
+  dietaryRestrictions?: string[];
 }
 
 export interface SearchResult {
@@ -225,6 +227,14 @@ export interface ContactInfo {
   zipcode: string;
   latitude?: number;
   longitude?: number;
+  // Optional billing address for Stripe invoices
+  billingAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
 }
 
 /**

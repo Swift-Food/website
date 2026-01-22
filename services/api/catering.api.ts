@@ -248,6 +248,8 @@ class CateringService {
       customerEmail: contactInfo.email,
       customerPhone: contactInfo.phone,
       ccEmails: ccEmails || [],
+      // Optional billing address for Stripe invoices
+      billingAddress: contactInfo.billingAddress,
       // Top-level event details (from first session for backward compatibility)
       eventDate: firstSession?.sessionDate || eventDetails?.eventDate || "",
       eventTime: firstSession?.eventTime || eventDetails?.eventTime || "",

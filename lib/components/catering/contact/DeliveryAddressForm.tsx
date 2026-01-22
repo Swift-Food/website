@@ -92,7 +92,7 @@ export default function DeliveryAddressForm({
 
           {/* Address Line 1 - Read Only */}
           <div>
-            <label className="block text-xs font-semibold mb-2 text-base-content">
+            <label className="block text-sm font-semibold mb-2 text-base-content">
               Address Line 1*
             </label>
             <input
@@ -121,7 +121,7 @@ export default function DeliveryAddressForm({
 
           {/* Address Line 2 */}
           <div>
-            <label className="block text-xs font-semibold mb-2 text-base-content">
+            <label className="block text-sm font-semibold mb-2 text-base-content">
               Address Line 2 (Optional)
             </label>
             <input
@@ -137,7 +137,7 @@ export default function DeliveryAddressForm({
           {/* City and Postcode - Read Only */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-2 text-base-content">
+              <label className="block text-sm font-semibold mb-2 text-base-content">
                 City*
               </label>
               <input
@@ -156,7 +156,7 @@ export default function DeliveryAddressForm({
               )}
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-2 text-base-content">
+              <label className="block text-sm font-semibold mb-2 text-base-content">
                 Postcode*
               </label>
               <input

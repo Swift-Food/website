@@ -18,6 +18,8 @@ export interface PricingAddon {
   customerUnitPrice: number;
   quantity: number;
   groupTitle?: string;
+  allergens?: string | string[];
+  dietaryRestrictions?: string[];
 }
 
 /**

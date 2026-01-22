@@ -37,7 +37,7 @@ export default function PromoCodeSection({
         className="w-full flex items-center justify-between mb-3 group"
       >
         <div className="flex items-center gap-2">
-          <h4 className="font-semibold text-base-content">Discount Code</h4>
+          <h4 className="text-sm font-bold text-base-content">Discount Code</h4>
           {promoCodes.length > 0 && (
             <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full">
               {promoCodes.length} applied
@@ -75,7 +75,7 @@ export default function PromoCodeSection({
                 }
               }}
               placeholder="Add discount code or voucher"
-              className="flex-1 px-4 py-2 bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-xs"
+              className="flex-1 px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
             />
             <button
               type="button"
