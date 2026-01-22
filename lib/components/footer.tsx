@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isRestaurantPath = pathname?.startsWith("/restaurant");
+
   return (
     <footer className="bg-white border-t border-gray-100 pt-20 pb-10 px-6">
       <div className="max-w-7xl mx-auto">
@@ -107,8 +113,11 @@ export default function Footer() {
             <Link href="/privacy" className="hover:text-black transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-black transition-colors">
-              Terms of Service
+            <Link
+              href={isRestaurantPath ? "/swift-partner-policy" : "/terms"}
+              className="hover:text-black transition-colors"
+            >
+              {isRestaurantPath ? "Partner Terms of Service" : "Terms of Service"}
             </Link>
           </div>
         </div>
