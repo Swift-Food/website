@@ -90,6 +90,13 @@ export default function MenuItemModal({
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
+      console.log("[MenuItemModal] Modal opened with data:", {
+        item,
+        addons: item.addons,
+        selectedAddons: item.selectedAddons,
+        isEditMode,
+        quantity,
+      });
       // Calculate initial quantity in portions
       const initialPortions =
         quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 1;

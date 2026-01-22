@@ -130,6 +130,7 @@ export function mapToMenuItem(item: MenuItemDetails): MenuItem {
       name: addon.name,
       price: addon.price?.toString() || "0",
       allergens: addon.allergens?.join(", ") || "",
+      dietaryRestrictions: (addon as any).dietaryRestrictions,
       groupTitle: addon.groupTitle || "",
       isRequired: addon.isRequired || false,
       selectionType: addon.selectionType || "single",
