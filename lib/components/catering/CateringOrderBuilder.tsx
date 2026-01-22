@@ -26,6 +26,7 @@ import CheckoutBar from "./CheckoutBar";
 import AddDayModal from "./modals/AddDayModal";
 import EmptySessionWarningModal from "./modals/EmptySessionWarningModal";
 import RemoveSessionConfirmModal from "./modals/RemoveSessionConfirmModal";
+import MinOrderModal from "./modals/MinOrderModal";
 
 // Hooks
 import { useCateringTutorial } from "./hooks/useCateringTutorial";
@@ -96,6 +97,12 @@ export default function CateringOrderBuilder() {
 
   // Remove session confirmation modal state
   const [sessionToRemove, setSessionToRemove] = useState<number | null>(null);
+
+  // Min order modal state
+  const [minOrderModalSession, setMinOrderModalSession] = useState<{
+    index: number;
+    validation: typeof validationStatus;
+  } | null>(null);
 
   // Catering hours validation errors
   const [sessionValidationErrors, setSessionValidationErrors] = useState<Record<number, string>>({});
@@ -598,9 +605,10 @@ export default function CateringOrderBuilder() {
 
       if (hasUnmetRequirements) {
         setActiveSessionIndex(i);
-        alert(
-          `${session.sessionName} has unmet minimum order requirements. Please review the highlighted sections.`
-        );
+        setMinOrderModalSession({
+          index: i,
+          validation: sessionValidation,
+        });
         return;
       }
     }
@@ -1311,6 +1319,15 @@ export default function CateringOrderBuilder() {
           sessionName={mealSessions[sessionToRemove]?.sessionName || "Session"}
           onConfirm={confirmRemoveSession}
           onCancel={() => setSessionToRemove(null)}
+        />
+      )}
+
+      {/* Min Order Modal */}
+      {minOrderModalSession !== null && (
+        <MinOrderModal
+          sessionName={mealSessions[minOrderModalSession.index]?.sessionName || "Session"}
+          validationStatus={minOrderModalSession.validation}
+          onClose={() => setMinOrderModalSession(null)}
         />
       )}
 

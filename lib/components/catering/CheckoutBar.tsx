@@ -64,8 +64,8 @@ export default function CheckoutBar({
         onClick={onCheckout}
         className={`hidden md:flex fixed bottom-8 right-8 items-center gap-3 text-white px-4 py-2 rounded-xl shadow-lg transition-all z-50 ${
           isCurrentSessionValid
-            ? "bg-primary hover:bg-primary/20"
-            : "bg-warning hover:bg-warning/20"
+            ? "bg-primary hover:bg-primary/90"
+            : "bg-warning hover:bg-warning/90"
         }`}
       >
         <div className="flex flex-col items-start">
