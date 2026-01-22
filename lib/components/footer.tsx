@@ -9,9 +9,9 @@ export default function Footer() {
   const isRestaurantPath = pathname?.startsWith("/restaurant");
 
   return (
-    <footer className="bg-white border-t border-gray-100 pt-20 pb-10 px-6">
+    <footer className="bg-white border-t border-gray-100 pt-10 pb-10 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-14">
           <div className="md:col-span-2">
             <Link href="/" className="inline-block mb-6">
               <span className="font-extrabold tracking-tighter text-2xl text-[#fa43ad]">
@@ -108,7 +108,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-100 pt-10 text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">
-          <p>&copy; 2025 SWIFT FOOD SERVICES LTD. ALL RIGHTS RESERVED.</p>
+          <p className="text-center">&copy; 2025 SWIFT FOOD SERVICES LTD. ALL RIGHTS RESERVED.</p>
           <div className="flex space-x-8 mt-4 md:mt-0">
             <Link href="/privacy" className="hover:text-black transition-colors">
               Privacy Policy
