@@ -6,12 +6,14 @@ interface MinOrderModalProps {
   sessionName: string;
   validationStatus: RestaurantMinOrderStatus[];
   onClose: () => void;
+  onNavigateToSection?: (restaurantId: string, section: string) => void;
 }
 
 export default function MinOrderModal({
   sessionName,
   validationStatus,
   onClose,
+  onNavigateToSection,
 }: MinOrderModalProps) {
   const unmetRequirements = validationStatus
     .filter((status) => !status.isValid)
@@ -19,6 +21,7 @@ export default function MinOrderModal({
       status.sections
         .filter((section) => !section.isMet)
         .map((section) => ({
+          restaurantId: status.restaurantId,
           restaurantName: status.restaurantName,
           section: section.section,
           current: section.currentQuantity,
@@ -72,27 +75,46 @@ export default function MinOrderModal({
           </p>
           <div className="space-y-3">
             {unmetRequirements.map((req, idx) => (
-              <div
+              <button
                 key={idx}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                onClick={() => onNavigateToSection?.(req.restaurantId, req.section)}
+                className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left group"
               >
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {req.section}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {req.restaurantName}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {req.section}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {req.restaurantName}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-amber-600">
-                    +{req.needed} more
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {req.current}/{req.required} added
-                  </p>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-amber-600">
+                      +{req.needed} more
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {req.current}/{req.required} added
+                    </p>
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 text-gray-400 group-hover:text-primary transition-colors"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>

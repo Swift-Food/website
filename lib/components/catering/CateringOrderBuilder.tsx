@@ -395,6 +395,49 @@ export default function CateringOrderBuilder() {
     setActiveSessionIndex(sessionIndex);
   };
 
+  // Handle navigation from min order modal to a specific section
+  const handleMinOrderNavigate = (_restaurantId: string, section: string) => {
+    if (!minOrderModalSession) return;
+
+    const sessionIndex = minOrderModalSession.index;
+    const session = mealSessions[sessionIndex];
+
+    // Close the modal
+    setMinOrderModalSession(null);
+
+    // Ensure the session is expanded and active
+    setExpandedSessionIndex(sessionIndex);
+    setActiveSessionIndex(sessionIndex);
+
+    // Set nav mode to sessions and select the correct day
+    if (session?.sessionDate) {
+      setSelectedDayDate(session.sessionDate);
+      setNavMode("sessions");
+    }
+
+    // Try to find and select a category that matches the section name
+    const matchingCategory = categories.find(
+      (cat) => cat.name.toLowerCase() === section.toLowerCase()
+    );
+    if (matchingCategory) {
+      handleCategoryClick(matchingCategory);
+    }
+
+    // Scroll to the session accordion
+    setTimeout(() => {
+      const element = sessionAccordionRefs.current.get(sessionIndex);
+      if (element) {
+        const headerOffset = 60;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
+    }, 150);
+  };
+
   // Handle adding a new day
   const handleAddDay = () => {
     setNewDayDate("");
@@ -1328,6 +1371,7 @@ export default function CateringOrderBuilder() {
           sessionName={mealSessions[minOrderModalSession.index]?.sessionName || "Session"}
           validationStatus={minOrderModalSession.validation}
           onClose={() => setMinOrderModalSession(null)}
+          onNavigateToSection={handleMinOrderNavigate}
         />
       )}
 
