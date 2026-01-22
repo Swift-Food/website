@@ -4,10 +4,9 @@ import { CateringOrderStatus } from "@/types/catering.types";
 import { CateringOrderStatus as ApiCateringOrderStatus } from "@/types/api";
 import {
   Clock,
-  Eye,
+  Search,
   CheckCircle2,
   CreditCard,
-  DollarSign,
   Package,
   XCircle,
   ClipboardList,
@@ -19,16 +18,14 @@ interface OrderStatusTimelineProps {
 
 export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
   const timelineSteps = [
-    { key: CateringOrderStatus.PENDING_REVIEW, label: "Pending", icon: Clock },
-    { key: CateringOrderStatus.ADMIN_REVIEWED, label: "Reviewed", icon: Eye },
-    { key: CateringOrderStatus.RESTAURANT_REVIEWED, label: "Approved", icon: CheckCircle2 },
-    { key: CateringOrderStatus.PAYMENT_LINK_SENT, label: "Payment Sent", icon: CreditCard },
-    { key: CateringOrderStatus.PAID, label: "Paid", icon: DollarSign },
-    { key: CateringOrderStatus.CONFIRMED, label: "Confirmed", icon: CheckCircle2 },
-    { key: CateringOrderStatus.COMPLETED, label: "Completed", icon: Package },
+    { keys: [CateringOrderStatus.PENDING_REVIEW], label: "Submitted", icon: Clock },
+    { keys: [CateringOrderStatus.ADMIN_REVIEWED, CateringOrderStatus.RESTAURANT_REVIEWED], label: "Reviewing", icon: Search },
+    { keys: [CateringOrderStatus.PAYMENT_LINK_SENT], label: "Payment", icon: CreditCard },
+    { keys: [CateringOrderStatus.PAID, CateringOrderStatus.CONFIRMED], label: "Confirmed", icon: CheckCircle2 },
+    { keys: [CateringOrderStatus.COMPLETED], label: "Delivered", icon: Package },
   ];
 
-  const statusIndex = timelineSteps.findIndex((step) => step.key === status);
+  const statusIndex = timelineSteps.findIndex((step) => step.keys.includes(status as CateringOrderStatus));
   const isCancelled = status === CateringOrderStatus.CANCELLED;
 
   return (
@@ -51,7 +48,7 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
             const isCurrent = index === statusIndex;
 
             return (
-              <div key={step.key} className="flex flex-col items-center flex-1">
+              <div key={step.keys[0]} className="flex flex-col items-center flex-1">
                 <div className="relative flex items-center w-full">
                   {index > 0 && (
                     <div
