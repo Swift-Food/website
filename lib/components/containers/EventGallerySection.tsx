@@ -40,14 +40,16 @@ export default function EventGallerySection() {
       title: "Iterate - RL London Hackathon",
       count: "620+ portions",
       category: "Hackathon",
-      img: "/HomeSection/RL_Hackathon.JPG",
+      // img: "/HomeSection/RL_Hackathon.JPG",
+      img: "/HomeSection/RL_Hackathon2.jpeg",
     },
     {
       id: 3,
       title: "Great Agent Hack",
       count: "1000+ portions",
       category: "Hackathon",
-      img: "/HomeSection/Great_Agent_Hack.jpg",
+      img: "/HomeSection/Great_Agent_Hack2.png",
+      // img: "/HomeSection/Great_Agent_Hack.jpg",
     },
     {
       id: 4,
