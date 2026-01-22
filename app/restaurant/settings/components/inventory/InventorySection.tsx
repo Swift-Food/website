@@ -51,12 +51,13 @@ export const InventorySection = ({
     setAutoAcceptSuccess("");
 
     try {
+      console.log('the link is', `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(restaurantId)}`)
       const response = await fetchWithAuth(
         `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(restaurantId)}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ minimumAutoAccept }),
+          body: JSON.stringify({ minimumAutoAcceptQuantity : minimumAutoAccept }),
         }
       );
 
