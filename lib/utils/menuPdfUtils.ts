@@ -118,6 +118,8 @@ function processMenuItemForPdf(
           quantity: Math.round((addon.quantity || 1) * ratio),
           price: addon.customerUnitPrice || addon.price,
           groupTitle: addon.groupTitle,
+          allergens: addon.allergens,
+          dietaryRestrictions: addon.dietaryRestrictions,
         }))
         .filter((a: any) => a.quantity > 0);
 
@@ -142,6 +144,8 @@ function processMenuItemForPdf(
       quantity: addon.quantity || 1,
       price: addon.customerUnitPrice || addon.price,
       groupTitle: addon.groupTitle,
+      allergens: addon.allergens,
+      dietaryRestrictions: addon.dietaryRestrictions,
     }));
 
     results.push({

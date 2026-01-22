@@ -51,7 +51,16 @@ export default function CateringDashboardPage() {
       setLoading(true);
       setError(null);
       const data = await cateringService.getOrderByToken(token);
-      console.log("data fetched", JSON.stringify(data))
+      console.log("[Event Order] API Response:", data);
+      // Log addon data specifically to check allergens/dietaryRestrictions
+      const allAddons = data.mealSessions?.flatMap(session =>
+        session.orderItems?.flatMap(restaurant =>
+          restaurant.menuItems?.flatMap(item => item.selectedAddons || [])
+        ) || []
+      ) || data.restaurants?.flatMap(restaurant =>
+        restaurant.menuItems?.flatMap(item => item.selectedAddons || [])
+      ) || [];
+      console.log("[Event Order] All Addons:", allAddons);
       setOrder(data);
 
       // Determine current user's role from the token
