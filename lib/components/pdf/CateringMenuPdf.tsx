@@ -255,16 +255,19 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     flexDirection: "row",
-    marginBottom: 20,
+    marginBottom: 32,
+    paddingBottom: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#d1d5db",
   },
   menuItemContent: {
     flex: 1,
     paddingRight: 12,
   },
   menuItemName: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: 700,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   menuItemDescription: {
     fontSize: 10,
@@ -334,52 +337,71 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 4,
   },
+  addonsContainer: {
+    marginTop: 8,
+    marginBottom: 6,
+    paddingLeft: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: "#9ca3af",
+  },
   addonsSection: {
-    marginTop: 6,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   addonsSectionHeader: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 700,
-    color: "#4b5563",
-    marginBottom: 3,
+    color: "#6b7280",
+    marginBottom: 4,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   addonRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     flexWrap: "wrap",
-    marginBottom: 2,
+    marginBottom: 3,
   },
   addonBullet: {
-    fontSize: 8,
+    fontSize: 10,
     color: "#4b5563",
-    marginRight: 4,
+    marginRight: 6,
   },
-  addonName: {
-    fontSize: 8,
+  addonText: {
+    fontSize: 10,
     color: "#4b5563",
   },
   addonDietaryBadges: {
     flexDirection: "row",
-    marginLeft: 4,
+    alignItems: "center",
+    marginLeft: 6,
     gap: 2,
   },
   addonDietaryBadge: {
-    paddingHorizontal: 3,
-    paddingVertical: 1,
-    borderRadius: 2,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 3,
   },
   addonDietaryBadgeText: {
-    fontSize: 6,
+    fontSize: 7,
     fontWeight: 700,
   },
   addonAllergenText: {
-    fontSize: 8,
+    fontSize: 10,
     color: "#6b7280",
-    fontStyle: "italic",
     marginLeft: 4,
+  },
+  mainItemAllergenContainer: {
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  mainItemAllergenLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#1f2937",
+  },
+  mainItemAllergenText: {
+    fontSize: 11,
+    color: "#1f2937",
   },
   menuItemImage: {
     width: 100,
@@ -462,18 +484,6 @@ const CoverPage: React.FC = () => (
 //   </Page>
 // );
 
-// Helper to format addon dietary filters as abbreviations
-const formatAddonDietaryFilters = (dietaryFilters: string[] | undefined): string => {
-  if (!dietaryFilters || dietaryFilters.length === 0) return "";
-  const abbrevs = dietaryFilters
-    .map((filter) => {
-      const config = DIETARY_CONFIG[filter.toLowerCase()];
-      return config ? config.abbrev : null;
-    })
-    .filter(Boolean);
-  return abbrevs.length > 0 ? `[${abbrevs.join(", ")}]` : "";
-};
-
 // Menu Item Component
 const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
   item,
@@ -506,37 +516,57 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
         {item.description && (
           <Text style={styles.menuItemDescription}>{item.description}</Text>
         )}
-        {/* Addon sections */}
-        {Object.entries(groupedAddons).map(([groupTitle, addons]) => (
-          <View key={groupTitle} style={styles.addonsSection}>
-            <Text style={styles.addonsSectionHeader}>{groupTitle}:</Text>
-            {addons.map((addon, idx) => {
-              const dietaryText = formatAddonDietaryFilters(addon.dietaryRestrictions);
-              const allergenText = addon.allergens
-                ? formatAllergens(addon.allergens)
-                : "-";
-              return (
-                <View key={idx} style={styles.addonRow}>
-                  <Text style={styles.addonBullet}>•</Text>
-                  <Text style={styles.addonName}>
-                    {addon.quantity > 1 ? `${addon.quantity}x ` : ""}{addon.name}
-                  </Text>
-                  {dietaryText && (
-                    <Text style={[styles.addonName, { marginLeft: 4 }]}>{dietaryText}</Text>
-                  )}
-                  <Text style={styles.addonAllergenText}>
-                    (Allergen: {allergenText})
-                  </Text>
-                </View>
-              );
-            })}
+        {/* Addon sections with left border */}
+        {Object.keys(groupedAddons).length > 0 && (
+          <View style={styles.addonsContainer}>
+            {Object.entries(groupedAddons).map(([groupTitle, addons]) => (
+              <View key={groupTitle} style={styles.addonsSection}>
+                <Text style={styles.addonsSectionHeader}>{groupTitle}:</Text>
+                {addons.map((addon, idx) => {
+                  const hasAllergens = addon.allergens && (
+                    Array.isArray(addon.allergens) ? addon.allergens.length > 0 : addon.allergens.trim() !== ""
+                  );
+                  const allergenText = hasAllergens ? formatAllergens(addon.allergens) : "";
+                  const hasDietary = addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0;
+                  return (
+                    <View key={idx} style={styles.addonRow}>
+                      <Text style={styles.addonBullet}>•</Text>
+                      <Text style={styles.addonText}>
+                        {addon.quantity > 1 ? `${addon.quantity}x ` : ""}{addon.name}
+                      </Text>
+                      {hasDietary && (
+                        <View style={styles.addonDietaryBadges}>
+                          {addon.dietaryRestrictions!.map((filter, filterIdx) => {
+                            const config = DIETARY_CONFIG[filter.toLowerCase()];
+                            if (!config) return null;
+                            return (
+                              <View key={filterIdx} style={[styles.addonDietaryBadge, { backgroundColor: config.bgColor }]}>
+                                <Text style={[styles.addonDietaryBadgeText, { color: config.color }]}>{config.abbrev}</Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      )}
+                      {allergenText && (
+                        <Text style={styles.addonAllergenText}> (Allergen: {allergenText})</Text>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
           </View>
-        ))}
-        {item.allergens && (Array.isArray(item.allergens) ? item.allergens.length > 0 : item.allergens) && (
-          <Text style={styles.menuItemAllergens}>
-            Allergen: {formatAllergens(item.allergens)}
-          </Text>
         )}
+        {/* Main Item Allergen */}
+        {item.allergens && (Array.isArray(item.allergens) ? item.allergens.length > 0 : item.allergens) && (
+          <View style={styles.mainItemAllergenContainer}>
+            <Text>
+              <Text style={styles.mainItemAllergenLabel}>Main Item Allergen: </Text>
+              <Text style={styles.mainItemAllergenText}>{formatAllergens(item.allergens)}</Text>
+            </Text>
+          </View>
+        )}
+        {/* Dietary badges */}
         {item.dietaryFilters && item.dietaryFilters.length > 0 && (
           <View style={styles.menuItemDietaryFilters}>
             {item.dietaryFilters.map((filter, idx) => {
