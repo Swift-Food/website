@@ -226,8 +226,8 @@ export default function FeatureDemosSection() {
               Automated PDF Export
             </h3>
             <p className="text-gray-400 font-light leading-relaxed">
-              Shareable menus with dietary info baked-in. One-click export for your
-              sponsors, attendees, and internal venue teams. Professional by default.
+            Shareable menus with clear allergen and dietary information.
+            One-click export for sponsors, attendees, and internal venue teams. Professional by default.
             </p>
           </div>
 
@@ -243,9 +243,9 @@ export default function FeatureDemosSection() {
               Mission Control
             </h3>
             <p className="text-gray-400 font-light leading-relaxed">
-              Receive live updates through your dashboard. Real-time driver
-              positioning and delivery estimates down to the minute. Never guess
-              arrival times again.
+            Receive live order updates through your dashboard. Get notified when food is collected, on the way, 
+            and delivered so you always know exactly where things stand.
+             
             </p>
           </div>
         </div>

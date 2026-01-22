@@ -33,9 +33,9 @@ const HeroSectionNew: React.FC = () => {
       const windowHeight = window.innerHeight;
       const mobile = window.innerWidth < 768;
 
-      // Mobile: 250vh container = 150vh scrollable (1.5x)
-      // Desktop: 400vh container = 300vh scrollable (3x)
-      const scrollableDistance = windowHeight * (mobile ? 1.5 : 3);
+      // Mobile: 175vh container = 75vh scrollable (0.75x)
+      // Desktop: 300vh container = 200vh scrollable (2x)
+      const scrollableDistance = windowHeight * (mobile ? 0.75 : 2);
       const progress = Math.min(Math.max(-rect.top / scrollableDistance, 0), 1);
       targetProgressRef.current = progress;
     };
@@ -95,13 +95,13 @@ const HeroSectionNew: React.FC = () => {
 
   /**
    * PHASES (normalized 0-1):
-   * 0.0 -> 0.7: Module Expansion & Image Scaling
-   * 0.55 -> 0.8: Cross-fade transition to CTA
-   * 0.8 -> 1.0: PLATEAU (Hold the CTA screen so it doesn't overshoot)
+   * 0.0 -> 0.5: Module Expansion & Image Scaling
+   * 0.4 -> 0.6: Cross-fade transition to CTA
+   * 0.6 -> 1.0: PLATEAU (Hold the CTA screen so it doesn't overshoot)
    */
 
-  // Expansion reaches max at 70% of the total scroll
-  const expansionProgress = Math.min(scrollProgress / 0.7, 1);
+  // Expansion reaches max at 50% of the total scroll
+  const expansionProgress = Math.min(scrollProgress / 0.5, 1);
 
   // MOBILE VS DESKTOP ADJUSTMENTS
   // Mobile: Start full-bleed (100/100/0)
@@ -115,18 +115,18 @@ const HeroSectionNew: React.FC = () => {
   const moduleRadius = baseRadius - expansionProgress * baseRadius;
   const textScale = 1 + expansionProgress * 0.05;
 
-  // Reveal starts at 55% and finishes at 80%, then holds for the last 20%
+  // Reveal starts at 40% and finishes at 60%, then holds for the last 40%
   const revealOpacity = Math.min(
-    Math.max((scrollProgress - 0.55) / 0.25, 0),
+    Math.max((scrollProgress - 0.4) / 0.2, 0),
     1
   );
 
-  // Subtle parallax for the final CTA text during the 'hold' phase (0.8 -> 1.0)
-  const holdProgress = Math.max(0, (scrollProgress - 0.8) / 0.2);
+  // Subtle parallax for the final CTA text during the 'hold' phase (0.6 -> 1.0)
+  const holdProgress = Math.max(0, (scrollProgress - 0.6) / 0.4);
   const revealTranslateY = (1 - revealOpacity) * 60 - holdProgress * 20;
 
   return (
-    <div ref={sectionRef} className="relative h-[250vh] md:h-[400vh] bg-white">
+    <div ref={sectionRef} className="relative h-[175vh] md:h-[300vh] bg-white">
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
         {/* Expansion Module: The main visual container */}
         <div

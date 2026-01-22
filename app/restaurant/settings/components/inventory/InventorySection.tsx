@@ -31,12 +31,14 @@ export const InventorySection = ({
 
   const loadRestaurantSettings = async () => {
     try {
+    
       const response = await fetchWithAuth(
         `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(restaurantId)}`
       );
       if (response.ok) {
         const data = await response.json();
-        const value = data.minimumAutoAccept ?? null;
+
+        const value = data.minimumAutoAcceptQuantity ?? null;
         setMinimumAutoAccept(value);
         setInitialMinimumAutoAccept(value);
       }
