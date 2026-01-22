@@ -102,7 +102,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-100 pt-10 text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">
-          <p>&copy; {new Date().getFullYear()} SWIFT FOOD UK. ALL RIGHTS RESERVED.</p>
+          <p>&copy; 2025 SWIFT FOOD SERVICES LTD. ALL RIGHTS RESERVED.</p>
           <div className="flex space-x-8 mt-4 md:mt-0">
             <Link href="/privacy" className="hover:text-black transition-colors">
               Privacy Policy
