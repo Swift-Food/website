@@ -130,7 +130,7 @@ export default function ContactInfoForm({
               onChange={(e) => onFieldChange("organization", e.target.value)}
               onBlur={() => onBlur("organization")}
               placeholder="Your Organization Name"
-              className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
             />
           </div>
 
@@ -147,12 +147,12 @@ export default function ContactInfoForm({
               onChange={(e) => onFieldChange("fullName", e.target.value)}
               onBlur={() => onBlur("fullName")}
               placeholder="Your Name"
-              className={`w-full px-4 py-3 bg-base-200/50 border ${
+              className={`w-full px-3 py-2 text-sm bg-base-200/50 border ${
                 errors.fullName ? "border-error" : "border-base-300"
-              } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+              } rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
             />
             {errors.fullName && (
-              <p className="mt-1 text-sm text-error">✗ {errors.fullName}</p>
+              <p className="mt-1 text-xs text-error">✗ {errors.fullName}</p>
             )}
           </div>
 
@@ -169,12 +169,12 @@ export default function ContactInfoForm({
               onChange={(e) => onFieldChange("phone", e.target.value)}
               onBlur={() => onBlur("phone")}
               placeholder="Your Number"
-              className={`w-full px-4 py-3 bg-base-200/50 border ${
+              className={`w-full px-3 py-2 text-sm bg-base-200/50 border ${
                 errors.phone ? "border-error" : "border-base-300"
-              } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+              } rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
             />
             {errors.phone && (
-              <p className="mt-1 text-sm text-error">✗ {errors.phone}</p>
+              <p className="mt-1 text-xs text-error">✗ {errors.phone}</p>
             )}
           </div>
 
@@ -191,12 +191,12 @@ export default function ContactInfoForm({
               onChange={(e) => onFieldChange("email", e.target.value)}
               onBlur={() => onBlur("email")}
               placeholder="Your Email"
-              className={`w-full px-4 py-3 bg-base-200/50 border ${
+              className={`w-full px-3 py-2 text-sm bg-base-200/50 border ${
                 errors.email ? "border-error" : "border-base-300"
-              } rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
+              } rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-error">✗ {errors.email}</p>
+              <p className="mt-1 text-xs text-error">✗ {errors.email}</p>
             )}
           </div>
 
@@ -221,7 +221,7 @@ export default function ContactInfoForm({
                   }
                 }}
                 placeholder="additional@email.com"
-                className="flex-1 px-4 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                className="flex-1 px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
               />
               <button
                 type="button"
@@ -254,12 +254,16 @@ export default function ContactInfoForm({
           </div>
 
           {/* Billing Address (Optional) */}
-          <div className="pt-2">
+          <div className="pt-4 mt-4 border-t border-base-300">
             <button
               type="button"
               onClick={() => setShowBillingAddress(!showBillingAddress)}
-              className="flex items-center gap-2 text-sm text-primary hover:underline"
+              className="w-full flex items-center justify-between text-sm font-medium text-base-content hover:text-base-content/80"
             >
+              <div className="flex items-center gap-2">
+                <span>Billing Address</span>
+                <span className="text-xs font-normal text-base-content/50">(Optional)</span>
+              </div>
               <svg
                 className={`w-4 h-4 transition-transform ${showBillingAddress ? "rotate-180" : ""}`}
                 fill="none"
@@ -273,9 +277,8 @@ export default function ContactInfoForm({
                   d="M19 9l-7 7-7-7"
                 />
               </svg>
-              {showBillingAddress ? "Hide" : "Add"} Billing Address (Optional)
             </button>
-            <p className="text-xs text-base-content/60 mt-1">
+            <p className="text-xs text-base-content/50 mt-1">
               For invoice purposes if different from delivery address
             </p>
 
@@ -293,7 +296,7 @@ export default function ContactInfoForm({
                       handleBillingFieldChange("line1", e.target.value)
                     }
                     placeholder="Street address"
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                    className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   />
                 </div>
 
@@ -309,7 +312,7 @@ export default function ContactInfoForm({
                       handleBillingFieldChange("line2", e.target.value)
                     }
                     placeholder="Apartment, suite, etc."
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                    className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   />
                 </div>
 
@@ -326,7 +329,7 @@ export default function ContactInfoForm({
                         handleBillingFieldChange("city", e.target.value)
                       }
                       placeholder="City"
-                      className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                      className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                     />
                   </div>
                   <div>
@@ -340,7 +343,7 @@ export default function ContactInfoForm({
                         handleBillingFieldChange("postalCode", e.target.value)
                       }
                       placeholder="Postcode"
-                      className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                      className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -355,7 +358,7 @@ export default function ContactInfoForm({
                     onChange={(e) =>
                       handleBillingFieldChange("country", e.target.value)
                     }
-                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                    className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   >
                     <option value="GB">United Kingdom</option>
                     <option value="IE">Ireland</option>
