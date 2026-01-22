@@ -280,10 +280,10 @@ export default function ContactInfoForm({
             </p>
 
             {showBillingAddress && (
-              <div className="mt-3 space-y-3 p-4 bg-base-200/30 rounded-xl border border-base-300">
+              <div className="mt-4 space-y-4 p-4 bg-base-200/30 rounded-xl border border-base-300">
                 {/* Billing Line 1 */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-base-content">
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
                     Address Line 1
                   </label>
                   <input
@@ -293,13 +293,13 @@ export default function ContactInfoForm({
                       handleBillingFieldChange("line1", e.target.value)
                     }
                     placeholder="Street address"
-                    className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   />
                 </div>
 
                 {/* Billing Line 2 */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-base-content">
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
                     Address Line 2 (Optional)
                   </label>
                   <input
@@ -309,14 +309,14 @@ export default function ContactInfoForm({
                       handleBillingFieldChange("line2", e.target.value)
                     }
                     placeholder="Apartment, suite, etc."
-                    className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   />
                 </div>
 
                 {/* City and Postcode row */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1 text-base-content">
+                    <label className="block text-sm font-semibold mb-2 text-base-content">
                       City
                     </label>
                     <input
@@ -326,11 +326,11 @@ export default function ContactInfoForm({
                         handleBillingFieldChange("city", e.target.value)
                       }
                       placeholder="City"
-                      className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1 text-base-content">
+                    <label className="block text-sm font-semibold mb-2 text-base-content">
                       Postcode
                     </label>
                     <input
@@ -340,14 +340,14 @@ export default function ContactInfoForm({
                         handleBillingFieldChange("postalCode", e.target.value)
                       }
                       placeholder="Postcode"
-                      className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Country - defaulted to UK */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-base-content">
+                  <label className="block text-sm font-semibold mb-2 text-base-content">
                     Country
                   </label>
                   <select
@@ -355,7 +355,7 @@ export default function ContactInfoForm({
                     onChange={(e) =>
                       handleBillingFieldChange("country", e.target.value)
                     }
-                    className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    className="w-full px-4 py-3 bg-base-200/50 border border-base-300 rounded-xl focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
                   >
                     <option value="GB">United Kingdom</option>
                     <option value="IE">Ireland</option>

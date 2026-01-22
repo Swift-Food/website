@@ -524,6 +524,7 @@ export default function Step3ContactInfo() {
         zipcode: contactInfo.zipcode || "",
         latitude: contactInfo.latitude,
         longitude: contactInfo.longitude,
+        billingAddress: contactInfo.billingAddress,
       });
     }
   }, [contactInfo]);
