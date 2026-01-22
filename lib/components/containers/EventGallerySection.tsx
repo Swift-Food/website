@@ -34,6 +34,7 @@ export default function EventGallerySection() {
       count: "310+ portions",
       category: "Hackathon",
       img: "/HomeSection/Epiminds.jpg",
+      link: "https://luma.com/gkbghqvs",
     },
     {
       id: 2,
@@ -42,6 +43,7 @@ export default function EventGallerySection() {
       category: "Hackathon",
       // img: "/HomeSection/RL_Hackathon.JPG",
       img: "/HomeSection/RL_Hackathon2.jpeg",
+      link: "https://luma.com/vnia1awh",
     },
     {
       id: 3,
@@ -50,6 +52,7 @@ export default function EventGallerySection() {
       category: "Hackathon",
       img: "/HomeSection/Great_Agent_Hack2.png",
       // img: "/HomeSection/Great_Agent_Hack.jpg",
+      link: "https://hackathon.holisticai.com/",
     },
     {
       id: 4,
@@ -57,6 +60,7 @@ export default function EventGallerySection() {
       count: "940+ portions",
       category: "Hackathon",
       img: "/HomeSection/Agent Verse.JPG",
+      link: "https://luma.com/2emua73x",
     },
   ];
 
@@ -131,9 +135,15 @@ export default function EventGallerySection() {
                     </p>
                   </div>
                 </div>
-{/*                <div className={`absolute top-8 right-8 w-12 h-12 border border-white/10 rounded-full flex items-center justify-center text-white transition-all duration-500 hover:bg-[#fa43ad] hover:border-[#fa43ad] ${
-                  isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                }`}>
+                <a
+                  href={event.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className={`absolute top-8 right-8 w-12 h-12 border border-white/10 rounded-full flex items-center justify-center text-white transition-all duration-500 hover:bg-[#fa43ad] hover:border-[#fa43ad] ${
+                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  }`}
+                >
                   <svg
                     className="w-5 h-5"
                     fill="none"
@@ -147,7 +157,7 @@ export default function EventGallerySection() {
                       d="M14 5l7 7m0 0l-7 7m7-7H3"
                     />
                   </svg>
-                </div> */}
+                </a>
               </div>
             );
           })}
