@@ -142,6 +142,8 @@ export interface PdfAddon {
   quantity: number;
   price?: number;
   groupTitle?: string;
+  allergens?: string | string[];
+  dietaryRestrictions?: string[];
 }
 
 export interface PdfMenuItem {
@@ -332,6 +334,53 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 4,
   },
+  addonsSection: {
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  addonsSectionHeader: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: "#4b5563",
+    marginBottom: 3,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  addonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    marginBottom: 2,
+  },
+  addonBullet: {
+    fontSize: 8,
+    color: "#4b5563",
+    marginRight: 4,
+  },
+  addonName: {
+    fontSize: 8,
+    color: "#4b5563",
+  },
+  addonDietaryBadges: {
+    flexDirection: "row",
+    marginLeft: 4,
+    gap: 2,
+  },
+  addonDietaryBadge: {
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    borderRadius: 2,
+  },
+  addonDietaryBadgeText: {
+    fontSize: 6,
+    fontWeight: 700,
+  },
+  addonAllergenText: {
+    fontSize: 8,
+    color: "#6b7280",
+    fontStyle: "italic",
+    marginLeft: 4,
+  },
   menuItemImage: {
     width: 100,
     height: 70,
@@ -413,32 +462,34 @@ const CoverPage: React.FC = () => (
 //   </Page>
 // );
 
+// Helper to format addon dietary filters as abbreviations
+const formatAddonDietaryFilters = (dietaryFilters: string[] | undefined): string => {
+  if (!dietaryFilters || dietaryFilters.length === 0) return "";
+  const abbrevs = dietaryFilters
+    .map((filter) => {
+      const config = DIETARY_CONFIG[filter.toLowerCase()];
+      return config ? config.abbrev : null;
+    })
+    .filter(Boolean);
+  return abbrevs.length > 0 ? `[${abbrevs.join(", ")}]` : "";
+};
+
 // Menu Item Component
 const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
   item,
   showPrice,
 }) => {
   // Group addons by groupTitle
-  const groupedAddons: Record<string, Array<{ name: string; quantity: number }>> = {};
+  const groupedAddons: Record<string, PdfAddon[]> = {};
   if (item.addons && item.addons.length > 0) {
     item.addons.forEach((addon) => {
-      const group = addon.groupTitle || "Options";
+      const group = addon.groupTitle || "Extra Add-ons";
       if (!groupedAddons[group]) {
         groupedAddons[group] = [];
       }
-      groupedAddons[group].push({ name: addon.name, quantity: addon.quantity });
+      groupedAddons[group].push(addon);
     });
   }
-
-  // Format addons as a single line: "Group: item1, item2 | Group2: item3"
-  const addonsText = Object.entries(groupedAddons)
-    .map(([groupTitle, addons]) => {
-      const addonsList = addons
-        .map((a) => `${a.quantity > 1 ? `${a.quantity}x ` : ""}${a.name}`)
-        .join(", ");
-      return `${groupTitle}: ${addonsList}`;
-    })
-    .join("  |  ");
 
   // Calculate portions and serves
   const cateringQuantityUnit = item.cateringQuantityUnit || 1;
@@ -455,9 +506,32 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
         {item.description && (
           <Text style={styles.menuItemDescription}>{item.description}</Text>
         )}
-        {addonsText && (
-          <Text style={styles.menuItemAddons}>{addonsText}</Text>
-        )}
+        {/* Addon sections */}
+        {Object.entries(groupedAddons).map(([groupTitle, addons]) => (
+          <View key={groupTitle} style={styles.addonsSection}>
+            <Text style={styles.addonsSectionHeader}>{groupTitle}:</Text>
+            {addons.map((addon, idx) => {
+              const dietaryText = formatAddonDietaryFilters(addon.dietaryRestrictions);
+              const allergenText = addon.allergens
+                ? formatAllergens(addon.allergens)
+                : "-";
+              return (
+                <View key={idx} style={styles.addonRow}>
+                  <Text style={styles.addonBullet}>•</Text>
+                  <Text style={styles.addonName}>
+                    {addon.quantity > 1 ? `${addon.quantity}x ` : ""}{addon.name}
+                  </Text>
+                  {dietaryText && (
+                    <Text style={[styles.addonName, { marginLeft: 4 }]}>{dietaryText}</Text>
+                  )}
+                  <Text style={styles.addonAllergenText}>
+                    (Allergen: {allergenText})
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        ))}
         {item.allergens && (Array.isArray(item.allergens) ? item.allergens.length > 0 : item.allergens) && (
           <Text style={styles.menuItemAllergens}>
             Allergen: {formatAllergens(item.allergens)}

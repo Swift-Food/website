@@ -750,6 +750,8 @@ export interface LocalMealSession {
         price: number;
         quantity: number;
         groupTitle?: string;
+        allergens?: string | string[];
+        dietaryRestrictions?: string[];
       }>;
     };
     quantity: number;
@@ -814,6 +816,8 @@ export async function buildMenuHTMLFromLocalState(
             quantity: addon.quantity,
             price: addon.price,
             groupTitle: addon.groupTitle,
+            allergens: addon.allergens,
+            dietaryRestrictions: addon.dietaryRestrictions,
           })),
         };
       });
@@ -1345,6 +1349,8 @@ export async function transformLocalSessionsToPdfData(
         quantity: addon.quantity || 1,
         price: addon.price,
         groupTitle: addon.groupTitle,
+        allergens: addon.allergens,
+        dietaryRestrictions: addon.dietaryRestrictions,
       }));
 
       // Aggregate dietary filters from protein addons

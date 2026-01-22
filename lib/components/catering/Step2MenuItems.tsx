@@ -72,6 +72,8 @@ export interface MenuItem {
     price: number;
     quantity: number;
     groupTitle: string;
+    allergens?: string | string[];
+    dietaryRestrictions?: string[];
   }[];
   addonPrice?: number;
   portionQuantity?: number;

@@ -26,6 +26,8 @@ export interface SelectedAddon {
   customerUnitPrice?: number; // New field matching backend DTO
   quantity: number;
   groupTitle: string;
+  allergens?: string | string[];
+  dietaryRestrictions?: string[];
 }
 
 export interface SearchResult {

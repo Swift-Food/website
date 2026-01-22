@@ -479,6 +479,8 @@ export default function MenuItemModal({
       price: number;
       quantity: number;
       groupTitle: string;
+      allergens?: string | string[];
+      dietaryRestrictions?: string[];
     }[] = [];
 
     let totalAddonPrice = 0;
@@ -497,6 +499,8 @@ export default function MenuItemModal({
                 price: addonPrice,
                 quantity: qty,
                 groupTitle: groupTitle,
+                allergens: addon.allergens,
+                dietaryRestrictions: addon.dietaryRestrictions,
               });
               totalAddonPrice += addonPrice * qty;
             }
@@ -507,6 +511,8 @@ export default function MenuItemModal({
               price: addonPrice,
               quantity: itemQuantity,
               groupTitle: groupTitle,
+              allergens: addon.allergens,
+              dietaryRestrictions: addon.dietaryRestrictions,
             });
             totalAddonPrice += addonPrice * itemQuantity;
           }
