@@ -193,6 +193,42 @@ export default function Step3ContactInfo() {
     }));
   };
 
+  const handleBillingBlur = (field: keyof NonNullable<ContactInfo["billingAddress"]>) => {
+    // Only validate if user has started filling in billing address
+    if (!hasBillingAddressData()) return;
+
+    const billing = formData.billingAddress;
+    let error: string | undefined;
+
+    switch (field) {
+      case "line1":
+        if (!billing?.line1?.trim()) {
+          error = "Address line 1 is required";
+        }
+        break;
+      case "city":
+        if (!billing?.city?.trim()) {
+          error = "City is required";
+        }
+        break;
+      case "postalCode":
+        if (!billing?.postalCode?.trim()) {
+          error = "Postcode is required";
+        } else if (!validateUKPostcode(billing.postalCode)) {
+          error = "Please enter a valid UK postcode (e.g., SW1A 1AA)";
+        }
+        break;
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      billingAddress: {
+        ...prev.billingAddress,
+        [field]: error,
+      },
+    }));
+  };
+
   // Clear error when user starts typing
   const handleChange = (field: keyof ContactInfo, value: string | ContactInfo["billingAddress"]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -207,6 +243,37 @@ export default function Step3ContactInfo() {
   const validateUKPostcode = (postcode: string): boolean => {
     if (!postcode) return false;
     return UK_POSTCODE_REGEX.test(postcode.trim());
+  };
+
+  // Check if billing address has any data entered
+  const hasBillingAddressData = (): boolean => {
+    const billing = formData.billingAddress;
+    if (!billing) return false;
+    return !!(billing.line1?.trim() || billing.city?.trim() || billing.postalCode?.trim());
+  };
+
+  // Validate billing address fields - only required if user has started filling it in
+  const validateBillingAddress = (): ValidationErrors["billingAddress"] => {
+    // Skip validation if user hasn't entered any billing data
+    if (!hasBillingAddressData()) return undefined;
+
+    const billing = formData.billingAddress;
+    const billingErrors: ValidationErrors["billingAddress"] = {};
+
+    if (!billing?.line1?.trim()) {
+      billingErrors.line1 = "Address line 1 is required";
+    }
+    if (!billing?.city?.trim()) {
+      billingErrors.city = "City is required";
+    }
+    if (!billing?.postalCode?.trim()) {
+      billingErrors.postalCode = "Postcode is required";
+    } else if (!validateUKPostcode(billing.postalCode)) {
+      billingErrors.postalCode = "Please enter a valid UK postcode (e.g., SW1A 1AA)";
+    }
+
+    // Return undefined if no errors, otherwise return the errors object
+    return Object.keys(billingErrors).length > 0 ? billingErrors : undefined;
   };
 
   // Validate all fields
@@ -237,10 +304,18 @@ export default function Step3ContactInfo() {
       }
     }
 
+    // Validate billing address if user has entered any data
+    newErrors.billingAddress = validateBillingAddress();
+
     setErrors(newErrors);
 
-    // Return true if no errors
-    return !Object.values(newErrors).some((error) => error !== undefined);
+    // Return true if no errors (check billingAddress separately as it's an object)
+    const hasBasicErrors = Object.entries(newErrors)
+      .filter(([key]) => key !== "billingAddress")
+      .some(([, error]) => error !== undefined);
+    const hasBillingErrors = newErrors.billingAddress !== undefined;
+
+    return !hasBasicErrors && !hasBillingErrors;
   };
 
   const handleAddCcEmail = (email: string) => {
@@ -1081,6 +1156,7 @@ export default function Step3ContactInfo() {
                   errors={errors}
                   onFieldChange={handleChange}
                   onBlur={handleBlur}
+                  onBillingBlur={handleBillingBlur}
                   ccEmails={ccEmails}
                   onAddCcEmail={handleAddCcEmail}
                   onRemoveCcEmail={handleRemoveCcEmail}

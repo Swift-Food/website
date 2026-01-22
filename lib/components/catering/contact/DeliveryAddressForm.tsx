@@ -77,7 +77,7 @@ export default function DeliveryAddressForm({
       </button>
 
       {isExpanded && (
-        <div className="space-y-3">
+        <div className="space-y-3 p-4 rounded-xl border border-base-300">
           <AddressAutocomplete
             onPlaceSelect={onPlaceSelect}
             onClearAddress={onClearAddress}
@@ -102,7 +102,7 @@ export default function DeliveryAddressForm({
               value={formData.addressLine1 || ""}
               readOnly
               placeholder="Select from search above"
-              className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed ${
+              className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed outline-none ${
                 errors.addressLine1 &&
                 !errors.addressLine1.includes("United Kingdom") &&
                 !errors.addressLine1.includes("London")
@@ -147,7 +147,7 @@ export default function DeliveryAddressForm({
                 value={formData.city || ""}
                 readOnly
                 placeholder="Auto-filled"
-                className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed ${
+                className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed outline-none ${
                   errors.city ? "border-error" : "border-base-300"
                 }`}
               />
@@ -166,7 +166,7 @@ export default function DeliveryAddressForm({
                 value={formData.zipcode || ""}
                 readOnly
                 placeholder="Auto-filled"
-                className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed ${
+                className={`w-full px-3 py-2 text-sm bg-base-300/30 border rounded-lg cursor-not-allowed outline-none ${
                   errors.zipcode ? "border-error" : "border-base-300"
                 }`}
               />

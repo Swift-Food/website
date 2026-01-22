@@ -62,7 +62,7 @@ export default function PromoCodeSection({
       </button>
 
       {isExpanded && (
-        <div>
+        <div className="p-4 rounded-xl border border-base-300">
           <div className="flex gap-2 mb-3">
             <input
               type="text"

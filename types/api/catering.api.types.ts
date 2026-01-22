@@ -122,6 +122,13 @@ export interface CateringOrderResponse {
   publicNote?: string;
   internalNote?: string;
   ccEmails?: string[];
+  billingAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
 
   // Event details (represents primary/first meal session for backward compatibility)
   eventDate: string | Date;

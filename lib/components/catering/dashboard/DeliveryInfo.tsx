@@ -1,7 +1,7 @@
 // app/components/catering/dashboard/DeliveryInfo.tsx
 import React from 'react';
 import { CateringOrderResponse } from '@/types/api';
-import { User, Mail, Phone, Clock, Building } from 'lucide-react';
+import { User, Mail, Phone, Clock, Building, FileText } from 'lucide-react';
 
 interface DeliveryInfoProps {
   order: CateringOrderResponse;
@@ -43,6 +43,23 @@ export default function DeliveryInfo({ order }: DeliveryInfoProps) {
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-gray-600">Organization</p>
               <p className="font-medium text-sm sm:text-base text-gray-900 break-words">{order.organization}</p>
+            </div>
+          </div>
+        )}
+
+        {order.billingAddress?.line1 && (
+          <div className="flex items-start gap-2 sm:gap-3">
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-gray-600">Billing Address</p>
+              <p className="font-medium text-sm sm:text-base text-gray-900 break-words">
+                {order.billingAddress.line1}
+                {order.billingAddress.line2 && <>, {order.billingAddress.line2}</>}
+                <br />
+                {order.billingAddress.city}, {order.billingAddress.postalCode}
+                <br />
+                {order.billingAddress.country === 'GB' ? 'United Kingdom' : order.billingAddress.country === 'IE' ? 'Ireland' : order.billingAddress.country}
+              </p>
             </div>
           </div>
         )}
