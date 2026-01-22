@@ -66,7 +66,7 @@ export default function AddressAutocomplete({
 
   return (
     <div className="mb-3">
-      <label className="block text-xs font-semibold mb-2 text-base-content">
+      <label className="block text-sm font-semibold mb-2 text-base-content">
         Search Address*
       </label>
       <div className="relative">

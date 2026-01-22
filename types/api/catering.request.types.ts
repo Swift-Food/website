@@ -90,6 +90,15 @@ export interface CreateCateringOrderRequest {
   ccEmails?: string[];
   organization?: string;
 
+  // Optional billing address for Stripe invoices
+  billingAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+
   // ============================================================
   // TOP-LEVEL EVENT DETAILS (for backward compatibility)
   // For single-meal orders, these are used directly
