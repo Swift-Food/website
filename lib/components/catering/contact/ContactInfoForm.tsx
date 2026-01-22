@@ -6,6 +6,11 @@ interface ValidationErrors {
   fullName?: string;
   email?: string;
   phone?: string;
+  billingAddress?: {
+    line1?: string;
+    city?: string;
+    postalCode?: string;
+  };
 }
 
 interface ContactInfoFormProps {
@@ -29,6 +34,26 @@ export default function ContactInfoForm({
 }: ContactInfoFormProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [ccEmailInput, setCcEmailInput] = useState("");
+  const [showBillingAddress, setShowBillingAddress] = useState(
+    !!formData.billingAddress?.line1
+  );
+
+  const handleBillingFieldChange = (
+    field: keyof NonNullable<ContactInfo["billingAddress"]>,
+    value: string
+  ) => {
+    const currentBilling = formData.billingAddress || {
+      line1: "",
+      line2: "",
+      city: "",
+      postalCode: "",
+      country: "GB",
+    };
+    onFieldChange("billingAddress", {
+      ...currentBilling,
+      [field]: value,
+    } as any);
+  };
 
   const handleAddCcEmail = () => {
     const trimmedEmail = ccEmailInput.trim();
@@ -224,6 +249,118 @@ export default function ContactInfoForm({
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Billing Address (Optional) */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowBillingAddress(!showBillingAddress)}
+              className="flex items-center gap-2 text-sm text-primary hover:underline"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform ${showBillingAddress ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+              {showBillingAddress ? "Hide" : "Add"} Billing Address (Optional)
+            </button>
+            <p className="text-xs text-base-content/60 mt-1">
+              For invoice purposes if different from delivery address
+            </p>
+
+            {showBillingAddress && (
+              <div className="mt-3 space-y-3 p-4 bg-base-200/30 rounded-xl border border-base-300">
+                {/* Billing Line 1 */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-base-content">
+                    Address Line 1
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.billingAddress?.line1 || ""}
+                    onChange={(e) =>
+                      handleBillingFieldChange("line1", e.target.value)
+                    }
+                    placeholder="Street address"
+                    className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                  />
+                </div>
+
+                {/* Billing Line 2 */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-base-content">
+                    Address Line 2 (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.billingAddress?.line2 || ""}
+                    onChange={(e) =>
+                      handleBillingFieldChange("line2", e.target.value)
+                    }
+                    placeholder="Apartment, suite, etc."
+                    className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                  />
+                </div>
+
+                {/* City and Postcode row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-base-content">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.billingAddress?.city || ""}
+                      onChange={(e) =>
+                        handleBillingFieldChange("city", e.target.value)
+                      }
+                      placeholder="City"
+                      className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-base-content">
+                      Postcode
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.billingAddress?.postalCode || ""}
+                      onChange={(e) =>
+                        handleBillingFieldChange("postalCode", e.target.value)
+                      }
+                      placeholder="Postcode"
+                      className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Country - defaulted to UK */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-base-content">
+                    Country
+                  </label>
+                  <select
+                    value={formData.billingAddress?.country || "GB"}
+                    onChange={(e) =>
+                      handleBillingFieldChange("country", e.target.value)
+                    }
+                    className="w-full px-3 py-2 bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent text-sm"
+                  >
+                    <option value="GB">United Kingdom</option>
+                    <option value="IE">Ireland</option>
+                  </select>
+                </div>
               </div>
             )}
           </div>

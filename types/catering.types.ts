@@ -225,6 +225,14 @@ export interface ContactInfo {
   zipcode: string;
   latitude?: number;
   longitude?: number;
+  // Optional billing address for Stripe invoices
+  billingAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
 }
 
 /**

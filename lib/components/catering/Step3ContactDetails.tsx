@@ -34,6 +34,11 @@ interface ValidationErrors {
   ccEmail?: string;
   latitude?: number;
   longitude?: number;
+  billingAddress?: {
+    line1?: string;
+    city?: string;
+    postalCode?: string;
+  };
 }
 
 export default function Step3ContactInfo() {
@@ -66,6 +71,7 @@ export default function Step3ContactInfo() {
     zipcode: contactInfo?.zipcode || "",
     latitude: contactInfo?.latitude,
     longitude: contactInfo?.longitude,
+    billingAddress: contactInfo?.billingAddress,
   });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -188,9 +194,9 @@ export default function Step3ContactInfo() {
   };
 
   // Clear error when user starts typing
-  const handleChange = (field: keyof ContactInfo, value: string) => {
+  const handleChange = (field: keyof ContactInfo, value: string | ContactInfo["billingAddress"]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
+    if (field in errors) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
