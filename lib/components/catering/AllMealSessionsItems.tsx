@@ -189,12 +189,14 @@ export default function AllMealSessionsItems({
     sessionIndex: number
   ) => {
     const { item, quantity, originalIndex } = groupedItem;
+    console.log("item", item)
     const price = parseFloat(item.price?.toString() || "0");
     const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
     const itemPrice =
       item.isDiscount && discountPrice > 0 ? discountPrice : price;
     const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
     const portions = quantity / BACKEND_QUANTITY_UNIT;
+    const serves = item.feedsPerUnit * portions
 
     const addonTotal = (item.selectedAddons || []).reduce(
       (sum: number, addon: { price: number; quantity: number }) =>
@@ -223,6 +225,9 @@ export default function AllMealSessionsItems({
               </p>
               <p className="text-xs sm:text-sm text-gray-600">
                 {portions} portion{portions !== 1 ? "s" : ""}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-600">
+                serves ~ {serves}
               </p>
               {item.selectedAddons && item.selectedAddons.length > 0 && (
                 <div className="mt-1 text-xs text-gray-500">

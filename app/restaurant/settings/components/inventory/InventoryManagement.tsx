@@ -115,6 +115,7 @@ export const InventoryManagement = ({
             setEnableIngredientTracking(false);
             setIngredients([]);
           }
+
         } catch (err) {
           console.warn("Corporate inventory data not available:", err);
           // Set default values if the endpoint doesn't exist or fails
