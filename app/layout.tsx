@@ -68,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="Swift">
       <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
         <ScrollProvider>
           <div className="min-h-screen flex flex-col">
