@@ -400,12 +400,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   mainItemAllergenLabel: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: 700,
     color: "#1f2937",
   },
   mainItemAllergenText: {
-    fontSize: 11,
+    fontSize: 9,
     color: "#1f2937",
   },
   menuItemImage: {
@@ -521,20 +521,6 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
         {item.description && (
           <Text style={styles.menuItemDescription}>{item.description}</Text>
         )}
-        {/* Dietary badges - after description */}
-        {item.dietaryFilters && item.dietaryFilters.length > 0 && (
-          <View style={styles.menuItemDietaryFilters}>
-            {item.dietaryFilters.map((filter, idx) => {
-              const config = DIETARY_CONFIG[filter.toLowerCase()];
-              if (!config) return null;
-              return (
-                <View key={idx} style={[styles.dietaryBadge, { backgroundColor: config.bgColor }]}>
-                  <Text style={[styles.dietaryBadgeText, { color: config.color }]}>{config.abbrev}</Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
         {/* Addon sections with left border */}
         {Object.keys(groupedAddons).length > 0 && (
           <View style={styles.addonsContainer}>
@@ -583,6 +569,20 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
               <Text style={styles.mainItemAllergenLabel}>Main Item Allergen: </Text>
               <Text style={styles.mainItemAllergenText}>{formatAllergens(item.allergens)}</Text>
             </Text>
+          </View>
+        )}
+        {/* Dietary badges - after allergens */}
+        {item.dietaryFilters && item.dietaryFilters.length > 0 && (
+          <View style={styles.menuItemDietaryFilters}>
+            {item.dietaryFilters.map((filter, idx) => {
+              const config = DIETARY_CONFIG[filter.toLowerCase()];
+              if (!config) return null;
+              return (
+                <View key={idx} style={[styles.dietaryBadge, { backgroundColor: config.bgColor }]}>
+                  <Text style={[styles.dietaryBadgeText, { color: config.color }]}>{config.abbrev}</Text>
+                </View>
+              );
+            })}
           </View>
         )}
         <Text style={styles.menuItemPortions}>
