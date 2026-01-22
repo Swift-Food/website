@@ -322,9 +322,14 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   menuItemPrice: {
-    fontSize: 10,
+    fontSize: 11,
     fontStyle: "italic",
-    marginTop: 4,
+    marginTop: 6,
+  },
+  menuItemPriceBold: {
+    fontSize: 11,
+    fontWeight: 700,
+    fontStyle: "italic",
   },
   menuItemPortions: {
     fontSize: 9,
@@ -516,6 +521,20 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
         {item.description && (
           <Text style={styles.menuItemDescription}>{item.description}</Text>
         )}
+        {/* Dietary badges - after description */}
+        {item.dietaryFilters && item.dietaryFilters.length > 0 && (
+          <View style={styles.menuItemDietaryFilters}>
+            {item.dietaryFilters.map((filter, idx) => {
+              const config = DIETARY_CONFIG[filter.toLowerCase()];
+              if (!config) return null;
+              return (
+                <View key={idx} style={[styles.dietaryBadge, { backgroundColor: config.bgColor }]}>
+                  <Text style={[styles.dietaryBadgeText, { color: config.color }]}>{config.abbrev}</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
         {/* Addon sections with left border */}
         {Object.keys(groupedAddons).length > 0 && (
           <View style={styles.addonsContainer}>
@@ -566,27 +585,15 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
             </Text>
           </View>
         )}
-        {/* Dietary badges */}
-        {item.dietaryFilters && item.dietaryFilters.length > 0 && (
-          <View style={styles.menuItemDietaryFilters}>
-            {item.dietaryFilters.map((filter, idx) => {
-              const config = DIETARY_CONFIG[filter.toLowerCase()];
-              if (!config) return null;
-              return (
-                <View key={idx} style={[styles.dietaryBadge, { backgroundColor: config.bgColor }]}>
-                  <Text style={[styles.dietaryBadgeText, { color: config.color }]}>{config.abbrev}</Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
         <Text style={styles.menuItemPortions}>
           {numPortions} portion{numPortions !== 1 ? "s" : ""} • Serves ~{totalServes} people
         </Text>
         {showPrice && item.unitPrice !== undefined && (
           <Text style={styles.menuItemPrice}>
-            Unit Price £{" "}
-            {item.unitPrice === 0 ? "FREE" : item.unitPrice.toFixed(2)}
+            <Text style={styles.menuItemPriceBold}>Unit Price </Text>
+            <Text style={styles.menuItemPriceBold}>
+              £{item.unitPrice === 0 ? "FREE" : item.unitPrice.toFixed(2)}
+            </Text>
           </Text>
         )}
       </View>
