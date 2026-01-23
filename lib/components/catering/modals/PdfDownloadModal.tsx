@@ -11,7 +11,7 @@ export default function PdfDownloadModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <FileText className="h-6 w-6 text-primary" />
           </div>
@@ -20,10 +20,6 @@ export default function PdfDownloadModal({
             <p className="text-sm text-gray-500">Choose your preferred format</p>
           </div>
         </div>
-
-        <p className="text-gray-600 mb-6">
-          Would you like to include prices in the PDF? The version without prices is perfect for sharing with event guests.
-        </p>
 
         <div className="space-y-3 mb-6">
           {/* With Prices Option */}
