@@ -537,7 +537,7 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
                     <View key={idx} style={styles.addonRow}>
                       <Text style={styles.addonBullet}>•</Text>
                       <Text style={styles.addonText}>
-                        {addon.quantity > 1 ? `${addon.quantity}x ` : ""}{addon.name}
+                        {addon.quantity > 1 ? `${addon.quantity}x ` : ""}{addon.name}{showPrice && addon.price !== undefined && addon.price > 0 ? ` (£${addon.price.toFixed(2)})` : ""}
                       </Text>
                       {hasDietary && (
                         <View style={styles.addonDietaryBadges}>
