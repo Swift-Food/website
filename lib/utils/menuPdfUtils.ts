@@ -1177,7 +1177,7 @@ export async function transformLocalSessionsToPdfData(
       const unitPrice =
         (item as any).isDiscount && discountPrice > 0 ? discountPrice : price;
       const addonTotal = ((item as any).selectedAddons || []).reduce(
-        (sum: number, addon: any) => sum + (addon.price || 0) * (addon.quantity || 0),
+        (sum: number, addon: any) => sum + (addon.customerUnitPrice || addon.price || 0) * (addon.quantity || 0),
         0
       );
       const itemTotal = (unitPrice * orderItem.quantity) + addonTotal;
@@ -1191,7 +1191,7 @@ export async function transformLocalSessionsToPdfData(
       const addons = (item as any).selectedAddons?.map((addon: any) => ({
         name: addon.name,
         quantity: addon.quantity || 1,
-        price: addon.price,
+        price: addon.customerUnitPrice || addon.price || 0,
         groupTitle: addon.groupTitle,
         allergens: addon.allergens,
         dietaryRestrictions: addon.dietaryRestrictions,
