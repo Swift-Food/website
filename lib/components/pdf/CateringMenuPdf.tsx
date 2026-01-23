@@ -368,10 +368,8 @@ const styles = StyleSheet.create({
 
   // Totals Container - Full Width Editorial Style
   totalsContainer: {
-    marginTop: 60,
-    paddingTop: 30,
-    borderTopWidth: 4,
-    borderTopColor: "#000",
+    marginTop: 40,
+    paddingTop: 20,
   },
   totalsRow: {
     flexDirection: "row",
@@ -420,6 +418,10 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY_OBLIQUE,
     color: "#9ca3af",
   },
+  grandTotalContainer: {
+    alignItems: "flex-end",
+    marginTop: 16,
+  },
   grandTotalLabel: {
     fontSize: 8,
     fontFamily: FONT_FAMILY_BOLD,
@@ -427,11 +429,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 3,
     marginBottom: 4,
+    textAlign: "right",
   },
   grandTotalValue: {
     fontSize: 28,
     fontFamily: FONT_FAMILY_BOLD_OBLIQUE,
     letterSpacing: -0.5,
+    textAlign: "right",
   },
 
   // Footer - Editorial Style
@@ -444,7 +448,12 @@ const styles = StyleSheet.create({
   dietaryLegend: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginBottom: 16,
+    marginBottom: 6,
+  },
+  footerDivider: {
+    height: 0.5,
+    backgroundColor: "#d1d5db",
+    marginBottom: 10,
   },
   dietaryLegendItem: {
     flexDirection: "row",
@@ -470,7 +479,6 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontFamily: FONT_FAMILY_OBLIQUE,
     color: "#666",
-    marginTop: 8,
   },
 });
 
@@ -658,128 +666,111 @@ const formatTimeWithAmPm = (time: string): string => {
   return `${displayHours}:${minutes?.toString().padStart(2, "0") || "00"} ${period}`;
 };
 
-// Menu Content Component - Editorial Style
-const MenuContent: React.FC<{
-  sessions: PdfSession[];
+// Session Page Component - Each session gets its own page
+const SessionPage: React.FC<{
+  session: PdfSession;
+  dayDate: string;
+  dayNumber: number;
   showPrices: boolean;
+  allSessions: PdfSession[];
+  isLastSession: boolean;
   deliveryCharge?: number;
-}> = ({ sessions, showPrices, deliveryCharge }) => {
-  const groupedByDay = groupSessionsByDate(sessions);
-  const totalCatering = sessions.reduce((sum, s) => sum + (s.subtotal || 0), 0);
+}> = ({ session, dayDate, dayNumber, showPrices, allSessions, isLastSession, deliveryCharge }) => {
+  const totalCatering = allSessions.reduce((sum, s) => sum + (s.subtotal || 0), 0);
 
   return (
-    <Page size="A4" style={styles.menuPage} wrap>
-      {/* Day Sections - Start directly with menu content */}
-      {groupedByDay.map((day) => (
-        <View key={day.date} style={styles.daySection}>
-          {/* Day Header */}
-          <View style={styles.dayHeader} wrap={false}>
-            <Text style={styles.dayTitle}>{day.date}</Text>
-            <Text style={styles.dayLabel}>Day {day.dayNumber}</Text>
-          </View>
+  <Page size="A4" style={styles.menuPage} wrap>
+    {/* Day Header */}
+    <View style={styles.dayHeader} wrap={false}>
+      <Text style={styles.dayTitle}>{dayDate}</Text>
+      <Text style={styles.dayLabel}>Day {dayNumber}</Text>
+    </View>
 
-          {/* Sessions within Day */}
-          {day.sessions.map((session, sessionIndex) => (
-            <View key={sessionIndex}>
-              {/* Session Header */}
-              <View style={styles.sessionHeader} wrap={false}>
-                <Text style={styles.sessionTitle}>{session.sessionName}</Text>
-                <Text style={styles.sessionTime}>{formatTimeWithAmPm(session.time)}</Text>
-              </View>
+    {/* Session Header */}
+    <View style={styles.sessionHeader} wrap={false} minPresenceAhead={150}>
+      <Text style={styles.sessionTitle}>{session.sessionName}</Text>
+      <Text style={styles.sessionTime}>{formatTimeWithAmPm(session.time)}</Text>
+    </View>
 
-              {/* Categories */}
-              {session.categories.map((category, catIndex) => (
-                <View key={catIndex}>
-                  {session.categories.length > 1 && (
-                    <Text style={styles.categoryHeader}>{category.name}</Text>
-                  )}
-                  {category.items.map((item, itemIndex) => (
-                    <MenuItem key={itemIndex} item={item} showPrice={showPrices} />
-                  ))}
-                </View>
-              ))}
+    {/* Categories */}
+    {session.categories.map((category, catIndex) => (
+      <View key={catIndex}>
+        {session.categories.length > 1 && (
+          <Text style={styles.categoryHeader} minPresenceAhead={100}>{category.name}</Text>
+        )}
+        {category.items.map((item, itemIndex) => (
+          <MenuItem key={itemIndex} item={item} showPrice={showPrices} />
+        ))}
+      </View>
+    ))}
 
-              {/* Session Subtotal */}
-              {showPrices && session.subtotal !== undefined && (
-                <View style={styles.subtotalContainer} wrap={false}>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <Text style={styles.subtotalText}>
-                      Subtotal: £{session.subtotal.toFixed(2)}
-                    </Text>
-                    <Text style={styles.deliveryFeeText}>
-                      Delivery Fee: {session.deliveryFee !== undefined ? `£${session.deliveryFee.toFixed(2)}` : "TBC"}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-          ))}
+    {/* Session Subtotal */}
+    {showPrices && session.subtotal !== undefined && (
+      <View style={styles.subtotalContainer} wrap={false}>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={styles.subtotalText}>
+            Subtotal: £{session.subtotal.toFixed(2)}
+          </Text>
+          <Text style={styles.deliveryFeeText}>
+            Delivery Fee: {session.deliveryFee !== undefined ? `£${session.deliveryFee.toFixed(2)}` : "TBC"}
+          </Text>
         </View>
-      ))}
+      </View>
+    )}
 
-      {/* Totals Summary - Full Width */}
-      {showPrices && (
-        <View style={styles.totalsContainer} wrap={false}>
-          {/* Subtotal Row */}
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>Subtotal</Text>
-            <Text style={styles.totalsValue}>£{totalCatering.toFixed(2)}</Text>
+    {/* Grand Totals - Only on last session */}
+    {isLastSession && showPrices && (
+      <View style={styles.totalsContainer} wrap={false}>
+        <View style={styles.totalsBreakdown}>
+          <View style={styles.totalsBreakdownRow}>
+            <Text style={styles.totalsBreakdownLabel}>Catering Total</Text>
+            <Text style={styles.totalsBreakdownValue}>£{totalCatering.toFixed(2)}</Text>
           </View>
-
-          {/* Breakdown */}
-          <View style={styles.totalsBreakdown}>
-            <View style={styles.totalsBreakdownRow}>
-              <Text style={styles.totalsBreakdownLabel}>Catering Total</Text>
-              <Text style={styles.totalsBreakdownValue}>£{totalCatering.toFixed(2)}</Text>
-            </View>
-            <View style={styles.totalsBreakdownRow}>
-              <Text style={styles.totalsBreakdownLabel}>Logistics / Delivery</Text>
-              <Text style={styles.totalsBreakdownValueItalic}>
-                {deliveryCharge !== undefined ? `£${deliveryCharge.toFixed(2)}` : "TBC"}
-              </Text>
-            </View>
-          </View>
-
-          {/* Grand Total */}
-          <View>
-            <Text style={styles.grandTotalLabel}>
-              {deliveryCharge !== undefined ? "Grand Total" : "Estimated Grand Total"}
-            </Text>
-            <Text style={styles.grandTotalValue}>
-              {deliveryCharge !== undefined
-                ? `£${(totalCatering + deliveryCharge).toFixed(2)}`
-                : `£${totalCatering.toFixed(2)} + TBC`}
+          <View style={styles.totalsBreakdownRow}>
+            <Text style={styles.totalsBreakdownLabel}>Logistics / Delivery</Text>
+            <Text style={styles.totalsBreakdownValueItalic}>
+              {deliveryCharge !== undefined ? `£${deliveryCharge.toFixed(2)}` : "TBC"}
             </Text>
           </View>
+        </View>
+
+        <View style={styles.grandTotalContainer}>
+          <Text style={styles.grandTotalLabel}>
+            {deliveryCharge !== undefined ? "Grand Total" : "Estimated Grand Total"}
+          </Text>
+          <Text style={styles.grandTotalValue}>
+            {deliveryCharge !== undefined
+              ? `£${(totalCatering + deliveryCharge).toFixed(2)}`
+              : `£${totalCatering.toFixed(2)} + TBC`}
+          </Text>
+        </View>
+      </View>
+    )}
+
+    {/* Footer */}
+    <View style={styles.footer} fixed>
+      <View style={styles.footerDivider} />
+      {getAllDietaryFilters(allSessions).length > 0 && (
+        <View style={styles.dietaryLegend}>
+          {getAllDietaryFilters(allSessions).map((filterKey) => {
+            const config = DIETARY_CONFIG[filterKey];
+            if (!config) return null;
+            return (
+              <View key={filterKey} style={styles.dietaryLegendItem}>
+                <View style={[styles.dietaryLegendBadge, { backgroundColor: config.bgColor }]}>
+                  <Text style={[styles.dietaryBadgeText, { fontSize: 6 }]}>{config.abbrev}</Text>
+                </View>
+                <Text style={styles.dietaryLegendText}>{config.label}</Text>
+              </View>
+            );
+          })}
         </View>
       )}
-
-      {/* Footer */}
-      <View style={styles.footer} fixed>
-        {/* Dietary Legend */}
-        {getAllDietaryFilters(sessions).length > 0 && (
-          <View style={styles.dietaryLegend}>
-            {getAllDietaryFilters(sessions).map((filterKey) => {
-              const config = DIETARY_CONFIG[filterKey];
-              if (!config) return null;
-              return (
-                <View key={filterKey} style={styles.dietaryLegendItem}>
-                  <View style={[styles.dietaryLegendBadge, { backgroundColor: config.bgColor }]}>
-                    <Text style={[styles.dietaryBadgeText, { fontSize: 6 }]}>{config.abbrev}</Text>
-                  </View>
-                  <Text style={styles.dietaryLegendText}>{config.label}</Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        {/* Disclaimer */}
-        <Text style={styles.footerText}>
-          *Images are for illustrative purposes only. Actual dishes may vary in appearance, portion size, and presentation due to preparation and ingredient differences.
-        </Text>
-      </View>
-    </Page>
+      <Text style={styles.footerText}>
+        *Images are for illustrative purposes only. Actual dishes may vary in appearance, portion size, and presentation due to preparation and ingredient differences.
+      </Text>
+    </View>
+  </Page>
   );
 };
 
@@ -788,15 +779,37 @@ export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
   sessions,
   showPrices,
   deliveryCharge,
-}) => (
-  <Document>
-    <CoverPage />
-    <MenuContent
-      sessions={sessions}
-      showPrices={showPrices}
-      deliveryCharge={deliveryCharge}
-    />
-  </Document>
-);
+}) => {
+  const groupedByDay = groupSessionsByDate(sessions);
+
+  // Flatten all sessions to determine which is last
+  const allSessionsFlat = groupedByDay.flatMap((day) =>
+    day.sessions.map((session, sessionIndex) => ({
+      session,
+      dayDate: day.date,
+      dayNumber: day.dayNumber,
+      key: `${day.date}-${sessionIndex}`,
+    }))
+  );
+
+  return (
+    <Document>
+      <CoverPage />
+      {/* Each session gets its own page */}
+      {allSessionsFlat.map((item, index) => (
+        <SessionPage
+          key={item.key}
+          session={item.session}
+          dayDate={item.dayDate}
+          dayNumber={item.dayNumber}
+          showPrices={showPrices}
+          allSessions={sessions}
+          isLastSession={index === allSessionsFlat.length - 1}
+          deliveryCharge={deliveryCharge}
+        />
+      ))}
+    </Document>
+  );
+};
 
 export default CateringMenuPdf;
