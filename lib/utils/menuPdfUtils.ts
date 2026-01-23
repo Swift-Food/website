@@ -45,6 +45,8 @@ function processMenuItemForPdf(
       unitPrice: menuItem.customerUnitPrice,
       image,
       addons: addons.length > 0 ? addons : undefined,
+      cateringQuantityUnit: menuItem.cateringQuantityUnit || 1,
+      feedsPerUnit: menuItem.feedsPerUnit || 1,
     },
     itemTotal: menuItem.customerTotalPrice || 0,
   }];

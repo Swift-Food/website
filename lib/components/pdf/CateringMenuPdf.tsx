@@ -525,7 +525,7 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
   const cateringQuantityUnit = item.cateringQuantityUnit || 1;
   const feedsPerUnit = item.feedsPerUnit || 1;
   const numPortions = Math.round(item.quantity / cateringQuantityUnit);
-  const totalServes = Math.round(numPortions * feedsPerUnit);
+  const totalServes = Math.round(item.quantity * feedsPerUnit);
 
   // Check if item has allergens
   const hasItemAllergens = item.allergens && (
