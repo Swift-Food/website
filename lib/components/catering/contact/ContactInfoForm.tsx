@@ -18,6 +18,7 @@ interface ContactInfoFormProps {
   errors: ValidationErrors;
   onFieldChange: (field: keyof ContactInfo, value: string) => void;
   onBlur: (field: keyof ContactInfo) => void;
+  onBillingBlur: (field: keyof NonNullable<ContactInfo["billingAddress"]>) => void;
   ccEmails: string[];
   onAddCcEmail: (email: string) => void;
   onRemoveCcEmail: (email: string) => void;
@@ -28,6 +29,7 @@ export default function ContactInfoForm({
   errors,
   onFieldChange,
   onBlur,
+  onBillingBlur,
   ccEmails,
   onAddCcEmail,
   onRemoveCcEmail,
@@ -117,7 +119,7 @@ export default function ContactInfoForm({
       </button>
 
       {isExpanded && (
-        <div className="space-y-4">
+        <div className="space-y-3 p-4 rounded-xl border border-base-300">
           {/* Organization */}
           <div>
             <label className="block text-sm font-semibold mb-2 text-base-content">
@@ -283,11 +285,11 @@ export default function ContactInfoForm({
             </p>
 
             {showBillingAddress && (
-              <div className="mt-4 space-y-4 p-4 bg-base-200/30 rounded-xl border border-base-300">
+              <div className="mt-3 space-y-3 pt-3 border-t border-base-300">
                 {/* Billing Line 1 */}
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-base-content">
-                    Address Line 1
+                    Address Line 1*
                   </label>
                   <input
                     type="text"
@@ -295,9 +297,17 @@ export default function ContactInfoForm({
                     onChange={(e) =>
                       handleBillingFieldChange("line1", e.target.value)
                     }
+                    onBlur={() => onBillingBlur("line1")}
                     placeholder="Street address"
-                    className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                    className={`w-full px-3 py-2 text-sm bg-base-200/50 border ${
+                      errors.billingAddress?.line1 ? "border-error" : "border-base-300"
+                    } rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                   />
+                  {errors.billingAddress?.line1 && (
+                    <p className="mt-1 text-xs text-error">
+                      {errors.billingAddress.line1}
+                    </p>
+                  )}
                 </div>
 
                 {/* Billing Line 2 */}
@@ -320,7 +330,7 @@ export default function ContactInfoForm({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-base-content">
-                      City
+                      City*
                     </label>
                     <input
                       type="text"
@@ -328,13 +338,21 @@ export default function ContactInfoForm({
                       onChange={(e) =>
                         handleBillingFieldChange("city", e.target.value)
                       }
+                      onBlur={() => onBillingBlur("city")}
                       placeholder="City"
-                      className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                      className={`w-full px-3 py-2 text-sm bg-base-200/50 border ${
+                        errors.billingAddress?.city ? "border-error" : "border-base-300"
+                      } rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                     />
+                    {errors.billingAddress?.city && (
+                      <p className="mt-1 text-xs text-error">
+                        {errors.billingAddress.city}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-base-content">
-                      Postcode
+                      Postcode*
                     </label>
                     <input
                       type="text"
@@ -342,9 +360,17 @@ export default function ContactInfoForm({
                       onChange={(e) =>
                         handleBillingFieldChange("postalCode", e.target.value)
                       }
+                      onBlur={() => onBillingBlur("postalCode")}
                       placeholder="Postcode"
-                      className="w-full px-3 py-2 text-sm bg-base-200/50 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+                      className={`w-full px-3 py-2 text-sm bg-base-200/50 border ${
+                        errors.billingAddress?.postalCode ? "border-error" : "border-base-300"
+                      } rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all`}
                     />
+                    {errors.billingAddress?.postalCode && (
+                      <p className="mt-1 text-xs text-error">
+                        {errors.billingAddress.postalCode}
+                      </p>
+                    )}
                   </div>
                 </div>
 
