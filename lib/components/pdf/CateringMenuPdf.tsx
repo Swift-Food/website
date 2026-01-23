@@ -575,7 +575,7 @@ const MenuItem: React.FC<{ item: PdfMenuItem; showPrice: boolean }> = ({
                       <Text style={styles.addonBullet}>•</Text>
                       <Text style={styles.addonText}>
                         {addon.quantity > 1 ? `${addon.quantity}x ` : ""}{addon.name}
-                        {addon.price !== undefined && addon.price > 0 && (
+                        {showPrice && addon.price !== undefined && addon.price > 0 && (
                           <Text style={{ fontFamily: FONT_FAMILY_BOLD }}> - £{(addon.price * (addon.quantity || 1)).toFixed(2)}</Text>
                         )}
                       </Text>
