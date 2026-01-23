@@ -84,9 +84,7 @@ function calculateOrderNetEarnings(
 
   if (!restaurantOrder) return 0;
 
-  return restaurantOrder.restaurantNetAmount ||
-         restaurantOrder.restaurantNetEarning ||
-         restaurantOrder.totalPrice || 0;
+  return restaurantOrder.restaurantNetAmount || 0;
 }
 
 /**
