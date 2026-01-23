@@ -9,6 +9,7 @@ import Link from "next/link";
 import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
 import { pdf } from "@react-pdf/renderer";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
+import PdfDownloadModal from "@/lib/components/catering/modals/PdfDownloadModal";
 
 export default function FullMenuPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function FullMenuPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   useEffect(() => {
     loadOrder();
@@ -36,13 +38,20 @@ export default function FullMenuPage() {
     }
   };
 
-  const handleSaveAsPdf = async () => {
+  // Handle save as PDF - opens modal to choose with/without prices
+  const handleSaveAsPdf = () => {
+    if (!order) return;
+    setShowPdfModal(true);
+  };
+
+  // Handle PDF download with selected price option
+  const handlePdfDownloadWithChoice = async (withPrices: boolean) => {
     if (!order || generatingPdf) return;
 
     setGeneratingPdf(true);
     try {
       // Transform order data to PDF format (now async to handle image fetching)
-      const pdfData = await transformOrderToPdfData(order, true);
+      const pdfData = await transformOrderToPdfData(order, withPrices);
 
       // Generate PDF
       const blob = await pdf(
@@ -59,11 +68,13 @@ export default function FullMenuPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `catering-menu-${order.id.substring(0, 4).toUpperCase()}.pdf`;
+      const suffix = withPrices ? "-with-prices" : "";
+      link.download = `catering-menu-${order.id.substring(0, 4).toUpperCase()}${suffix}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      setShowPdfModal(false);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
@@ -234,6 +245,15 @@ export default function FullMenuPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* PDF Download Modal */}
+      {showPdfModal && (
+        <PdfDownloadModal
+          onDownload={handlePdfDownloadWithChoice}
+          onClose={() => setShowPdfModal(false)}
+          isGenerating={generatingPdf}
+        />
+      )}
+
       {/* Header - Hidden on print */}
       <div className="print:hidden bg-gradient-to-r from-pink-500 to-pink-400 text-white">
         <div className="max-w-4xl mx-auto px-4 py-6">

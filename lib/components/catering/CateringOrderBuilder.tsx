@@ -27,6 +27,7 @@ import AddDayModal from "./modals/AddDayModal";
 import EmptySessionWarningModal from "./modals/EmptySessionWarningModal";
 import RemoveSessionConfirmModal from "./modals/RemoveSessionConfirmModal";
 import MinOrderModal from "./modals/MinOrderModal";
+import PdfDownloadModal from "./modals/PdfDownloadModal";
 
 // Hooks
 import { useCateringTutorial } from "./hooks/useCateringTutorial";
@@ -91,6 +92,7 @@ export default function CateringOrderBuilder() {
 
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   // Empty session warning modal state
   const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(null);
@@ -797,8 +799,13 @@ export default function CateringOrderBuilder() {
     }
   };
 
-  // Handle view menu (PDF download)
-  const handleViewMenu = async () => {
+  // Handle view menu - opens modal to choose with/without prices
+  const handleViewMenu = () => {
+    setShowPdfModal(true);
+  };
+
+  // Handle PDF download with selected price option
+  const handlePdfDownload = async (withPrices: boolean) => {
     if (generatingPdf) return;
     setGeneratingPdf(true);
     try {
@@ -832,7 +839,7 @@ export default function CateringOrderBuilder() {
 
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
-        true
+        withPrices
       );
 
       const blob = await pdf(
@@ -848,11 +855,12 @@ export default function CateringOrderBuilder() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "catering-menu.pdf";
+      link.download = withPrices ? "catering-menu-with-prices.pdf" : "catering-menu.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      setShowPdfModal(false);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
@@ -1372,6 +1380,15 @@ export default function CateringOrderBuilder() {
           validationStatus={minOrderModalSession.validation}
           onClose={() => setMinOrderModalSession(null)}
           onNavigateToSection={handleMinOrderNavigate}
+        />
+      )}
+
+      {/* PDF Download Modal */}
+      {showPdfModal && (
+        <PdfDownloadModal
+          onDownload={handlePdfDownload}
+          onClose={() => setShowPdfModal(false)}
+          isGenerating={generatingPdf}
         />
       )}
 
