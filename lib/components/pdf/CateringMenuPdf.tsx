@@ -57,11 +57,25 @@ const getAllDietaryFilters = (sessions: PdfSession[]): string[] => {
   sessions.forEach(session => {
     session.categories.forEach(category => {
       category.items.forEach(item => {
+        // Check item dietary filters
         if (item.dietaryFilters) {
           item.dietaryFilters.forEach(filter => {
             const key = filter.toLowerCase();
             if (DIETARY_CONFIG[key]) {
               filters.add(key);
+            }
+          });
+        }
+        // Check addon dietary restrictions
+        if (item.addons) {
+          item.addons.forEach(addon => {
+            if (addon.dietaryRestrictions) {
+              addon.dietaryRestrictions.forEach(filter => {
+                const key = filter.toLowerCase();
+                if (DIETARY_CONFIG[key]) {
+                  filters.add(key);
+                }
+              });
             }
           });
         }
