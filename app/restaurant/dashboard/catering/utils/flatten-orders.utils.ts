@@ -194,7 +194,7 @@ function flattenOrder(
         deliveryFee: session.deliveryFee || 0,
         sessionTotal: session.sessionTotal || 0,
         customerTotal: calculateSessionCustomerTotal(session, restaurantId),
-        restaurantNetEarnings: calculateSessionNetEarnings(session, restaurantId),
+        restaurantNetAmount: calculateSessionNetEarnings(session, restaurantId),
         promoDiscount: session.promoDiscount,
         promotionDiscount: session.promotionDiscount,
 
@@ -246,7 +246,7 @@ function flattenOrder(
       deliveryFee: order.deliveryFee || 0,
       sessionTotal: order.finalTotal || order.estimatedTotal || 0,
       customerTotal: calculateOrderCustomerTotal(order, restaurantId),
-      restaurantNetEarnings: calculateOrderNetEarnings(order, restaurantId),
+      restaurantNetAmount: calculateOrderNetEarnings(order, restaurantId),
       promoDiscount: order.promoDiscount,
       promotionDiscount: order.promotionDiscount,
 
