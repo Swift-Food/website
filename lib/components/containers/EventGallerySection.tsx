@@ -62,6 +62,14 @@ export default function EventGallerySection() {
       img: "/HomeSection/Agent Verse.JPG",
       link: "https://luma.com/2emua73x",
     },
+    {
+      id: 4,
+      title: "Saturn Hackathon",
+      count: "620+ portions",
+      category: "Hackathon",
+      img: "/HomeSection/SaturnHackathon.jpeg",
+      link: "https://luma.com/x2zbseuk",
+    },
   ];
 
   return (
@@ -115,7 +123,7 @@ export default function EventGallerySection() {
                   src={event.img}
                   alt={event.title}
                   fill
-                  className={`object-cover opacity-80 group-hover:scale-105 group-hover:opacity-30 transition-all duration-1000 ease-out ${
+                  className={`object-cover group-hover:scale-105 group-hover:opacity-30 transition-all duration-1000 ease-out ${
                     isActive ? "scale-105 opacity-30" : ""
                   }`}
                 />
