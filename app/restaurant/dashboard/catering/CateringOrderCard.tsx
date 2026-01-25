@@ -40,6 +40,7 @@ export const CateringOrderCard = ({
   onClaim,
   claiming,
 }: CateringOrderCardProps) => {
+  console.log("order is now", JSON.stringify(order))
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
   const [viewingReceipt, setViewingReceipt] = useState(false);
 
@@ -368,7 +369,7 @@ export const CateringOrderCard = ({
           <div>
             <h5 className="font-semibold text-blue-800">{session.sessionName}</h5>
             <p className="text-xs text-gray-600">
-              {formatDate(session.sessionDate)} at {session.collectionTime || formatEventTime(session.eventTime)}
+              {formatDate(session.sessionDate)} at {session.restaurantCollectionTimes?.[restaurantId] || session.collectionTime || formatEventTime(session.eventTime)}
             </p>
           </div>
           <div className="text-right">
@@ -555,7 +556,7 @@ export const CateringOrderCard = ({
           <p className="text-gray-600">
             Collection Time:{" "}
             <span className="text-gray-900 font-medium">
-              {order.collectionTime || formatEventTime(order.eventTime)}
+              {order.mealSessions?.[0]?.restaurantCollectionTimes?.[restaurantId] || order.collectionTime || formatEventTime(order.eventTime)}
             </span>
           </p>
           <p className="text-gray-600">

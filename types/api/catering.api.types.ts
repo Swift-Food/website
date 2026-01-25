@@ -90,6 +90,7 @@ export interface MealSessionResponse {
   // Restaurant coordination for this session
   restaurantReviews?: string[]; // Restaurant IDs that have reviewed this session
   restaurantRejections?: string[]; // Restaurant IDs that have rejected this session
+  restaurantCollectionTimes?: any;
 
   // Session status tracking
   reminder24HourSent: boolean;
