@@ -10,7 +10,7 @@ import { Users, Trash2, Plus, X, Eye, Shield, Edit } from 'lucide-react';
 interface SharedAccessManagerProps {
   order: CateringOrderResponse;
   onUpdate: () => void;
-  currentUserRole: 'viewer' | 'editor' | null;
+  currentUserRole: 'viewer' | 'editor' | 'manager' | null;
 }
 
 export default function SharedAccessManager({ order, onUpdate, currentUserRole }: SharedAccessManagerProps) {

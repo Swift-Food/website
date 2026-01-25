@@ -152,7 +152,7 @@ export default function CateringDashboardPage() {
     );
   }
 
-  const isManager = currentUserRole === "editor";
+  const isManager =  currentUserRole === "manager";
   console.log("current user role", currentUserRole)
 
   return (

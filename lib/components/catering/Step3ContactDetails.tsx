@@ -89,6 +89,7 @@ export default function Step3ContactInfo() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [corporateUserId, setCorporateUserId] = useState<string>("");
   const [organizationId, setOrganizationId] = useState<string>("");
+  const [specialInstructions, setSpecialInstructions] = useState<string>("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "wallet" | "card" | null
   >(null);
@@ -410,7 +411,8 @@ export default function Step3ContactInfo() {
           promoCodes,
           ccEmails,
           paymentData,
-          eventId || undefined
+          eventId || undefined,
+          specialInstructions
         );
 
      
@@ -1172,6 +1174,25 @@ export default function Step3ContactInfo() {
                   promoSuccess={promoSuccess}
                   promoDiscount={pricing?.promoDiscount}
                 />
+
+                {/* Special Instructions */}
+                <div className="pt-4">
+                  <label
+                    htmlFor="specialInstructions"
+                    className="block text-sm font-medium text-base-content mb-2"
+                  >
+                    Special Instructions (Optional)
+                  </label>
+                  <textarea
+                    id="specialInstructions"
+                    name="specialInstructions"
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                    placeholder="Any special requests or instructions for your order..."
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border border-base-300 bg-base-100 text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/50 resize-none"
+                  />
+                </div>
 
                 {/* Pricing Summary */}
                 <PricingSummary
