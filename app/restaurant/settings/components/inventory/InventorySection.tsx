@@ -43,7 +43,7 @@ export const InventorySection = ({
         const value = data.minimumAutoAcceptQuantity ?? null;
         setMinimumAutoAccept(value);
         setInitialMinimumAutoAccept(value);
-
+        console.log("data is", JSON.stringify(data))
         const priceValue = data.minimumAutoAcceptPrice ?? null;
         setMinimumAutoAcceptPrice(priceValue);
         setInitialMinimumAutoAcceptPrice(priceValue);
@@ -59,7 +59,6 @@ export const InventorySection = ({
     setAutoAcceptSuccess("");
 
     try {
-      console.log('the link is', `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(restaurantId)}`)
       const response = await fetchWithAuth(
         `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(restaurantId)}`,
         {
