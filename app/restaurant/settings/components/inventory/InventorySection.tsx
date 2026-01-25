@@ -21,6 +21,8 @@ export const InventorySection = ({
 }: InventorySectionProps) => {
   const [minimumAutoAccept, setMinimumAutoAccept] = useState<number | null>(null);
   const [initialMinimumAutoAccept, setInitialMinimumAutoAccept] = useState<number | null>(null);
+  const [minimumAutoAcceptPrice, setMinimumAutoAcceptPrice] = useState<number | null>(null);
+  const [initialMinimumAutoAcceptPrice, setInitialMinimumAutoAcceptPrice] = useState<number | null>(null);
   const [savingAutoAccept, setSavingAutoAccept] = useState(false);
   const [autoAcceptError, setAutoAcceptError] = useState("");
   const [autoAcceptSuccess, setAutoAcceptSuccess] = useState("");
@@ -41,6 +43,10 @@ export const InventorySection = ({
         const value = data.minimumAutoAcceptQuantity ?? null;
         setMinimumAutoAccept(value);
         setInitialMinimumAutoAccept(value);
+
+        const priceValue = data.minimumAutoAcceptPrice ?? null;
+        setMinimumAutoAcceptPrice(priceValue);
+        setInitialMinimumAutoAcceptPrice(priceValue);
       }
     } catch (err) {
       console.warn("Failed to load restaurant settings:", err);
@@ -59,7 +65,10 @@ export const InventorySection = ({
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ minimumAutoAcceptQuantity : minimumAutoAccept }),
+          body: JSON.stringify({
+            minimumAutoAcceptQuantity: minimumAutoAccept,
+            minimumAutoAcceptPrice: minimumAutoAcceptPrice,
+          }),
         }
       );
 
@@ -68,6 +77,7 @@ export const InventorySection = ({
       }
 
       setInitialMinimumAutoAccept(minimumAutoAccept);
+      setInitialMinimumAutoAcceptPrice(minimumAutoAcceptPrice);
       setAutoAcceptSuccess("Auto-accept settings updated successfully!");
       setTimeout(() => setAutoAcceptSuccess(""), 3000);
     } catch (err: any) {
@@ -77,7 +87,9 @@ export const InventorySection = ({
     }
   };
 
-  const hasAutoAcceptChanges = minimumAutoAccept !== initialMinimumAutoAccept;
+  const hasAutoAcceptChanges =
+    minimumAutoAccept !== initialMinimumAutoAccept ||
+    minimumAutoAcceptPrice !== initialMinimumAutoAcceptPrice;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -168,6 +180,50 @@ export const InventorySection = ({
                   />
                   <span className="text-sm font-medium text-gray-600">
                     items minimum
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-sm font-semibold text-gray-900">
+                    Minimum Price for Auto-Accept
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    Orders below this price will be auto-accepted
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={minimumAutoAcceptPrice !== null}
+                    onChange={(e) =>
+                      setMinimumAutoAcceptPrice(e.target.checked ? 50 : null)
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              {minimumAutoAcceptPrice !== null && (
+                <div className="flex items-center gap-3 pt-2">
+                  <span className="text-xl font-bold text-gray-900">GBP</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={minimumAutoAcceptPrice}
+                    onChange={(e) =>
+                      setMinimumAutoAcceptPrice(parseFloat(e.target.value) || 0)
+                    }
+                    className="w-32 px-4 py-2.5 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                    placeholder="50.00"
+                  />
+                  <span className="text-sm font-medium text-gray-600">
+                    price threshold
                   </span>
                 </div>
               )}

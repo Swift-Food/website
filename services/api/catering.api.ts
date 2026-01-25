@@ -241,7 +241,6 @@ class CateringService {
 
     // Get the first session's date/time for top-level fields (backward compatibility)
     const firstSession = mealSessionRequests[0];
-    console.log("special reqs", specialInstructions)
     const createDto: CreateCateringOrderRequest = {
       userId,
       organization: contactInfo.organization,
@@ -276,8 +275,6 @@ class CateringService {
       paymentIntentId: paymentInfo?.paymentIntentId,
       paymentMethod: "stripe_direct",
     };
-
-    console.log("full dto", JSON.stringify(createDto))
 
     const response = await fetchWithAuth(`${API_BASE_URL}/catering-orders`, {
       method: "POST",
