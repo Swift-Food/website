@@ -15,6 +15,7 @@ import {
 } from "@/lib/utils/menuPdfUtils";  
 import { pdf } from "@react-pdf/renderer";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
+import PdfDownloadModal from "./modals/PdfDownloadModal";
 import DeliveryAddressForm from "./contact/DeliveryAddressForm";
 import ContactInfoForm from "./contact/ContactInfoForm";
 import PromoCodeSection from "./contact/PromoCodeSection";
@@ -103,6 +104,7 @@ export default function Step3ContactInfo() {
 
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   // Calculate estimated total without triggering state updates
   const estimatedTotal = useMemo(() => {
@@ -816,8 +818,13 @@ export default function Step3ContactInfo() {
   };
 
 
-  // Handle view menu preview - now downloads PDF
-  const handleViewMenu = async () => {
+  // Handle view menu - opens modal to choose with/without prices
+  const handleViewMenu = () => {
+    setShowPdfModal(true);
+  };
+
+  // Handle PDF download with selected price option
+  const handlePdfDownload = async (withPrices: boolean) => {
     if (generatingPdf) return;
     setGeneratingPdf(true);
     try {
@@ -852,7 +859,7 @@ export default function Step3ContactInfo() {
       // Don't pass delivery fee - show as TBC (same as CateringOrderBuilder)
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
-        true
+        withPrices
       );
 
       // Generate and download PDF
@@ -869,11 +876,12 @@ export default function Step3ContactInfo() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "catering-menu.pdf";
+      link.download = withPrices ? "catering-menu-with-prices.pdf" : "catering-menu.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      setShowPdfModal(false);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
@@ -1289,6 +1297,15 @@ export default function Step3ContactInfo() {
             </div>
           </div>
         </div>
+        {/* PDF Download Modal */}
+        {showPdfModal && (
+          <PdfDownloadModal
+            onDownload={handlePdfDownload}
+            onClose={() => setShowPdfModal(false)}
+            isGenerating={generatingPdf}
+          />
+        )}
+
         {/* Payment Modal JSX */}
         {showPaymentModal && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

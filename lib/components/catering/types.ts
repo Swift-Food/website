@@ -85,6 +85,13 @@ export interface RemoveSessionConfirmModalProps {
   onCancel: () => void;
 }
 
+// PdfDownloadModal component props
+export interface PdfDownloadModalProps {
+  onDownload: (withPrices: boolean) => void;
+  onClose: () => void;
+  isGenerating?: boolean;
+}
+
 // Tutorial phases
 export type TutorialPhase =
   | "initial"

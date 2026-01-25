@@ -94,7 +94,7 @@ export interface FlattenedOrderItem {
   deliveryFee: number;
   sessionTotal: number;        // For sessions, or finalTotal for orders
   customerTotal: number;       // What customer pays to this specific restaurant
-  restaurantNetEarnings: number;
+  restaurantNetAmount: number;
   promoDiscount?: number;
   promotionDiscount?: number;
 

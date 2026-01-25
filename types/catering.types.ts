@@ -365,7 +365,7 @@ export interface PricingOrderItemDto {
   restaurantPromotionDiscount: number;
   restaurantBaseTotalAfterPromotions: number;
   restaurantCommissionTotal: number;
-  restaurantNetEarning: number;
+  restaurantNetAmount: number;
 
   // Platform totals
   platformCommissionRevenue: number;

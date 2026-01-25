@@ -17,6 +17,7 @@ import RefundRequestButton from "@/lib/components/catering/dashboard/RefundReque
 import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
 import { pdf } from "@react-pdf/renderer";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
+import PdfDownloadModal from "@/lib/components/catering/modals/PdfDownloadModal";
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
 import RefundsList from "@/lib/components/catering/dashboard/refundList";
@@ -35,6 +36,7 @@ export default function CateringDashboardPage() {
     "viewer" | "editor" | "manager" | null
   >(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   useEffect(() => {
     loadOrder();
@@ -88,14 +90,20 @@ export default function CateringDashboardPage() {
     }
   };
 
-  // Handle PDF download
-  const handleDownloadPdf = async () => {
+  // Handle PDF download - opens modal to choose with/without prices
+  const handleDownloadPdf = () => {
+    if (!order) return;
+    setShowPdfModal(true);
+  };
+
+  // Handle PDF download with selected price option
+  const handlePdfDownloadWithChoice = async (withPrices: boolean) => {
     if (!order || generatingPdf) return;
 
     setGeneratingPdf(true);
     try {
       // transformOrderToPdfData is now async to handle image fetching for CORS compatibility
-      const pdfData = await transformOrderToPdfData(order, true);
+      const pdfData = await transformOrderToPdfData(order, withPrices);
       const blob = await pdf(
         <CateringMenuPdf
           sessions={pdfData.sessions}
@@ -109,11 +117,13 @@ export default function CateringDashboardPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `catering-menu-${order.id.substring(0, 4).toUpperCase()}.pdf`;
+      const suffix = withPrices ? "-with-prices" : "";
+      link.download = `catering-menu-${order.id.substring(0, 4).toUpperCase()}${suffix}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      setShowPdfModal(false);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
@@ -157,6 +167,15 @@ export default function CateringDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+      {/* PDF Download Modal */}
+      {showPdfModal && (
+        <PdfDownloadModal
+          onDownload={handlePdfDownloadWithChoice}
+          onClose={() => setShowPdfModal(false)}
+          isGenerating={generatingPdf}
+        />
+      )}
+
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-pink-500 to-pink-400 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white">

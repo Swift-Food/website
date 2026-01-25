@@ -13,6 +13,7 @@ export default function SocialProofSection() {
     { name: "Unicorn Mafia", image: "/logos/unicorn-mafia.svg", link: "https://www.unicrnmafia.com/" },
     { name: "UCL AI Society", image: "/logos/unicorn-mafia.svg", link: "https://uclaisociety.co.uk/" },
     { name: "Holistic AI", image: "", link: "https://www.holisticai.com/" },
+    { name: "SATURN", image: "", link: "https://www.saturnos.com/" },
   ];
 
   return (
