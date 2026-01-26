@@ -5,6 +5,7 @@ import { Package, AlertCircle, Loader } from "lucide-react";
 import { restaurantApi } from "@/services/api/restaurant.api";
 import { CateringPortionsCard } from "./CateringPortionsCard";
 import { CorporateInventoryCard } from "./CorporateInventoryCard";
+import { OrderSettingsCard } from "./OrderSettingsCard";
 
 interface IngredientItem {
   id: string;
@@ -50,6 +51,11 @@ export const InventoryManagement = ({
   const [newIngredientName, setNewIngredientName] = useState("");
   const [newIngredientMax, setNewIngredientMax] = useState<number>(10);
 
+  // Order settings state
+  const [minimumDeliveryNoticeHours, setMinimumDeliveryNoticeHours] = useState<number>(0);
+  const [maxPortionsPerOrder, setMaxPortionsPerOrder] = useState<number | null>(null);
+  const [enableMaxPortionsPerOrder, setEnableMaxPortionsPerOrder] = useState(false);
+
   // --------------------------------------------------
   // LOAD INITIAL DATA
   // --------------------------------------------------
@@ -75,6 +81,21 @@ export const InventoryManagement = ({
         } catch (err) {
           console.warn("Catering data not available:", err);
         }
+      }
+
+      // Load order settings from restaurant details
+      try {
+        const restaurantDetails = await restaurantApi.getRestaurantDetails(restaurantId);
+        setMinimumDeliveryNoticeHours(restaurantDetails.minimumDeliveryNoticeHours ?? 0);
+        if (restaurantDetails.maxPortionsPerOrder !== null && restaurantDetails.maxPortionsPerOrder !== undefined) {
+          setEnableMaxPortionsPerOrder(true);
+          setMaxPortionsPerOrder(restaurantDetails.maxPortionsPerOrder);
+        } else {
+          setEnableMaxPortionsPerOrder(false);
+          setMaxPortionsPerOrder(null);
+        }
+      } catch (err) {
+        console.warn("Failed to load restaurant order settings:", err);
       }
 
       // Load corporate data
@@ -200,6 +221,30 @@ export const InventoryManagement = ({
   };
 
   // --------------------------------------------------
+  // SAVE — ORDER SETTINGS
+  // --------------------------------------------------
+  const handleSaveOrderSettings = async () => {
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await restaurantApi.updateOrderSettings(restaurantId, {
+        minimumDeliveryNoticeHours,
+        maxPortionsPerOrder: enableMaxPortionsPerOrder ? maxPortionsPerOrder : null,
+      });
+
+      setSuccess("Order settings updated successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+      await loadInventoryData();
+    } catch (err: any) {
+      setError(err.message || "Failed to update order settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // --------------------------------------------------
   // INGREDIENT FUNCTIONS
   // --------------------------------------------------
   const handleAddIngredient = () => {
@@ -274,6 +319,18 @@ export const InventoryManagement = ({
           <span className="text-sm font-medium">{success}</span>
         </div>
       )}
+
+      {/* Order Settings - Always shown */}
+      <OrderSettingsCard
+        minimumDeliveryNoticeHours={minimumDeliveryNoticeHours}
+        maxPortionsPerOrder={maxPortionsPerOrder}
+        enableMaxPortionsPerOrder={enableMaxPortionsPerOrder}
+        onNoticeHoursChange={setMinimumDeliveryNoticeHours}
+        onMaxPortionsToggle={setEnableMaxPortionsPerOrder}
+        onMaxPortionsChange={setMaxPortionsPerOrder}
+        onSave={handleSaveOrderSettings}
+        saving={saving}
+      />
 
       {/* Tabs */}
       {showTabs && (

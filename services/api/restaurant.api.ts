@@ -13,6 +13,7 @@ import {
   UpdateCorporateInventoryDto,
   UpdateCateringPortionsLimitDto,
   CateringPortionsAvailabilityResponse,
+  UpdateOrderSettingsDto,
 } from "@/types/inventory.types";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { API_BASE_URL } from "@/lib/constants";
@@ -402,6 +403,25 @@ export const restaurantApi = {
       `${API_BASE_URL}/restaurant/${restaurantId}`
     );
     if (!response.ok) throw new Error("Failed to fetch restaurant details");
+    return response.json();
+  },
+
+  // Update order settings (notice hours, max portions per order)
+  updateOrderSettings: async (
+    restaurantId: string,
+    data: UpdateOrderSettingsDto
+  ): Promise<any> => {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurant/${restaurantId}/order-settings`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to update order settings: ${response.status} - ${errorText}`);
+    }
     return response.json();
   },
 };
