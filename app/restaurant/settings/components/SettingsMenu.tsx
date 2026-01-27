@@ -1,12 +1,13 @@
 "use client";
 
-import { ArrowLeft, Clock, ImageIcon, ShoppingBag, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, ImageIcon, ShoppingBag, MapPin, AlertCircle } from "lucide-react";
 import { SettingsMenuCard } from "./shared/SettingsMenuCard";
 
 interface SettingsMenuProps {
   onOpeningHours: () => void;
   onProfile: () => void;
   onInventory: () => void;
+  onPickupAddresses: () => void;
   onBack: () => void;
   showInventory: boolean;
   error?: string;
@@ -17,6 +18,7 @@ export const SettingsMenu = ({
   onOpeningHours,
   onProfile,
   onInventory,
+  onPickupAddresses,
   onBack,
   showInventory,
   error,
@@ -88,6 +90,15 @@ export const SettingsMenu = ({
               badge="ACTIVE"
             />
           )}
+
+          {/* Pickup Addresses Card */}
+          <SettingsMenuCard
+            title="Pickup Addresses"
+            description="Manage locations where orders can be collected from"
+            icon={MapPin}
+            color="blue"
+            onClick={onPickupAddresses}
+          />
         </div>
 
         {/* Help Text */}

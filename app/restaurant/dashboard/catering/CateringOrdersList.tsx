@@ -6,6 +6,7 @@ import { CateringOrderStatus } from "@/types/catering.types";
 import { restaurantApi } from "@/services/api/restaurant.api";
 import { CateringOrderCard } from "./CateringOrderCard";
 import { CateringOrderResponse } from "@/types/api";
+import { PickupAddress } from "@/types/restaurant.types";
 
 interface CateringOrdersListProps {
   orders: CateringOrderResponse[];
@@ -70,6 +71,10 @@ export const CateringOrdersList = ({
     Record<string, any>
   >({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const [pickupAddresses, setPickupAddresses] = useState<PickupAddress[]>([]);
+  const [selectedPickupAddressIndex, setSelectedPickupAddressIndex] = useState<
+    Record<string, number>
+  >({});
 
   // Filter orders to only those with items for this restaurant
   const filteredOrders = useMemo(
@@ -110,6 +115,19 @@ export const CateringOrdersList = ({
   }, [restaurantUserId, processedOrders.length]);
 
   useEffect(() => {
+    const fetchPickupAddresses = async () => {
+      try {
+        const details = await restaurantApi.getRestaurantDetails(restaurantId);
+        setPickupAddresses(details.pickupAddresses || []);
+      } catch (err) {
+        console.warn("Failed to load pickup addresses:", err);
+      }
+    };
+
+    fetchPickupAddresses();
+  }, [restaurantId]);
+
+  useEffect(() => {
     if (
       hasMultipleBranches &&
       selectedAccountId !== null &&
@@ -132,6 +150,7 @@ export const CateringOrdersList = ({
 
     try {
       const accountId = selectedAccounts[orderId];
+      const pickupIdx = selectedPickupAddressIndex[orderId] ?? (pickupAddresses.length > 0 ? 0 : undefined);
 
       // Always use reviewCateringOrder for whole order review
       await restaurantApi.reviewCateringOrder(
@@ -139,7 +158,8 @@ export const CateringOrdersList = ({
         restaurantId,
         accepted,
         token,
-        accountId
+        accountId,
+        pickupIdx
       );
       await onRefresh();
     } catch (err: any) {
@@ -332,6 +352,14 @@ export const CateringOrdersList = ({
               }
               loadingAccounts={loadingAccounts}
               token={token}
+              pickupAddresses={pickupAddresses}
+              selectedPickupAddressIndex={selectedPickupAddressIndex[order.id] ?? 0}
+              onPickupAddressSelect={(orderId, index) =>
+                setSelectedPickupAddressIndex((prev) => ({
+                  ...prev,
+                  [orderId]: index,
+                }))
+              }
             />
           ))}
         </div>

@@ -199,17 +199,22 @@ export const restaurantApi = {
     restaurantId: string,
     accepted: boolean,
     token: string,
-    selectedAccountId?: string
+    selectedAccountId?: string,
+    pickupAddressIndex?: number
   ): Promise<CateringOrderResponse> => {
+    const body: Record<string, any> = {
+      restaurantId,
+      accepted,
+      selectedAccountId,
+    };
+    if (pickupAddressIndex !== undefined) {
+      body.pickupAddressIndex = pickupAddressIndex;
+    }
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/${orderId}/restaurant-review`,
       {
         method: "POST",
-        body: JSON.stringify({
-          restaurantId,
-          accepted,
-          selectedAccountId,
-        }),
+        body: JSON.stringify(body),
       }
     );
     if (!response.ok) throw new Error("Failed to review catering order");

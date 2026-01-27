@@ -8,11 +8,12 @@ import { SettingsMenu } from "../components/SettingsMenu";
 import { ProfileForm } from "../components/profile/ProfileForm";
 import { PendingEventImage } from "../components/profile/EventPhotosManager";
 import { InventorySection } from "../components/inventory/InventorySection";
+import { PickupAddressesSection } from "../components/PickupAddressesSection";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
-type ActiveSection = "menu" | "profile" | "inventory" | null;
+type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | null;
 
 interface FormData {
   restaurant_name: string;
@@ -290,6 +291,7 @@ const RestaurantSettingsPage = () => {
         onOpeningHours={() => router.push(`/restaurant/opening-hours/${restaurantId}`)}
         onProfile={() => setActiveSection("profile")}
         onInventory={() => setActiveSection("inventory")}
+        onPickupAddresses={() => setActiveSection("pickupAddresses")}
         onBack={() => router.push("/restaurant/dashboard")}
         showInventory={formData.isCatering || formData.isCorporate}
         error={error}
@@ -349,6 +351,16 @@ const RestaurantSettingsPage = () => {
         restaurantId={restaurantId}
         isCatering={formData.isCatering}
         isCorporate={formData.isCorporate}
+        onBack={() => setActiveSection(null)}
+      />
+    );
+  }
+
+  // Pickup Addresses Editor
+  if (activeSection === "pickupAddresses") {
+    return (
+      <PickupAddressesSection
+        restaurantId={restaurantId}
         onBack={() => setActiveSection(null)}
       />
     );

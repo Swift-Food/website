@@ -137,6 +137,15 @@ export interface TopOrganization {
   totalSpent: number;
 }
 
+export interface PickupAddress {
+  name: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  zipcode: string;
+  location: { latitude: number; longitude: number };
+}
+
 export interface PaymentAccount {
   name: string;
   stripeAccountId: string;

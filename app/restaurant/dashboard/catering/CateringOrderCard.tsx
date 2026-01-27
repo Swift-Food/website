@@ -12,6 +12,7 @@ import {
 import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
 import { formatDeliveryAddress } from "./utils/address.utils";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
+import { PickupAddress } from "@/types/restaurant.types";
 
 interface CateringOrderCardProps {
   order: CateringOrderResponse & { effectiveStatus?: string };
@@ -25,6 +26,9 @@ interface CateringOrderCardProps {
   token?: string;
   onClaim: (orderId: string) => Promise<void>;
   claiming: string | null;
+  pickupAddresses?: PickupAddress[];
+  selectedPickupAddressIndex?: number;
+  onPickupAddressSelect?: (orderId: string, index: number) => void;
 }
 
 export const CateringOrderCard = ({
@@ -39,6 +43,9 @@ export const CateringOrderCard = ({
   token,
   onClaim,
   claiming,
+  pickupAddresses = [],
+  selectedPickupAddressIndex = 0,
+  onPickupAddressSelect,
 }: CateringOrderCardProps) => {
   console.log("order is now", JSON.stringify(order))
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
@@ -656,6 +663,36 @@ export const CateringOrderCard = ({
                 </p>
               </div>
             )}
+
+          {/* Pickup Address Selector */}
+          {pickupAddresses.length > 0 && (
+            <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <label className="block text-sm font-semibold text-purple-900 mb-2">
+                Select Pickup Address:
+              </label>
+              <select
+                value={selectedPickupAddressIndex}
+                onChange={(e) =>
+                  onPickupAddressSelect?.(order.id, parseInt(e.target.value))
+                }
+                className="w-full px-3 py-2 border border-purple-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-purple-500"
+              >
+                {pickupAddresses.map((addr, idx) => (
+                  <option key={idx} value={idx}>
+                    {addr.name} - {addr.addressLine1}, {addr.city} {addr.zipcode}
+                    {idx === 0 ? " (Default)" : ""}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-purple-700 mt-2">
+                Collection from:{" "}
+                <strong>
+                  {pickupAddresses[selectedPickupAddressIndex]?.name ||
+                    pickupAddresses[0]?.name}
+                </strong>
+              </p>
+            </div>
+          )}
 
           <p className="text-xs sm:text-sm font-medium text-gray-900 mb-3">
             Please review this order and confirm your availability
