@@ -102,6 +102,12 @@ export interface UpdateCorporateInventoryDto {
   limitedIngredientsPerSession?: { [ingredientName: string]: number } | null;
 }
 
+// PATCH /restaurant/:restaurantId/order-settings
+export interface UpdateOrderSettingsDto {
+  minimumDeliveryNoticeHours?: number;
+  maxPortionsPerOrder?: number | null;
+}
+
 /**
  * Form Data Types
  */
