@@ -369,9 +369,14 @@ export const CateringOrderCard = ({
 
     const isExpanded = expandedSessions[session.id] || false;
     const sessionNetEarnings = sessionRestaurantItems.reduce((total: number, item: any) => {
+      // Prefer restaurant-level amount (includes adjustments) over menu item sum
+      if (item.restaurantNetAmount !== undefined) {
+        return total + item.restaurantNetAmount;
+      }
+      // Fallback: sum from menu items
       const menuItemTotal = item.menuItems?.reduce((sum: number, menuItem: any) => {
         return sum + (menuItem.restaurantNetAmount || 0);
-      }, 0) || item.restaurantNetAmount || 0;
+      }, 0) || 0;
       return total + menuItemTotal;
     }, 0);
 
@@ -384,13 +389,10 @@ export const CateringOrderCard = ({
               {formatDate(session.sessionDate)} at {session.restaurantCollectionTimes?.[restaurantId] || session.collectionTime || formatEventTime(session.eventTime)}
             </p>
           </div>
-          {/* Hide session earnings when order has adjustments (they won't match order total) */}
-          {!order.restaurantPayoutDetails?.[restaurantId]?.adjustments?.length && (
-            <div className="text-right">
-              <p className="text-xs text-gray-600">Session Earnings</p>
-              <p className="font-bold text-green-600">{formatCurrency(sessionNetEarnings)}</p>
-            </div>
-          )}
+          <div className="text-right">
+            <p className="text-xs text-gray-600">Session Earnings</p>
+            <p className="font-bold text-green-600">{formatCurrency(sessionNetEarnings)}</p>
+          </div>
         </div>
 
         {session.specialRequirements && (
