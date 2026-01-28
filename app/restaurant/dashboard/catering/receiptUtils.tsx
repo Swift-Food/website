@@ -1,5 +1,11 @@
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 
+export interface ReceiptAdjustment {
+  label: string;
+  amount: number;
+  note?: string;
+}
+
 export interface ReceiptSummary {
   totalPortions: number;
   averageOrderValue: number;
@@ -8,6 +14,8 @@ export interface ReceiptSummary {
   totalSwiftCommissions: number;
   promoDiscount?: number;
   netEarnings: number;
+  adjustments?: ReceiptAdjustment[];
+  baseNetEarnings?: number;
 }
 
 export interface ByMenuItemRow {
@@ -124,6 +132,13 @@ export function buildReceiptHTML(
     </div>
   `;
 
+  // Build adjustment rows if present
+  const adjustmentRows = summary.adjustments?.map((adj) => {
+    const sign = adj.amount >= 0 ? '+' : '-';
+    const color = adj.amount >= 0 ? '#16a34a' : '#dc2626';
+    return `<tr><td style="padding:8px 0;color:#666;">${adj.label}:</td><td style="text-align:right;font-weight:600;color:${color};">${sign}${fmt(Math.abs(adj.amount))}</td></tr>`;
+  }).join('') || '';
+
   // summary
   const financialSummary = `
     <div style="padding:32px 48px;background:#fff;">
@@ -132,6 +147,7 @@ export function buildReceiptHTML(
         <tr><td style="padding:8px 0;color:#666;">Gross Sales:</td><td style="text-align:right;font-weight:600;font-size:15px;">${fmt(summary.grossSales)}</td></tr>
         <tr><td style="padding:8px 0;color:#666;">Swift Commission:</td><td style="text-align:right;font-weight:600;">-${fmt(summary.totalSwiftCommissions)}</td></tr>
         ${summary.promoDiscount ? `<tr><td style="padding:8px 0;color:#999;font-size:13px;font-style:italic;">Customer Promo (Swift absorbed):</td><td style="text-align:right;color:#999;font-size:13px;">-${fmt(summary.promoDiscount)}</td></tr>` : ""}
+        ${adjustmentRows}
         <tr style="border-top:2px solid #e0e0e0;"><td style="padding:14px 0;font-weight:700;font-size:15px;">Net Earnings:</td><td style="text-align:right;font-weight:700;font-size:18px;">${fmt(summary.netEarnings)}</td></tr>
       </table>
     </div>
