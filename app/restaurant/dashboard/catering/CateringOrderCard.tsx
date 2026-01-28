@@ -47,7 +47,6 @@ export const CateringOrderCard = ({
   selectedPickupAddressIndex = 0,
   onPickupAddressSelect,
 }: CateringOrderCardProps) => {
-  console.log("order is now", JSON.stringify(order))
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
   const [viewingReceipt, setViewingReceipt] = useState(false);
 
