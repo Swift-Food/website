@@ -367,17 +367,18 @@ export const CateringOrderCard = ({
     if (sessionRestaurantItems.length === 0) return null;
 
     const isExpanded = expandedSessions[session.id] || false;
-    const sessionNetEarnings = sessionRestaurantItems.reduce((total: number, item: any) => {
-      // Prefer restaurant-level amount (includes adjustments) over menu item sum
-      if (item.restaurantNetAmount !== undefined) {
-        return total + item.restaurantNetAmount;
-      }
-      // Fallback: sum from menu items
-      const menuItemTotal = item.menuItems?.reduce((sum: number, menuItem: any) => {
-        return sum + (menuItem.restaurantNetAmount || 0);
-      }, 0) || 0;
-      return total + menuItemTotal;
-    }, 0);
+
+    // Use backend-computed restaurantNetEarnings (includes adjustments) if available
+    const sessionNetEarnings = (session as any).restaurantNetEarnings ??
+      sessionRestaurantItems.reduce((total: number, item: any) => {
+        if (item.restaurantNetAmount !== undefined) {
+          return total + item.restaurantNetAmount;
+        }
+        const menuItemTotal = item.menuItems?.reduce((sum: number, menuItem: any) => {
+          return sum + (menuItem.restaurantNetAmount || 0);
+        }, 0) || 0;
+        return total + menuItemTotal;
+      }, 0);
 
     return (
       <div key={session.id} className="border border-blue-200 rounded-lg p-3 bg-blue-50/30">
@@ -388,13 +389,10 @@ export const CateringOrderCard = ({
               {formatDate(session.sessionDate)} at {session.restaurantCollectionTimes?.[restaurantId] || session.collectionTime || formatEventTime(session.eventTime)}
             </p>
           </div>
-          {/* Only show session earnings when no order-level adjustments exist */}
-          {!order.restaurantPayoutDetails?.[restaurantId]?.adjustments?.length && (
-            <div className="text-right">
-              <p className="text-xs text-gray-600">Session Earnings</p>
-              <p className="font-bold text-green-600">{formatCurrency(sessionNetEarnings)}</p>
-            </div>
-          )}
+          <div className="text-right">
+            <p className="text-xs text-gray-600">Session Earnings</p>
+            <p className="font-bold text-green-600">{formatCurrency(sessionNetEarnings)}</p>
+          </div>
         </div>
 
         {session.specialRequirements && (
