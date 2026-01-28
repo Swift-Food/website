@@ -61,14 +61,19 @@ export const CateringOrderCard = ({
     return restaurants.filter((item: any) => item.restaurantId === restaurantId);
   };
 
-  // Calculate restaurant net earnings from order
+  // Calculate restaurant net earnings - use earningsAmount (includes adjustments) if available
   const calculateRestaurantNetEarnings = (): number => {
+    // Prefer earningsAmount from payoutDetails as it includes adjustments
+    const payoutDetail = order.restaurantPayoutDetails?.[restaurantId];
+    if (payoutDetail?.earningsAmount !== undefined) {
+      return payoutDetail.earningsAmount;
+    }
+    // Fallback: calculate from order items
     const restaurantItems = getRestaurantOrderItems();
     return restaurantItems.reduce((total: number, item: any) => {
       if (item.restaurantNetAmount !== undefined) {
         return total + item.restaurantNetAmount;
       }
-      // Fallback: sum from menu items
       const menuItemTotal = item.menuItems?.reduce((sum: number, menuItem: any) => {
         return sum + (menuItem.restaurantNetAmount || 0);
       }, 0) || 0;
