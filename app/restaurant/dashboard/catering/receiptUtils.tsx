@@ -135,8 +135,7 @@ export function buildReceiptHTML(
   // Build adjustment rows if present
   const adjustmentRows = summary.adjustments?.map((adj) => {
     const sign = adj.amount >= 0 ? '+' : '-';
-    const color = adj.amount >= 0 ? '#16a34a' : '#dc2626';
-    return `<tr><td style="padding:8px 0;color:#666;">${adj.label}:</td><td style="text-align:right;font-weight:600;color:${color};">${sign}${fmt(Math.abs(adj.amount))}</td></tr>`;
+    return `<tr><td style="padding:8px 0;color:#666;">${adj.label}:</td><td style="text-align:right;font-weight:600;">${sign}${fmt(Math.abs(adj.amount))}</td></tr>`;
   }).join('') || '';
 
   // summary
