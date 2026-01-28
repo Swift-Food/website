@@ -384,10 +384,13 @@ export const CateringOrderCard = ({
               {formatDate(session.sessionDate)} at {session.restaurantCollectionTimes?.[restaurantId] || session.collectionTime || formatEventTime(session.eventTime)}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-600">Session Earnings</p>
-            <p className="font-bold text-green-600">{formatCurrency(sessionNetEarnings)}</p>
-          </div>
+          {/* Hide session earnings when order has adjustments (they won't match order total) */}
+          {!order.restaurantPayoutDetails?.[restaurantId]?.adjustments?.length && (
+            <div className="text-right">
+              <p className="text-xs text-gray-600">Session Earnings</p>
+              <p className="font-bold text-green-600">{formatCurrency(sessionNetEarnings)}</p>
+            </div>
+          )}
         </div>
 
         {session.specialRequirements && (
