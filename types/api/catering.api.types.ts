@@ -324,3 +324,38 @@ export interface CateringBundleResponse {
   createdAt: string | Date;
   updatedAt: string | Date;
 }
+
+// ============================================================================
+// DELIVERY TRACKING TYPES
+// ============================================================================
+
+/**
+ * Customer-facing delivery status for a meal session
+ * Backend: CustomerDeliveryStatus enum
+ */
+export type CustomerDeliveryStatus =
+  | 'awaiting_pickup'
+  | 'out_for_delivery'
+  | 'at_collection_point'
+  | 'delivered';
+
+/**
+ * Delivery tracking response for a single meal session
+ * Backend: GET /catering-driver/delivery-tracking/:mealSessionId
+ */
+export interface DeliveryTrackingDto {
+  mealSessionId: string;
+  status: string;
+  customerStatus: CustomerDeliveryStatus | null;
+  estimatedDeliveryTime: string | Date | null;
+  estimatedDeliveryWindow: {
+    earliest: string | Date;
+    latest: string | Date;
+  } | null;
+  isDelayed: boolean;
+  delayMessage: string | null;
+  driverInfo: {
+    name: string;
+    rating: number;
+  } | null;
+}

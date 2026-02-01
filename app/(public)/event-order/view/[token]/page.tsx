@@ -23,6 +23,8 @@ import { refundService } from "@/services/api/refund.api";
 import RefundsList from "@/lib/components/catering/dashboard/refundList";
 import OrderSummary from "@/lib/components/catering/dashboard/OrderSummary";
 import { OrderStatusTimeline } from "@/lib/components/catering/dashboard/OrderStatusTimeline";
+import DeliveryTracking from "@/lib/components/catering/dashboard/DeliveryTracking";
+import { DeliveryTrackingDto } from "@/types/api";
 
 export default function CateringDashboardPage() {
   const params = useParams();
@@ -37,14 +39,17 @@ export default function CateringDashboardPage() {
   >(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [deliveryTracking, setDeliveryTracking] = useState<Record<string, DeliveryTrackingDto>>({});
 
   useEffect(() => {
     loadOrder();
   }, [token]);
 
   useEffect(() => {
+    console.log("it runs", JSON.stringify(order))
     if (order) {
       loadRefunds();
+      loadDeliveryTracking(order);
     }
   }, [order]);
 
@@ -87,6 +92,32 @@ export default function CateringDashboardPage() {
       console.error("Failed to load refunds:", err);
     } finally {
       setLoadingRefunds(false);
+    }
+  };
+
+  const loadDeliveryTracking = async (orderData: CateringOrderResponse) => {
+    console.log("loading delivery tracking info")
+    const trackableStatuses = ["restaurant_reviewed", "paid", "confirmed", "completed"];
+    const sessions = orderData.mealSessions ?? [];
+    if (!trackableStatuses.includes(orderData.status) || sessions.length === 0) return;
+
+    try {
+      console.log("sesh id", JSON.stringify(sessions))
+      const results = await Promise.allSettled(
+
+        sessions.map((s) => cateringService.getDeliveryTracking(s.id))
+      );
+
+      const data: Record<string, DeliveryTrackingDto> = {};
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          data[sessions[index].id] = result.value;
+        }
+      });
+      console.log("the data for delivery tracking", JSON.stringify(data))
+      setDeliveryTracking(data);
+    } catch (err) {
+      console.error("Failed to load delivery tracking:", err);
     }
   };
 
@@ -201,6 +232,12 @@ export default function CateringDashboardPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           <OrderStatusTimeline status={order.status} />
+            {order.mealSessions && order.mealSessions.length > 0 && (
+              <DeliveryTracking
+                sessions={order.mealSessions}
+                trackingData={deliveryTracking}
+              />
+            )}
             <OrderDetails order={order} />
             {isManager && (
               <DeliveryTimeManager

@@ -28,6 +28,7 @@ import {
   OrderPricingBreakdown,
   RestaurantPayoutsResponse,
   CateringBundleResponse,
+  DeliveryTrackingDto,
 } from "@/types/api";
 import { CategoryWithSubcategories } from "@/types/catering.types";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
@@ -663,6 +664,19 @@ class CateringService {
     );
 
     return this.validatePromoCode(promoCode, allOrderItems);
+  }
+
+  async getDeliveryTracking(mealSessionId: string): Promise<DeliveryTrackingDto> {
+    console.log("what we sending", `${API_BASE_URL}/catering-driver/delivery-tracking/${mealSessionId}` )
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/catering-driver/track/${mealSessionId}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch delivery tracking");
+    }
+
+    return response.json();
   }
 
   async getOrderByToken(token: string): Promise<CateringOrderResponse> {
