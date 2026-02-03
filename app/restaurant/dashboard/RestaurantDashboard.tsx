@@ -73,6 +73,7 @@ export const RestaurantDashboard = ({
     }
   );
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
+  const [freshRestaurant, setFreshRestaurant] = useState<any>(null);
 
   const fetchData = async () => {
     console.log(`[fetchData] Starting fetch with selectedAccountId: ${selectedAccountId}`);
@@ -95,6 +96,7 @@ export const RestaurantDashboard = ({
         ),
         restaurantApi.getCateringOrders(restaurantId, cateringAccountFilter),
         refundService.getRestaurantRefundRequests(restaurantId),
+        restaurantApi.getRestaurantDetails(restaurantId),
       ]);
 
       // Extract successful results
@@ -104,6 +106,7 @@ export const RestaurantDashboard = ({
         historyResult,
         cateringResult,
         refundsResult,
+        restaurantResult,
       ] = results;
 
 
@@ -129,6 +132,10 @@ export const RestaurantDashboard = ({
         setRefunds(refundsResult.value || []);
       }
 
+      if (restaurantResult.status === "fulfilled" && restaurantResult.value) {
+        setFreshRestaurant(restaurantResult.value);
+      }
+
       // Optional: Log any failures
       results.forEach((result, index) => {
         if (result.status === "rejected") {
@@ -138,6 +145,7 @@ export const RestaurantDashboard = ({
             "getWithdrawalHistory",
             "getCateringOrders",
             "getRefundRequests",
+            "getRestaurantDetails",
           ];
           console.error(`${apiNames[index]} failed:`, result.reason);
         }
@@ -336,7 +344,7 @@ export const RestaurantDashboard = ({
               View Partner Terms and Conditions
             </a>
             <p className="text-sm text-gray-500">
-              Commission Rate: 20% (Incl. VAT where applicable)
+              Commission Rate: {(freshRestaurant?.commission ?? restaurant?.commission ?? 20)}% (Incl. VAT where applicable)
             </p>
           </div>
         </div>
@@ -662,7 +670,7 @@ export const RestaurantDashboard = ({
             View Partner Terms and Conditions
           </a>
           <p className="text-sm text-gray-500">
-            Commission Rate: 20% (Incl. VAT where applicable)
+            Commission Rate: {(freshRestaurant?.commission ?? restaurant?.commission ?? 20)}% (Incl. VAT where applicable)
           </p>
         </div>
       </div>
