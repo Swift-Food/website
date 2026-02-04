@@ -53,6 +53,7 @@ const DIETARY_CONFIG: Record<string, { abbrev: string; label: string; color: str
 
 // Get all unique dietary filters from sessions for the legend
 const getAllDietaryFilters = (sessions: PdfSession[]): string[] => {
+  console.log("sessions", JSON.stringify(sessions, null, 2))
   const filters = new Set<string>();
   sessions.forEach(session => {
     session.categories.forEach(category => {

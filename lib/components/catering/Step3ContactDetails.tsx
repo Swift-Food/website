@@ -153,6 +153,7 @@ export default function Step3ContactInfo() {
       return false;
     }
   };
+  
 
   const validatePhone = (phone: string): string | undefined => {
     if (!phone.trim()) {
@@ -861,7 +862,6 @@ export default function Step3ContactInfo() {
         sessionsForPreview,
         withPrices
       );
-
       // Generate and download PDF
       const blob = await pdf(
         <CateringMenuPdf
