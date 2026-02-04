@@ -139,19 +139,10 @@ class CateringService {
             };
           }
 
-          // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map(
-            (addon) => ({
-              name: addon.name,
-              quantity: addon.quantity || 0,
-              groupTitle: addon.groupTitle,
-            })
-          );
-
           acc[restaurantId].items.push({
             menuItemId: item.id,
             quantity,
-            selectedAddons: transformedAddons,
+            selectedAddons: item.selectedAddons,
             groupTitle: item.groupTitle,
           });
 
@@ -472,19 +463,10 @@ class CateringService {
             };
           }
 
-          // Send addons as-is to backend (no quantity transformation needed)
-          const transformedAddons = (item.selectedAddons || []).map(
-            (addon) => ({
-              name: addon.name,
-              quantity: addon.quantity || 0,
-              groupTitle: addon.groupTitle,
-            })
-          );
-
           acc[restaurantId].items.push({
             menuItemId: item.id,
             quantity,
-            selectedAddons: transformedAddons,
+            selectedAddons: item.selectedAddons || [],
             groupTitle: item.groupTitle,
           });
 
@@ -623,18 +605,10 @@ class CateringService {
             };
           }
 
-          const transformedAddons = (item.selectedAddons || []).map(
-            (addon) => ({
-              name: addon.name,
-              quantity: addon.quantity || 0,
-              groupTitle: addon.groupTitle,
-            })
-          );
-
           acc[restaurantId].items.push({
             menuItemId: item.id,
             quantity,
-            selectedAddons: transformedAddons,
+            selectedAddons: item.selectedAddons || [],
             groupTitle: item.groupTitle,
           });
 
