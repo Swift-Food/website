@@ -466,7 +466,7 @@ class CateringService {
           acc[restaurantId].items.push({
             menuItemId: item.id,
             quantity,
-            selectedAddons: item.selectedAddons || [],
+            selectedAddons: item.selectedAddons,
             groupTitle: item.groupTitle,
           });
 
@@ -608,7 +608,7 @@ class CateringService {
           acc[restaurantId].items.push({
             menuItemId: item.id,
             quantity,
-            selectedAddons: item.selectedAddons || [],
+            selectedAddons: item.selectedAddons,
             groupTitle: item.groupTitle,
           });
 
