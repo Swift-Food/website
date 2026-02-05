@@ -47,6 +47,8 @@ export interface Addon {
   groupTitle: string;
   isRequired: boolean;
   selectionType: "single" | "multiple";
+  minSelections?: number;
+  maxSelections?: number;
 }
 
 export interface MenuItem {

@@ -11,7 +11,14 @@
       "Bash(ls:*)",
       "Bash(npm run lint:*)",
       "WebFetch(domain:www.nngroup.com)",
-      "WebFetch(domain:medium.com)"
+      "WebFetch(domain:medium.com)",
+      "Bash(cat:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx next build:*)"
     ]
   }
 }

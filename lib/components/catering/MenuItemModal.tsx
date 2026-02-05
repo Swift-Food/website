@@ -40,6 +40,8 @@ interface AddonGroup {
   items: Addon[];
   isRequired: boolean;
   selectionType: "single" | "multiple";
+  minSelections?: number;
+  maxSelections?: number;
 }
 
 export default function MenuItemModal({
@@ -136,13 +138,15 @@ export default function MenuItemModal({
 
     // Group addons by groupTitle
     const grouped = item.addons.reduce((acc, addon) => {
-      // console.log("Processing addon:", addon);
+      console.log("Processing addon:", addon);
       const groupTitle = addon.groupTitle || "Default";
       if (!acc[groupTitle]) {
         acc[groupTitle] = {
           items: [],
           isRequired: addon.isRequired,
           selectionType: addon.selectionType,
+          minSelections: addon.minSelections,
+          maxSelections: addon.maxSelections,
         };
       }
       acc[groupTitle].items.push(addon);
@@ -151,6 +155,7 @@ export default function MenuItemModal({
 
     // console.log("Grouped addons:", grouped);
     setAddonGroups(grouped);
+    console.log("grouped is", item.menuItemName, JSON.stringify(grouped))
 
     // Initialize selected addons state
     const initialSelections: Record<string, Record<string, boolean>> = {};
@@ -400,12 +405,20 @@ export default function MenuItemModal({
   const toggleAddon = (groupTitle: string, addonName: string) => {
     const group = addonGroups[groupTitle];
 
-    // For single-selection groups, we don't toggle - we use quantity controls
-    if (group.selectionType === "single") {
+    // For single-selection groups without min/max, we don't toggle - we use quantity controls
+    if (group.selectionType === "single" && group.minSelections == null && group.maxSelections == null) {
       return; // Quantity controls handle this
     }
 
     // For multiple selection, toggle the clicked addon
+    const currentValue = selectedAddons[groupTitle]?.[addonName] || false;
+
+    // If toggling ON, check maxSelections constraint
+    if (!currentValue && group.maxSelections != null) {
+      const currentCount = getMultipleSelectionCount(groupTitle);
+      if (currentCount >= group.maxSelections) return;
+    }
+
     setSelectedAddons((prev) => {
       const newSelections: Record<string, Record<string, boolean>> = {};
       Object.keys(prev).forEach((key) => {
@@ -416,7 +429,6 @@ export default function MenuItemModal({
         newSelections[groupTitle] = {};
       }
 
-      const currentValue = prev[groupTitle]?.[addonName] || false;
       newSelections[groupTitle][addonName] = !currentValue;
 
       return newSelections;
@@ -427,6 +439,12 @@ export default function MenuItemModal({
   const getSingleSelectionTotal = (groupTitle: string) => {
     const quantities = addonQuantities[groupTitle] || {};
     return Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+  };
+
+  // Helper to get total selected count for a multiple-selection group
+  const getMultipleSelectionCount = (groupTitle: string) => {
+    const selections = selectedAddons[groupTitle] || {};
+    return Object.values(selections).filter(Boolean).length;
   };
 
   const validateRequiredAddons = () => {
@@ -445,7 +463,8 @@ export default function MenuItemModal({
     const errors: string[] = [];
 
     Object.entries(addonGroups).forEach(([groupTitle, group]) => {
-      if (group.selectionType === "single") {
+      // Skip single-selection groups that have min/max (they use checkbox behavior instead)
+      if (group.selectionType === "single" && group.minSelections == null && group.maxSelections == null) {
         const total = getSingleSelectionTotal(groupTitle);
         const hasAnySelection = Object.values(
           selectedAddons[groupTitle] || {}
@@ -480,6 +499,23 @@ export default function MenuItemModal({
       return;
     }
 
+    // Validate multiple-selection min/max constraints
+    const multipleSelectionErrors: string[] = [];
+    Object.entries(addonGroups).forEach(([groupTitle, group]) => {
+      if (group.minSelections != null) {
+        const count = getMultipleSelectionCount(groupTitle);
+        if (count < group.minSelections) {
+          multipleSelectionErrors.push(
+            `${groupTitle}: Please select at least ${group.minSelections} option${group.minSelections > 1 ? "s" : ""} (currently ${count})`
+          );
+        }
+      }
+    });
+    if (multipleSelectionErrors.length > 0) {
+      alert("Please adjust your selections:\n\n" + multipleSelectionErrors.join("\n"));
+      return;
+    }
+
     // Collect selected addons with their quantities and prices
     const addonsForCart: {
       name: string;
@@ -497,8 +533,8 @@ export default function MenuItemModal({
         if (selectedAddons[groupTitle]?.[addon.name]) {
           const addonPrice = Number(addon.price) || 0;
 
-          if (group.selectionType === "single") {
-            // For single selection: use the specific quantity
+          if (group.selectionType === "single" && group.minSelections == null && group.maxSelections == null) {
+            // For single selection without min/max: use the specific quantity
             const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
             if (qty > 0) {
               addonsForCart.push({
@@ -539,6 +575,13 @@ export default function MenuItemModal({
     onAddItem?.(itemWithAddons);
     onClose();
   };
+
+  // Check if any multiple-selection group has unmet minSelections
+  const isMinSelectionsUnmet = Object.entries(addonGroups).some(
+    ([groupTitle, group]) =>
+      group.minSelections != null &&
+      getMultipleSelectionCount(groupTitle) < group.minSelections
+  );
 
   if (!isOpen) return null;
 
@@ -778,7 +821,23 @@ export default function MenuItemModal({
                         </h4>
                         {!viewOnly && (
                           <span className="text-[10px] md:text-xs text-base-content/60 italic">
-                            {group.selectionType === "single"
+                            {group.minSelections != null || group.maxSelections != null
+                              ? (() => {
+                                  const count = getMultipleSelectionCount(groupTitle);
+                                  const target = group.maxSelections ?? group.minSelections;
+                                  let label = "";
+                                  if (group.minSelections != null && group.maxSelections != null && group.minSelections === group.maxSelections) {
+                                    label = `Select ${group.minSelections}`;
+                                  } else if (group.minSelections != null && group.maxSelections != null) {
+                                    label = `Select ${group.minSelections}–${group.maxSelections}`;
+                                  } else if (group.minSelections != null) {
+                                    label = `Select at least ${group.minSelections}`;
+                                  } else {
+                                    label = `Select up to ${group.maxSelections}`;
+                                  }
+                                  return `${label} (${count} / ${target} selected)`;
+                                })()
+                              : group.selectionType === "single"
                               ? `Select portions (total: ${getSingleSelectionTotal(
                                   groupTitle
                                 )}/${itemQuantity})`
@@ -838,7 +897,7 @@ export default function MenuItemModal({
                           );
                         }
 
-                        return group.selectionType === "single" ? (
+                        return (group.selectionType === "single" && group.minSelections == null && group.maxSelections == null) ? (
                           // Single selection: Show quantity controls
                           <div
                             key={index}
@@ -979,19 +1038,27 @@ export default function MenuItemModal({
                           </div>
                         ) : (
                           // Multiple selection: Show checkbox
+                          (() => {
+                            const isSelected = selectedAddons[groupTitle]?.[addon.name] || false;
+                            const isMaxReached = group.maxSelections != null && getMultipleSelectionCount(groupTitle) >= group.maxSelections;
+                            const isDisabledByMax = !isSelected && isMaxReached;
+                            return (
                           <button
                             key={index}
                             onClick={() => toggleAddon(groupTitle, addon.name)}
+                            disabled={isDisabledByMax}
                             className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
-                              selectedAddons[groupTitle]?.[addon.name]
+                              isSelected
                                 ? "border-primary bg-primary/5"
+                                : isDisabledByMax
+                                ? "border-base-300 bg-base-200 opacity-50 cursor-not-allowed"
                                 : "border-base-300 bg-base-100 hover:border-primary/50"
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <div
                                 className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                                  selectedAddons[groupTitle]?.[addon.name]
+                                  isSelected
                                     ? "border-primary bg-primary"
                                     : "border-base-300"
                                 }`}
@@ -1044,6 +1111,8 @@ export default function MenuItemModal({
                               </span>
                             )}
                           </button>
+                            );
+                          })()
                         );
                       })}
                     </div>
@@ -1085,7 +1154,12 @@ export default function MenuItemModal({
               <div className="space-y-1.5 md:space-y-2">
                 <button
                   onClick={handleAddToCart}
-                  className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+                  disabled={isMinSelectionsUnmet}
+                  className={`w-full py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base ${
+                    isMinSelectionsUnmet
+                      ? "bg-base-300 text-base-content/50 cursor-not-allowed"
+                      : "bg-primary hover:opacity-90 text-white"
+                  }`}
                 >
                   Save Changes
                 </button>
@@ -1128,7 +1202,12 @@ export default function MenuItemModal({
             ) : (
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-primary hover:opacity-90 text-white py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base"
+                disabled={isMinSelectionsUnmet}
+                className={`w-full py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base ${
+                  isMinSelectionsUnmet
+                    ? "bg-base-300 text-base-content/50 cursor-not-allowed"
+                    : "bg-primary hover:opacity-90 text-white"
+                }`}
               >
                 Add to Order
               </button>

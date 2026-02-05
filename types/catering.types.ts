@@ -752,6 +752,8 @@ export interface MenuItemAddon {
   groupTitle?: string;
   selectionType?: "single" | "multiple";
   isRequired?: boolean;
+  minSelections?: number;
+  maxSelections?: number;
 }
 
 export enum MenuItemStatus {

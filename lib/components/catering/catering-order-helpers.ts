@@ -134,6 +134,8 @@ export function mapToMenuItem(item: MenuItemDetails): MenuItem {
       groupTitle: addon.groupTitle || "",
       isRequired: addon.isRequired || false,
       selectionType: addon.selectionType || "single",
+      minSelections: (addon as any).minSelections,
+      maxSelections: (addon as any).maxSelections,
     })),
   };
 }

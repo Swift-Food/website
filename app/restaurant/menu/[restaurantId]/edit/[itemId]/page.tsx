@@ -933,14 +933,69 @@ const EditMenuItemPage = () => {
 
               return Object.keys(grouped).length > 0 ? (
                 <div className="space-y-4">
-                  {Object.entries(grouped).map(([groupTitle, groupAddons]) => (
+                  {Object.entries(grouped).map(([groupTitle, groupAddons]) => {
+                    const firstAddon = groupAddons[0] as any;
+                    const groupMin = firstAddon?.minSelections;
+                    const groupMax = firstAddon?.maxSelections;
+
+                    const updateGroupSelections = (field: "minSelections" | "maxSelections", value: number | undefined) => {
+                      setAddons((prev) =>
+                        (prev || []).map((addon) =>
+                          (addon.groupTitle || "Ungrouped") === groupTitle
+                            ? { ...addon, [field]: value }
+                            : addon
+                        )
+                      );
+                    };
+
+                    return (
                     <div
                       key={groupTitle}
                       className="border border-gray-200 rounded-lg p-4"
                     >
-                      <h3 className="font-semibold text-gray-900 mb-3">
+                      <h3 className="font-semibold text-gray-900 mb-2">
                         {groupTitle}
                       </h3>
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Min Selections
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={groupMin ?? ""}
+                            onChange={(e) =>
+                              updateGroupSelections(
+                                "minSelections",
+                                e.target.value === "" ? undefined : parseInt(e.target.value) || 0
+                              )
+                            }
+                            onWheel={(e) => e.currentTarget.blur()}
+                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                            placeholder="No min"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Max Selections
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={groupMax ?? ""}
+                            onChange={(e) =>
+                              updateGroupSelections(
+                                "maxSelections",
+                                e.target.value === "" ? undefined : parseInt(e.target.value) || 0
+                              )
+                            }
+                            onWheel={(e) => e.currentTarget.blur()}
+                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                            placeholder="No max"
+                          />
+                        </div>
+                      </div>
                       <div className="space-y-2">
                         {groupAddons.map((addon: any) => (
                           <div
@@ -993,7 +1048,8 @@ const EditMenuItemPage = () => {
                         ))}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 italic">
