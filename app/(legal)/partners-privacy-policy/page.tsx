@@ -7,150 +7,828 @@ export default function RestaurantPartnerPrivacyPolicy() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-primary mb-4">
-            Swift Partner Privacy Policy
+            Swift Food Services Ltd – Privacy Policy
           </h1>
-          <p className="text-gray-600 text-lg">
-            How Swift Food Services Limited handles Partner personal data
-          </p>
           <p className="text-gray-500 mt-2">
-            Updated: August 20, 2025
+            Last update: 3rd February 2026
           </p>
         </div>
 
         {/* Content */}
         <div className="bg-white rounded-xl border p-8 space-y-8">
-          
+
           {/* Introduction */}
           <section>
             <p className="text-gray-600 leading-relaxed">
-              This Privacy Policy explains how Swift Food Services Limited ('Swift Food', 'we', 'us' or 'our') collects, uses, and protects the personal data of our Partners (restaurants, food stalls, and other vendors) and their staff in connection with the use of our platform. Swift Food is committed to handling all personal data responsibly and in compliance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.
+              This privacy policy applies to Swift Food Services Ltd and our platform Prismo (we, us or our). We are committed to protecting your privacy. This policy explains how we collect, use and share your personal data. It applies to all personal data we handle, whether we collect it through our website, in person, or through other means.
             </p>
           </section>
 
-          {/* Data Controller */}
+          {/* Information we collect (Swift Food) */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Data Controller</h2>
-            <p className="text-gray-600 leading-relaxed">
-              Swift Food Services Limited is the data controller of Partner personal data. Company Number: 16457702, Registered Office: 251 Grays Inn Rd, London WC1X 8QT, United Kingdom.
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Information we collect (Swift Food)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Identity and contact details</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Name, residential address, email address and phone number</li>
+              <li>Professional details</li>
+            </ul>
           </section>
 
-          {/* Information We Collect */}
+          {/* Information we collect (Prismo) */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">2. Information We Collect</h2>
-            <p className="text-gray-600 leading-relaxed">
-              We collect personal data including (but not limited to): names, email addresses, phone numbers, payment and bank account details (for settlements), tax and compliance information, and records of communications.
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Information we collect (Prismo)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Identity and contact details</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Name and email</li>
+              <li>Age</li>
+              <li>Professional details</li>
+            </ul>
           </section>
 
-          {/* How We Use Personal Data */}
+          {/* Service related information */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">3. How We Use Personal Data</h2>
-            <p className="text-gray-600 leading-relaxed">
-              We process Partner data for purposes including: verifying and onboarding Partners; processing payments and settlements; monitoring order performance; handling customer service issues; compliance with legal obligations; and internal analytics to improve the platform.
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Service related information (Swift Food and Prismo)</h2>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Transaction details for products and services you've purchased from us or enquiries about our products and services</li>
+              <li>Your preferences for our services and your marketing preferences and where relevant information related to loyalty programmes</li>
+              <li>Feedback, complaints and compliments and survey responses</li>
+            </ul>
           </section>
 
-          {/* Legal Bases for Processing */}
+          {/* Financial and payment information */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">4. Legal Bases for Processing</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Financial and payment information (Swift Food and Prismo)</h2>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Payment details for products and services you've purchased from us (including where relevant, credit reference information) and where relevant banking or payment card information</li>
+            </ul>
+          </section>
+
+          {/* Digital information */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Digital information (Swift Food and Prismo)</h2>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>IP address and general location information derived from your IP address</li>
+              <li>Search and browsing behaviour and user journeys</li>
+              <li>Website usage patterns</li>
+              <li>Cookie preferences and tracking</li>
+            </ul>
+          </section>
+
+          {/* Recordings */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recordings (Swift Food)</h2>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Call recordings</li>
+              <li>Records of meetings and decisions</li>
+            </ul>
+          </section>
+
+          {/* Professional information for job applicants */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Professional information for job applicants and workers (Swift Food)</h2>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Employment history</li>
+              <li>Professional experience</li>
+              <li>Required authorisations and licences</li>
+              <li>Professional registrations</li>
+              <li>Information about your right to work in the UK</li>
+            </ul>
+          </section>
+
+          {/* Special category data */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Special category data (Swift Food)</h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              We rely on the following lawful bases under UK GDPR:
+              This is special information that the law says is more sensitive (sometimes called &quot;sensitive personal data&quot;). We handle special category data with extra care and protection, and we only collect and use these where legally permitted. This includes:
             </p>
-            <div className="bg-gray-50 rounded-lg p-6">
-              <div className="space-y-3 text-gray-600">
-                <p><span className="font-medium">(a) Contract:</span> to provide services and process settlements</p>
-                <p><span className="font-medium">(b) Legal obligation:</span> tax, accounting, and regulatory compliance</p>
-                <p><span className="font-medium">(c) Legitimate interests:</span> monitoring performance, ensuring quality, preventing fraud</p>
-                <p><span className="font-medium">(d) Consent:</span> where explicitly required, such as for marketing communications</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Health information (including dietary requirements and allergies, which we collect to ensure we can safely accommodate your needs when providing our services and to facilitate appropriate referrals to our vendor partners.</li>
+            </ul>
+          </section>
+
+          {/* Our role in processing your data */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Our role in processing your data</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              <span className="font-medium">Swift Food Services Ltd and Prismo:</span> We act as a data controller when we collect and determine how to use your personal data for our business purposes.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              <span className="font-medium">Prismo platform:</span> We act as a data processor when event organisers collect additional information directly from you through event registration forms. In these cases, the event organiser is the data controller and determines what information to collect and how to use it.
+            </p>
+            <p className="text-gray-600 leading-relaxed">
+              For any special categories of data collected by event organisers (such as dietary requirements or allergen information), the event organiser is responsible for obtaining appropriate consents and providing you with their own privacy information.
+            </p>
+          </section>
+
+          {/* How we collect personal data */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">How we collect personal data</h2>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li><span className="font-medium">Directly from you</span> when you: interact with us, contact us, fill out forms.</li>
+              <li><span className="font-medium">Automatically</span> when you: visit our website, use our technologies, interact with our online services.</li>
+              <li><span className="font-medium">From third parties:</span> service providers, business partners, previous employers, government organisations and organisations or people authorised by you.</li>
+              <li><span className="font-medium">From publicly available sources:</span> such as Companies House and professional networking sites such as LinkedIn.</li>
+            </ul>
+          </section>
+
+          {/* How we use your information */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">How we use your information</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Data protection law requires us to have proper legal reasons for using your personal data. We can only use your information when we have one or more of these legal bases.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-6 space-y-3 text-gray-600">
+              <p><span className="font-medium">Consent</span> - You have clearly agreed to us using your personal data for a specific purpose.</p>
+              <p><span className="font-medium">Performance of a contract</span> - We need to use your information to fulfil a contract with you, or because you've asked us to do something before entering into a contract.</p>
+              <p><span className="font-medium">Legal duty</span> - We must use your information to comply with the law.</p>
+              <p><span className="font-medium">Vital interests</span> - We need to use your information to protect someone's life.</p>
+              <p><span className="font-medium">Public interest</span> - We need to use your information to perform a task in the public interest or carry out official functions that have a clear legal basis.</p>
+              <p><span className="font-medium">Legitimate interests</span> - We have a genuine business reason to use your information, or a third party does, but only if this doesn't unfairly override your rights and interests. Where we rely on legitimate interests as our legal basis, we have conducted balancing tests to ensure our interests do not override your fundamental rights and freedoms. These assessments consider:</p>
+              <ul className="list-disc pl-6 space-y-1 ml-4">
+                <li>The nature of our legitimate interest</li>
+                <li>The impact on you</li>
+                <li>Any safeguards we can implement</li>
+                <li>Your reasonable expectations</li>
+                <li>The broader context of our relationship</li>
+              </ul>
+            </div>
+            <p className="text-gray-600 leading-relaxed mt-4">
+              Note that we may process your personal data for more than one legal basis depending on the specific purpose for which we are using your data. We have listed the reasons we process your data and the legal basis below. Please reach out to us if you need further details about the specific legal basis we are relying on to process your personal data.
+            </p>
+          </section>
+
+          {/* Managing your account and providing our services */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Managing your account and providing our services (Swift Food and Prismo)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we use your information for:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>To enable you to access and use our website and app including providing login credentials</li>
+              <li>To provide our services to you, including order processing, dispatch and delivery of products, event registration and appointment management</li>
+              <li>To contact and communicate with you about our services, including responding to support requests and enquiries and for dealing with complaints or claims</li>
+              <li>Internal record keeping, administrative, invoicing and billing purposes</li>
+              <li>Creating and managing your Prismo account (Prismo only)</li>
+              <li>Processing payments for events and facilitating payouts to event organisers (Prismo only)</li>
+              <li>To create anonymised and aggregated datasets for research, analysis and business intelligence purposes</li>
+              <li>To provide event organisers with analytics about event viewers and attendees, which may include both identifiable personal data and/or anonymised or aggregated statistics (Prismo only)</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for using this information:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Performance of a Contract</li>
+              <li>Legal Duty (for billing and record-keeping requirements)</li>
+              <li>Legitimate interests</li>
+              <li>Consent</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of information we use:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Identity and contact details</li>
+              <li>Service related information</li>
+              <li>Financial Information</li>
+              <li>Digital information</li>
+              <li>Special Categories of Personal Data</li>
+              <li>Professional information (Prismo)</li>
+              <li>Anonymised and aggregated data derived from the above</li>
+            </ul>
+          </section>
+
+          {/* Client onboarding and verification */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Client onboarding and verification (Swift Food)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we use your information for:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>To assess whether to take you on as a new client, including performing anti-money laundering, anti-terrorism, sanction screening, fraud and other background checks</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for using this information:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Performance of a Contract</li>
+              <li>Legal Duty</li>
+              <li>Public Interest</li>
+              <li>Legitimate interests</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of information we use:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Identity and contact details</li>
+              <li>Financial information</li>
+            </ul>
+          </section>
+
+          {/* Website and platform enquiries */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Website and platform enquiries and customer service (Swift Food and Prismo)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we use your information for:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>To contact and communicate with you about any enquiries you make with us via our website and platform</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for using this information:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Legitimate interests</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of information we use:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Identity and Contact Data</li>
+              <li>Digital Information</li>
+            </ul>
+          </section>
+
+          {/* Business improvement and development */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Business improvement and development (Swift Food and Prismo)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we use your information for:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Analytics on our website and platform</li>
+              <li>Market research and business development</li>
+              <li>To operate and improve our services, associated applications and associated social media platforms</li>
+              <li>To provide event organisers with aggregated and individual-level analytics about event viewers and attendees (Prismo only)</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for using this information:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Legitimate interests</li>
+              <li>Performance of a Contract (where applicable)</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of information we use:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Digital Information</li>
+              <li>Identity and Contact Data (Prismo)</li>
+              <li>Professional information (Prismo)</li>
+              <li>Anonymised and aggregated data derived from the above</li>
+            </ul>
+          </section>
+
+          {/* Marketing and communications */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Marketing and communications (Swift Food)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we use your information for:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>To send you promotional information about our events and experiences and information that we consider may be of interest to you</li>
+              <li>To run promotions, competitions and offer additional benefits to you</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for using this information:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Legitimate interests</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of information we use:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Identity and Contact Data</li>
+              <li>Digital Information</li>
+            </ul>
+          </section>
+
+          {/* Recruitment and employment */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recruitment and employment purposes (Swift Food)</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we use your information for:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>To consider your application if you have applied to work with us and to keep you up to date with its progress</li>
+              <li>In relation to self-declared disabilities in order for us to make reasonable adjustments to support your application and any possible future employment</li>
+              <li>In relation to any diversity or equal opportunities monitoring questionnaire data, to monitor and report on our equality and diversity composition and ensure fairness in the recruitment process</li>
+              <li>In relation to any right to work information we collect, in order to ensure we comply with the law in employing you</li>
+              <li>To keep you updated on any other suitable vacancies</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for using this information:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Legitimate interests</li>
+              <li>Legal Duty</li>
+              <li>Consent</li>
+              <li>Performance of a Contract</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of information we use:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Identity and Contact Data</li>
+              <li>Professional Data</li>
+            </ul>
+          </section>
+
+          {/* Legal compliance */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Legal compliance</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we use your information for:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Comply with our legal obligations or if otherwise required or authorised by law</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for using this information:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Legal Duty</li>
+            </ul>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of information we use:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>All relevant Personal Data</li>
+            </ul>
+          </section>
+
+          {/* Our disclosures of personal data to third parties */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Our disclosures of personal data to third parties</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">We may disclose personal data to:</p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Service providers (Swift Food)</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>IT service providers including Heroku, Slack and Asana</li>
+              <li>Data storage providers</li>
+              <li>Web hosting and server providers including Netlify, GoDaddy, WhatsApp and Notion</li>
+              <li>Payment processors including Stripe</li>
+              <li>Marketing and advertising providers</li>
+              <li>Analytics providers</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Service providers (Prismo)</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Payment processors including Stripe</li>
+              <li>Event organisers who receive analytics data about platform users</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Professional advisers</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Bankers</li>
+              <li>Auditors</li>
+              <li>Insurers and insurance brokers</li>
+              <li>Legal advisers</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Business partners</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Our existing or potential agents</li>
+              <li>Our business partners or contractors</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Corporate transactions</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">If we merge with or are acquired by another company, or sell our business assets:</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Your information may be disclosed to our advisers</li>
+              <li>Your information may be disclosed to the potential purchaser's advisers</li>
+              <li>Your information may be included in the transferred assets</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal and regulatory bodies</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Courts and tribunals</li>
+              <li>Regulatory authorities including as required for reporting obligations</li>
+              <li>Law enforcement officers</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Other parties</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Third parties you have authorised</li>
+              <li>Emergency services when necessary</li>
+              <li>Any other parties as required or permitted by law</li>
+            </ul>
+          </section>
+
+          {/* Our disclosure of personal data to Event Organisers */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Our disclosure of personal data to Event Organisers (Prismo)</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              When you view or interact with events on our Prismo platform, we may share certain personal data with event organisers.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              We may share this information to help event organisers better understand their audience and improve their events. This sharing may be provided as part of a premium service to event organisers.
+            </p>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Legal basis for this disclosure:</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Legitimate interests (to provide enhanced analytics to event organisers and improve our platform services).</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Anonymised and Aggregated Analytics</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">
+              We may provide event organisers with anonymised and aggregated statistics/information about event viewers and attendees. This information is not capable of identifying you either directly or indirectly and may include:
+            </p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Total number of views and registrations</li>
+              <li>Age group distributions (e.g., &quot;40% of viewers aged 25-34&quot;)</li>
+              <li>Geographic distributions (e.g., &quot;35% of viewers from London&quot;)</li>
+              <li>Industry sector breakdowns (e.g., &quot;30% work in Technology&quot;)</li>
+              <li>Viewing patterns and engagement metrics</li>
+            </ul>
+          </section>
+
+          {/* Overseas transfers */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Overseas transfers</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Where we store and access your information</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">
+              We store your personal data in the United Kingdom. However, your information may be transferred to locations outside the United Kingdom in these circumstances:
+            </p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>When our service providers are located overseas</li>
+              <li>When we work with overseas business partners</li>
+              <li>When using cloud-based services or data storage solutions</li>
+              <li>When required by law or legal proceedings</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Our approach to overseas transfers</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">
+              When we transfer your personal data outside the United Kingdom, we ensure it receives appropriate protection by:
+            </p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Only transferring your information to countries that UK data protection law recognises as providing adequate protection for personal data, or</li>
+              <li>Putting in place a contract with the third party that means they must protect personal data to the same standards as the UK.</li>
+              <li>Transferring personal data to organisations that are part of specific agreements on cross-border data transfers with the UK.</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What this means for you</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">
+              We only transfer the minimum amount of personal data necessary and require all recipients to:
+            </p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>Protect your information to the same standards required by UK law</li>
+              <li>Use your information only for the purposes we've agreed</li>
+              <li>Allow us to monitor how they handle your information</li>
+              <li>Provide you with the same rights over your information that you have under UK law</li>
+            </ul>
+          </section>
+
+          {/* Children's Personal Data */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Children&apos;s Personal Data</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              We do not knowingly collect or process personal data from children under 13 years of age without appropriate parental or guardian consent.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              If you are under 13, please do not provide personal data to us without first asking your parent or guardian for permission.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              If we become aware that we have collected personal data from a child under 13 without verified parental consent, we will take steps to delete that information as quickly as possible.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-2">Parents and guardians have the right to:</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Review any personal data we hold about their child</li>
+              <li>Request correction or deletion of their child's personal data</li>
+              <li>Refuse or withdraw consent for further collection or use of their child's data</li>
+              <li>Contact us with any concerns about their child's privacy</li>
+            </ul>
+            <p className="text-gray-600 leading-relaxed">
+              If you are a parent or guardian and believe your child has provided us with personal data without your consent, please contact us immediately using the details provided in this policy.
+            </p>
+          </section>
+
+          {/* Data retention */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Data retention</h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">How long we keep your information</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">We only keep your personal data for as long as we need it to:</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Provide our services to you</li>
+              <li>Meet our legal, tax, accounting or regulatory obligations</li>
+              <li>Handle any complaints or legal issues that may arise</li>
+            </ul>
+            <p className="text-gray-600 leading-relaxed mb-2">We may keep your information for longer periods if:</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>You make a complaint that we need to investigate or respond to</li>
+              <li>We reasonably believe legal action involving our relationship with you might occur</li>
+              <li>The law requires us to keep it for specific timeframes</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">How we decide retention periods</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">When determining how long to keep your information, we consider:</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>How much information we have and how sensitive it is</li>
+              <li>The risk of harm if the information was accessed without permission</li>
+              <li>Whether we can achieve our purposes in other ways</li>
+              <li>What legal, regulatory, tax or accounting rules require</li>
+              <li>The nature of our relationship with you and the services we provide</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What happens when we no longer need your information</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Once we no longer need your personal data, we will securely delete or destroy it in accordance with our data retention policies and legal requirements.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Your Rights</h3>
+            <p className="text-gray-600 leading-relaxed">
+              You can request information about retention periods for your data and ask for early deletion where legally possible.
+            </p>
+          </section>
+
+          {/* Sharing data for commercial purposes */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Sharing data for commercial purposes (Prismo)</h2>
+            <p className="text-gray-600 leading-relaxed">
+              We may make certain user analytics available to event organisers as part of premium features on our platform. This helps event organisers understand their audience and improve their events. Event organisers may pay for access to this enhanced analytics data.
+            </p>
+          </section>
+
+          {/* Use of location services data */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Use of location services data</h2>
+            <p className="text-gray-600 leading-relaxed mb-2">
+              We collect your precise or approximate location via our mobile application for the following purposes:
+            </p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>To enable our delivery drivers to deliver your order to you</li>
+              <li>To enable you to track our delivery drivers whilst they are completing orders for you</li>
+              <li>To generate routes and improve routes via the data collected</li>
+              <li>To enable event organisers to understand the geographic distribution of their audience</li>
+              <li>For security and safety</li>
+              <li>As permitted by law</li>
+            </ul>
+            <p className="text-gray-600 leading-relaxed">
+              If you do not want us to use your location for the purposes above, you should turn off the location services in your mobile phone settings. If you do not provide geolocation data to us, it may affect our ability to work with you as a customer or supplier of our business.
+            </p>
+          </section>
+
+          {/* Your privacy rights and choices */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your privacy rights and choices</h2>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Providing information</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  You can choose whether to provide personal data to us, however, if you don't provide certain information, we may not be able to provide some services. Let us know if you don't want to provide information and we will let you know when information is required versus optional.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right of Access</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  You have the right to ask us for copies of your personal data. You can request other information such as details about where we get personal data from and who we share personal data with. There are some exemptions which means you may not receive all the information you ask for.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right to Rectification</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  You have the right to ask us to correct or delete personal data you think is inaccurate or incomplete.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right to Erasure (&quot;Right to be forgotten&quot;)</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  You can request deletion of your personal data in certain limited circumstances as set out in data protection law, such as where the data is no longer necessary or has been unlawfully processed. This right is not absolute and we may be required or entitled to retain your data for legal, regulatory or legitimate business reasons.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right to Restrict Processing</h3>
+                <p className="text-gray-600 leading-relaxed mb-2">You can ask us to suspend processing where:</p>
+                <ul className="list-disc pl-6 text-gray-600 space-y-1">
+                  <li>You contest the accuracy of the data</li>
+                  <li>Processing is unlawful but you don't want erasure</li>
+                  <li>We no longer need the data but you need it for legal claims</li>
+                  <li>You've objected to processing pending verification of our legitimate grounds</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right to opt-out of marketing communications</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  You can opt-out of receiving marketing communications at any time. Each marketing communication will include an unsubscribe option. You can change your marketing preferences by contacting us. We will process your request as soon as practicable.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right to Data Portability</h3>
+                <p className="text-gray-600 leading-relaxed mb-2">
+                  Where technically feasible, you can receive your personal data in a structured, commonly used format or have it transmitted to another controller where:
+                </p>
+                <ul className="list-disc pl-6 text-gray-600 space-y-1">
+                  <li>Processing is based on consent or contract</li>
+                  <li>Processing is automated</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right to Object</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  You can object to processing based on legitimate interests or for direct marketing purposes. We will stop processing unless we can demonstrate compelling legitimate grounds. For Prismo users, you can object to the sharing of personal data (that is capable of identifying you directly or indirectly) with event organisers, except for anonymised data.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Right to Withdraw Consent</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Where processing is based on consent, you can withdraw it at any time without affecting the lawfulness of prior processing.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">How to Exercise Your Rights</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  To exercise any of these rights, contact us using the details below. We may ask for proof of identity and will respond within one month (extendable to three months for complex requests).
+                </p>
+                <p className="text-gray-600 leading-relaxed mt-2">
+                  These rights are available under data protection law, though some may not apply in every situation. We'll let you know if any limitations apply when you make a request.
+                </p>
               </div>
             </div>
           </section>
 
-          {/* Sharing of Data */}
+          {/* Making a complaint */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">5. Sharing of Data</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Making a complaint</h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              We may share Partner personal data with:
+              If you have concerns about how we handle your information.
             </p>
-            <div className="space-y-4">
-              <div className="border-l-4 border-primary pl-4">
-                <p className="text-gray-600"><span className="font-medium">(a)</span> Swift Riders (limited to order details necessary for delivery)</p>
-              </div>
-              <div className="border-l-4 border-primary pl-4">
-                <p className="text-gray-600"><span className="font-medium">(b)</span> Payment processors and financial institutions</p>
-              </div>
-              <div className="border-l-4 border-primary pl-4">
-                <p className="text-gray-600"><span className="font-medium">(c)</span> IT service providers supporting our platform</p>
-              </div>
-              <div className="border-l-4 border-primary pl-4">
-                <p className="text-gray-600"><span className="font-medium">(d)</span> Regulators or authorities where legally required</p>
-              </div>
-              <div className="border-l-4 border-primary pl-4">
-                <p className="text-gray-600"><span className="font-medium">(e)</span> Investors or acquirers in the context of corporate transactions</p>
-              </div>
+            <p className="text-gray-600 leading-relaxed mb-2">
+              If you're unhappy with how we've used your personal data, please get in touch with us first using the contact details at the end of this policy. When you contact us:
+            </p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Give us full details about your complaint</li>
+              <li>We'll investigate your concerns promptly</li>
+              <li>We'll respond to you in writing explaining what we found and what we'll do to address your complaint</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Your right to complain to the regulator</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              You can also make a complaint directly to the Information Commissioner's Office (ICO), the UK's data protection regulator, at any time.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-6 text-gray-600 space-y-1">
+              <p className="font-medium">Information Commissioner&apos;s Office</p>
+              <p>Wycliffe House</p>
+              <p>Water Lane</p>
+              <p>Wilmslow</p>
+              <p>Cheshire</p>
+              <p>SK9 5AF</p>
+              <p className="mt-2">Helpline number: 0303 123 1113</p>
+              <p>
+                Website:{" "}
+                <a
+                  href="https://www.ico.org.uk/make-a-complaint"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  https://www.ico.org.uk/make-a-complaint
+                </a>
+              </p>
             </div>
-          </section>
-
-          {/* International Transfers */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">6. International Transfers</h2>
-            <p className="text-gray-600 leading-relaxed">
-              While Swift Food is based in the UK, some service providers may process data outside the UK. Where this occurs, we ensure appropriate safeguards are in place, such as UK-approved standard contractual clauses.
+            <p className="text-gray-600 leading-relaxed mt-4">
+              You don't have to contact us first before going to the ICO, but we'd appreciate the opportunity to try to resolve your concerns directly with you.
             </p>
           </section>
 
-          {/* Data Retention */}
+          {/* Protecting your information */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">7. Data Retention</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Protecting your information</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              We use multiple layers of security to protect your information.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Technical safeguards</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Enterprise-grade encryption for data storage and transmission</li>
+              <li>Regular security testing and monitoring</li>
+              <li>Automated threat detection systems</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Operational security</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Staff training on security and privacy</li>
+              <li>Strict access controls based on job requirements</li>
+              <li>Regular security audits and incident response procedures testing</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Physical security</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Secure premises with controlled access</li>
+              <li>Secure disposal of physical documents</li>
+              <li>Equipment security protocols</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Public information</h3>
             <p className="text-gray-600 leading-relaxed">
-              We retain Partner data for as long as necessary to provide services and comply with legal obligations. Financial and tax records are typically retained for 6 years. When data is no longer required, it will be securely deleted or anonymised.
+              Please note that any information you choose to share publicly on online platforms (such as comments or reviews) can be accessed and used by others. We cannot control or protect information that you make publicly available.
             </p>
           </section>
 
-          {/* Data Security */}
+          {/* Cookies and analytics */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">8. Data Security</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Cookies and analytics</h2>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Cookies and pixels</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              We use cookies and similar tracking technologies on our website to enhance your browsing experience and improve our services.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What are cookies?</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Cookies are small text files that are stored on your device when you visit our website. They help us remember your preferences and understand how you use our site.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Types of cookies we use</h3>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li><span className="font-medium">Essential cookies:</span> Necessary for the website to function properly</li>
+              <li><span className="font-medium">Performance cookies:</span> Help us understand how visitors interact with our website</li>
+              <li><span className="font-medium">Functionality cookies:</span> Remember your preferences and settings</li>
+              <li><span className="font-medium">Marketing cookies:</span> Used to deliver relevant advertisements and track campaign effectiveness</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Cookie consent</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              When you first visit our website, you will see a cookie notice explaining our use of cookies. You can choose which types of cookies to accept through our cookie preference centre. You'll find more information about the cookies we use in our cookie pop-up.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Managing your preferences</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">You can change your cookie preferences at any time by:</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Using our cookie preference centre on the website</li>
+              <li>Adjusting your browser settings to refuse or delete cookies</li>
+              <li>Visiting our cookie policy for detailed information about specific cookies</li>
+            </ul>
             <p className="text-gray-600 leading-relaxed">
-              We use technical and organisational measures to safeguard Partner data, including encrypted storage, access controls, and regular monitoring. However, no system is entirely secure and Partners are encouraged to also take care when sharing sensitive data.
+              Please note that disabling certain cookies may affect the functionality of our website and your user experience.
             </p>
           </section>
 
-          {/* Rights of Partners */}
+          {/* When you sign in with another account */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">9. Rights of Partners</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">When you sign in with another account (like Google)</h2>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">What we collect</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              When you use single sign-on to connect with us, we'll receive personal data from that provider based on your privacy settings with them. This may include your name, username, profile picture, and other details you've chosen to share.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">How we use it</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              We use this information to create your profile on our platform and give you access to our services.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Your rights</h3>
             <p className="text-gray-600 leading-relaxed">
-              Partners have the right to access, correct, delete, restrict, or object to processing of their personal data under UK GDPR. They also have the right to data portability and to lodge a complaint with the UK Information Commissioner's Office (ICO). Requests should be made via swiftfooduk@gmail.com.
+              If you connected through Facebook, you can ask us to delete the personal data we received from Facebook. To do this, email us at our email below and tell us what information you'd like deleted. If we can't delete certain information, we'll explain why.
             </p>
           </section>
 
-          {/* Changes to this Policy */}
+          {/* Artificial Intelligence (AI) Technologies */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">10. Changes to this Policy</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Artificial Intelligence (AI) Technologies</h2>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Overview</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              We use artificial intelligence and machine learning technologies in our business operations and services, including AI tools provided by third parties. We only use these technologies when legally permitted and necessary for our business.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">How we use AI</h3>
+            <p className="text-gray-600 leading-relaxed mb-2">We may use AI technologies to:</p>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>Conduct analysis and data processing</li>
+              <li>Generate and modify content and coding</li>
+              <li>Improve and optimise our services and operations</li>
+              <li>Automate routine tasks and communications</li>
+              <li>Personalise your experience with our services</li>
+              <li>Support quality assurance processes</li>
+              <li>Assist with customer support and queries</li>
+            </ul>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Data protection and security</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              When we work with third-party AI providers, we ensure they handle your personal data in accordance with privacy laws through contractual requirements and appropriate safeguards.
+            </p>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Your rights and our commitments</h3>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Any information generated or inferred about you by AI technologies is treated as personal data, and you maintain all the rights outlined in this privacy policy. When using AI with your personal data, we commit to:
+            </p>
+
+            <h4 className="font-medium text-gray-700 mb-2">Transparency and control</h4>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>We'll inform you when AI is used to make decisions that may significantly affect you</li>
+              <li>We maintain human oversight and review of significant AI-generated decisions</li>
+              <li>Our staff are trained to understand AI limitations and verify outputs before relying on them</li>
+              <li>We implement processes to verify the accuracy of AI-generated outputs</li>
+            </ul>
+
+            <h4 className="font-medium text-gray-700 mb-2">Security</h4>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1 mb-4">
+              <li>We use appropriate technical and organisational measures to maintain the security and integrity of your personal data</li>
+              <li>We regularly test and monitor AI outputs for accuracy and reliability</li>
+            </ul>
+
+            <h4 className="font-medium text-gray-700 mb-2">Risk mitigation</h4>
+            <ul className="list-disc pl-6 text-gray-600 space-y-1">
+              <li>We regularly assess and document risks associated with using AI to process personal data</li>
+              <li>We implement appropriate measures to address these risks</li>
+              <li>We continuously monitor AI performance and regularly review their impact</li>
+            </ul>
+          </section>
+
+          {/* Amendments */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Amendments</h2>
             <p className="text-gray-600 leading-relaxed">
-              We may update this Privacy Policy from time to time. Updated versions will be published at swiftfood.uk. Significant changes will be communicated directly to Partners where appropriate.
+              We may update this policy at any time by posting the revised version on our website. We recommend that you review our website regularly to stay current with any policy changes.
             </p>
           </section>
 
           {/* Contact Information */}
           <section className="bg-primary/5 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">11. Contact Information</h2>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              If you have questions about this Privacy Policy or how we handle Partner data, please contact us at:
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Our contact details</h2>
             <div className="space-y-2 text-gray-600">
-              <p><span className="font-medium">Swift Food Services Limited</span></p>
-              <p>251 Grays Inn Rd, London WC1X 8QT, United Kingdom</p>
               <p>
-                <span className="font-medium">Email:</span>{" "}
-                <a 
-                  href="mailto:swiftfooduk@gmail.com" 
+                <span className="font-medium">Privacy contact email:</span>{" "}
+                <a
+                  href="mailto:swiftfooduk@gmail.com"
                   className="text-primary hover:underline font-medium"
                 >
                   swiftfooduk@gmail.com
                 </a>
               </p>
             </div>
+          </section>
+
+          {/* Footer */}
+          <section className="text-center text-gray-500 text-sm">
+            <p>&copy; LegalVision Law UK Ltd</p>
           </section>
 
         </div>
