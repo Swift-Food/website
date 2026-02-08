@@ -1,4 +1,12 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Partner Standards | Swift Food",
+  description: "Swift Food partner standards for restaurant partners on our platform.",
+  alternates: { canonical: "https://swiftfood.uk/swift-partner-standards" },
+  robots: { index: false },
+};
 
 export default function SwiftPartnerStandards() {
   return (

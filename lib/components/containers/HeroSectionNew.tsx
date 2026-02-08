@@ -175,17 +175,17 @@ const HeroSectionNew: React.FC = () => {
               <div className="h-px w-6 bg-[#ff4fa5]"></div>
             </div> */}
 
-            <div className="flex flex-col items-center">
-              <h1 className="text-3xl md:text-[3.5vw] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
+            <h1 className="flex flex-col items-center">
+              <span className="text-3xl md:text-[3.5vw] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
                 The default
-              </h1>
-              <h1 className="text-4xl md:text-[5vw] text-[#ff4fa5] leading-[0.85] my-4 drop-shadow-xl font-black">
+              </span>
+              <span className="text-4xl md:text-[5vw] text-[#ff4fa5] leading-[0.85] my-4 drop-shadow-xl font-black block">
                 CATERER
-              </h1>
-              <h1 className="text-3xl md:text-[3.5vw] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
+              </span>
+              <span className="text-3xl md:text-[3.5vw] font-bold tracking-tighter uppercase leading-[0.85] text-white drop-shadow-2xl">
                 for tech events
-              </h1>
-            </div>
+              </span>
+            </h1>
 
             <div
               className="mt-8 md:mt-10"

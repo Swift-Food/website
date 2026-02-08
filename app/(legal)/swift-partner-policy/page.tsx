@@ -1,4 +1,12 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Partner Terms and Conditions | Swift Food",
+  description: "Terms and conditions for Swift Food restaurant partners.",
+  alternates: { canonical: "https://swiftfood.uk/swift-partner-policy" },
+  robots: { index: false },
+};
 
 export default function SwiftPartnerTerms() {
   return (

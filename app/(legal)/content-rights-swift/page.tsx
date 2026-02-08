@@ -1,4 +1,12 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Content Rights Policy | Swift Food",
+  description: "Swift Food Services Limited content rights policy.",
+  alternates: { canonical: "https://swiftfood.uk/content-rights-swift" },
+  robots: { index: false },
+};
 
 export default function ContentRightsPolicy() {
   return (

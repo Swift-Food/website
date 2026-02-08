@@ -13,22 +13,29 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Swift Food - Planning made easy, Catering made better.",
+  metadataBase: new URL("https://swiftfood.uk"),
+
+  title: {
+    default: "Swift Food | Event Catering & Food Delivery in London",
+    template: "%s | Swift Food",
+  },
   description:
-    "We provide event ordering and delivery of the best street food in London",
+    "London's trusted event catering service. Order pizza, street food, and corporate catering for events up to 3,000 people. Fast ordering, reliable delivery.",
   keywords: [
-    "event",
-    "food delivery",
-    "events",
-    "UK",
-    "event-order",
-    "streetfood",
-    "street food",
-    "delivery",
     "catering",
-    "swift",
+    "London catering",
+    "event catering",
+    "corporate catering",
+    "pizza catering",
+    "street food catering",
+    "food delivery London",
+    "office catering",
+    "tech event catering",
+    "catering service London",
+    "party catering",
+    "conference catering",
   ],
-  authors: [{ name: "Swift Food Services ltd" }],
+  authors: [{ name: "Swift Food Services Ltd" }],
 
   icons: {
     icon: "/logo.png",
@@ -40,9 +47,25 @@ export const metadata: Metadata = {
     locale: "en_GB",
     url: "https://swiftfood.uk",
     siteName: "Swift Food",
-    title: "Swift Food - Planning made easy, Catering made better.",
-    description: "We provide event ordering and delivery of the best local eats in London",
-    
+    title: "Swift Food | Event Catering & Food Delivery in London",
+    description:
+      "London's trusted event catering service. Order pizza, street food, and corporate catering for events up to 3,000 people.",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "Swift Food - London Event Catering",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Swift Food | Event Catering & Food Delivery in London",
+    description:
+      "London's trusted event catering service. Order pizza, street food, and corporate catering for events up to 3,000 people.",
+    images: ["/logo.png"],
   },
 
   robots: {
@@ -58,7 +81,11 @@ export const metadata: Metadata = {
   },
 
   verification: {
-    google: "bu1_vFJg_q2u8Syf9Cith5Q6G_Zld7hqwqLw8gDdtSM", // Add this from Google Search Console
+    google: "bu1_vFJg_q2u8Syf9Cith5Q6G_Zld7hqwqLw8gDdtSM",
+  },
+
+  alternates: {
+    canonical: "https://swiftfood.uk",
   },
 };
 

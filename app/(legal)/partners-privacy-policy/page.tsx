@@ -1,4 +1,12 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Partner Privacy Policy | Swift Food",
+  description: "Privacy policy for Swift Food restaurant partners.",
+  alternates: { canonical: "https://swiftfood.uk/partners-privacy-policy" },
+  robots: { index: false },
+};
 
 export default function RestaurantPartnerPrivacyPolicy() {
   return (
