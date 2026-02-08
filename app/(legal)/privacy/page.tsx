@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | Swift Food",
+  description: "Swift Food Services Ltd privacy policy. Learn how we collect, use, and protect your personal data.",
+  alternates: { canonical: "https://swiftfood.uk/privacy" },
+};
+
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen py-12">

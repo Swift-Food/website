@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 // Force Netlify rebuild
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {

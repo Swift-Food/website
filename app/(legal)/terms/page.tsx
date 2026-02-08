@@ -1,4 +1,11 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms and Conditions | Swift Food",
+  description: "Swift Food consumer terms and conditions. Read our terms of service for event catering and food delivery in London.",
+  alternates: { canonical: "https://swiftfood.uk/terms" },
+};
 
 export default function TermsAndConditions() {
   return (
