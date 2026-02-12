@@ -7,10 +7,14 @@ import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
 interface ProfileFormProps {
   restaurantName: string;
   description: string;
+  contactEmail: string;
+  contactNumber: string;
   images: string[];
   eventImages: string[];
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+  onContactEmailChange: (value: string) => void;
+  onContactNumberChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
   pendingEventImages: PendingEventImage[];
@@ -30,10 +34,14 @@ interface ProfileFormProps {
 export const ProfileForm = ({
   restaurantName,
   description,
+  contactEmail,
+  contactNumber,
   images,
   eventImages,
   onNameChange,
   onDescriptionChange,
+  onContactEmailChange,
+  onContactNumberChange,
   onImageUpload,
   onImageRemove,
   pendingEventImages,
@@ -157,6 +165,44 @@ export const ProfileForm = ({
               <p className="text-sm text-gray-500 mt-2">
                 This will be shown to customers when they browse your restaurant
               </p>
+            </div>
+
+            {/* Contact Email */}
+            <div>
+              <label
+                htmlFor="contact_email"
+                className="block text-lg font-bold text-gray-900 mb-3"
+              >
+                Contact Email
+              </label>
+              <input
+                type="email"
+                id="contact_email"
+                name="contact_email"
+                value={contactEmail}
+                onChange={(e) => onContactEmailChange(e.target.value)}
+                className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
+                placeholder="e.g., info@restaurant.com"
+              />
+            </div>
+
+            {/* Contact Number */}
+            <div>
+              <label
+                htmlFor="contact_number"
+                className="block text-lg font-bold text-gray-900 mb-3"
+              >
+                Contact Number
+              </label>
+              <input
+                type="tel"
+                id="contact_number"
+                name="contact_number"
+                value={contactNumber}
+                onChange={(e) => onContactNumberChange(e.target.value)}
+                className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
+                placeholder="e.g., +44 7123 456789"
+              />
             </div>
           </div>
 

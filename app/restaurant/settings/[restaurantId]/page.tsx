@@ -18,6 +18,8 @@ type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | null
 interface FormData {
   restaurant_name: string;
   description: string;
+  contactEmail: string;
+  contactNumber: string;
   images: string[];
   eventImages: string[];
   isCatering: boolean;
@@ -39,6 +41,8 @@ const RestaurantSettingsPage = () => {
   const [formData, setFormData] = useState<FormData>({
     restaurant_name: "",
     description: "",
+    contactEmail: "",
+    contactNumber: "",
     images: [],
     eventImages: [],
     isCatering: false,
@@ -68,6 +72,8 @@ const RestaurantSettingsPage = () => {
         setFormData({
           restaurant_name: restaurantDetails.restaurant_name || "",
           description: restaurantDetails.restaurant_description || "",
+          contactEmail: restaurantDetails.contactEmail || "",
+          contactNumber: restaurantDetails.contactNumber || "",
           images: images,
           eventImages: eventImages,
           isCatering: restaurantDetails.isCatering || false,
@@ -94,6 +100,8 @@ const RestaurantSettingsPage = () => {
       setFormData({
         restaurant_name: restaurantDetails.restaurant_name || "",
         description: restaurantDetails.restaurant_description || "",
+        contactEmail: restaurantDetails.contactEmail || "",
+        contactNumber: restaurantDetails.contactNumber || "",
         images: images,
         eventImages: eventImages,
         isCatering: restaurantDetails.isCatering || false,
@@ -249,6 +257,8 @@ const RestaurantSettingsPage = () => {
       const updateData: Record<string, any> = {
         restaurant_name: formData.restaurant_name,
         restaurant_description: formData.description,
+        contactEmail: formData.contactEmail,
+        contactNumber: formData.contactNumber,
         images: formData.images,
         eventImages: [...remainingEventImages, ...newEventImageUrls],
       };
@@ -307,10 +317,14 @@ const RestaurantSettingsPage = () => {
         <ProfileForm
           restaurantName={formData.restaurant_name}
           description={formData.description}
+          contactEmail={formData.contactEmail}
+          contactNumber={formData.contactNumber}
           images={formData.images}
           eventImages={formData.eventImages}
           onNameChange={(value) => setFormData((prev) => ({ ...prev, restaurant_name: value }))}
           onDescriptionChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
+          onContactEmailChange={(value) => setFormData((prev) => ({ ...prev, contactEmail: value }))}
+          onContactNumberChange={(value) => setFormData((prev) => ({ ...prev, contactNumber: value }))}
           onImageUpload={handleImageUpload}
           onImageRemove={handleRemoveImage}
           pendingEventImages={pendingEventImages}
