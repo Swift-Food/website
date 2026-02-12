@@ -59,6 +59,7 @@ const NewMenuItemPage = () => {
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
   // const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
+  const [deliveryPortionSize, setDeliveryPortionSize] = useState<string>("");
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -387,6 +388,7 @@ const NewMenuItemPage = () => {
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
         // ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
+        ...(deliveryPortionSize ? { deliveryPortionSize } : {}),
       };
 
       await cateringService.createMenuItem(createData);
@@ -549,6 +551,22 @@ const NewMenuItemPage = () => {
                   onChange={(e) => setDiscountPrice(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Portion Size
+                </label>
+                <input
+                  type="text"
+                  value={deliveryPortionSize}
+                  onChange={(e) => setDeliveryPortionSize(e.target.value)}
+                  placeholder="e.g., Serves 2-3, 500g, Large"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Portion size for delivery orders (optional)
+                </p>
               </div>
 
               {/* <div>
@@ -1003,91 +1021,7 @@ const NewMenuItemPage = () => {
             })()}
           </div>
 
-          {/* Settings */}
-          {/* <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900 border-b pb-2">
-              Settings
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preparation Time *
-                </label>
-                <select
-                  value={prepTime}
-                  onChange={(e) => setPrepTime(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-                >
-                  {PREP_TIMES.map((time) => (
-                    <option key={time.value} value={time.value}>
-                      {time.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status *
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as MenuItemStatus)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-                >
-                  {Object.values(MenuItemStatus).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Display Style *
-                </label>
-                <select
-                  value={style}
-                  onChange={(e) => setStyle(e.target.value as MenuItemStyle)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-                >
-                  {Object.values(MenuItemStyle).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={isAvailable}
-                  onChange={(e) => setIsAvailable(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Item is available
-                </span>
-              </label>
-
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={popular}
-                  onChange={(e) => setPopular(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Mark as popular item
-                </span>
-              </label>
-            </div>
-          </div> */}
+       
 
           {/* Action Buttons */}
           <div className="flex gap-4 pt-6 border-t">

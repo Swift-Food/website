@@ -60,6 +60,7 @@ const EditMenuItemPage = () => {
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
   const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
+  const [deliveryPortionSize, setDeliveryPortionSize] = useState<string>("");
   // const [cateringQuantityUnit, setCateringQuantityUnit] = useState<string>("");
 
   // Group management state
@@ -193,6 +194,7 @@ const EditMenuItemPage = () => {
       setSelectedDietaryFilters(item.dietaryFilters || []);
       setAddons(item.addons || []);
       setFeedsPerUnit(item.feedsPerUnit ? String(item.feedsPerUnit) : "");
+      setDeliveryPortionSize(item.deliveryPortionSize || "");
       // setCateringQuantityUnit(item.cateringQuantityUnit ? String(item.cateringQuantityUnit) : "");
     } catch (err: any) {
       setError(err.message || "Failed to load menu item");
@@ -436,6 +438,7 @@ const EditMenuItemPage = () => {
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? addons : null,
         ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
+        ...(deliveryPortionSize ? { deliveryPortionSize } : {}),
         // ...(cateringQuantityUnit ? { cateringQuantityUnit: parseInt(cateringQuantityUnit) } : {}),
       };
 
@@ -615,6 +618,22 @@ const EditMenuItemPage = () => {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Number of people this item feeds (optional)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Portion Size
+                </label>
+                <input
+                  type="text"
+                  value={deliveryPortionSize} 
+                  onChange={(e) => setDeliveryPortionSize(e.target.value)}
+                  placeholder="e.g. used for delivery cost calcs"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Portion size for delivery orders (optional)
                 </p>
               </div>
             </div>

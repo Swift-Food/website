@@ -37,7 +37,7 @@ import { useCateringData } from "./hooks/useCateringData";
 import { groupSessionsByDay, formatTimeDisplay } from "./catering-order-helpers";
 
 // Icons
-import { Plus, Clock, ShoppingBag, Calendar } from "lucide-react";
+import { Plus, Clock, ShoppingBag, Calendar, Search, X } from "lucide-react";
 
 export default function CateringOrderBuilder() {
   const searchParams = useSearchParams();
@@ -132,6 +132,10 @@ export default function CateringOrderBuilder() {
     menuItems,
     menuItemsLoading,
     menuItemsError,
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    searchLoading,
     restaurants,
   } = useCateringData({ expandedSessionIndex });
 
@@ -908,53 +912,78 @@ export default function CateringOrderBuilder() {
     );
   };
 
+  // Whether search is active
+  const isSearchActive = searchQuery.trim().length > 0;
+
   // Render categories and subcategories
   const renderCategoriesSection = (sessionIndex: number) => (
     <div>
-      {/* Categories Row */}
-      <div
-        ref={expandedSessionIndex === sessionIndex ? categoriesRowRef : undefined}
-        className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1"
-      >
-        <div>
-          {categoriesLoading ? (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
-                />
-              ))}
-            </div>
-          ) : categoriesError ? (
-            <div className="text-center py-4 text-red-500">
-              {categoriesError}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryClick(category)}
-                  className={`
-                    flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
-                    ${
-                      selectedCategory?.id === category.id
-                        ? "bg-primary text-white"
-                        : "bg-base-200 text-gray-700 hover:bg-base-300"
-                    }
-                  `}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* Search Bar */}
+      <div className="relative mt-2 mb-2">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search menu items..."
+          className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-base-300 bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
-      {/* Subcategories Row */}
-      {selectedCategory && selectedCategory.subcategories.length > 0 && (
+      {/* Categories Row - hidden during search */}
+      {!isSearchActive && (
+        <div
+          ref={expandedSessionIndex === sessionIndex ? categoriesRowRef : undefined}
+          className="-mx-3 px-3 md:-mx-5 md:px-5 pt-2 pb-1"
+        >
+          <div>
+            {categoriesLoading ? (
+              <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 w-28 h-10 bg-base-200 rounded-full animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : categoriesError ? (
+              <div className="text-center py-4 text-red-500">
+                {categoriesError}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryClick(category)}
+                    className={`
+                      flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                      ${
+                        selectedCategory?.id === category.id
+                          ? "bg-primary text-white"
+                          : "bg-base-200 text-gray-700 hover:bg-base-300"
+                      }
+                    `}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Subcategories Row - hidden during search */}
+      {!isSearchActive && selectedCategory && selectedCategory.subcategories.length > 0 && (
         <div className="sticky top-[67px] z-30 bg-white pb-1 pt-1 -mx-3 px-3 md:-mx-5 md:px-5">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <span className="flex-shrink-0 text-xs text-gray-500 mr-1">
@@ -987,7 +1016,54 @@ export default function CateringOrderBuilder() {
 
       {/* Menu Items */}
       <div className="bg-base-100 rounded-xl p-4 mt-2">
-        {menuItemsLoading ? (
+        {isSearchActive ? (
+          // Search results view
+          searchLoading ? (
+            <div className="text-center py-4">
+              <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="mt-2 text-sm text-gray-500">Searching...</p>
+            </div>
+          ) : searchResults && searchResults.length === 0 ? (
+            <div className="text-center py-6">
+              <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">
+                No items found for &ldquo;{searchQuery}&rdquo;
+              </p>
+            </div>
+          ) : searchResults ? (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {searchResults.map((item, itemIdx) => (
+                  <div
+                    key={item.id}
+                    ref={
+                      expandedSessionIndex === sessionIndex && itemIdx === 0
+                        ? firstMenuItemRef
+                        : undefined
+                    }
+                  >
+                    <MenuItemCard
+                      item={item}
+                      quantity={getItemQuantity(item.id)}
+                      isExpanded={expandedItemId === item.id}
+                      onToggleExpand={() =>
+                        setExpandedItemId(
+                          expandedItemId === item.id ? null : item.id
+                        )
+                      }
+                      onAddItem={handleAddItem}
+                      onUpdateQuantity={handleUpdateQuantity}
+                      onAddOrderPress={handleAddOrderPress}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null
+        ) : menuItemsLoading ? (
           <div className="text-center py-4">
             <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
             <p className="mt-2 text-sm text-gray-500">Loading...</p>

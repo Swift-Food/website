@@ -812,6 +812,7 @@ export interface CreateMenuItemDto {
   style?: MenuItemStyle;
   status: MenuItemStatus;
   feedsPerUnit?: number;
+  deliveryPortionSize?: string;
 }
 
 export interface MenuItemDetails extends CreateMenuItemDto {
@@ -843,5 +844,6 @@ export interface UpdateMenuItemDto {
   style?: MenuItemStyle;
   status?: MenuItemStatus;
   feedsPerUnit?: number;
+  deliveryPortionSize?: string;
   cateringQuantityUnit?: number;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   CategoryWithSubcategories,
   Subcategory,
@@ -29,6 +29,11 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [menuItemsLoading, setMenuItemsLoading] = useState(false);
   const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allMenuItems, setAllMenuItems] = useState<MenuItem[] | null>(null);
+  const [allMenuItemsLoading, setAllMenuItemsLoading] = useState(false);
 
   // Restaurants state for validation
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -134,6 +139,46 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     fetchMenuItems();
   }, [selectedCategory, selectedSubcategory]);
 
+  // Fetch all menu items for search (cached after first fetch)
+  const fetchAllMenuItems = useCallback(async () => {
+    if (allMenuItems !== null) return; // Already cached
+    setAllMenuItemsLoading(true);
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/catering`);
+      const data = await response.json();
+      const mapped = (data || []).map(mapToMenuItem);
+      setAllMenuItems(mapped);
+    } catch (error) {
+      console.error("Failed to fetch all menu items for search:", error);
+    } finally {
+      setAllMenuItemsLoading(false);
+    }
+  }, [allMenuItems]);
+
+  // Trigger fetch when user starts searching
+  useEffect(() => {
+    if (searchQuery.trim() && allMenuItems === null && !allMenuItemsLoading) {
+      fetchAllMenuItems();
+    }
+  }, [searchQuery, allMenuItems, allMenuItemsLoading, fetchAllMenuItems]);
+
+  // Filter items based on search query
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query || !allMenuItems) return null;
+
+    return allMenuItems.filter((item) => {
+      const name = item.menuItemName?.toLowerCase() || "";
+      const description = item.description?.toLowerCase() || "";
+      const groupTitle = item.groupTitle?.toLowerCase() || "";
+      return (
+        name.includes(query) ||
+        description.includes(query) ||
+        groupTitle.includes(query)
+      );
+    });
+  }, [searchQuery, allMenuItems]);
+
   // Handle category click
   const handleCategoryClick = useCallback(
     (category: CategoryWithSubcategories) => {
@@ -184,6 +229,12 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     menuItems,
     menuItemsLoading,
     menuItemsError,
+
+    // Search
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    searchLoading: allMenuItemsLoading,
 
     // Restaurants
     restaurants,
