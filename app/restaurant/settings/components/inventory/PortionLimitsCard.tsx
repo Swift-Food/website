@@ -10,9 +10,10 @@ interface IngredientItem {
   remaining?: number;
 }
 
-interface CorporateInventoryCardProps {
+interface PortionLimitsCardProps {
   sessionResetPeriod: "daily" | "lunch_dinner" | null;
   maxPortionsPerSession: number | null;
+  portionsRemaining: number | null;
   enablePortionLimit: boolean;
   enableIngredientTracking: boolean;
   ingredients: IngredientItem[];
@@ -31,9 +32,10 @@ interface CorporateInventoryCardProps {
   saving: boolean;
 }
 
-export const CorporateInventoryCard = ({
+export const PortionLimitsCard = ({
   sessionResetPeriod,
   maxPortionsPerSession,
+  portionsRemaining,
   enablePortionLimit,
   enableIngredientTracking,
   ingredients,
@@ -50,7 +52,7 @@ export const CorporateInventoryCard = ({
   onNewIngredientMaxChange,
   onSave,
   saving,
-}: CorporateInventoryCardProps) => {
+}: PortionLimitsCardProps) => {
   // Track initial state to detect changes - only set once on mount
   const [initialState] = useState({
     sessionResetPeriod,
@@ -67,6 +69,16 @@ export const CorporateInventoryCard = ({
     initialState.enableIngredientTracking !== enableIngredientTracking ||
     initialState.ingredients !== JSON.stringify(ingredients);
 
+  // Calculate usage for progress bar
+  const portionsUsed =
+    maxPortionsPerSession !== null && portionsRemaining !== null
+      ? maxPortionsPerSession - portionsRemaining
+      : null;
+  const usagePercent =
+    maxPortionsPerSession && portionsUsed !== null
+      ? Math.round((portionsUsed / maxPortionsPerSession) * 100)
+      : null;
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Header */}
@@ -77,7 +89,7 @@ export const CorporateInventoryCard = ({
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">
-              Corporate Session Inventory
+              Portion Limits
             </h3>
             <p className="text-purple-100 text-sm mt-0.5">
               Manage portions and ingredients per session
@@ -88,6 +100,56 @@ export const CorporateInventoryCard = ({
 
       {/* Content */}
       <div className="p-6 space-y-5">
+        {/* Current Usage - only show when limits are active */}
+        {enablePortionLimit && maxPortionsPerSession !== null && portionsRemaining !== null && (
+          <div className="bg-gradient-to-br from-purple-50 to-purple-50/30 rounded-lg p-5 border border-purple-200/50">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-1">
+                  Portions Used This Session
+                </div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {portionsUsed}
+                  <span className="text-lg text-gray-500 font-normal">
+                    {" "}/ {maxPortionsPerSession}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                  Remaining
+                </div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {portionsRemaining}
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="relative">
+              <div className="w-full bg-white rounded-full h-2.5 overflow-hidden shadow-inner">
+                <div
+                  className={`h-2.5 rounded-full transition-all duration-500 ${
+                    (usagePercent ?? 0) > 90
+                      ? "bg-gradient-to-r from-red-500 to-red-600"
+                      : (usagePercent ?? 0) > 70
+                      ? "bg-gradient-to-r from-yellow-400 to-yellow-500"
+                      : "bg-gradient-to-r from-green-500 to-green-600"
+                  }`}
+                  style={{
+                    width: `${Math.min(usagePercent ?? 0, 100)}%`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-end mt-2">
+                <span className="text-xs font-medium text-gray-600">
+                  {usagePercent}% capacity
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Session Reset Period */}
         <div className="bg-gradient-to-br from-purple-50 to-purple-50/30 rounded-lg p-5 border border-purple-200/50">
           <div className="flex items-center gap-2 mb-3">
@@ -98,7 +160,7 @@ export const CorporateInventoryCard = ({
               <HelpCircle size={16} className="text-gray-400 cursor-help" />
               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-10">
                 <div className="font-semibold mb-1">How inventory resets</div>
-                <div>Choose when your corporate inventory limits automatically reset. This determines how often portions and ingredients become available again.</div>
+                <div>Choose when your inventory limits automatically reset. This determines how often portions and ingredients become available again.</div>
                 <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"></div>
               </div>
             </div>
@@ -146,7 +208,7 @@ export const CorporateInventoryCard = ({
               />
               <div className="flex-1">
                 <div className="font-medium text-gray-900">Disabled</div>
-                <div className="text-xs text-gray-500 mt-0.5">No inventory tracking</div>
+                <div className="text-xs text-gray-500 mt-0.5">No portion limits — unlimited orders</div>
               </div>
             </label>
           </div>
@@ -278,7 +340,7 @@ export const CorporateInventoryCard = ({
             <div className="flex items-start gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
               <Info size={16} className="text-purple-600 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-gray-700">
-                <span className="font-semibold text-gray-900">Note:</span> Inventory resets automatically. Orders exceeding limits will be rejected.
+                <span className="font-semibold text-gray-900">Note:</span> Inventory resets automatically based on your chosen schedule. Orders exceeding limits will be rejected.
               </div>
             </div>
           </>

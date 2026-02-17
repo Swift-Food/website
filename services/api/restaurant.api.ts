@@ -10,9 +10,7 @@ import {
 } from "@/types/restaurant.types";
 import { CorporateUser } from "@/types/catering.types";
 import {
-  UpdateCorporateInventoryDto,
-  UpdateCateringPortionsLimitDto,
-  CateringPortionsAvailabilityResponse,
+  UpdateInventorySettingsDto,
   UpdateOrderSettingsDto,
 } from "@/types/inventory.types";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
@@ -316,90 +314,43 @@ export const restaurantApi = {
 
   // Inventory Management endpoints
 
-  // Get catering portions availability
-  getCateringPortionsAvailability: async (
-    restaurantId: string
-  ): Promise<any> => {
+  // Get inventory settings (portions, ingredients, reset period)
+  getInventorySettings: async (restaurantId: string): Promise<any> => {
     const response = await fetchWithAuth(
-      `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-availability`
+      `${API_BASE_URL}/restaurant/${restaurantId}/inventory-settings`
     );
-    if (!response.ok)
-      throw new Error("Failed to fetch catering portions availability");
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to get inventory settings: ${response.status} - ${errorText}`
+      );
+    }
+
     return response.json();
   },
 
-  // Update catering portions limit
-  updateCateringPortionsLimit: async (
+  // Update inventory settings (portions, ingredients, reset period)
+  updateInventorySettings: async (
     restaurantId: string,
-    maximumCateringPortionsPerDay: number
-  ): Promise<CateringPortionsAvailabilityResponse> => {
-    const payload: UpdateCateringPortionsLimitDto = {
-      maximumCateringPortionsPerDay,
-    };
-
+    data: UpdateInventorySettingsDto
+  ): Promise<any> => {
     const response = await fetchWithAuth(
-      `${API_BASE_URL}/restaurant/${restaurantId}/catering-portions-limit`,
+      `${API_BASE_URL}/restaurant/${restaurantId}/inventory-settings`,
       {
         method: "PATCH",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
       }
     );
 
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("🟢 Catering Error:", errorText);
       throw new Error(
-        `Failed to update catering portions limit: ${response.status} - ${errorText}`
+        `Failed to update inventory settings: ${response.status} - ${errorText}`
       );
     }
 
-    const result = await response.json();
-    return result;
-  },
-
-  // Get corporate inventory settings
-  getCorporateInventorySettings: async (restaurantId: string): Promise<any> => {
-    const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
-
-
-    const response = await fetchWithAuth(url);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("🟣 Failed to get corporate inventory:", errorText);
-      throw new Error(
-        `Failed to get corporate inventory settings: ${response.status} - ${errorText}`
-      );
-    }
-
-    const result = await response.json();
-    return result;
-  },
-
-  // Update corporate inventory settings
-  updateCorporateInventory: async (
-    restaurantId: string,
-    data: UpdateCorporateInventoryDto
-  ): Promise<any> => {
-    const url = `${API_BASE_URL}/restaurant/${restaurantId}/corporate-inventory`;
-
-
-    const response = await fetchWithAuth(url, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("🟣 Corporate Error Response:", errorText);
-      throw new Error(
-        `Failed to update corporate inventory: ${response.status} - ${errorText}`
-      );
-    }
-
-    const result = await response.json();
-    return result;
+    return response.json();
   },
 
   // Get restaurant details (includes inventory settings)

@@ -58,8 +58,8 @@ export const CateringOrderCard = ({
     availableAccounts,
   });
 
-  // Derived data
-  const orderItem = order.orderItems?.[0];
+  // Derived data - use restaurants (correctly aggregated by backend)
+  const orderItem = order.restaurants?.[0];
   const payoutAccountName = order.restaurantPayoutDetails?.[restaurantId]?.accountName || null;
 
   return (
@@ -106,7 +106,7 @@ export const CateringOrderCard = ({
       />
 
       {/* Order Items List */}
-      <OrderItemsList orderItems={order.orderItems} />
+      <OrderItemsList orderItems={order.restaurants} />
 
       {/* Special Requirements */}
       {order.specialRequirements && (

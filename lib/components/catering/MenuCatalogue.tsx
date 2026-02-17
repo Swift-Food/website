@@ -55,16 +55,25 @@ const formatCateringHours = (
     return "No Event Ordering hours set";
   }
 
-  // Group consecutive days with same hours
+  // Group slots by day, then group consecutive days with same hours string
+  const dayOrder = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const byDay = new Map<string, string[]>();
+
+  for (const schedule of enabledDays) {
+    const dayKey = schedule.day.toLowerCase();
+    if (!byDay.has(dayKey)) byDay.set(dayKey, []);
+    if (schedule.open && schedule.close) {
+      byDay.get(dayKey)!.push(`${formatTime(schedule.open)} - ${formatTime(schedule.close)}`);
+    }
+  }
+
   const grouped: { days: string[]; hours: string }[] = [];
 
-  enabledDays.forEach((schedule) => {
-    const dayName =
-      schedule.day.charAt(0).toUpperCase() + schedule.day.slice(1, 3);
-    const hours =
-      schedule.open && schedule.close
-        ? `${formatTime(schedule.open)} - ${formatTime(schedule.close)}`
-        : "Closed";
+  for (const dayKey of dayOrder) {
+    const slots = byDay.get(dayKey);
+    if (!slots || slots.length === 0) continue;
+    const dayName = dayKey.charAt(0).toUpperCase() + dayKey.slice(1, 3);
+    const hours = slots.join(", ");
 
     const lastGroup = grouped[grouped.length - 1];
     if (lastGroup && lastGroup.hours === hours) {
@@ -72,7 +81,7 @@ const formatCateringHours = (
     } else {
       grouped.push({ days: [dayName], hours });
     }
-  });
+  }
 
   return grouped
     .map((group) => {

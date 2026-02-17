@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { Package, AlertCircle, Loader } from "lucide-react";
 import { restaurantApi } from "@/services/api/restaurant.api";
-import { CateringPortionsCard } from "./CateringPortionsCard";
-import { CorporateInventoryCard } from "./CorporateInventoryCard";
+import { AdvanceNoticeSettings } from "@/types/inventory.types";
+import { PortionLimitsCard } from "./PortionLimitsCard";
 import { OrderSettingsCard } from "./OrderSettingsCard";
 
 interface IngredientItem {
@@ -29,21 +29,14 @@ export const InventoryManagement = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [activeTab, setActiveTab] = useState<"catering" | "corporate">(
-    isCatering ? "catering" : "corporate"
-  );
 
-  // Catering state
-  const [cateringData, setCateringData] = useState<any>(null);
-  const [maxCateringPortions, setMaxCateringPortions] = useState(150);
-
-  // Corporate state
+  // Inventory state (unified)
   const [sessionResetPeriod, setSessionResetPeriod] = useState<
     "daily" | "lunch_dinner" | null
   >(null);
-
   const [enablePortionLimit, setEnablePortionLimit] = useState(false);
   const [maxPortionsPerSession, setMaxPortionsPerSession] = useState<number>(0);
+  const [portionsRemaining, setPortionsRemaining] = useState<number | null>(null);
 
   const [enableIngredientTracking, setEnableIngredientTracking] =
     useState(false);
@@ -55,6 +48,7 @@ export const InventoryManagement = ({
   const [minimumDeliveryNoticeHours, setMinimumDeliveryNoticeHours] = useState<number>(0);
   const [maxPortionsPerOrder, setMaxPortionsPerOrder] = useState<number | null>(null);
   const [enableMaxPortionsPerOrder, setEnableMaxPortionsPerOrder] = useState(false);
+  const [advanceNoticeSettings, setAdvanceNoticeSettings] = useState<AdvanceNoticeSettings | null>(null);
 
   // --------------------------------------------------
   // LOAD INITIAL DATA
@@ -68,25 +62,15 @@ export const InventoryManagement = ({
     setError("");
 
     try {
-      // Load catering data
-      if (isCatering) {
-        try {
-          const cateringAvailability =
-            await restaurantApi.getCateringPortionsAvailability(restaurantId);
-
-          setCateringData(cateringAvailability);
-          setMaxCateringPortions(
-            cateringAvailability.maximumCateringPortionsPerDay || 150
-          );
-        } catch (err) {
-          console.warn("Catering data not available:", err);
-        }
-      }
-
       // Load order settings from restaurant details
       try {
         const restaurantDetails = await restaurantApi.getRestaurantDetails(restaurantId);
         setMinimumDeliveryNoticeHours(restaurantDetails.minimumDeliveryNoticeHours ?? 0);
+        if (restaurantDetails.advanceNoticeSettings) {
+          setAdvanceNoticeSettings(restaurantDetails.advanceNoticeSettings);
+        } else if (restaurantDetails.minimumDeliveryNoticeHours) {
+          setAdvanceNoticeSettings({ type: 'hours', hours: restaurantDetails.minimumDeliveryNoticeHours });
+        }
         if (restaurantDetails.maxPortionsPerOrder !== null && restaurantDetails.maxPortionsPerOrder !== undefined) {
           setEnableMaxPortionsPerOrder(true);
           setMaxPortionsPerOrder(restaurantDetails.maxPortionsPerOrder);
@@ -98,51 +82,43 @@ export const InventoryManagement = ({
         console.warn("Failed to load restaurant order settings:", err);
       }
 
-      // Load corporate data
-      if (isCorporate) {
+      // Load inventory settings (unified — used by both catering and corporate)
+      if (isCatering || isCorporate) {
         try {
-          const corporateSettings = await restaurantApi.getCorporateInventorySettings(
-            restaurantId
-          );
+          const settings = await restaurantApi.getInventorySettings(restaurantId);
 
+          setSessionResetPeriod(settings.sessionResetPeriod ?? null);
+          setPortionsRemaining(settings.portionsRemaining ?? null);
 
-          // Reset period
-          setSessionResetPeriod(corporateSettings.sessionResetPeriod ?? null);
-
-          // Portion limit
-          if (corporateSettings.maxPortionsPerSession !== null && corporateSettings.maxPortionsPerSession !== undefined) {
+          if (settings.maxPortionsPerSession !== null && settings.maxPortionsPerSession !== undefined) {
             setEnablePortionLimit(true);
-            setMaxPortionsPerSession(corporateSettings.maxPortionsPerSession);
+            setMaxPortionsPerSession(settings.maxPortionsPerSession);
           } else {
             setEnablePortionLimit(false);
             setMaxPortionsPerSession(0);
           }
 
-          // Ingredient tracking
-          if (corporateSettings.limitedIngredientsPerSession) {
+          if (settings.limitedIngredientsPerSession) {
             setEnableIngredientTracking(true);
-
             const ingList: IngredientItem[] = Object.entries(
-              corporateSettings.limitedIngredientsPerSession
+              settings.limitedIngredientsPerSession
             ).map(([name, max], index) => ({
               id: `ingredient-${index}`,
               name,
               maxPerSession: max as number,
-              remaining: corporateSettings.limitedIngredientsRemaining?.[name],
+              remaining: settings.limitedIngredientsRemaining?.[name],
             }));
-
             setIngredients(ingList);
           } else {
             setEnableIngredientTracking(false);
             setIngredients([]);
           }
-
         } catch (err) {
-          console.warn("Corporate inventory data not available:", err);
-          // Set default values if the endpoint doesn't exist or fails
+          console.warn("Inventory data not available:", err);
           setSessionResetPeriod(null);
           setEnablePortionLimit(false);
           setMaxPortionsPerSession(0);
+          setPortionsRemaining(null);
           setEnableIngredientTracking(false);
           setIngredients([]);
         }
@@ -156,33 +132,9 @@ export const InventoryManagement = ({
   };
 
   // --------------------------------------------------
-  // SAVE — CATERING
+  // SAVE — INVENTORY
   // --------------------------------------------------
-  const handleSaveCateringLimit = async () => {
-    setSaving(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      await restaurantApi.updateCateringPortionsLimit(
-        restaurantId,
-        maxCateringPortions
-      );
-
-      setSuccess("Catering portions limit updated successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-      await loadInventoryData();
-    } catch (err: any) {
-      setError(err.message || "Failed to update catering portions limit");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // --------------------------------------------------
-  // SAVE — CORPORATE
-  // --------------------------------------------------
-  const handleSaveCorporateInventory = async () => {
+  const handleSaveInventory = async () => {
     setSaving(true);
     setError("");
     setSuccess("");
@@ -203,18 +155,14 @@ export const InventoryManagement = ({
         limitedIngredientsPerSession,
       };
 
+      await restaurantApi.updateInventorySettings(restaurantId, payload);
 
-      await restaurantApi.updateCorporateInventory(
-        restaurantId,
-        payload,
-      );
-
-      setSuccess("Corporate inventory settings updated successfully!");
+      setSuccess("Inventory settings updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
       await loadInventoryData();
     } catch (err: any) {
-      console.error("❌ Corporate inventory update failed:", err);
-      setError(err.message || "Failed to update corporate inventory settings");
+      console.error("Inventory update failed:", err);
+      setError(err.message || "Failed to update inventory settings");
     } finally {
       setSaving(false);
     }
@@ -232,6 +180,7 @@ export const InventoryManagement = ({
       await restaurantApi.updateOrderSettings(restaurantId, {
         minimumDeliveryNoticeHours,
         maxPortionsPerOrder: enableMaxPortionsPerOrder ? maxPortionsPerOrder : null,
+        advanceNoticeSettings,
       });
 
       setSuccess("Order settings updated successfully!");
@@ -298,11 +247,6 @@ export const InventoryManagement = ({
     );
   }
 
-  // --------------------------------------------------
-  // SHOW TABS IF BOTH ARE ENABLED
-  // --------------------------------------------------
-  const showTabs = isCatering && isCorporate;
-
   return (
     <div className="space-y-6">
       {/* Error Message */}
@@ -325,58 +269,21 @@ export const InventoryManagement = ({
         minimumDeliveryNoticeHours={minimumDeliveryNoticeHours}
         maxPortionsPerOrder={maxPortionsPerOrder}
         enableMaxPortionsPerOrder={enableMaxPortionsPerOrder}
+        advanceNoticeSettings={advanceNoticeSettings}
         onNoticeHoursChange={setMinimumDeliveryNoticeHours}
         onMaxPortionsToggle={setEnableMaxPortionsPerOrder}
         onMaxPortionsChange={setMaxPortionsPerOrder}
+        onAdvanceNoticeChange={setAdvanceNoticeSettings}
         onSave={handleSaveOrderSettings}
         saving={saving}
       />
 
-      {/* Tabs */}
-      {showTabs && (
-        <div className="bg-white rounded-lg border border-gray-200 p-1.5 inline-flex gap-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("catering")}
-            className={`px-6 py-2.5 rounded-md font-semibold text-sm transition-all duration-200 ${
-              activeTab === "catering"
-                ? "bg-emerald-600 text-white shadow-md scale-105"
-                : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50"
-            }`}
-          >
-            Catering Limits
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("corporate")}
-            className={`px-6 py-2.5 rounded-md font-semibold text-sm transition-all duration-200 ${
-              activeTab === "corporate"
-                ? "bg-purple-600 text-white shadow-md scale-105"
-                : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
-            }`}
-          >
-            Corporate Inventory
-          </button>
-        </div>
-      )}
-
-      {/* Catering */}
-      {isCatering && (!showTabs || activeTab === "catering") && (
-        <CateringPortionsCard
-          maxPortions={maxCateringPortions}
-          currentData={cateringData}
-          onMaxChange={setMaxCateringPortions}
-          onSave={handleSaveCateringLimit}
-          saving={saving}
-        />
-      )}
-
-      {/* CORPORATE */}
-      {isCorporate && (!showTabs || activeTab === "corporate") && (
-        <CorporateInventoryCard
+      {/* Unified Inventory Card - shown for catering OR corporate restaurants */}
+      {(isCatering || isCorporate) && (
+        <PortionLimitsCard
           sessionResetPeriod={sessionResetPeriod}
           maxPortionsPerSession={maxPortionsPerSession}
+          portionsRemaining={portionsRemaining}
           enablePortionLimit={enablePortionLimit}
           enableIngredientTracking={enableIngredientTracking}
           ingredients={ingredients}
@@ -391,7 +298,7 @@ export const InventoryManagement = ({
           onIngredientUpdate={handleUpdateIngredientMax}
           onNewIngredientNameChange={setNewIngredientName}
           onNewIngredientMaxChange={setNewIngredientMax}
-          onSave={handleSaveCorporateInventory}
+          onSave={handleSaveInventory}
           saving={saving}
         />
       )}

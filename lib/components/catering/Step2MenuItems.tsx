@@ -17,6 +17,12 @@ export interface Restaurant {
   averageRating: string;
   minCateringOrderQuantity?: number;
   minimumDeliveryNoticeHours?: number;
+  advanceNoticeSettings?: {
+    type: "hours" | "days_before_time";
+    hours?: number;
+    days?: number;
+    cutoffTime?: string;
+  } | null;
   contactEmail?: string;
   contactNumber?: string;
   cateringMinOrderSettings: {
@@ -35,6 +41,14 @@ export interface Restaurant {
         open: string | null;
         close: string | null;
         enabled: boolean;
+      }[]
+    | null;
+  dateOverrides?:
+    | {
+        date: string;
+        isClosed: boolean;
+        reason?: string;
+        timeSlots?: { open: string; close: string }[];
       }[]
     | null;
 }

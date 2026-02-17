@@ -42,16 +42,26 @@ const formatCateringHours = (
     return "No Event Ordering hours set";
   }
 
-  // Group consecutive days with same hours
+  // Group slots by day, then group consecutive days with same hours string
+  const dayOrder = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const byDay = new Map<string, string[]>();
+
+  for (const schedule of enabledDays) {
+    const dayKey = schedule.day.toLowerCase();
+    if (!byDay.has(dayKey)) byDay.set(dayKey, []);
+    if (schedule.open && schedule.close) {
+      byDay.get(dayKey)!.push(`${formatTime(schedule.open)} - ${formatTime(schedule.close)}`);
+    }
+  }
+
+  // Build ordered entries: "Mon: 5:00 AM - 8:00 AM, 6:00 PM - 9:00 PM"
   const grouped: { days: string[]; hours: string }[] = [];
 
-  enabledDays.forEach((schedule) => {
-    const dayName =
-      schedule.day.charAt(0).toUpperCase() + schedule.day.slice(1, 3);
-    const hours =
-      schedule.open && schedule.close
-        ? `${formatTime(schedule.open)} - ${formatTime(schedule.close)}`
-        : "Closed";
+  for (const dayKey of dayOrder) {
+    const slots = byDay.get(dayKey);
+    if (!slots || slots.length === 0) continue;
+    const dayName = dayKey.charAt(0).toUpperCase() + dayKey.slice(1, 3);
+    const hours = slots.join(", ");
 
     const lastGroup = grouped[grouped.length - 1];
     if (lastGroup && lastGroup.hours === hours) {
@@ -59,7 +69,7 @@ const formatCateringHours = (
     } else {
       grouped.push({ days: [dayName], hours });
     }
-  });
+  }
 
   return grouped
     .map((group) => {
@@ -281,31 +291,39 @@ export default function RestaurantCatalogue({
                       </div>
                     )}
 
-                  {restaurant.minimumDeliveryNoticeHours && (
+                  {(restaurant.advanceNoticeSettings || restaurant.minimumDeliveryNoticeHours) && (
                     <div className="mt-2 text-xs text-white bg-primary px-2 py-1 rounded-md">
-                      {restaurant.minimumDeliveryNoticeHours >= 24 ? (
+                      {restaurant.advanceNoticeSettings?.type === "days_before_time" ? (
+                        <span>
+                          Order{" "}
+                          <span className="font-bold">
+                            {restaurant.advanceNoticeSettings.days} day
+                            {(restaurant.advanceNoticeSettings.days ?? 0) > 1 ? "s" : ""}
+                          </span>{" "}
+                          before (by{" "}
+                          {(() => {
+                            const [h, m] = (restaurant.advanceNoticeSettings.cutoffTime ?? "18:00").split(":").map(Number);
+                            const period = h >= 12 ? "PM" : "AM";
+                            const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                            return `${displayHour}:${m.toString().padStart(2, "0")}${period.toLowerCase()}`;
+                          })()})
+                        </span>
+                      ) : restaurant.minimumDeliveryNoticeHours && restaurant.minimumDeliveryNoticeHours >= 24 ? (
                         <>
                           <span className="font-bold">
-                            {Math.floor(
-                              restaurant.minimumDeliveryNoticeHours / 24
-                            )}{" "}
-                            day
-                            {Math.floor(
-                              restaurant.minimumDeliveryNoticeHours / 24
-                            ) > 1
-                              ? "s"
-                              : ""}
+                            {Math.floor(restaurant.minimumDeliveryNoticeHours / 24)} day
+                            {Math.floor(restaurant.minimumDeliveryNoticeHours / 24) > 1 ? "s" : ""}
                           </span>{" "}
-                          <span className="">notice required</span>
+                          <span>notice required</span>
                         </>
-                      ) : (
+                      ) : restaurant.minimumDeliveryNoticeHours ? (
                         <>
                           <span className="font-bold">
                             {restaurant.minimumDeliveryNoticeHours} hours
                           </span>{" "}
-                          <span className="">notice required</span>
+                          <span>notice required</span>
                         </>
-                      )}
+                      ) : null}
                     </div>
                   )}
                 </div>

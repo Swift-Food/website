@@ -701,41 +701,82 @@ export default function CateringOrderBuilder() {
           .toLocaleDateString("en-US", { weekday: "long" })
           .toLowerCase();
 
-        const daySchedule = cateringHours.find(
-          (schedule) => schedule.day.toLowerCase() === dayOfWeek
+        const formatTimeRange = (hour: number, minute: number) => {
+          const period = hour >= 12 ? "PM" : "AM";
+          const hour12 = hour % 12 || 12;
+          return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
+        };
+
+        // Check date overrides first
+        const dateString = session.sessionDate;
+        const dateOverride = restaurant.dateOverrides?.find(
+          (o) => o.date === dateString
         );
 
-        if (!daySchedule || !daySchedule.enabled) {
-          errors[
-            i
-          ] = `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date for this session.`;
-          break;
-        }
-
-        if (daySchedule.open && daySchedule.close && session.eventTime) {
-          const [eventHour, eventMinute] = session.eventTime
-            .split(":")
-            .map(Number);
-          const [openHour, openMinute] = daySchedule.open.split(":").map(Number);
-          const [closeHour, closeMinute] = daySchedule.close
-            .split(":")
-            .map(Number);
-
-          const eventMinutes = eventHour * 60 + eventMinute;
-          const openMinutes = openHour * 60 + openMinute;
-          const closeMinutes = closeHour * 60 + closeMinute;
-
-          if (eventMinutes < openMinutes || eventMinutes > closeMinutes) {
-            const formatTimeRange = (hour: number, minute: number) => {
-              const period = hour >= 12 ? "PM" : "AM";
-              const hour12 = hour % 12 || 12;
-              return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
-            };
-
-            errors[
-              i
-            ] = `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${formatTimeRange(openHour, openMinute)} and ${formatTimeRange(closeHour, closeMinute)}. Please select a time within these hours for this session.`;
+        if (dateOverride) {
+          if (dateOverride.isClosed) {
+            errors[i] = `${restaurant.restaurant_name} is closed on ${dateString}${dateOverride.reason ? ` (${dateOverride.reason})` : ""}. Please select a different date.`;
             break;
+          }
+          if (dateOverride.timeSlots && dateOverride.timeSlots.length > 0 && session.eventTime) {
+            const [eventHour, eventMinute] = session.eventTime.split(":").map(Number);
+            const eventMinutes = eventHour * 60 + eventMinute;
+            const inAnySlot = dateOverride.timeSlots.some((slot) => {
+              const [oh, om] = slot.open.split(":").map(Number);
+              const [ch, cm] = slot.close.split(":").map(Number);
+              return eventMinutes >= oh * 60 + om && eventMinutes <= ch * 60 + cm;
+            });
+            if (!inAnySlot) {
+              const slotDescs = dateOverride.timeSlots
+                .map((s) => {
+                  const [oh, om] = s.open.split(":").map(Number);
+                  const [ch, cm] = s.close.split(":").map(Number);
+                  return `${formatTimeRange(oh, om)} - ${formatTimeRange(ch, cm)}`;
+                })
+                .join(", ");
+              errors[i] = `${restaurant.restaurant_name} only accepts orders between ${slotDescs} on ${dateString}.`;
+              break;
+            }
+          }
+        } else {
+          // Regular weekly schedule — find all slots for this day
+          const daySlots = cateringHours.filter(
+            (schedule) =>
+              schedule.day.toLowerCase() === dayOfWeek && schedule.enabled
+          );
+
+          if (daySlots.length === 0) {
+            errors[i] = `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date for this session.`;
+            break;
+          }
+
+          const enabledSlots = daySlots.filter((s) => s.open && s.close);
+          if (enabledSlots.length > 0 && session.eventTime) {
+            const [eventHour, eventMinute] = session.eventTime
+              .split(":")
+              .map(Number);
+            const eventMinutes = eventHour * 60 + eventMinute;
+
+            const inAnySlot = enabledSlots.some((slot) => {
+              const [openHour, openMinute] = slot.open!.split(":").map(Number);
+              const [closeHour, closeMinute] = slot.close!.split(":").map(Number);
+              return (
+                eventMinutes >= openHour * 60 + openMinute &&
+                eventMinutes <= closeHour * 60 + closeMinute
+              );
+            });
+
+            if (!inAnySlot) {
+              const slotDescs = enabledSlots
+                .map((s) => {
+                  const [oh, om] = s.open!.split(":").map(Number);
+                  const [ch, cm] = s.close!.split(":").map(Number);
+                  return `${formatTimeRange(oh, om)} - ${formatTimeRange(ch, cm)}`;
+                })
+                .join(", ");
+              errors[i] = `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${slotDescs}. Please select a time within these hours for this session.`;
+              break;
+            }
           }
         }
       }

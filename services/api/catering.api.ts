@@ -874,6 +874,8 @@ class CateringService {
     const duplicateDto: CreateMenuItemDto = {
       ...rest,
       name: `${originalItem.name} (Copy)`,
+      dietaryFilters: originalItem.dietaryFilters || [],
+      allergens: originalItem.allergens || [],
     };
 
     return this.createMenuItem(duplicateDto);

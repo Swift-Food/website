@@ -19,20 +19,6 @@ interface CateringOrdersListProps {
 }
 
 /**
- * Filter orders to only include restaurants that match the given restaurantId
- */
-function filterOrdersForRestaurant(
-  orders: CateringOrderResponse[],
-  restaurantId: string
-): CateringOrderResponse[] {
-  return orders.filter((order) => {
-    // Check if this restaurant has items in the order
-    const restaurants = order.restaurants || order.orderItems || [];
-    return restaurants.some((item: any) => item.restaurantId === restaurantId);
-  });
-}
-
-/**
  * Determine the effective status for an order from this restaurant's perspective
  */
 function getOrderStatusForRestaurant(
@@ -76,20 +62,15 @@ export const CateringOrdersList = ({
     Record<string, number>
   >({});
 
-  // Filter orders to only those with items for this restaurant
-  const filteredOrders = useMemo(
-    () => filterOrdersForRestaurant(orders, restaurantId),
-    [orders, restaurantId]
-  );
-
+  // Backend already filters orders for this restaurant, so we use them directly
   // Process orders to adjust status based on restaurant reviews
   const processedOrders = useMemo(
     () =>
-      filteredOrders.map((order) => ({
+      orders.map((order) => ({
         ...order,
         effectiveStatus: getOrderStatusForRestaurant(order, restaurantId),
       })),
-    [filteredOrders, restaurantId]
+    [orders, restaurantId]
   );
 
   useEffect(() => {

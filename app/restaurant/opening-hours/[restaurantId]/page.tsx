@@ -2,31 +2,38 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader, ArrowLeft, Save, AlertCircle, Clock } from "lucide-react";
+import { Loader, ArrowLeft, Save, AlertCircle, Clock, Plus, Trash2, CalendarOff } from "lucide-react";
 import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
-enum DaysOfWeek {
-  MONDAY = "Monday",
-  TUESDAY = "Tuesday",
-  WEDNESDAY = "Wednesday",
-  THURSDAY = "Thursday",
-  FRIDAY = "Friday",
-  SATURDAY = "Saturday",
-  SUNDAY = "Sunday",
+const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+
+type DayOfWeek = (typeof DAYS_OF_WEEK)[number];
+
+interface TimeSlot {
+  open: string;
+  close: string;
 }
 
-interface OpeningHour {
-  day: DaysOfWeek;
-  open: string | null;
-  close: string | null;
+interface DaySchedule {
+  enabled: boolean;
+  slots: TimeSlot[];
 }
 
-interface RestaurantTiming {
-  day: DaysOfWeek;
-  openTime: string;
-  closeTime: string;
+interface DateOverride {
+  date: string; // "YYYY-MM-DD"
+  isClosed: boolean;
+  reason: string;
+  timeSlots: TimeSlot[];
 }
 
 interface TimeOption {
@@ -36,12 +43,7 @@ interface TimeOption {
 
 // Generate time options with 30-minute intervals
 const generateTimeOptions = (): TimeOption[] => {
-  const times: TimeOption[] = [
-    {
-      label: "Closed",
-      value: "closed",
-    },
-  ];
+  const times: TimeOption[] = [];
 
   for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
@@ -64,6 +66,14 @@ const generateTimeOptions = (): TimeOption[] => {
 
 const TIME_OPTIONS = generateTimeOptions();
 
+const createDefaultSchedule = (): Record<DayOfWeek, DaySchedule> => {
+  const schedule: Record<string, DaySchedule> = {};
+  for (const day of DAYS_OF_WEEK) {
+    schedule[day] = { enabled: false, slots: [] };
+  }
+  return schedule as Record<DayOfWeek, DaySchedule>;
+};
+
 const OpeningHoursPage = () => {
   const params = useParams();
   const router = useRouter();
@@ -73,19 +83,11 @@ const OpeningHoursPage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isRestaurantOpen, setIsRestaurantOpen] = useState(true);
 
-  const [restaurantTimings, setRestaurantTimings] = useState<
-    RestaurantTiming[]
-  >([
-    { day: DaysOfWeek.MONDAY, openTime: "closed", closeTime: "closed" },
-    { day: DaysOfWeek.TUESDAY, openTime: "closed", closeTime: "closed" },
-    { day: DaysOfWeek.WEDNESDAY, openTime: "closed", closeTime: "closed" },
-    { day: DaysOfWeek.THURSDAY, openTime: "closed", closeTime: "closed" },
-    { day: DaysOfWeek.FRIDAY, openTime: "closed", closeTime: "closed" },
-    { day: DaysOfWeek.SATURDAY, openTime: "closed", closeTime: "closed" },
-    { day: DaysOfWeek.SUNDAY, openTime: "closed", closeTime: "closed" },
-  ]);
+  const [schedule, setSchedule] = useState<Record<DayOfWeek, DaySchedule>>(
+    createDefaultSchedule()
+  );
+  const [dateOverrides, setDateOverrides] = useState<DateOverride[]>([]);
 
   useEffect(() => {
     fetchRestaurantDetails();
@@ -99,29 +101,48 @@ const OpeningHoursPage = () => {
         restaurantId
       );
 
-      // Set restaurant open/closed status
-      if (restaurantDetails.isOpen !== undefined) {
-        setIsRestaurantOpen(restaurantDetails.isOpen);
-      }
+      // Load from cateringOperatingHours (the correct field)
+      const hours = restaurantDetails.cateringOperatingHours;
+      if (hours && Array.isArray(hours)) {
+        const newSchedule = createDefaultSchedule();
 
-      if (!restaurantDetails.openingHours) {
-        setLoading(false);
-        return;
-      }
+        for (const entry of hours) {
+          const dayKey = DAYS_OF_WEEK.find(
+            (d) => d.toLowerCase() === entry.day.toLowerCase()
+          );
+          if (!dayKey) continue;
 
-      const openingHours: OpeningHour[] = restaurantDetails.openingHours;
-
-      const openingHoursStateData: RestaurantTiming[] = openingHours.map(
-        (day) => {
-          return {
-            day: day.day,
-            openTime: day.open || "closed",
-            closeTime: day.close || "closed",
-          };
+          if (entry.enabled && entry.open && entry.close) {
+            newSchedule[dayKey].enabled = true;
+            newSchedule[dayKey].slots.push({
+              open: entry.open,
+              close: entry.close,
+            });
+          }
         }
-      );
 
-      setRestaurantTimings(openingHoursStateData);
+        // Ensure enabled days with no valid slots still show as enabled with one empty slot
+        for (const day of DAYS_OF_WEEK) {
+          if (newSchedule[day].enabled && newSchedule[day].slots.length === 0) {
+            newSchedule[day].slots.push({ open: "09:00", close: "17:00" });
+          }
+        }
+
+        setSchedule(newSchedule);
+      }
+
+      // Load date overrides
+      const overrides = restaurantDetails.dateOverrides;
+      if (overrides && Array.isArray(overrides)) {
+        setDateOverrides(
+          overrides.map((o: any) => ({
+            date: o.date,
+            isClosed: o.isClosed,
+            reason: o.reason || "",
+            timeSlots: o.timeSlots || [],
+          }))
+        );
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load restaurant details");
     } finally {
@@ -129,44 +150,18 @@ const OpeningHoursPage = () => {
     }
   };
 
-  const handleOpenTimeChange = (day: string, selectedValue: string): void => {
-    setRestaurantTimings((prev) =>
-      prev.map((timing) =>
-        timing.day === day ? { ...timing, openTime: selectedValue } : timing
-      )
+  const updateRestaurant = async (
+    id: string,
+    updates: Record<string, any>
+  ) => {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      }
     );
-  };
-
-  const handleCloseTimeChange = (day: string, selectedValue: string): void => {
-    setRestaurantTimings((prev) =>
-      prev.map((timing) =>
-        timing.day === day ? { ...timing, closeTime: selectedValue } : timing
-      )
-    );
-  };
-
-  const handleToggleRestaurantStatus = async () => {
-    const newStatus = !isRestaurantOpen;
-    setIsRestaurantOpen(newStatus);
-
-    try {
-      await updateRestaurant(restaurantId, { isOpen: newStatus });
-      setSuccess(`Restaurant is now ${newStatus ? "open" : "closed"}`);
-      setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError("Failed to update restaurant status");
-      setIsRestaurantOpen(!newStatus); // Revert on error
-    }
-  };
-
-  const updateRestaurant = async (id: string, updates: Record<string, any>) => {
- 
-    
-    const response = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_DETAILS(id)}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
-    });
 
     if (!response.ok) {
       throw new Error("Failed to update restaurant");
@@ -175,6 +170,127 @@ const OpeningHoursPage = () => {
     return response.json();
   };
 
+  // --- Day schedule handlers ---
+
+  const toggleDay = (day: DayOfWeek) => {
+    setSchedule((prev) => {
+      const current = prev[day];
+      if (current.enabled) {
+        return { ...prev, [day]: { enabled: false, slots: [] } };
+      } else {
+        return {
+          ...prev,
+          [day]: { enabled: true, slots: [{ open: "09:00", close: "17:00" }] },
+        };
+      }
+    });
+  };
+
+  const addSlot = (day: DayOfWeek) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        slots: [...prev[day].slots, { open: "09:00", close: "17:00" }],
+      },
+    }));
+  };
+
+  const removeSlot = (day: DayOfWeek, slotIndex: number) => {
+    setSchedule((prev) => {
+      const newSlots = prev[day].slots.filter((_, i) => i !== slotIndex);
+      return {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          enabled: newSlots.length > 0,
+          slots: newSlots,
+        },
+      };
+    });
+  };
+
+  const updateSlot = (
+    day: DayOfWeek,
+    slotIndex: number,
+    field: "open" | "close",
+    value: string
+  ) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        slots: prev[day].slots.map((slot, i) =>
+          i === slotIndex ? { ...slot, [field]: value } : slot
+        ),
+      },
+    }));
+  };
+
+  // --- Date override handlers ---
+
+  const addDateOverride = () => {
+    setDateOverrides((prev) => [
+      ...prev,
+      { date: "", isClosed: true, reason: "", timeSlots: [] },
+    ]);
+  };
+
+  const removeDateOverride = (index: number) => {
+    setDateOverrides((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateDateOverride = (
+    index: number,
+    updates: Partial<DateOverride>
+  ) => {
+    setDateOverrides((prev) =>
+      prev.map((o, i) => (i === index ? { ...o, ...updates } : o))
+    );
+  };
+
+  const addOverrideSlot = (overrideIndex: number) => {
+    setDateOverrides((prev) =>
+      prev.map((o, i) =>
+        i === overrideIndex
+          ? { ...o, timeSlots: [...o.timeSlots, { open: "09:00", close: "17:00" }] }
+          : o
+      )
+    );
+  };
+
+  const removeOverrideSlot = (overrideIndex: number, slotIndex: number) => {
+    setDateOverrides((prev) =>
+      prev.map((o, i) =>
+        i === overrideIndex
+          ? { ...o, timeSlots: o.timeSlots.filter((_, si) => si !== slotIndex) }
+          : o
+      )
+    );
+  };
+
+  const updateOverrideSlot = (
+    overrideIndex: number,
+    slotIndex: number,
+    field: "open" | "close",
+    value: string
+  ) => {
+    setDateOverrides((prev) =>
+      prev.map((o, i) =>
+        i === overrideIndex
+          ? {
+              ...o,
+              timeSlots: o.timeSlots.map((s, si) =>
+                si === slotIndex ? { ...s, [field]: value } : s
+              ),
+            }
+          : o
+      )
+    );
+  };
+
+  // --- Save ---
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -182,61 +298,93 @@ const OpeningHoursPage = () => {
     setSuccess("");
 
     try {
-      // Validate that if one time is set, both must be set (unless both are closed)
-      const invalidData = restaurantTimings.find(
-        (day) =>
-          (day.openTime !== "closed" && day.closeTime === "closed") ||
-          (day.closeTime !== "closed" && day.openTime === "closed")
-      );
+      // Validate time slots
+      for (const day of DAYS_OF_WEEK) {
+        const dayData = schedule[day];
+        if (!dayData.enabled) continue;
 
-      if (invalidData) {
-        setError(
-          "Please provide both opening and closing time for each day, or set both to closed"
-        );
-        setSaving(false);
-        return;
-      }
-
-      // Check for logical time errors (closing time before opening time)
-      const logicalError = restaurantTimings.find((day) => {
-        if (day.openTime !== "closed" && day.closeTime !== "closed") {
-          return day.closeTime <= day.openTime;
+        for (const slot of dayData.slots) {
+          if (slot.close <= slot.open) {
+            setError(
+              `${day}: Closing time must be after opening time for each slot`
+            );
+            setSaving(false);
+            return;
+          }
         }
-        return false;
-      });
-
-      if (logicalError) {
-        setError("Closing time must be after opening time");
-        setSaving(false);
-        return;
       }
 
-      const result: OpeningHour[] = restaurantTimings.map((day) => {
-        // If both times are closed, restaurant is closed that day
-        if (day.openTime === "closed" || day.closeTime === "closed") {
-          return {
-            day: day.day,
+      // Validate date overrides
+      for (const override of dateOverrides) {
+        if (!override.date) {
+          setError("Please set a date for all date overrides or remove empty ones");
+          setSaving(false);
+          return;
+        }
+        if (!override.isClosed) {
+          for (const slot of override.timeSlots) {
+            if (slot.close <= slot.open) {
+              setError(
+                `Date override ${override.date}: Closing time must be after opening time`
+              );
+              setSaving(false);
+              return;
+            }
+          }
+        }
+      }
+
+      // Build cateringOperatingHours array (multiple entries per day for multiple slots)
+      const cateringOperatingHours: {
+        day: string;
+        open: string | null;
+        close: string | null;
+        enabled: boolean;
+      }[] = [];
+
+      for (const day of DAYS_OF_WEEK) {
+        const dayData = schedule[day];
+        if (dayData.enabled && dayData.slots.length > 0) {
+          for (const slot of dayData.slots) {
+            cateringOperatingHours.push({
+              day,
+              open: slot.open,
+              close: slot.close,
+              enabled: true,
+            });
+          }
+        } else {
+          // Day is closed
+          cateringOperatingHours.push({
+            day,
             open: null,
             close: null,
-          };
+            enabled: false,
+          });
         }
+      }
 
-        return {
-          day: day.day,
-          open: day.openTime,
-          close: day.closeTime,
-          enabled: true,
-        };
-      });
+      // Build date overrides payload
+      const dateOverridesPayload = dateOverrides
+        .filter((o) => o.date)
+        .map((o) => ({
+          date: o.date,
+          isClosed: o.isClosed,
+          reason: o.reason || undefined,
+          timeSlots:
+            !o.isClosed && o.timeSlots.length > 0 ? o.timeSlots : undefined,
+        }));
 
       await updateRestaurant(restaurantId, {
-        cateringOperatingHours: result,
+        cateringOperatingHours,
+        dateOverrides:
+          dateOverridesPayload.length > 0 ? dateOverridesPayload : null,
       });
 
-      setSuccess("Opening hours updated successfully!");
+      setSuccess("Operating hours updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
-      setError(err.message || "Failed to update opening hours");
+      setError(err.message || "Failed to update operating hours");
     } finally {
       setSaving(false);
     }
@@ -270,10 +418,11 @@ const OpeningHoursPage = () => {
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <Clock className="text-blue-600" size={32} />
-              Opening Hours
+              Operating Hours
             </h1>
             <p className="text-gray-600 mt-1">
-              Set your restaurant&apos;s operating hours
+              Set your restaurant&apos;s operating hours and date-specific
+              schedules
             </p>
           </div>
         </div>
@@ -292,100 +441,296 @@ const OpeningHoursPage = () => {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSave} className="bg-white rounded-lg p-6">
-          {/* Restaurant Status Toggle */}
-          {/* <div className="mb-6 pb-6 border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Restaurant Status
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Toggle to open or close your restaurant temporarily
-                </p>
-              </div>
-              <div className="flex flex-col items-center justify-center">
-                <p
-                  className={`flex items-center justify-center text-sm font-medium text-black`}
-                >
-                  {isRestaurantOpen ? "Open" : "Closed"}
-                </p>
-                <button
-                  type="button"
-                  onClick={handleToggleRestaurantStatus}
-                  className={`relative inline-flex h-8 w-20 items-center rounded-full transition-colors ${
-                    isRestaurantOpen ? "bg-green-600" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-6 w-10 transform rounded-full bg-white shadow-lg transition-transform ${
-                      isRestaurantOpen ? "translate-x-9" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div> */}
-
-          {/* Opening Hours */}
-          <div className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-6">
+          {/* Weekly Schedule */}
+          <div className="bg-white rounded-lg p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               Weekly Schedule
             </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Add multiple time slots per day for split operating hours (e.g.
+              breakfast and dinner service).
+            </p>
 
-            {restaurantTimings.map((timing) => (
-              <div
-                key={timing.day}
-                className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-              >
-                <div className="mb-2 md:mb-0 md:w-32">
-                  <span className="text-base font-medium text-gray-900">
-                    {timing.day}
-                  </span>
-                </div>
+            <div className="space-y-4">
+              {DAYS_OF_WEEK.map((day) => {
+                const dayData = schedule[day];
+                return (
+                  <div
+                    key={day}
+                    className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleDay(day)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            dayData.enabled ? "bg-blue-600" : "bg-gray-300"
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                              dayData.enabled
+                                ? "translate-x-6"
+                                : "translate-x-1"
+                            }`}
+                          />
+                        </button>
+                        <span className="text-base font-medium text-gray-900">
+                          {day}
+                        </span>
+                      </div>
 
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="flex-1 md:w-40">
-                    <select
-                      value={timing.openTime}
-                      onChange={(e) =>
-                        handleOpenTimeChange(timing.day, e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white text-sm"
-                    >
-                      {TIME_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                      {dayData.enabled && (
+                        <button
+                          type="button"
+                          onClick={() => addSlot(day)}
+                          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          <Plus size={14} />
+                          Add slot
+                        </button>
+                      )}
+                    </div>
+
+                    {!dayData.enabled && (
+                      <p className="text-sm text-gray-400 ml-14">Closed</p>
+                    )}
+
+                    {dayData.enabled && (
+                      <div className="space-y-2 ml-14">
+                        {dayData.slots.map((slot, slotIdx) => (
+                          <div
+                            key={slotIdx}
+                            className="flex items-center gap-2"
+                          >
+                            <select
+                              value={slot.open}
+                              onChange={(e) =>
+                                updateSlot(day, slotIdx, "open", e.target.value)
+                              }
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white text-sm"
+                            >
+                              {TIME_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-gray-500 font-medium">
+                              -
+                            </span>
+                            <select
+                              value={slot.close}
+                              onChange={(e) =>
+                                updateSlot(
+                                  day,
+                                  slotIdx,
+                                  "close",
+                                  e.target.value
+                                )
+                              }
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white text-sm"
+                            >
+                              {TIME_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                            {dayData.slots.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeSlot(day, slotIdx)}
+                                className="p-1 text-red-400 hover:text-red-600"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+            </div>
+          </div>
 
-                  <span className="text-gray-500 font-medium">-</span>
-
-                  <div className="flex-1 md:w-40">
-                    <select
-                      value={timing.closeTime}
-                      onChange={(e) =>
-                        handleCloseTimeChange(timing.day, e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white text-sm"
-                    >
-                      {TIME_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+          {/* Date Overrides */}
+          <div className="bg-white rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <CalendarOff size={22} className="text-orange-500" />
+                  Date Overrides
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Set specific dates when the restaurant is closed or has
+                  different hours (e.g. holidays, Christmas break).
+                </p>
               </div>
-            ))}
+              <button
+                type="button"
+                onClick={addDateOverride}
+                className="flex items-center gap-1 px-3 py-2 text-sm bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg transition-colors"
+              >
+                <Plus size={16} />
+                Add date
+              </button>
+            </div>
+
+            {dateOverrides.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-4">
+                No date overrides set. Add specific dates for holidays or
+                special schedules.
+              </p>
+            )}
+
+            <div className="space-y-4">
+              {dateOverrides.map((override, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 border border-orange-200 rounded-lg bg-orange-50/30"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <input
+                        type="date"
+                        value={override.date}
+                        onChange={(e) =>
+                          updateDateOverride(idx, { date: e.target.value })
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 bg-white text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={override.reason}
+                        onChange={(e) =>
+                          updateDateOverride(idx, { reason: e.target.value })
+                        }
+                        placeholder="Reason (e.g. Christmas Break)"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 bg-white text-sm w-64"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeDateOverride(idx)}
+                      className="p-1 text-red-400 hover:text-red-600 flex-shrink-0"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-3 mb-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateDateOverride(idx, {
+                          isClosed: true,
+                          timeSlots: [],
+                        })
+                      }
+                      className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                        override.isClosed
+                          ? "bg-red-100 text-red-700 font-medium"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      Closed all day
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateDateOverride(idx, {
+                          isClosed: false,
+                          timeSlots:
+                            override.timeSlots.length > 0
+                              ? override.timeSlots
+                              : [{ open: "09:00", close: "17:00" }],
+                        })
+                      }
+                      className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                        !override.isClosed
+                          ? "bg-blue-100 text-blue-700 font-medium"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      Custom hours
+                    </button>
+                  </div>
+
+                  {!override.isClosed && (
+                    <div className="space-y-2">
+                      {override.timeSlots.map((slot, slotIdx) => (
+                        <div
+                          key={slotIdx}
+                          className="flex items-center gap-2"
+                        >
+                          <select
+                            value={slot.open}
+                            onChange={(e) =>
+                              updateOverrideSlot(
+                                idx,
+                                slotIdx,
+                                "open",
+                                e.target.value
+                              )
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 bg-white text-sm"
+                          >
+                            {TIME_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="text-gray-500 font-medium">-</span>
+                          <select
+                            value={slot.close}
+                            onChange={(e) =>
+                              updateOverrideSlot(
+                                idx,
+                                slotIdx,
+                                "close",
+                                e.target.value
+                              )
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 bg-white text-sm"
+                          >
+                            {TIME_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => removeOverrideSlot(idx, slotIdx)}
+                            className="p-1 text-red-400 hover:text-red-600"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => addOverrideSlot(idx)}
+                        className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-800"
+                      >
+                        <Plus size={14} />
+                        Add time slot
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 mt-6 border-t">
+          <div className="flex gap-4">
             <button
               type="button"
               onClick={() => router.push("/restaurant/dashboard")}
@@ -406,7 +751,7 @@ const OpeningHoursPage = () => {
               ) : (
                 <>
                   <Save size={20} />
-                  Save Opening Hours
+                  Save Operating Hours
                 </>
               )}
             </button>

@@ -159,6 +159,12 @@ export interface CateringOrderResponse {
   // For SINGLE-MEAL orders: contains the actual order items
   // For MULTI-MEAL orders: aggregated view of all meal sessions
   restaurants: PricingOrderItem[];
+
+  /**
+   * @deprecated Use mealSessions[].orderItems or restaurants instead.
+   * This field can get out of sync with mealSessions causing data inconsistencies.
+   * See: backend/docs/plans/2026-02-10-deprecate-order-orderItems.md
+   */
   orderItems?: any[]; // Legacy format
 
   // Restaurant coordination (aggregated across all sessions for multi-meal)
