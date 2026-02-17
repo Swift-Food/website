@@ -17,7 +17,7 @@ export default function EventGallerySection() {
           observer.unobserve(entry.target);
         }
       },
-      { threshold: isMobile ? 0.1 : 0.3 }
+      { threshold: isMobile ? 0.1 : 0.3 },
     );
 
     if (sectionRef.current) {
@@ -86,8 +86,8 @@ export default function EventGallerySection() {
                 {/* Scaled to your ambition */}
               </h2>
               <p className="text-gray-400 font-light text-lg">
-                From intimate 50-portion workshops to massive 3,000-portion multi-day
-                hackathons.
+                From intimate 50-portion workshops to massive 3,000-portion
+                multi-day hackathons.
               </p>
             </div>
             {/* <button className="hidden md:block text-xs font-bold tracking-widest border-b border-gray-300 pb-1 hover:text-[#fa43ad] hover:border-[#fa43ad] transition-all uppercase">
@@ -103,7 +103,9 @@ export default function EventGallerySection() {
               isRevealed ? "active" : ""
             }`}
           >
-            <span className="text-7xl md:text-8xl font-black text-white">60+</span>
+            <span className="text-7xl md:text-8xl font-black text-white">
+              75+
+            </span>
             <span className="text-sm font-bold tracking-[0.3em] uppercase text-white/70 mt-2">
               Events catered
             </span>
@@ -127,9 +129,13 @@ export default function EventGallerySection() {
                     isActive ? "scale-105 opacity-30" : ""
                   }`}
                 />
-                <div className={`absolute inset-0 p-10 flex flex-col justify-end transition-all duration-500 ${
-                  isActive ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-                }`}>
+                <div
+                  className={`absolute inset-0 p-10 flex flex-col justify-end transition-all duration-500 ${
+                    isActive
+                      ? "translate-y-0 opacity-100"
+                      : "translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+                  }`}
+                >
                   <span className="text-[10px] font-bold text-[#fa43ad] tracking-widest uppercase mb-3">
                     {event.category}
                   </span>
@@ -149,7 +155,9 @@ export default function EventGallerySection() {
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                   className={`absolute top-8 right-8 w-12 h-12 border border-white/10 rounded-full flex items-center justify-center text-white transition-all duration-500 hover:bg-[#fa43ad] hover:border-[#fa43ad] ${
-                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    isActive
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
                   }`}
                 >
                   <svg
