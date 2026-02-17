@@ -10,6 +10,7 @@ import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { MenuItem, Restaurant } from "../Step2MenuItems";
 import { mapToMenuItem } from "../catering-order-helpers";
+import { DietaryFilter } from "@/types/menuItem";
 
 interface UseCateringDataOptions {
   expandedSessionIndex: number | null;
@@ -29,6 +30,9 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [menuItemsLoading, setMenuItemsLoading] = useState(false);
   const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
+
+  // Dietary filter state
+  const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<DietaryFilter[]>([]);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -162,12 +166,32 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     }
   }, [searchQuery, allMenuItems, allMenuItemsLoading, fetchAllMenuItems]);
 
+  // Helper: filter items by selected dietary restrictions
+  const filterByDietary = useCallback(
+    (items: MenuItem[]) => {
+      if (selectedDietaryFilters.length === 0) return items;
+      return items.filter((item) => {
+        const itemFilters = item.dietaryFilters || [];
+        return selectedDietaryFilters.every((filter) =>
+          itemFilters.includes(filter)
+        );
+      });
+    },
+    [selectedDietaryFilters]
+  );
+
+  // Apply dietary filter to category menu items
+  const filteredMenuItems = useMemo(
+    () => filterByDietary(menuItems),
+    [menuItems, filterByDietary]
+  );
+
   // Filter items based on search query
   const searchResults = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query || !allMenuItems) return null;
 
-    return allMenuItems.filter((item) => {
+    const matched = allMenuItems.filter((item) => {
       const name = item.menuItemName?.toLowerCase() || "";
       const description = item.description?.toLowerCase() || "";
       const groupTitle = item.groupTitle?.toLowerCase() || "";
@@ -177,7 +201,9 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
         groupTitle.includes(query)
       );
     });
-  }, [searchQuery, allMenuItems]);
+
+    return filterByDietary(matched);
+  }, [searchQuery, allMenuItems, filterByDietary]);
 
   // Handle category click
   const handleCategoryClick = useCallback(
@@ -203,6 +229,15 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     [selectedSubcategory]
   );
 
+  // Toggle dietary filter
+  const toggleDietaryFilter = useCallback((filter: DietaryFilter) => {
+    setSelectedDietaryFilters((prev) =>
+      prev.includes(filter)
+        ? prev.filter((f) => f !== filter)
+        : [...prev, filter]
+    );
+  }, []);
+
   // Helper to select Mains category
   const selectMainsCategory = useCallback(() => {
     const mainsCategory = categories.find(
@@ -225,10 +260,14 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     handleSubcategoryClick,
     selectMainsCategory,
 
-    // Menu items
-    menuItems,
+    // Menu items (with dietary filter applied)
+    menuItems: filteredMenuItems,
     menuItemsLoading,
     menuItemsError,
+
+    // Dietary filters
+    selectedDietaryFilters,
+    toggleDietaryFilter,
 
     // Search
     searchQuery,

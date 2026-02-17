@@ -868,25 +868,12 @@ class CateringService {
       throw new Error("Menu item not found");
     }
 
-    // Create a duplicate with modified name
+    // Exclude server-generated fields, spread everything else
+    const { id, createdAt, updatedAt, averageRating, categories, subCategories, ...rest } = originalItem;
+
     const duplicateDto: CreateMenuItemDto = {
-      restaurantId: originalItem.restaurantId,
-      categoryIds: originalItem.categoryIds || [],
-      groupTitle: originalItem.groupTitle,
+      ...rest,
       name: `${originalItem.name} (Copy)`,
-      description: originalItem.description,
-      price: originalItem.price,
-      prepTime: originalItem.prepTime,
-      discountPrice: originalItem.discountPrice,
-      isDiscount: originalItem.isDiscount,
-      image: originalItem.image,
-      isAvailable: originalItem.isAvailable,
-      allergens: originalItem.allergens || [],
-      addons: originalItem.addons,
-      itemDisplayOrder: originalItem.itemDisplayOrder,
-      popular: originalItem.popular,
-      style: originalItem.style,
-      status: originalItem.status,
     };
 
     return this.createMenuItem(duplicateDto);

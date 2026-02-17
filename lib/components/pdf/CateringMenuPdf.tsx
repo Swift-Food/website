@@ -129,6 +129,7 @@ export interface CateringMenuPdfProps {
   showPrices: boolean;
   deliveryCharge?: number;
   totalPrice?: number;
+  promoDiscount?: number;
   logoUrl?: string;
 }
 
@@ -690,7 +691,9 @@ const SessionPage: React.FC<{
   allSessions: PdfSession[];
   isLastSession: boolean;
   deliveryCharge?: number;
-}> = ({ session, dayDate, dayNumber, showPrices, allSessions, isLastSession, deliveryCharge }) => {
+  totalPrice?: number;
+  promoDiscount?: number;
+}> = ({ session, dayDate, dayNumber, showPrices, allSessions, isLastSession, deliveryCharge, totalPrice, promoDiscount }) => {
   const totalCatering = allSessions.reduce((sum, s) => sum + (s.subtotal || 0), 0);
 
   return (
@@ -741,6 +744,12 @@ const SessionPage: React.FC<{
             <Text style={styles.totalsBreakdownLabel}>Catering Total</Text>
             <Text style={styles.totalsBreakdownValue}>£{totalCatering.toFixed(2)}</Text>
           </View>
+          {promoDiscount !== undefined && promoDiscount > 0 && (
+            <View style={styles.totalsBreakdownRow}>
+              <Text style={styles.totalsBreakdownLabel}>Promo Discount</Text>
+              <Text style={[styles.totalsBreakdownValue, { color: "#16a34a" }]}>-£{promoDiscount.toFixed(2)}</Text>
+            </View>
+          )}
           <View style={styles.totalsBreakdownRow}>
             <Text style={styles.totalsBreakdownLabel}>Logistics / Delivery</Text>
             <Text style={styles.totalsBreakdownValueItalic}>
@@ -754,9 +763,11 @@ const SessionPage: React.FC<{
             {deliveryCharge !== undefined ? "Grand Total" : "Estimated Grand Total"}
           </Text>
           <Text style={styles.grandTotalValue}>
-            {deliveryCharge !== undefined
-              ? `£${(totalCatering + deliveryCharge).toFixed(2)}`
-              : `£${totalCatering.toFixed(2)} + TBC`}
+            {totalPrice !== undefined
+              ? `£${totalPrice.toFixed(2)}`
+              : deliveryCharge !== undefined
+                ? `£${(totalCatering + deliveryCharge - (promoDiscount || 0)).toFixed(2)}`
+                : `£${totalCatering.toFixed(2)} + TBC`}
           </Text>
         </View>
       </View>
@@ -794,6 +805,8 @@ export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
   sessions,
   showPrices,
   deliveryCharge,
+  totalPrice,
+  promoDiscount,
 }) => {
   const groupedByDay = groupSessionsByDate(sessions);
 
@@ -821,6 +834,8 @@ export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
           allSessions={sessions}
           isLastSession={index === allSessionsFlat.length - 1}
           deliveryCharge={deliveryCharge}
+          totalPrice={totalPrice}
+          promoDiscount={promoDiscount}
         />
       ))}
     </Document>

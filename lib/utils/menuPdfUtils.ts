@@ -945,7 +945,6 @@ export async function transformOrderToPdfData(
 
     for (const session of sortedSessions) {
       const categoryMap = new Map<string, PdfMenuItem[]>();
-      let sessionItemsSubtotal = 0;
 
       // Group items by category across all restaurants in this session
       for (const restaurant of session.orderItems || []) {
@@ -959,9 +958,8 @@ export async function transformOrderToPdfData(
 
           // Process item (handles protein splitting automatically)
           const processedItems = processMenuItemForPdf(menuItem, imageMap);
-          for (const { item, itemTotal } of processedItems) {
+          for (const { item } of processedItems) {
             categoryMap.get(categoryName)!.push(item);
-            sessionItemsSubtotal += itemTotal;
           }
         }
       }
@@ -976,15 +974,14 @@ export async function transformOrderToPdfData(
         sessionName: session.sessionName,
         time: session.eventTime,
         categories,
-        subtotal: sessionItemsSubtotal, // Use calculated items subtotal, not session.sessionTotal
-        deliveryFee: session.deliveryFee,
+        subtotal: Number(session.subtotal || 0),
+        deliveryFee: Number(session.deliveryFee || 0),
       });
     }
   } else {
     // Legacy single-session format
     const categoryMap = new Map<string, PdfMenuItem[]>();
     const orderItems = order.restaurants || order.orderItems || [];
-    let itemsSubtotal = 0;
 
     for (const restaurant of orderItems as PricingOrderItem[]) {
       for (const menuItem of restaurant.menuItems || []) {
@@ -999,9 +996,8 @@ export async function transformOrderToPdfData(
 
         // Process item (handles protein splitting automatically)
         const processedItems = processMenuItemForPdf(menuItem, imageMap);
-        for (const { item, itemTotal } of processedItems) {
+        for (const { item } of processedItems) {
           categoryMap.get(categoryName)!.push(item);
-          itemsSubtotal += itemTotal;
         }
       }
     }
@@ -1010,36 +1006,27 @@ export async function transformOrderToPdfData(
       ([name, items]) => ({ name, items })
     );
 
-    // Parse delivery fee for legacy format
-    const legacyDeliveryFee = typeof order.deliveryFee === 'string'
-      ? parseFloat(order.deliveryFee)
-      : order.deliveryFee;
-
     sessions.push({
       date: formatDateForPdf(order.eventDate),
       sessionName: "Menu",
       time: order.eventTime,
       categories,
-      subtotal: itemsSubtotal, // Use calculated items subtotal
-      deliveryFee: legacyDeliveryFee,
+      subtotal: Number(order.subtotal || 0),
+      deliveryFee: Number(order.deliveryFee || 0),
     });
   }
 
-  // Parse delivery fee and total price to ensure they're numbers
-  const deliveryFee = typeof order.deliveryFee === 'string'
-    ? parseFloat(order.deliveryFee)
-    : order.deliveryFee;
-
-  const finalTotalValue = order.finalTotal || order.customerFinalTotal;
-  const totalPrice = typeof finalTotalValue === 'string'
-    ? parseFloat(finalTotalValue)
-    : finalTotalValue;
+  // Parse numeric fields to ensure they're numbers (decimal columns come as strings from DB)
+  const deliveryFee = Number(order.deliveryFee || 0);
+  const totalPrice = Number(order.finalTotal || order.customerFinalTotal || 0);
+  const promoDiscount = Number(order.promoDiscount || 0);
 
   return {
     sessions,
     showPrices,
     deliveryCharge: deliveryFee,
-    totalPrice: totalPrice,
+    totalPrice,
+    promoDiscount,
     logoUrl: "/Logo_Circle.png",
   };
 }
