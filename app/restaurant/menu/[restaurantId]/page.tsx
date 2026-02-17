@@ -741,6 +741,16 @@ const MenuListPage = () => {
                   {item.groupTitle}
                 </span>
               )}
+              {item.deliveryPortionSize && (
+                <span className="text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full font-medium">
+                  Portion: {item.deliveryPortionSize}
+                </span>
+              )}
+              {item.vatApplicable && (
+                <span className="text-xs text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full font-medium">
+                  VAT
+                </span>
+              )}
             </div>
 
             {/* Allergens */}

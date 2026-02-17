@@ -60,6 +60,7 @@ const NewMenuItemPage = () => {
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
   // const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
   const [deliveryPortionSize, setDeliveryPortionSize] = useState<string>("");
+  const [vatApplicable, setVatApplicable] = useState(false);
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -389,6 +390,7 @@ const NewMenuItemPage = () => {
         addons: addons && addons.length > 0 ? addons : null,
         // ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
         ...(deliveryPortionSize ? { deliveryPortionSize } : {}),
+        vatApplicable,
       };
 
       await cateringService.createMenuItem(createData);
@@ -588,20 +590,38 @@ const NewMenuItemPage = () => {
               </div> */}
             </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="isDiscount"
-                checked={isDiscount}
-                onChange={(e) => setIsDiscount(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label
-                htmlFor="isDiscount"
-                className="ml-2 text-sm text-gray-700"
-              >
-                Apply discount pricing
-              </label>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isDiscount"
+                  checked={isDiscount}
+                  onChange={(e) => setIsDiscount(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label
+                  htmlFor="isDiscount"
+                  className="ml-2 text-sm text-gray-700"
+                >
+                  Apply discount pricing
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="vatApplicable"
+                  checked={vatApplicable}
+                  onChange={(e) => setVatApplicable(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label
+                  htmlFor="vatApplicable"
+                  className="ml-2 text-sm text-gray-700"
+                >
+                  VAT applicable
+                </label>
+              </div>
             </div>
           </div>
 

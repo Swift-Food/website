@@ -813,6 +813,7 @@ export interface CreateMenuItemDto {
   status: MenuItemStatus;
   feedsPerUnit?: number;
   deliveryPortionSize?: string;
+  vatApplicable?: boolean;
 }
 
 export interface MenuItemDetails extends CreateMenuItemDto {
@@ -846,4 +847,5 @@ export interface UpdateMenuItemDto {
   feedsPerUnit?: number;
   deliveryPortionSize?: string;
   cateringQuantityUnit?: number;
+  vatApplicable?: boolean;
 }
