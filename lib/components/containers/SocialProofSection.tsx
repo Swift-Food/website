@@ -9,11 +9,23 @@ interface Logo {
 export default function SocialProofSection() {
   const logos: Logo[] = [
     { name: "Epiminds", link: "https://epiminds.com/" },
-    { name: "Iterate", link: "https://www.linkedin.com/company/iteratehackathons/" },
-    { name: "Unicorn Mafia", image: "/logos/unicorn-mafia.svg", link: "https://www.unicrnmafia.com/" },
-    { name: "UCL AI Society", image: "/logos/unicorn-mafia.svg", link: "https://uclaisociety.co.uk/" },
+    {
+      name: "Iterate",
+      link: "https://www.linkedin.com/company/iteratehackathons/",
+    },
+    {
+      name: "Unicorn Mafia",
+      image: "/logos/unicorn-mafia.svg",
+      link: "https://www.unicrnmafia.com/",
+    },
+    {
+      name: "UCL AI Society",
+      image: "/logos/unicorn-mafia.svg",
+      link: "https://uclaisociety.co.uk/",
+    },
     { name: "Holistic AI", image: "", link: "https://www.holisticai.com/" },
     { name: "SATURN", image: "", link: "https://www.saturnos.com/" },
+    { name: "Thrad", image: "", link: "https://www.thrad.ai/" },
   ];
 
   return (
@@ -29,19 +41,21 @@ export default function SocialProofSection() {
 
       <div className="marquee-container">
         <div className="marquee-content flex items-center">
-          {[...logos, ...logos, ...logos, ...logos, ...logos, ...logos].map((logo, idx) => (
-            <a
-              key={idx}
-              href={logo.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mx-12 flex items-center gap-3 transition-all cursor-pointer"
-            >
-              <span className="text-3xl md:text-4xl font-black text-zinc-500 hover:text-[#fa43ad] transition-colors">
-                {logo.name.toUpperCase()}
-              </span>
-            </a>
-          ))}
+          {[...logos, ...logos, ...logos, ...logos, ...logos, ...logos].map(
+            (logo, idx) => (
+              <a
+                key={idx}
+                href={logo.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mx-12 flex items-center gap-3 transition-all cursor-pointer"
+              >
+                <span className="text-3xl md:text-4xl font-black text-zinc-500 hover:text-[#fa43ad] transition-colors">
+                  {logo.name.toUpperCase()}
+                </span>
+              </a>
+            ),
+          )}
         </div>
       </div>
     </section>
