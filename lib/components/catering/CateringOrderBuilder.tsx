@@ -38,6 +38,7 @@ import { groupSessionsByDay, formatTimeDisplay } from "./catering-order-helpers"
 
 // Icons
 import { Plus, Clock, ShoppingBag, Calendar, Search, X } from "lucide-react";
+import { DietaryFilter } from "@/types/menuItem";
 
 export default function CateringOrderBuilder() {
   const searchParams = useSearchParams();
@@ -137,6 +138,8 @@ export default function CateringOrderBuilder() {
     searchResults,
     searchLoading,
     restaurants,
+    selectedDietaryFilters,
+    toggleDietaryFilter,
   } = useCateringData({ expandedSessionIndex });
 
   const {
@@ -1013,6 +1016,39 @@ export default function CateringOrderBuilder() {
           </div>
         </div>
       )}
+
+      {/* Dietary Restriction Filters */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-hide -mx-3 px-3 md:-mx-5 md:px-5">
+        <span className="flex-shrink-0 text-xs text-gray-500 mr-1">Diet:</span>
+        {(
+          [
+            { value: DietaryFilter.HALAL, label: "Halal" },
+            { value: DietaryFilter.VEGETARIAN, label: "Vegetarian" },
+            { value: DietaryFilter.VEGAN, label: "Vegan" },
+            { value: DietaryFilter.PESCATERIAN, label: "Pescatarian" },
+          ] as const
+        ).map((option) => (
+          <button
+            key={option.value}
+            onClick={() => toggleDietaryFilter(option.value)}
+            className={`
+              flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border
+              ${
+                selectedDietaryFilters.includes(option.value)
+                  ? "bg-green-600 text-white border-green-600"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-green-500 hover:text-green-600"
+              }
+            `}
+          >
+            {option.label}
+            {selectedDietaryFilters.includes(option.value) && (
+              <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+                ×
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
 
       {/* Menu Items */}
       <div className="bg-base-100 rounded-xl p-4 mt-2">
