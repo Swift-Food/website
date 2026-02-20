@@ -6,6 +6,7 @@ import { UpdateDeliveryTimeDto } from '@/types/catering.types';
 import { CateringOrderResponse } from '@/types/api';
 import { cateringService } from '@/services/api/catering.api';
 import { Clock, AlertCircle } from 'lucide-react';
+import { formatTimeDisplay } from '../catering-order-helpers';
 
 interface DeliveryTimeManagerProps {
   order: CateringOrderResponse;
@@ -135,7 +136,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
         </form>
       ) : (
         <div>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900">{order.eventTime}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{formatTimeDisplay(order.eventTime)}</p>
           {order.collectionTime && (
             <p className="text-xs sm:text-sm text-gray-600 mt-1">
               Collection: {order.collectionTime}

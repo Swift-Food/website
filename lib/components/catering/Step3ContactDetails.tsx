@@ -12,7 +12,8 @@ import AllMealSessionsItems from "./AllMealSessionsItems";
 import {
   LocalMealSession,
   transformLocalSessionsToPdfData,
-} from "@/lib/utils/menuPdfUtils";  
+} from "@/lib/utils/menuPdfUtils";
+import { formatTimeDisplay } from "./catering-order-helpers";
 import { pdf } from "@react-pdf/renderer";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
@@ -933,7 +934,7 @@ export default function Step3ContactInfo() {
                   {eventDetails?.eventDate}
                 </p>
                 <p className="text-sm text-base-content/80">
-                  {eventDetails?.eventTime}
+                  {eventDetails?.eventTime ? formatTimeDisplay(eventDetails.eventTime) : null}
                 </p>
               </div>
               <div>

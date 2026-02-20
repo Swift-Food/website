@@ -79,9 +79,16 @@ export default function OrderItems({ order }: OrderItemsProps) {
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(":");
     const hour = parseInt(hours, 10);
+    const minute = parseInt(minutes, 10);
     const ampm = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
+    const start = `${hour12}:${String(minute).padStart(2, "0")} ${ampm}`;
+    const totalEnd = hour * 60 + minute + 30;
+    const endHour = Math.floor(totalEnd / 60) % 24;
+    const endMinute = totalEnd % 60;
+    const endAmpm = endHour >= 12 ? "PM" : "AM";
+    const endHour12 = endHour % 12 || 12;
+    return `${start} – ${endHour12}:${String(endMinute).padStart(2, "0")} ${endAmpm}`;
   };
 
   // Render a single restaurant's menu items

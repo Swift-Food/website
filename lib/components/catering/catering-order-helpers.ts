@@ -79,9 +79,16 @@ export function formatTimeDisplay(eventTime: string | undefined): string {
   if (!eventTime) return "Set time";
   const [hours, minutes] = eventTime.split(":");
   const hour = parseInt(hours);
+  const minute = parseInt(minutes);
   const period = hour >= 12 ? "PM" : "AM";
   const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${period}`;
+  const start = `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
+  const totalEnd = hour * 60 + minute + 30;
+  const endHour = Math.floor(totalEnd / 60) % 24;
+  const endMinute = totalEnd % 60;
+  const endPeriod = endHour >= 12 ? "PM" : "AM";
+  const endHour12 = endHour % 12 || 12;
+  return `${start} – ${endHour12}:${String(endMinute).padStart(2, "0")} ${endPeriod}`;
 }
 
 /**
