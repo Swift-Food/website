@@ -66,6 +66,18 @@ export default function SessionEditor({
       return;
     }
 
+    // Validate time is within allowed range (7:00 AM – 8:30 PM)
+    const [etHour, etMinute] = eventTime.split(":").map(Number);
+    const etTotal = etHour * 60 + etMinute;
+    if (etTotal < 7 * 60) {
+      setValidationError("Sessions cannot start before 7:00 AM.");
+      return;
+    }
+    if (etTotal > 20 * 60 + 30) {
+      setValidationError("Sessions cannot start after 8:30 PM.");
+      return;
+    }
+
     // Validate catering operation hours
     // Get unique restaurant IDs from session items
     const restaurantIds = new Set(
