@@ -82,6 +82,8 @@ export interface PricingOrderItem {
   restaurantId: string;
   restaurantName: string;
   status: string;
+  totalPrice: number;
+  promotionDiscount: number;
   specialInstructions?: string;
   reminderConfirmed?: boolean;
   reminderConfirmedAt?: string | Date;
