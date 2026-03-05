@@ -120,7 +120,7 @@ export default function Step3ContactInfo() {
         (sum, { price, quantity }) => {
           return sum + (price || 0) * (quantity || 0);
         },
-        0
+        0,
       );
 
       return total + unitPrice * quantity + addonTotal;
@@ -154,7 +154,6 @@ export default function Step3ContactInfo() {
       return false;
     }
   };
-  
 
   const validatePhone = (phone: string): string | undefined => {
     if (!phone.trim()) {
@@ -198,7 +197,9 @@ export default function Step3ContactInfo() {
     }));
   };
 
-  const handleBillingBlur = (field: keyof NonNullable<ContactInfo["billingAddress"]>) => {
+  const handleBillingBlur = (
+    field: keyof NonNullable<ContactInfo["billingAddress"]>,
+  ) => {
     // Only validate if user has started filling in billing address
     if (!hasBillingAddressData()) return;
 
@@ -235,7 +236,10 @@ export default function Step3ContactInfo() {
   };
 
   // Clear error when user starts typing
-  const handleChange = (field: keyof ContactInfo, value: string | ContactInfo["billingAddress"]) => {
+  const handleChange = (
+    field: keyof ContactInfo,
+    value: string | ContactInfo["billingAddress"],
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (field in errors) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -254,7 +258,11 @@ export default function Step3ContactInfo() {
   const hasBillingAddressData = (): boolean => {
     const billing = formData.billingAddress;
     if (!billing) return false;
-    return !!(billing.line1?.trim() || billing.city?.trim() || billing.postalCode?.trim());
+    return !!(
+      billing.line1?.trim() ||
+      billing.city?.trim() ||
+      billing.postalCode?.trim()
+    );
   };
 
   // Validate billing address fields - only required if user has started filling it in
@@ -274,7 +282,8 @@ export default function Step3ContactInfo() {
     if (!billing?.postalCode?.trim()) {
       billingErrors.postalCode = "Postcode is required";
     } else if (!validateUKPostcode(billing.postalCode)) {
-      billingErrors.postalCode = "Please enter a valid UK postcode (e.g., SW1A 1AA)";
+      billingErrors.postalCode =
+        "Please enter a valid UK postcode (e.g., SW1A 1AA)";
     }
 
     // Return undefined if no errors, otherwise return the errors object
@@ -305,7 +314,8 @@ export default function Step3ContactInfo() {
 
       // Validate that latitude and longitude are present (ensures Google autocomplete selection)
       if (!formData.latitude || !formData.longitude) {
-        newErrors.addressLine1 = "Please select an address from the Google autocomplete dropdown";
+        newErrors.addressLine1 =
+          "Please select an address from the Google autocomplete dropdown";
       }
     }
 
@@ -343,7 +353,7 @@ export default function Step3ContactInfo() {
       // Scroll to first error - improved version
       setTimeout(() => {
         const firstErrorField = Object.keys(errors).find(
-          (key) => errors[key as keyof ValidationErrors]
+          (key) => errors[key as keyof ValidationErrors],
         );
 
         if (firstErrorField) {
@@ -416,16 +426,15 @@ export default function Step3ContactInfo() {
           ccEmails,
           paymentData,
           eventId || undefined,
-          specialInstructions
+          specialInstructions,
         );
-
-     
 
       markOrderAsSubmitted();
       setShowPaymentModal(false);
 
       // Navigate to the order view page using the access token
-      const accessToken = createCateringOrderResponse?.sharedAccessUsers?.[0]?.accessToken;
+      const accessToken =
+        createCateringOrderResponse?.sharedAccessUsers?.[0]?.accessToken;
       if (accessToken) {
         router.push(`/event-order/view/${accessToken}`);
       } else {
@@ -457,34 +466,34 @@ export default function Step3ContactInfo() {
       ) {
         console.error("Network Error Detected");
         alert(
-          "Network error: Please check your internet connection and try again."
+          "Network error: Please check your internet connection and try again.",
         );
       }
       // Check if it's an API error with response
       else if (error?.response) {
         console.error(
           "API Response Error:",
-          JSON.stringify(error.response, null, 2)
+          JSON.stringify(error.response, null, 2),
         );
         console.error("Status Code:", error.response.status);
         console.error("Status Text:", error.response.statusText);
         console.error(
           "Response Data:",
-          JSON.stringify(error.response.data, null, 2)
+          JSON.stringify(error.response.data, null, 2),
         );
         alert(
           `Failed to submit order: ${
             error.response.data?.message ||
             error.response.statusText ||
             "Unknown error"
-          }`
+          }`,
         );
       }
       // Generic error
       else {
         console.error("Unknown Error Type");
         alert(
-          `Failed to submit order: ${error?.message || "Please try again."}`
+          `Failed to submit order: ${error?.message || "Please try again."}`,
         );
       }
 
@@ -501,7 +510,7 @@ export default function Step3ContactInfo() {
       console.error("- Organization ID:", organizationId);
       console.error("- Corporate User ID:", corporateUserId);
       alert(
-        "Missing organization or user information. Please try logging in again."
+        "Missing organization or user information. Please try logging in again.",
       );
       return;
     }
@@ -527,7 +536,7 @@ export default function Step3ContactInfo() {
 
   const handleCardPaymentComplete = async (
     paymentMethodId: string,
-    paymentIntentId: string
+    paymentIntentId: string,
   ) => {
     // Validation
     if (!paymentMethodId || !paymentIntentId) {
@@ -558,11 +567,12 @@ export default function Step3ContactInfo() {
           ? { latitude: formData.latitude, longitude: formData.longitude }
           : undefined;
 
-      const pricingResult = await cateringService.calculateCateringPricingWithMealSessions(
-        mealSessions,
-        promoCodes,
-        deliveryLocation
-      );
+      const pricingResult =
+        await cateringService.calculateCateringPricingWithMealSessions(
+          mealSessions,
+          promoCodes,
+          deliveryLocation,
+        );
 
       if (!pricingResult.isValid) {
         // Show London delivery error inline
@@ -639,7 +649,10 @@ export default function Step3ContactInfo() {
               if (eventData.address.zipcode) {
                 addressUpdates.zipcode = eventData.address.zipcode;
               }
-              if (eventData.address.location?.latitude && eventData.address.location?.longitude) {
+              if (
+                eventData.address.location?.latitude &&
+                eventData.address.location?.longitude
+              ) {
                 addressUpdates.latitude = eventData.address.location.latitude;
                 addressUpdates.longitude = eventData.address.location.longitude;
               }
@@ -667,14 +680,18 @@ export default function Step3ContactInfo() {
             }
 
             // Prefill first meal session date with event start date
-            if (eventData.startDateTime && mealSessions.length > 0 && !mealSessions[0].sessionDate) {
+            if (
+              eventData.startDateTime &&
+              mealSessions.length > 0 &&
+              !mealSessions[0].sessionDate
+            ) {
               const eventStartDate = new Date(eventData.startDateTime);
-              const sessionDate = eventStartDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+              const sessionDate = eventStartDate.toISOString().split("T")[0]; // YYYY-MM-DD format
 
               // Also extract time from startDateTime (HH:MM format)
               const hours = eventStartDate.getHours();
               const minutes = eventStartDate.getMinutes();
-              const eventTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+              const eventTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 
               updateMealSession(0, {
                 sessionDate,
@@ -704,10 +721,11 @@ export default function Step3ContactInfo() {
 
     try {
       // Use meal sessions format for promo validation
-      const validation = await cateringService.validatePromoCodeWithMealSessions(
-        code,
-        mealSessions
-      );
+      const validation =
+        await cateringService.validatePromoCodeWithMealSessions(
+          code,
+          mealSessions,
+        );
 
       if (validation.valid) {
         if (!promoCodes.includes(code)) {
@@ -777,14 +795,17 @@ export default function Step3ContactInfo() {
     if (country && country !== "GB") {
       setErrors((prev) => ({
         ...prev,
-        addressLine1: "Sorry, we only deliver to addresses within the United Kingdom.",
+        addressLine1:
+          "Sorry, we only deliver to addresses within the United Kingdom.",
       }));
     } else {
       // Clear client-side address errors only (not server-side London validation errors)
       // The London error will be set/cleared by calculatePricing based on API response
       setErrors((prev) => ({
         ...prev,
-        addressLine1: prev.addressLine1?.includes("London") ? prev.addressLine1 : undefined,
+        addressLine1: prev.addressLine1?.includes("London")
+          ? prev.addressLine1
+          : undefined,
         city: undefined,
         zipcode: undefined,
       }));
@@ -819,7 +840,6 @@ export default function Step3ContactInfo() {
     }));
   };
 
-
   // Handle view menu - opens modal to choose with/without prices
   const handleViewMenu = () => {
     setShowPdfModal(true);
@@ -831,37 +851,39 @@ export default function Step3ContactInfo() {
     setGeneratingPdf(true);
     try {
       // Convert mealSessions to LocalMealSession format
-      const sessionsForPreview: LocalMealSession[] = mealSessions.map((session) => ({
-        sessionName: session.sessionName,
-        sessionDate: session.sessionDate,
-        eventTime: session.eventTime,
-        orderItems: session.orderItems.map((orderItem) => ({
-          item: {
-            id: orderItem.item.id,
-            menuItemName: orderItem.item.menuItemName,
-            price: orderItem.item.price,
-            discountPrice: orderItem.item.discountPrice,
-            isDiscount: orderItem.item.isDiscount,
-            image: orderItem.item.image,
-            restaurantId: orderItem.item.restaurantId,
-            cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
-            feedsPerUnit: orderItem.item.feedsPerUnit,
-            categoryName: orderItem.item.categoryName,
-            subcategoryName: orderItem.item.subcategoryName,
-            selectedAddons: orderItem.item.selectedAddons,
-            description: (orderItem.item as any).description,
-            allergens: (orderItem.item as any).allergens,
-            dietaryFilters: (orderItem.item as any).dietaryFilters,
-          },
-          quantity: orderItem.quantity,
-        })),
-      }));
+      const sessionsForPreview: LocalMealSession[] = mealSessions.map(
+        (session) => ({
+          sessionName: session.sessionName,
+          sessionDate: session.sessionDate,
+          eventTime: session.eventTime,
+          orderItems: session.orderItems.map((orderItem) => ({
+            item: {
+              id: orderItem.item.id,
+              menuItemName: orderItem.item.menuItemName,
+              price: orderItem.item.price,
+              discountPrice: orderItem.item.discountPrice,
+              isDiscount: orderItem.item.isDiscount,
+              image: orderItem.item.image,
+              restaurantId: orderItem.item.restaurantId,
+              cateringQuantityUnit: orderItem.item.cateringQuantityUnit,
+              feedsPerUnit: orderItem.item.feedsPerUnit,
+              categoryName: orderItem.item.categoryName,
+              subcategoryName: orderItem.item.subcategoryName,
+              selectedAddons: orderItem.item.selectedAddons,
+              description: (orderItem.item as any).description,
+              allergens: (orderItem.item as any).allergens,
+              dietaryFilters: (orderItem.item as any).dietaryFilters,
+            },
+            quantity: orderItem.quantity,
+          })),
+        }),
+      );
 
       // Transform to PDF data format (now async to fetch images)
       // Don't pass delivery fee - show as TBC (same as CateringOrderBuilder)
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
-        withPrices
+        withPrices,
       );
       // Generate and download PDF
       const blob = await pdf(
@@ -871,13 +893,15 @@ export default function Step3ContactInfo() {
           deliveryCharge={pdfData.deliveryCharge}
           totalPrice={pdfData.totalPrice}
           logoUrl={pdfData.logoUrl}
-        />
+        />,
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = withPrices ? "catering-menu-with-prices.pdf" : "catering-menu.pdf";
+      link.download = withPrices
+        ? "catering-menu-with-prices.pdf"
+        : "catering-menu.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -916,7 +940,9 @@ export default function Step3ContactInfo() {
             </h2>
             <p className="text-base-content/70 text-lg">
               We'll get back to you within 24 hours via your preferred contact
-              method. You will receive a payment link once the order is confirmed by the restaurants. Trusted by 90+ London university societies.
+              method. You will receive a payment link once the order is
+              confirmed by the restaurants. Trusted by 90+ London university
+              societies.
             </p>
           </div>
 
@@ -934,7 +960,9 @@ export default function Step3ContactInfo() {
                   {eventDetails?.eventDate}
                 </p>
                 <p className="text-sm text-base-content/80">
-                  {eventDetails?.eventTime ? formatTimeDisplay(eventDetails.eventTime) : null}
+                  {eventDetails?.eventTime
+                    ? formatTimeDisplay(eventDetails.eventTime)
+                    : null}
                 </p>
               </div>
               <div>
@@ -968,7 +996,7 @@ export default function Step3ContactInfo() {
               {selectedItems.map(({ item, quantity }, index) => {
                 const price = parseFloat(item.price?.toString() || "0");
                 const discountPrice = parseFloat(
-                  item.discountPrice?.toString() || "0"
+                  item.discountPrice?.toString() || "0",
                 );
                 const itemPrice =
                   item.isDiscount && discountPrice > 0 ? discountPrice : price;
@@ -982,7 +1010,7 @@ export default function Step3ContactInfo() {
                   (sum, { price, quantity }) => {
                     return sum + (price || 0) * (quantity || 0);
                   },
-                  0
+                  0,
                 );
 
                 const subtotal = itemPrice * quantity + addonTotal;
@@ -1110,7 +1138,7 @@ export default function Step3ContactInfo() {
         ></div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">
@@ -1135,31 +1163,36 @@ export default function Step3ContactInfo() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* Selected Items - Left Side */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
-            <AllMealSessionsItems showActions={false} onViewMenu={handleViewMenu} isGeneratingPdf={generatingPdf} />
+          <div className="lg:col-span-3 order-2 lg:order-1">
+            <AllMealSessionsItems
+              showActions={false}
+              onViewMenu={handleViewMenu}
+              isGeneratingPdf={generatingPdf}
+            />
           </div>
 
           {/* Contact Form Card - Right Side */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
-            <div className="bg-base-200/30 rounded-2xl p-6 border border-base-300">
+          <div className="lg:col-span-2 order-1 lg:order-2">
+            <div className="bg-white rounded-2xl p-6 border border-base-300">
               <h3 className="text-xl font-bold mb-6 text-base-content">
                 Contact & Delivery Details
               </h3>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Delivery Address Section - Only for guest users */}
-       
+
                 <DeliveryAddressForm
                   formData={formData}
                   errors={errors}
                   onFieldChange={handleChange}
                   onPlaceSelect={handlePlaceSelect}
                   onClearAddress={handleClearAddress}
-                  hasValidAddress={selectedPlaceId !== null && formData.addressLine1 !== ""}
+                  hasValidAddress={
+                    selectedPlaceId !== null && formData.addressLine1 !== ""
+                  }
                 />
-     
 
                 {/* Contact Details Section */}
                 <ContactInfoForm
