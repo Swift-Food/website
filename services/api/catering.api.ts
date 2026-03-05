@@ -33,9 +33,48 @@ import {
 import { CategoryWithSubcategories } from "@/types/catering.types";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
 import { API_ENDPOINTS } from "@/lib/constants/api";
-import { create } from "domain";
 
 class CateringService {
+  private readErrorMessage = async (response: Response): Promise<string> => {
+    const contentType = response.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const body = await response.json().catch(() => ({}));
+      return body?.message || body?.error || "";
+    }
+
+    return (await response.text().catch(() => "")).trim();
+  };
+
+  private normalizeUkPhoneToE164(phone: string): string {
+    const trimmed = (phone || "").trim();
+    if (!trimmed) {
+      throw new Error("Phone number is required");
+    }
+
+    // Keep only digits, while preserving a single leading "+"
+    const startsWithPlus = trimmed.startsWith("+");
+    const numeric = trimmed.replace(/\D/g, "");
+    const compact = startsWithPlus ? `+${numeric}` : numeric;
+
+    let normalized: string;
+    if (compact.startsWith("+")) {
+      normalized = compact;
+    } else if (compact.startsWith("44")) {
+      normalized = `+${compact}`;
+    } else if (compact.startsWith("0")) {
+      normalized = `+44${compact.slice(1)}`;
+    } else {
+      normalized = `+44${compact}`;
+    }
+
+    if (!/^\+?[1-9]\d{1,14}$/.test(normalized)) {
+      throw new Error("Invalid phone number format");
+    }
+
+    return normalized;
+  }
+
   async searchMenuItems(
     query: string,
     filters?: SearchFilters
@@ -294,25 +333,26 @@ class CateringService {
 
   async findOrCreateConsumerAccount(contactInfo: ContactInfo): Promise<string> {
     // Step 1: Check if user exists by email
-    try {
-      const checkResponse = await fetchWithAuth(
-        `${API_BASE_URL}/users/email/${encodeURIComponent(contactInfo.email)}`
-      );
+    const checkResponse = await fetchWithAuth(
+      `${API_BASE_URL}/users/email/${encodeURIComponent(contactInfo.email)}`
+    );
 
-      if (checkResponse.ok) {
-        const existingUser = await checkResponse.json();
-        return existingUser.id; // User exists, return their ID
-      }
-    } catch (error) {
-      console.error(error);
-      // User doesn't exist, continue to create
+    if (checkResponse.ok) {
+      const existingUser = await checkResponse.json();
+      return existingUser.id; // User exists, return their ID
+    }
+
+    if (checkResponse.status !== 404) {
+      const lookupMessage = await this.readErrorMessage(checkResponse);
+      throw new Error(
+        lookupMessage ||
+          `Failed to check user by email (status ${checkResponse.status})`
+      );
     }
 
     // Step 2: Create new user if not found
     const randomPassword = Math.random().toString(36).slice(-10) + "A1";
-    const formattedPhone = contactInfo.phone.startsWith("+")
-      ? contactInfo.phone
-      : "+44" + contactInfo.phone.replace(/^0/, "");
+    const formattedPhone = this.normalizeUkPhoneToE164(contactInfo.phone);
 
     const createConsumerDto = {
       userDetails: {
@@ -330,7 +370,11 @@ class CateringService {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create consumer account");
+      const errorMessage = await this.readErrorMessage(response);
+      throw new Error(
+        errorMessage ||
+          `Failed to create consumer account (status ${response.status})`
+      );
     }
 
     const data = await response.json();
