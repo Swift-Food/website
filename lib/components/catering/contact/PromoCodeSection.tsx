@@ -31,11 +31,11 @@ export default function PromoCodeSection({
   };
 
   return (
-    <div className="pt-4 border-t border-base-300">
+    <div className="py-6 border-y border-base-300">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between mb-3 group"
+        className={`w-full flex items-center justify-between group ${isExpanded ? "mb-4" : "mb-0"}`}
       >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60 group-hover:bg-dark-pink/10 group-hover:text-dark-pink transition-colors">
@@ -66,7 +66,7 @@ export default function PromoCodeSection({
       </button>
 
       {isExpanded && (
-        <div className="p-4 rounded-xl border border-base-300">
+        <div>
           <div className="flex gap-2 mb-3">
             <input
               type="text"

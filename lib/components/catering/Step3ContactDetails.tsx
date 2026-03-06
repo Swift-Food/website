@@ -1219,7 +1219,7 @@ export default function Step3ContactInfo() {
                 />
 
                 {/* Special Instructions */}
-                <div className="border-t border-base-300 pt-8">
+                <div className="pt-8">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60">
                       <svg
