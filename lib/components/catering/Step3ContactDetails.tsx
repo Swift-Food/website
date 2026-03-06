@@ -15,7 +15,7 @@ import {
 } from "@/lib/utils/menuPdfUtils";
 import { formatTimeDisplay } from "./catering-order-helpers";
 import { pdf } from "@react-pdf/renderer";
-import { FileText } from "lucide-react";
+import { ArrowDown, FileText } from "lucide-react";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
 import DeliveryAddressForm from "./contact/DeliveryAddressForm";
@@ -1219,19 +1219,32 @@ export default function Step3ContactInfo() {
 
           {/* Contact Form Card - Right Side */}
           <div className="lg:col-span-2 order-1 lg:order-2">
+            <button
+              type="button"
+              onClick={() => scrollToSection(orderDetailsRef)}
+              className="lg:hidden mb-4 flex w-full items-center justify-between rounded-2xl border border-base-300 bg-base-100/80 px-4 py-3 text-left shadow-sm transition-all hover:border-dark-pink/30 hover:bg-base-100"
+            >
+              <span className="min-w-0">
+                <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-base-content/45">
+                  Quick jump
+                </span>
+                <span className="mt-1 block text-sm font-semibold text-base-content">
+                  Review order details
+                </span>
+                <span className="mt-0.5 block text-xs text-base-content/60">
+                  Check the menu and quantities before submitting
+                </span>
+              </span>
+              <span className="ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-dark-pink/10 text-dark-pink">
+                <ArrowDown size={18} />
+              </span>
+            </button>
+
             <div className="bg-base-200/30 rounded-3xl border border-base-300 shadow-xl shadow-base-300/30 p-4 md:p-8">
               <h3 className="text-xl font-bold mb-8 flex items-center gap-3 text-base-content">
                 <span className="w-1.5 h-6 bg-dark-pink rounded-full"></span>
                 Contact & Delivery Details
               </h3>
-
-              <button
-                type="button"
-                onClick={() => scrollToSection(orderDetailsRef)}
-                className="lg:hidden mb-6 w-full rounded-2xl bg-dark-pink px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-all hover:opacity-90"
-              >
-                Jump to order details
-              </button>
 
               <form onSubmit={handleSubmit} className="space-y-10">
                 {/* Delivery Address Section - Only for guest users */}
