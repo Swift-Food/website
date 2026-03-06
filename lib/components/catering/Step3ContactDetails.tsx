@@ -1363,30 +1363,14 @@ export default function Step3ContactInfo() {
 
                 {/* Terms and Conditions */}
                 <div className="space-y-6 pt-2">
-                  <div className="flex items-start gap-3 cursor-pointer group">
-                    <div className="relative mt-0.5">
-                      <input
-                        type="checkbox"
-                        id="terms"
-                        checked={termsAccepted}
-                        onChange={(e) => setTermsAccepted(e.target.checked)}
-                        className="peer sr-only"
-                      />
-                      <div className="w-5 h-5 border-2 border-base-300 rounded peer-checked:border-dark-pink peer-checked:bg-dark-pink transition-all"></div>
-                      <svg
-                        className="absolute top-[4px] left-[4px] w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
+                  <div className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="h-5 w-5 shrink-0 cursor-pointer rounded border-base-300 bg-base-100 text-dark-pink focus:ring-2 focus:ring-dark-pink focus:ring-offset-2"
+                    />
                     <label
                       htmlFor="terms"
                       className="text-[11px] text-base-content/70 leading-relaxed cursor-pointer"
