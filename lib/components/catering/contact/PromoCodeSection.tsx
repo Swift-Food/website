@@ -31,7 +31,7 @@ export default function PromoCodeSection({
   };
 
   return (
-    <div className="py-6 border-y border-base-300">
+    <div className="py-4 border-y border-base-300">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
