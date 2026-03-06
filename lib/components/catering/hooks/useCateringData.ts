@@ -277,5 +277,9 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
 
     // Restaurants
     restaurants,
+
+    // All menu items (for external consumers)
+    allMenuItems,
+    fetchAllMenuItems,
   };
 }
