@@ -37,7 +37,22 @@ export default function PromoCodeSection({
         className="w-full flex items-center justify-between mb-3 group"
       >
         <div className="flex items-center gap-2">
-          <h4 className="text-sm font-bold text-base-content">Discount Code</h4>
+          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60 group-hover:bg-dark-pink/10 group-hover:text-dark-pink transition-colors">
+            <svg
+              className="w-[18px] h-[18px]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M20 12V7a2 2 0 00-2-2h-5l-2 2H6a2 2 0 00-2 2v3m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m5 0l2 2m0 0l2-2m-2 2V8"
+              />
+            </svg>
+          </div>
+          <h4 className="font-bold text-sm text-base-content">Discount Code</h4>
           {promoCodes.length > 0 && (
             <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full">
               {promoCodes.length} applied

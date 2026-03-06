@@ -238,7 +238,7 @@ export default function ContactInfoForm({
           className="w-full flex items-center justify-between group"
         >
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-base-200 flex items-center justify-center text-base-content/60 group-hover:bg-dark-pink/10 group-hover:text-dark-pink transition-colors">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60 group-hover:bg-dark-pink/10 group-hover:text-dark-pink transition-colors">
               <svg
                 className="w-[18px] h-[18px]"
                 fill="none"

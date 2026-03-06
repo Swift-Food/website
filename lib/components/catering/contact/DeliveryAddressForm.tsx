@@ -82,8 +82,8 @@ export default function DeliveryAddressForm({
               errors.addressLine1 &&
               !errors.addressLine1.includes("United Kingdom") &&
               !errors.addressLine1.includes("London")
-                ? "border-error bg-base-100"
-                : "border-base-300 bg-base-200/50"
+                ? "border-error bg-gray-50"
+                : "border-base-300 bg-gray-50"
             } text-base-content/70 cursor-not-allowed`}
           />
           {errors.addressLine1 &&
@@ -120,7 +120,7 @@ export default function DeliveryAddressForm({
             readOnly
             placeholder="Auto-filled"
             className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none transition-all ${
-              errors.city ? "border-error bg-base-100" : "border-base-300 bg-base-200/50"
+              errors.city ? "border-error bg-gray-50" : "border-base-300 bg-gray-50"
             } text-base-content/70 cursor-not-allowed`}
           />
           {errors.city && <p className="mt-1 text-xs text-error">{errors.city}</p>}
@@ -139,8 +139,8 @@ export default function DeliveryAddressForm({
             placeholder="Auto-filled"
             className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none transition-all ${
               errors.zipcode
-                ? "border-error bg-base-100"
-                : "border-base-300 bg-base-200/50"
+                ? "border-error bg-gray-50"
+                : "border-base-300 bg-gray-50"
             } text-base-content/70 cursor-not-allowed`}
           />
           {errors.zipcode && (
