@@ -1369,7 +1369,7 @@ export default function Step3ContactInfo() {
                       id="terms"
                       checked={termsAccepted}
                       onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="h-5 w-5 shrink-0 cursor-pointer rounded border-base-300 bg-base-100 text-dark-pink focus:ring-2 focus:ring-dark-pink focus:ring-offset-2"
+                      className="h-5 w-5 shrink-0 cursor-pointer rounded border-base-300 bg-base-100 text-dark-pink focus:outline-none focus:ring-0 focus:ring-offset-0"
                     />
                     <label
                       htmlFor="terms"
