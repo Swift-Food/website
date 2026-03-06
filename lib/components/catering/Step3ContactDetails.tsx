@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, FormEvent, useEffect, useMemo } from "react";
+import { useState, FormEvent, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
 import { cateringService } from "@/services/api/catering.api";
@@ -47,6 +47,8 @@ interface ValidationErrors {
 export default function Step3ContactInfo() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const topSectionRef = useRef<HTMLDivElement | null>(null);
+  const orderDetailsRef = useRef<HTMLDivElement | null>(null);
   const {
     contactInfo,
     setContactInfo,
@@ -93,6 +95,7 @@ export default function Step3ContactInfo() {
   const [corporateUserId, setCorporateUserId] = useState<string>("");
   const [organizationId, setOrganizationId] = useState<string>("");
   const [specialInstructions, setSpecialInstructions] = useState<string>("");
+  const [showBackToTopButton, setShowBackToTopButton] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "wallet" | "card" | null
   >(null);
@@ -915,6 +918,33 @@ export default function Step3ContactInfo() {
     }
   };
 
+  const scrollToSection = (ref: { current: HTMLDivElement | null }) => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  useEffect(() => {
+    const updateBackToTopVisibility = () => {
+      if (window.innerWidth >= 1024) {
+        setShowBackToTopButton(false);
+        return;
+      }
+
+      const menuTop = orderDetailsRef.current?.getBoundingClientRect().top;
+      setShowBackToTopButton(menuTop !== undefined && menuTop <= 120);
+    };
+
+    updateBackToTopVisibility();
+    window.addEventListener("scroll", updateBackToTopVisibility, {
+      passive: true,
+    });
+    window.addEventListener("resize", updateBackToTopVisibility);
+
+    return () => {
+      window.removeEventListener("scroll", updateBackToTopVisibility);
+      window.removeEventListener("resize", updateBackToTopVisibility);
+    };
+  }, []);
+
   if (success) {
     return (
       <div className="min-h-screen bg-base-100 py-8 px-4">
@@ -1136,7 +1166,7 @@ export default function Step3ContactInfo() {
 
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         {/* Header */}
-        <div className="mb-8">
+        <div ref={topSectionRef} className="mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
               {/* <p className="text-sm text-primary mb-2">
@@ -1161,12 +1191,30 @@ export default function Step3ContactInfo() {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* Selected Items - Left Side */}
-          <div className="lg:col-span-3 order-2 lg:order-1">
+          <div
+            ref={orderDetailsRef}
+            className="lg:col-span-3 order-2 lg:order-1 pb-24 lg:pb-0"
+          >
             <AllMealSessionsItems
               showActions={false}
               onViewMenu={handleViewMenu}
               isGeneratingPdf={generatingPdf}
             />
+            <div
+              className={`lg:hidden fixed inset-x-4 bottom-4 z-30 transition-all duration-200 ${
+                showBackToTopButton
+                  ? "pointer-events-auto opacity-100 translate-y-0"
+                  : "pointer-events-none opacity-0 translate-y-4"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => scrollToSection(topSectionRef)}
+                className="w-full rounded-2xl border border-base-300 bg-base-100/95 px-4 py-3 text-sm font-semibold text-base-content shadow-lg backdrop-blur transition-all hover:bg-base-100"
+              >
+                Back to top
+              </button>
+            </div>
           </div>
 
           {/* Contact Form Card - Right Side */}
@@ -1176,6 +1224,14 @@ export default function Step3ContactInfo() {
                 <span className="w-1.5 h-6 bg-dark-pink rounded-full"></span>
                 Contact & Delivery Details
               </h3>
+
+              <button
+                type="button"
+                onClick={() => scrollToSection(orderDetailsRef)}
+                className="lg:hidden mb-6 w-full rounded-2xl bg-dark-pink px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-all hover:opacity-90"
+              >
+                Jump to order details
+              </button>
 
               <form onSubmit={handleSubmit} className="space-y-10">
                 {/* Delivery Address Section - Only for guest users */}
