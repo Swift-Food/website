@@ -1175,12 +1175,13 @@ export default function Step3ContactInfo() {
 
           {/* Contact Form Card - Right Side */}
           <div className="lg:col-span-2 order-1 lg:order-2">
-            <div className="bg-white rounded-2xl p-6 border border-base-300">
-              <h3 className="text-xl font-bold mb-6 text-base-content">
+            <div className="bg-white rounded-3xl border border-base-300 shadow-xl shadow-base-300/30 p-8 md:p-10">
+              <h3 className="text-xl font-bold mb-8 flex items-center gap-3 text-base-content">
+                <span className="w-1.5 h-6 bg-dark-pink rounded-full"></span>
                 Contact & Delivery Details
               </h3>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-10">
                 {/* Delivery Address Section - Only for guest users */}
 
                 <DeliveryAddressForm
@@ -1218,21 +1219,37 @@ export default function Step3ContactInfo() {
                 />
 
                 {/* Special Instructions */}
-                <div className="pt-4">
-                  <label
-                    htmlFor="specialInstructions"
-                    className="block text-sm font-medium text-base-content mb-2"
-                  >
-                    Special Instructions (Optional)
-                  </label>
+                <div className="border-t border-base-300 pt-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-base-200 flex items-center justify-center text-base-content/60">
+                      <svg
+                        className="w-[18px] h-[18px]"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"
+                        />
+                      </svg>
+                    </div>
+                    <h4 className="font-bold text-sm text-base-content">
+                      Special Instructions
+                    </h4>
+                    <span className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest ml-2">
+                      (Optional)
+                    </span>
+                  </div>
                   <textarea
                     id="specialInstructions"
                     name="specialInstructions"
                     value={specialInstructions}
                     onChange={(e) => setSpecialInstructions(e.target.value)}
                     placeholder="Any special requests or instructions for your order..."
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-xl border border-base-300 bg-base-100 text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/50 resize-none"
+                    className="w-full bg-white border border-base-300 rounded-xl px-4 py-3 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all min-h-[100px] resize-none"
                   />
                 </div>
 
@@ -1244,18 +1261,18 @@ export default function Step3ContactInfo() {
                 />
 
                 {/* Important Notes */}
-                <div className="pt-4">
+                <div>
                   <button
                     type="button"
-                    className="w-full bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-center justify-between focus:outline-none group"
+                    className="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-4 flex items-center justify-between focus:outline-none group"
                     onClick={() => setImportantNotesOpen((open) => !open)}
                     aria-expanded={importantNotesOpen}
                     aria-controls="important-notes-content"
                   >
-                    <span className="text-xs font-semibold text-warning">
+                    <span className="text-xs font-bold uppercase tracking-widest text-orange-700">
                       Important Notes
                     </span>
-                    <span className="ml-2 text-warning group-hover:underline flex items-center">
+                    <span className="ml-2 text-orange-500 group-hover:underline flex items-center">
                       <svg
                         className={`transition-transform duration-200 w-4 h-4 ${
                           importantNotesOpen ? "rotate-180" : "rotate-0"
@@ -1276,7 +1293,7 @@ export default function Step3ContactInfo() {
                   {importantNotesOpen && (
                     <div
                       id="important-notes-content"
-                      className="mt-2 text-xs text-base-content/80 leading-relaxed"
+                      className="mt-2 text-xs text-base-content/80 leading-relaxed space-y-1"
                     >
                       <p>
                         For accurate allergen information, please contact stalls
@@ -1291,18 +1308,34 @@ export default function Step3ContactInfo() {
                 </div>
 
                 {/* Terms and Conditions */}
-                <div className="pt-4">
-                  <div className="flex items-start gap-3 mb-4">
-                    <input
-                      type="checkbox"
-                      id="terms"
-                      checked={termsAccepted}
-                      onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="w-5 h-5 mt-0.5 rounded border-base-300 text-dark-pink focus:ring-2 focus:ring-dark-pink cursor-pointer"
-                    />
+                <div className="space-y-6 pt-2">
+                  <div className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative mt-0.5">
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        className="peer sr-only"
+                      />
+                      <div className="w-5 h-5 border-2 border-base-300 rounded peer-checked:border-dark-pink peer-checked:bg-dark-pink transition-all"></div>
+                      <svg
+                        className="absolute top-[4px] left-[4px] w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
                     <label
                       htmlFor="terms"
-                      className="text-sm text-base-content/80 cursor-pointer"
+                      className="text-[11px] text-base-content/70 leading-relaxed cursor-pointer"
                     >
                       I accept the{" "}
                       <a
@@ -1323,9 +1356,9 @@ export default function Step3ContactInfo() {
                 <button
                   type="submit"
                   disabled={submitting || !termsAccepted}
-                  className="w-full bg-dark-pink hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all disabled:bg-base-300 disabled:cursor-not-allowed"
+                  className="w-full bg-dark-pink text-white py-4 rounded-2xl font-bold uppercase tracking-[0.2em] text-sm hover:opacity-90 transition-all disabled:bg-base-300 disabled:cursor-not-allowed disabled:tracking-[0.08em]"
                 >
-                  {submitting ? "Submitting..." : "Submit"}
+                  {submitting ? "Submitting..." : "Submit Order"}
                 </button>
               </form>
             </div>

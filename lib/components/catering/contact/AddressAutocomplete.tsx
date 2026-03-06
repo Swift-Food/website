@@ -65,9 +65,9 @@ export default function AddressAutocomplete({
   };
 
   return (
-    <div className="mb-3">
-      <label className="block text-sm font-semibold mb-2 text-base-content">
-        Search Address*
+    <div className="col-span-full">
+      <label className="block text-[10px] font-bold text-base-content/60 uppercase tracking-widest mb-1.5">
+        Search Address<span className="text-dark-pink ml-0.5">*</span>
       </label>
       <div className="relative">
         <input
@@ -75,23 +75,27 @@ export default function AddressAutocomplete({
           type="text"
           placeholder="Start typing an address..."
           onChange={(e) => setInputValue(e.target.value)}
-          className={`w-full px-3 py-2 text-sm bg-base-200/50 border rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all ${
-            error ? "border-error" : hasValidAddress ? "border-success" : "border-base-300"
+          className={`w-full bg-white border rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all ${
+            error
+              ? "border-error"
+              : hasValidAddress
+                ? "border-success"
+                : "border-base-300"
           }`}
         />
         {hasValidAddress && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-primary hover:text-primary/80 font-medium"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-widest text-dark-pink hover:opacity-80"
           >
             Change
           </button>
         )}
       </div>
-      {error && <p className="mt-1 text-xs text-error">✗ {error}</p>}
+      {error && <p className="mt-1 text-xs text-error">{error}</p>}
       {hasValidAddress && !error && (
-        <p className="mt-1 text-xs text-success">✓ Address selected from Google</p>
+        <p className="mt-1 text-xs text-success">Address selected from Google</p>
       )}
       {!hasValidAddress && !error && (
         <p className="mt-1 text-xs text-base-content/60">
