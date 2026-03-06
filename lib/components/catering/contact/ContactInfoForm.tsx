@@ -259,7 +259,7 @@ export default function ContactInfoForm({
             </span>
           </div>
           <svg
-            className={`w-4 h-4 text-base-content/40 transition-transform ${showBillingAddress ? "rotate-180" : ""}`}
+            className={`w-5 h-5 text-base-content/60 transition-transform ${showBillingAddress ? "rotate-180" : ""}`}
             fill="none"
             stroke="currentColor"
             strokeWidth={2}
