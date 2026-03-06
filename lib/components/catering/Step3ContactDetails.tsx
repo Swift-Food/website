@@ -1262,49 +1262,51 @@ export default function Step3ContactInfo() {
 
                 {/* Important Notes */}
                 <div>
-                  <button
-                    type="button"
-                    className="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-4 flex items-center justify-between focus:outline-none group"
-                    onClick={() => setImportantNotesOpen((open) => !open)}
-                    aria-expanded={importantNotesOpen}
-                    aria-controls="important-notes-content"
-                  >
-                    <span className="text-xs font-bold uppercase tracking-widest text-orange-700">
-                      Important Notes
-                    </span>
-                    <span className="ml-2 text-orange-500 group-hover:underline flex items-center">
-                      <svg
-                        className={`transition-transform duration-200 w-4 h-4 ${
-                          importantNotesOpen ? "rotate-180" : "rotate-0"
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </span>
-                  </button>
-                  {importantNotesOpen && (
-                    <div
-                      id="important-notes-content"
-                      className="mt-2 text-xs text-base-content/80 leading-relaxed space-y-1"
+                  <div className="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-4">
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between focus:outline-none group"
+                      onClick={() => setImportantNotesOpen((open) => !open)}
+                      aria-expanded={importantNotesOpen}
+                      aria-controls="important-notes-content"
                     >
-                      <p>
-                        For accurate allergen information, please contact stalls
-                        or restaurants directly.
-                      </p>
-                      <p>
-                        For any last-minute changes, please contact us at least
-                        two days before your event.
-                      </p>
-                    </div>
-                  )}
+                      <span className="text-xs font-bold uppercase tracking-widest text-orange-700">
+                        Important Notes
+                      </span>
+                      <span className="ml-2 text-orange-500 group-hover:underline flex items-center">
+                        <svg
+                          className={`transition-transform duration-200 w-4 h-4 ${
+                            importantNotesOpen ? "rotate-180" : "rotate-0"
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    {importantNotesOpen && (
+                      <div
+                        id="important-notes-content"
+                        className="mt-3 text-xs text-base-content/80 leading-relaxed space-y-1"
+                      >
+                        <p>
+                          For accurate allergen information, please contact
+                          stalls or restaurants directly.
+                        </p>
+                        <p>
+                          For any last-minute changes, please contact us at
+                          least two days before your event.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Terms and Conditions */}

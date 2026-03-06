@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Percent } from "lucide-react";
 
 interface PromoCodeSectionProps {
   promoCodes: string[];
@@ -38,19 +39,7 @@ export default function PromoCodeSection({
       >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60 group-hover:bg-dark-pink/10 group-hover:text-dark-pink transition-colors">
-            <svg
-              className="w-[18px] h-[18px]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M20 12V7a2 2 0 00-2-2h-5l-2 2H6a2 2 0 00-2 2v3m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m5 0l2 2m0 0l2-2m-2 2V8"
-              />
-            </svg>
+            <Percent size={18} />
           </div>
           <h4 className="font-bold text-sm text-base-content">Discount Code</h4>
           {promoCodes.length > 0 && (
