@@ -412,10 +412,10 @@ export default function Step3ContactInfo() {
 
       const paymentData = paymentInfo
         ? {
-            corporateUserId,
-            organizationId,
-            ...paymentInfo,
-          }
+          corporateUserId,
+          organizationId,
+          ...paymentInfo,
+        }
         : undefined;
 
       const createCateringOrderResponse =
@@ -483,10 +483,9 @@ export default function Step3ContactInfo() {
           JSON.stringify(error.response.data, null, 2),
         );
         alert(
-          `Failed to submit order: ${
-            error.response.data?.message ||
-            error.response.statusText ||
-            "Unknown error"
+          `Failed to submit order: ${error.response.data?.message ||
+          error.response.statusText ||
+          "Unknown error"
           }`,
         );
       }
@@ -954,9 +953,7 @@ export default function Step3ContactInfo() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 pb-6 border-b border-base-300">
               <div>
-                <p className="text-xs text-primary mb-1">
-                  Event Date & Time
-                </p>
+                <p className="text-xs text-primary mb-1">Event Date & Time</p>
                 <p className="font-semibold text-base-content">
                   {eventDetails?.eventDate}
                 </p>
@@ -967,9 +964,7 @@ export default function Step3ContactInfo() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-primary mb-1">
-                  Type of Event
-                </p>
+                <p className="text-xs text-primary mb-1">Type of Event</p>
                 <p className="font-semibold text-base-content capitalize">
                   {eventDetails?.eventType}
                 </p>
@@ -1176,7 +1171,7 @@ export default function Step3ContactInfo() {
 
           {/* Contact Form Card - Right Side */}
           <div className="lg:col-span-2 order-1 lg:order-2">
-            <div className="bg-base-200/30 rounded-3xl border border-base-300 shadow-xl shadow-base-300/30 p-8 md:p-10">
+            <div className="bg-base-200/30 rounded-3xl border border-base-300 shadow-xl shadow-base-300/30 p-4 md:p-8">
               <h3 className="text-xl font-bold mb-8 flex items-center gap-3 text-base-content">
                 <span className="w-1.5 h-6 bg-dark-pink rounded-full"></span>
                 Contact & Delivery Details
@@ -1264,9 +1259,8 @@ export default function Step3ContactInfo() {
                       </span>
                       <span className="ml-2 text-orange-500 group-hover:underline flex items-center">
                         <svg
-                          className={`transition-transform duration-200 w-4 h-4 ${
-                            importantNotesOpen ? "rotate-180" : "rotate-0"
-                          }`}
+                          className={`transition-transform duration-200 w-4 h-4 ${importantNotesOpen ? "rotate-180" : "rotate-0"
+                            }`}
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
@@ -1409,11 +1403,10 @@ export default function Step3ContactInfo() {
                 <div className="space-y-3">
                   <button
                     onClick={() => setSelectedPaymentMethod("wallet")}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedPaymentMethod === "wallet"
-                        ? "border-primary bg-primary/10"
-                        : "border-base-300 hover:border-base-content/20"
-                    }`}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${selectedPaymentMethod === "wallet"
+                      ? "border-primary bg-primary/10"
+                      : "border-base-300 hover:border-base-content/20"
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -1463,11 +1456,10 @@ export default function Step3ContactInfo() {
 
                   <button
                     onClick={() => setSelectedPaymentMethod("card")}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedPaymentMethod === "card"
-                        ? "border-primary bg-primary/10"
-                        : "border-base-300 hover:border-base-content/20"
-                    }`}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${selectedPaymentMethod === "card"
+                      ? "border-primary bg-primary/10"
+                      : "border-base-300 hover:border-base-content/20"
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
