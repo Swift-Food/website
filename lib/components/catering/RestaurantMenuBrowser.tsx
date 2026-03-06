@@ -53,6 +53,7 @@ export default function RestaurantMenuBrowser({
   // --- State ---
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
@@ -62,6 +63,7 @@ export default function RestaurantMenuBrowser({
   }, [fetchAllMenuItems]);
 
   const isSearchActive = searchQuery.trim().length > 0;
+  const isRestaurantSearchActive = restaurantSearchQuery.trim().length > 0;
 
   // --- Derived data ---
 
@@ -89,26 +91,43 @@ export default function RestaurantMenuBrowser({
   const searchResults = useMemo(() => {
     if (!isSearchActive) return null;
     const query = searchQuery.toLowerCase();
-    const matching = dietaryFilteredItems.filter(
+    const matchingItems = dietaryFilteredItems.filter(
       (item) =>
         item.menuItemName.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
         item.groupTitle?.toLowerCase().includes(query)
     );
-    // Group by restaurant
-    const grouped: Record<string, { restaurantName: string; items: MenuItem[] }> = {};
-    matching.forEach((item) => {
-      const rid = item.restaurantId;
-      const rname = item.restaurant?.name || item.restaurantName || "Unknown";
-      if (!grouped[rid]) {
-        grouped[rid] = { restaurantName: rname, items: [] };
+
+    const grouped = new Map<
+      string,
+      {
+        restaurant: Restaurant;
+        restaurantMatched: boolean;
+        items: MenuItem[];
       }
-      grouped[rid].items.push(item);
+    >();
+
+    matchingItems.forEach((item) => {
+      const restaurant = availableRestaurants.find((r) => r.id === item.restaurantId);
+      if (!restaurant) return;
+
+      const existing = grouped.get(restaurant.id);
+      if (existing) {
+        existing.items.push(item);
+        return;
+      }
+
+      grouped.set(restaurant.id, {
+        restaurant,
+        restaurantMatched: false,
+        items: [item],
+      });
     });
-    return Object.entries(grouped).sort(([, a], [, b]) =>
-      a.restaurantName.localeCompare(b.restaurantName)
+
+    return Array.from(grouped.values()).sort((a, b) =>
+      a.restaurant.restaurant_name.localeCompare(b.restaurant.restaurant_name)
     );
-  }, [isSearchActive, searchQuery, dietaryFilteredItems]);
+  }, [isSearchActive, searchQuery, dietaryFilteredItems, availableRestaurants]);
 
   // Cuisine-filtered restaurants
   // TODO: Replace with API-provided cuisine tags. Currently matches cuisine label against restaurant name as a placeholder.
@@ -135,15 +154,27 @@ export default function RestaurantMenuBrowser({
     );
   }, [selectedRestaurantId, dietaryFilteredItems]);
 
+  const filteredRestaurantItems = useMemo(() => {
+    if (!isRestaurantSearchActive) return restaurantItems;
+    const query = restaurantSearchQuery.toLowerCase();
+
+    return restaurantItems.filter(
+      (item) =>
+        item.menuItemName.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
+        item.groupTitle?.toLowerCase().includes(query)
+    );
+  }, [restaurantItems, isRestaurantSearchActive, restaurantSearchQuery]);
+
   // Group items by groupTitle, sorted by menuGroupSettings displayOrder
   const groupedItems = useMemo(() => {
-    if (restaurantItems.length === 0) return [];
+    if (filteredRestaurantItems.length === 0) return [];
 
     // Get menuGroupSettings from the restaurant object (more reliable than item.restaurant)
     const restaurant = restaurants.find((r) => r.id === selectedRestaurantId);
     const menuGroupSettings =
       restaurant?.menuGroupSettings ||
-      restaurantItems[0]?.restaurant?.menuGroupSettings;
+      filteredRestaurantItems[0]?.restaurant?.menuGroupSettings;
     const hasSettings =
       menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
 
@@ -157,14 +188,14 @@ export default function RestaurantMenuBrowser({
       });
     } else {
       groupNames = Array.from(
-        new Set(restaurantItems.map((i) => i.groupTitle || "Other"))
+        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other"))
       ).sort((a, b) => a.localeCompare(b));
     }
 
     // Bucket items into groups
     const buckets: Record<string, MenuItem[]> = {};
     groupNames.forEach((g) => (buckets[g] = []));
-    restaurantItems.forEach((item) => {
+    filteredRestaurantItems.forEach((item) => {
       const group = item.groupTitle || "Other";
       if (!buckets[group]) buckets[group] = [];
       buckets[group].push(item);
@@ -204,7 +235,7 @@ export default function RestaurantMenuBrowser({
           information,
         };
       });
-  }, [restaurantItems, restaurants, selectedRestaurantId]);
+  }, [filteredRestaurantItems, restaurants, selectedRestaurantId]);
 
   const toggleGroupCollapse = (groupName: string) => {
     setCollapsedGroups((prev) => {
@@ -220,14 +251,65 @@ export default function RestaurantMenuBrowser({
 
   const handleSelectRestaurant = (restaurantId: string) => {
     setSelectedRestaurantId(restaurantId);
-    setSearchQuery("");
+    setRestaurantSearchQuery("");
     setSelectedCuisine(null);
     setCollapsedGroups(new Set());
   };
 
   const handleBackToRestaurants = () => {
     setSelectedRestaurantId(null);
+    setRestaurantSearchQuery("");
     setCollapsedGroups(new Set());
+  };
+
+  const renderRestaurantCard = (restaurant: Restaurant, onClick?: () => void) => {
+    const cardContent = (
+      <>
+        {restaurant.images && restaurant.images.length > 0 ? (
+          <div className="relative w-full aspect-video bg-gray-100">
+            <img
+              src={restaurant.images[0]}
+              alt={restaurant.restaurant_name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="w-full aspect-video bg-base-200 flex items-center justify-center">
+            <span className="text-3xl font-bold text-gray-300">
+              {restaurant.restaurant_name.charAt(0)}
+            </span>
+          </div>
+        )}
+        <div className="p-2">
+          <p className="text-sm font-semibold text-gray-900 line-clamp-1">
+            {restaurant.restaurant_name}
+          </p>
+          {restaurant.minCateringOrderQuantity &&
+            restaurant.minCateringOrderQuantity > 0 && (
+              <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                Min {restaurant.minCateringOrderQuantity} items
+              </span>
+            )}
+        </div>
+      </>
+    );
+
+    if (!onClick) {
+      return (
+        <div className="bg-white rounded-xl border border-base-300 overflow-hidden">
+          {cardContent}
+        </div>
+      );
+    }
+
+    return (
+      <button
+        onClick={onClick}
+        className="bg-white rounded-xl border border-base-300 overflow-hidden text-left hover:shadow-md transition-shadow"
+      >
+        {cardContent}
+      </button>
+    );
   };
 
   // --- Dietary filter pills (shared between both views) ---
@@ -311,12 +393,32 @@ export default function RestaurantMenuBrowser({
         {/* Dietary filters */}
         {renderDietaryFilters()}
 
+        {/* Search within restaurant */}
+        <div className="relative mt-3 mb-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={restaurantSearchQuery}
+            onChange={(e) => setRestaurantSearchQuery(e.target.value)}
+            placeholder={`Search ${selectedRestaurant.restaurant_name} items...`}
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-base-300 bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+          />
+          {restaurantSearchQuery && (
+            <button
+              onClick={() => setRestaurantSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         {/* Grouped items */}
         <div className="mt-3">
           {groupedItems.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-gray-500 text-sm">
-                No items match the selected filters.
+                No items match the current filters.
               </p>
             </div>
           ) : (
@@ -467,33 +569,43 @@ export default function RestaurantMenuBrowser({
           </div>
         ) : searchResults ? (
           <div className="mt-3">
-            {searchResults.map(([restaurantId, group]) => (
-              <div key={restaurantId} className="mb-6">
-                <h3 className="text-sm font-bold text-primary mb-2">
-                  {group.restaurantName}{" "}
-                  <span className="text-gray-400 font-normal">
-                    ({group.items.length})
-                  </span>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {group.items.map((item) => (
-                    <div key={item.id}>
-                      <MenuItemCard
-                        item={item}
-                        quantity={getItemQuantity(item.id)}
-                        isExpanded={expandedItemId === item.id}
-                        onToggleExpand={() =>
-                          setExpandedItemId(
-                            expandedItemId === item.id ? null : item.id
-                          )
-                        }
-                        onAddItem={onAddItem}
-                        onUpdateQuantity={onUpdateQuantity}
-                        onAddOrderPress={onAddOrderPress}
-                      />
-                    </div>
-                  ))}
+            {searchResults.map((result) => (
+              <div key={result.restaurant.id} className="mb-6">
+                <div className="mb-3 max-w-sm">
+                  {renderRestaurantCard(result.restaurant, () =>
+                    handleSelectRestaurant(result.restaurant.id)
+                  )}
                 </div>
+
+                {result.items.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-primary mb-2">
+                      Matching items{" "}
+                      <span className="text-gray-400 font-normal">
+                        ({result.items.length})
+                      </span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {result.items.map((item) => (
+                        <div key={item.id}>
+                          <MenuItemCard
+                            item={item}
+                            quantity={getItemQuantity(item.id)}
+                            isExpanded={expandedItemId === item.id}
+                            onToggleExpand={() =>
+                              setExpandedItemId(
+                                expandedItemId === item.id ? null : item.id
+                              )
+                            }
+                            onAddItem={onAddItem}
+                            onUpdateQuantity={onUpdateQuantity}
+                            onAddOrderPress={onAddOrderPress}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -509,40 +621,11 @@ export default function RestaurantMenuBrowser({
             </div>
           ) : (
             filteredRestaurants.map((restaurant) => (
-              <button
-                key={restaurant.id}
-                onClick={() => handleSelectRestaurant(restaurant.id)}
-                className="bg-white rounded-xl border border-base-300 overflow-hidden text-left hover:shadow-md transition-shadow"
-              >
-                {/* 16:9 image or placeholder */}
-                {restaurant.images && restaurant.images.length > 0 ? (
-                  <div className="relative w-full aspect-video bg-gray-100">
-                    <img
-                      src={restaurant.images[0]}
-                      alt={restaurant.restaurant_name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full aspect-video bg-base-200 flex items-center justify-center">
-                    <span className="text-3xl font-bold text-gray-300">
-                      {restaurant.restaurant_name.charAt(0)}
-                    </span>
-                  </div>
+              <div key={restaurant.id}>
+                {renderRestaurantCard(restaurant, () =>
+                  handleSelectRestaurant(restaurant.id)
                 )}
-                {/* Info */}
-                <div className="p-2">
-                  <p className="text-sm font-semibold text-gray-900 line-clamp-1">
-                    {restaurant.restaurant_name}
-                  </p>
-                  {restaurant.minCateringOrderQuantity &&
-                    restaurant.minCateringOrderQuantity > 0 && (
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
-                        Min {restaurant.minCateringOrderQuantity} items
-                      </span>
-                    )}
-                </div>
-              </button>
+              </div>
             ))
           )}
         </div>
