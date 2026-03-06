@@ -56,12 +56,10 @@ export default function RestaurantMenuBrowser({
   const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  // Eagerly load all menu items if not yet loaded
+  // Eagerly load all menu items on mount
   useEffect(() => {
-    if (allMenuItems === null) {
-      fetchAllMenuItems();
-    }
-  }, [allMenuItems, fetchAllMenuItems]);
+    fetchAllMenuItems();
+  }, [fetchAllMenuItems]);
 
   const isSearchActive = searchQuery.trim().length > 0;
 
@@ -80,9 +78,7 @@ export default function RestaurantMenuBrowser({
     return allMenuItems.filter((item) => {
       if (!item.dietaryFilters || item.dietaryFilters.length === 0) return false;
       return selectedDietaryFilters.every((filter) =>
-        item.dietaryFilters!.some(
-          (df) => df.toLowerCase() === filter.toLowerCase()
-        )
+        item.dietaryFilters!.includes(filter)
       );
     });
   }, [allMenuItems, selectedDietaryFilters]);
@@ -115,6 +111,7 @@ export default function RestaurantMenuBrowser({
   }, [isSearchActive, searchQuery, dietaryFilteredItems]);
 
   // Cuisine-filtered restaurants
+  // TODO: Replace with API-provided cuisine tags. Currently matches cuisine label against restaurant name as a placeholder.
   const filteredRestaurants = useMemo(() => {
     if (!selectedCuisine) return availableRestaurants;
     const cuisine = CUISINE_FILTERS.find((c) => c.id === selectedCuisine);
@@ -449,17 +446,22 @@ export default function RestaurantMenuBrowser({
       {renderDietaryFilters()}
 
       {/* Search results view */}
-      {isSearchActive && searchResults ? (
-        <div className="mt-3">
-          {searchResults.length === 0 ? (
-            <div className="text-center py-6">
-              <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">
-                No items found for &ldquo;{searchQuery}&rdquo;
-              </p>
-            </div>
-          ) : (
-            searchResults.map(([restaurantId, group]) => (
+      {isSearchActive ? (
+        !allMenuItems ? (
+          <div className="text-center py-6">
+            <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="mt-2 text-sm text-gray-500">Loading menu items...</p>
+          </div>
+        ) : searchResults && searchResults.length === 0 ? (
+          <div className="text-center py-6">
+            <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">
+              No items found for &ldquo;{searchQuery}&rdquo;
+            </p>
+          </div>
+        ) : searchResults ? (
+          <div className="mt-3">
+            {searchResults.map(([restaurantId, group]) => (
               <div key={restaurantId} className="mb-6">
                 <h3 className="text-sm font-bold text-primary mb-2">
                   {group.restaurantName}{" "}
@@ -487,9 +489,9 @@ export default function RestaurantMenuBrowser({
                   ))}
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        ) : null
       ) : (
         /* Restaurant cards grid */
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">

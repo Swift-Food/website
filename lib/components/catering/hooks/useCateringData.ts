@@ -144,8 +144,10 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
   }, [selectedCategory, selectedSubcategory]);
 
   // Fetch all menu items for search (cached after first fetch)
+  const allMenuItemsFetchedRef = useRef(false);
   const fetchAllMenuItems = useCallback(async () => {
-    if (allMenuItems !== null) return; // Already cached
+    if (allMenuItemsFetchedRef.current) return;
+    allMenuItemsFetchedRef.current = true;
     setAllMenuItemsLoading(true);
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/catering`);
@@ -154,10 +156,11 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
       setAllMenuItems(mapped);
     } catch (error) {
       console.error("Failed to fetch all menu items for search:", error);
+      allMenuItemsFetchedRef.current = false; // allow retry on error
     } finally {
       setAllMenuItemsLoading(false);
     }
-  }, [allMenuItems]);
+  }, []);
 
   // Trigger fetch when user starts searching
   useEffect(() => {
