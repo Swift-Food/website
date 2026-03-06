@@ -51,6 +51,7 @@ export interface Restaurant {
         timeSlots?: { open: string; close: string }[];
       }[]
     | null;
+  menuGroupSettings?: Record<string, { displayOrder?: number; information?: string }>;
 }
 
 export interface Addon {

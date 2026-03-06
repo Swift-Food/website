@@ -124,6 +124,12 @@ export function mapToMenuItem(item: MenuItemDetails): MenuItem {
     averageRating: item.averageRating,
     restaurantId: item.restaurantId,
     restaurantName: (item as any).restaurant?.restaurant_name,
+    restaurant: (item as any).restaurant ? {
+      id: (item as any).restaurant.id || item.restaurantId,
+      name: (item as any).restaurant.restaurant_name || (item as any).restaurant.name,
+      restaurantId: item.restaurantId,
+      menuGroupSettings: (item as any).restaurant.menuGroupSettings,
+    } : undefined,
     groupTitle: item.groupTitle,
     status: item.status,
     itemDisplayOrder: item.itemDisplayOrder || 0,

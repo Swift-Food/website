@@ -139,7 +139,10 @@ export default function RestaurantMenuBrowser({
   const groupedItems = useMemo(() => {
     if (restaurantItems.length === 0) return [];
 
+    // Get menuGroupSettings from the restaurant object (more reliable than item.restaurant)
+    const restaurant = restaurants.find((r) => r.id === selectedRestaurantId);
     const menuGroupSettings =
+      restaurant?.menuGroupSettings ||
       restaurantItems[0]?.restaurant?.menuGroupSettings;
     const hasSettings =
       menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
@@ -182,23 +185,26 @@ export default function RestaurantMenuBrowser({
       .filter((name) => buckets[name] && buckets[name].length > 0)
       .map((name) => {
         const items = buckets[name];
-        // Items with images first, then sorted by display price ascending
-        const withImage = items
-          .filter((i) => i.image && i.image.trim() !== "")
-          .sort((a, b) => getDisplayPrice(a) - getDisplayPrice(b));
-        const withoutImage = items
-          .filter((i) => !i.image || i.image.trim() === "")
-          .sort((a, b) => getDisplayPrice(a) - getDisplayPrice(b));
+        // Sort by itemDisplayOrder (primary), then images first, then by price
+        items.sort((a, b) => {
+          const orderA = a.itemDisplayOrder ?? 999;
+          const orderB = b.itemDisplayOrder ?? 999;
+          if (orderA !== orderB) return orderA - orderB;
+          const aHasImage = a.image && a.image.trim() !== "" ? 0 : 1;
+          const bHasImage = b.image && b.image.trim() !== "" ? 0 : 1;
+          if (aHasImage !== bHasImage) return aHasImage - bHasImage;
+          return getDisplayPrice(a) - getDisplayPrice(b);
+        });
 
         const information = menuGroupSettings?.[name]?.information || null;
 
         return {
           name,
-          items: [...withImage, ...withoutImage],
+          items,
           information,
         };
       });
-  }, [restaurantItems]);
+  }, [restaurantItems, restaurants, selectedRestaurantId]);
 
   const toggleGroupCollapse = (groupName: string) => {
     setCollapsedGroups((prev) => {
@@ -321,7 +327,7 @@ export default function RestaurantMenuBrowser({
                   {/* Group header */}
                   <button
                     onClick={() => toggleGroupCollapse(group.name)}
-                    className="w-full flex items-center justify-between py-2 px-1 hover:bg-base-200 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-between py-2 px-1 hover:bg-gray-50 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-bold text-primary">
