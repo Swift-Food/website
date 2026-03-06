@@ -28,7 +28,7 @@ export default function DeliveryAddressForm({
     <div className="mb-8 last:mb-0">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-dark-pink/10 flex items-center justify-center text-dark-pink">
+          <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center text-primary">
             <svg
               className="w-[18px] h-[18px]"
               fill="none"
@@ -82,8 +82,8 @@ export default function DeliveryAddressForm({
               errors.addressLine1 &&
               !errors.addressLine1.includes("United Kingdom") &&
               !errors.addressLine1.includes("London")
-                ? "border-error bg-gray-50"
-                : "border-base-300 bg-gray-50"
+                ? "border-error bg-gray-100"
+                : "border-base-300 bg-gray-100"
             } text-base-content/70 cursor-not-allowed`}
           />
           {errors.addressLine1 &&
@@ -104,7 +104,7 @@ export default function DeliveryAddressForm({
             value={formData.addressLine2 || ""}
             onChange={(e) => onFieldChange("addressLine2", e.target.value)}
             placeholder="Apartment, suite, etc."
-            className="w-full bg-white border border-base-300 rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all"
+            className="w-full bg-gray-50 border border-base-300 rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all"
           />
         </div>
 
@@ -120,7 +120,7 @@ export default function DeliveryAddressForm({
             readOnly
             placeholder="Auto-filled"
             className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none transition-all ${
-              errors.city ? "border-error bg-gray-50" : "border-base-300 bg-gray-50"
+              errors.city ? "border-error bg-gray-100" : "border-base-300 bg-gray-100"
             } text-base-content/70 cursor-not-allowed`}
           />
           {errors.city && <p className="mt-1 text-xs text-error">{errors.city}</p>}
@@ -139,8 +139,8 @@ export default function DeliveryAddressForm({
             placeholder="Auto-filled"
             className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none transition-all ${
               errors.zipcode
-                ? "border-error bg-gray-50"
-                : "border-base-300 bg-gray-50"
+                ? "border-error bg-gray-100"
+                : "border-base-300 bg-gray-100"
             } text-base-content/70 cursor-not-allowed`}
           />
           {errors.zipcode && (

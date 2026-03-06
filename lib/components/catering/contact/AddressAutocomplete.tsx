@@ -33,7 +33,7 @@ export default function AddressAutocomplete({
             country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION,
           },
           fields: GOOGLE_MAPS_CONFIG.FIELDS,
-        }
+        },
       );
 
       autocompleteRef.current.addListener("place_changed", () => {
@@ -75,7 +75,7 @@ export default function AddressAutocomplete({
           type="text"
           placeholder="Start typing an address..."
           onChange={(e) => setInputValue(e.target.value)}
-          className={`w-full bg-white border rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all ${
+          className={`w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all ${
             error
               ? "border-error"
               : hasValidAddress
@@ -95,7 +95,9 @@ export default function AddressAutocomplete({
       </div>
       {error && <p className="mt-1 text-xs text-error">{error}</p>}
       {hasValidAddress && !error && (
-        <p className="mt-1 text-xs text-success">Address selected from Google</p>
+        <p className="mt-1 text-xs text-success">
+          Address selected from Google
+        </p>
       )}
       {!hasValidAddress && !error && (
         <p className="mt-1 text-xs text-base-content/60">

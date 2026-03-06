@@ -38,7 +38,7 @@ export default function PromoCodeSection({
         className={`w-full flex items-center justify-between group ${isExpanded ? "mb-4" : "mb-0"}`}
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60 group-hover:bg-dark-pink/10 group-hover:text-dark-pink transition-colors">
+          <div className="w-8 h-8 rounded-lg bg-gray-200 border border-gray-300 flex items-center justify-center text-base-content/70 transition-colors">
             <Percent size={18} />
           </div>
           <h4 className="font-bold text-sm text-base-content">Discount Code</h4>
@@ -79,7 +79,7 @@ export default function PromoCodeSection({
                 }
               }}
               placeholder="Add discount code or voucher"
-              className="flex-1 px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              className="flex-1 px-3 py-2 text-sm bg-gray-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
             />
             <button
               type="button"

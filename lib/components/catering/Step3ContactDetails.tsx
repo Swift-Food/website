@@ -15,6 +15,7 @@ import {
 } from "@/lib/utils/menuPdfUtils";
 import { formatTimeDisplay } from "./catering-order-helpers";
 import { pdf } from "@react-pdf/renderer";
+import { FileText } from "lucide-react";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
 import DeliveryAddressForm from "./contact/DeliveryAddressForm";
@@ -953,7 +954,7 @@ export default function Step3ContactInfo() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 pb-6 border-b border-base-300">
               <div>
-                <p className="text-xs text-base-content/60 mb-1">
+                <p className="text-xs text-primary mb-1">
                   Event Date & Time
                 </p>
                 <p className="font-semibold text-base-content">
@@ -966,7 +967,7 @@ export default function Step3ContactInfo() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-base-content/60 mb-1">
+                <p className="text-xs text-primary mb-1">
                   Type of Event
                 </p>
                 <p className="font-semibold text-base-content capitalize">
@@ -974,7 +975,7 @@ export default function Step3ContactInfo() {
                 </p>
               </div>
               {/* <div> */}
-              {/* <p className="text-xs text-base-content/60 mb-1">Guest Count</p>
+              {/* <p className="text-xs text-primary mb-1">Guest Count</p>
                 <p className="font-semibold text-base-content">
                   {(eventDetails?.guestCount || 10) - 10} -{" "}
                   {(eventDetails?.guestCount || 10) + 10}{" "}
@@ -1045,7 +1046,7 @@ export default function Step3ContactInfo() {
                             ))}
                           </p>
                         )}
-                      <p className="text-sm text-base-content/60">
+                      <p className="text-sm text-primary">
                         {displayFeeds} portions
                       </p>
                     </div>
@@ -1143,7 +1144,7 @@ export default function Step3ContactInfo() {
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
-              {/* <p className="text-sm text-base-content/60 mb-2">
+              {/* <p className="text-sm text-primary mb-2">
                 Step 3 of 3 - Contact & Confirmation
               </p> */}
               <h2 className="text-3xl md:text-4xl font-bold mb-3 text-base-content">
@@ -1175,7 +1176,7 @@ export default function Step3ContactInfo() {
 
           {/* Contact Form Card - Right Side */}
           <div className="lg:col-span-2 order-1 lg:order-2">
-            <div className="bg-white rounded-3xl border border-base-300 shadow-xl shadow-base-300/30 p-8 md:p-10">
+            <div className="bg-base-200/30 rounded-3xl border border-base-300 shadow-xl shadow-base-300/30 p-8 md:p-10">
               <h3 className="text-xl font-bold mb-8 flex items-center gap-3 text-base-content">
                 <span className="w-1.5 h-6 bg-dark-pink rounded-full"></span>
                 Contact & Delivery Details
@@ -1221,20 +1222,8 @@ export default function Step3ContactInfo() {
                 {/* Special Instructions */}
                 <div className="-mt-4 pt-2">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60">
-                      <svg
-                        className="w-[18px] h-[18px]"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"
-                        />
-                      </svg>
+                    <div className="w-8 h-8 rounded-lg bg-gray-200 border border-gray-300 flex items-center justify-center text-base-content/70">
+                      <FileText size={18} />
                     </div>
                     <h4 className="font-bold text-sm text-base-content">
                       Special Instructions
@@ -1249,7 +1238,7 @@ export default function Step3ContactInfo() {
                     value={specialInstructions}
                     onChange={(e) => setSpecialInstructions(e.target.value)}
                     placeholder="Any special requests or instructions for your order..."
-                    className="w-full bg-white border border-base-300 rounded-xl px-4 py-3 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all min-h-[100px] resize-none"
+                    className="w-full bg-gray-50 border border-base-300 rounded-xl px-4 py-3 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all min-h-[100px] resize-none"
                   />
                 </div>
 
@@ -1388,7 +1377,7 @@ export default function Step3ContactInfo() {
                     setShowPaymentModal(false);
                     setSelectedPaymentMethod(null);
                   }}
-                  className="text-base-content/60 hover:text-base-content"
+                  className="text-primary hover:text-base-content"
                 >
                   <svg
                     className="w-6 h-6"
@@ -1447,7 +1436,7 @@ export default function Step3ContactInfo() {
                           <p className="font-semibold text-base-content">
                             Organization Wallet
                           </p>
-                          <p className="text-sm text-base-content/60">
+                          <p className="text-sm text-primary">
                             Pay from your organization balance
                           </p>
                         </div>
@@ -1501,7 +1490,7 @@ export default function Step3ContactInfo() {
                           <p className="font-semibold text-base-content">
                             Credit/Debit Card
                           </p>
-                          <p className="text-sm text-base-content/60">
+                          <p className="text-sm text-primary">
                             Pay securely with Stripe
                           </p>
                         </div>

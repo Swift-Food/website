@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Building2 } from "lucide-react";
 import { ContactInfo } from "@/types/catering.types";
 
 interface ValidationErrors {
@@ -29,7 +30,7 @@ interface ContactInfoFormProps {
 const fieldLabelClass =
   "block text-[10px] font-bold text-base-content/60 uppercase tracking-widest mb-1.5";
 const fieldClass =
-  "w-full bg-white border border-base-300 rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all";
+  "w-full bg-gray-50 border border-base-300 rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all";
 
 export default function ContactInfoForm({
   formData,
@@ -89,7 +90,7 @@ export default function ContactInfoForm({
     <div className="mb-8 last:mb-0">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-dark-pink/10 flex items-center justify-center text-dark-pink">
+          <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center text-primary">
             <svg
               className="w-[18px] h-[18px]"
               fill="none"
@@ -238,20 +239,8 @@ export default function ContactInfoForm({
           className="w-full flex items-center justify-between group"
         >
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-base-content/60 group-hover:bg-dark-pink/10 group-hover:text-dark-pink transition-colors">
-              <svg
-                className="w-[18px] h-[18px]"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 7h18M5 7l1-3h12l1 3M5 7v13h14V7M9 11h6"
-                />
-              </svg>
+            <div className="w-8 h-8 rounded-lg bg-gray-200 border border-gray-300 flex items-center justify-center text-base-content/70 transition-colors">
+              <Building2 size={18} />
             </div>
             <span className="font-bold text-sm text-base-content">Billing Address</span>
             <span className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest ml-2">
