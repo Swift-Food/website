@@ -116,7 +116,7 @@ export default function CateringOrderBuilder() {
   const firstDayTabRef = useRef<HTMLButtonElement>(null);
   const firstSessionPillRef = useRef<HTMLButtonElement>(null);
   const addSessionNavButtonRef = useRef<HTMLButtonElement>(null);
-  const categoriesRowRef = useRef<HTMLDivElement>(null);
+  const restaurantListRef = useRef<HTMLDivElement>(null);
   const firstMenuItemRef = useRef<HTMLDivElement>(null);
 
   // Use custom hooks
@@ -150,7 +150,7 @@ export default function CateringOrderBuilder() {
       firstDayTabRef,
       firstSessionPillRef,
       addSessionNavButtonRef,
-      categoriesRowRef,
+      restaurantListRef,
       firstMenuItemRef,
     },
   });
@@ -997,6 +997,7 @@ export default function CateringOrderBuilder() {
         setExpandedItemId={setExpandedItemId}
         selectedDietaryFilters={selectedDietaryFilters}
         toggleDietaryFilter={toggleDietaryFilter}
+        restaurantListRef={restaurantListRef}
         firstMenuItemRef={firstMenuItemRef}
         sessionIndex={index}
         expandedSessionIndex={expandedSessionIndex}

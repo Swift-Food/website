@@ -29,6 +29,7 @@ interface RestaurantMenuBrowserProps {
   setExpandedItemId: (id: string | null) => void;
   selectedDietaryFilters: DietaryFilter[];
   toggleDietaryFilter: (filter: DietaryFilter) => void;
+  restaurantListRef: RefObject<HTMLDivElement | null>;
   firstMenuItemRef: RefObject<HTMLDivElement | null>;
   sessionIndex: number;
   expandedSessionIndex: number | null;
@@ -46,6 +47,7 @@ export default function RestaurantMenuBrowser({
   setExpandedItemId,
   selectedDietaryFilters,
   toggleDietaryFilter,
+  restaurantListRef,
   firstMenuItemRef,
   sessionIndex,
   expandedSessionIndex,
@@ -102,7 +104,6 @@ export default function RestaurantMenuBrowser({
       string,
       {
         restaurant: Restaurant;
-        restaurantMatched: boolean;
         items: MenuItem[];
       }
     >();
@@ -119,7 +120,6 @@ export default function RestaurantMenuBrowser({
 
       grouped.set(restaurant.id, {
         restaurant,
-        restaurantMatched: false,
         items: [item],
       });
     });
@@ -612,7 +612,10 @@ export default function RestaurantMenuBrowser({
         ) : null
       ) : (
         /* Restaurant cards grid */
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+        <div
+          ref={restaurantListRef}
+          className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"
+        >
           {filteredRestaurants.length === 0 ? (
             <div className="col-span-full text-center py-6">
               <p className="text-gray-500 text-sm">

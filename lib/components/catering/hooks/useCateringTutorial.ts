@@ -13,7 +13,7 @@ interface TutorialRefs {
   firstDayTabRef: RefObject<HTMLButtonElement | null>;
   firstSessionPillRef: RefObject<HTMLButtonElement | null>;
   addSessionNavButtonRef: RefObject<HTMLButtonElement | null>;
-  categoriesRowRef: RefObject<HTMLDivElement | null>;
+  restaurantListRef: RefObject<HTMLDivElement | null>;
   firstMenuItemRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -121,19 +121,19 @@ export function useCateringTutorial({
           },
         ];
 
-      case "categories":
+      case "restaurants":
         return [
           {
-            id: "categories",
-            targetRef: refs.categoriesRowRef,
-            title: "Browse Categories",
+            id: "restaurants",
+            targetRef: refs.restaurantListRef,
+            title: "Choose a Restaurant",
             description:
-              "Browse food items by category. Click on a category to see available items, and use subcategories to filter further.",
+              "Browse the restaurants available for this session, then click into any restaurant to view its menu.",
             position: "bottom",
-            showNext: true,
+            requiresClick: true,
             showSkip: true,
             highlightPadding: 12,
-            highlightExtendBottom: 50, // Extend to cover subcategories row below
+            highlightMinTop: 72,
           },
         ];
 
@@ -142,11 +142,12 @@ export function useCateringTutorial({
           {
             id: "menu-item",
             targetRef: refs.firstMenuItemRef,
-            title: "Add Items to Your Order",
+            title: "View and Add an Item",
             description:
-              "Click on a menu item card to see more details, or click the + button to quickly add it to your session.",
+              "Click a menu item card to view more details and add it to your order.",
             position: "top",
             showNext: true,
+            nextLabel: "Finish Tutorial",
             showSkip: false,
             highlightPadding: 8,
           },
@@ -178,11 +179,11 @@ export function useCateringTutorial({
           setTutorialStep(null);
           break;
         case "navigation":
-          // Move to categories phase
-          setTutorialPhase("categories");
+          // Move to restaurant selection phase
+          setTutorialPhase("restaurants");
           setTutorialStep(0);
           break;
-        case "categories":
+        case "restaurants":
           // Move to menu items phase
           setTutorialPhase("menu_items");
           setTutorialStep(0);

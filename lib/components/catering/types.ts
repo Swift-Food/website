@@ -96,7 +96,7 @@ export interface PdfDownloadModalProps {
 export type TutorialPhase =
   | "initial"
   | "navigation"
-  | "categories"
+  | "restaurants"
   | "menu_items"
   | "completed";
 
