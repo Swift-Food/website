@@ -140,20 +140,24 @@ export default function RestaurantMenuBrowser({
     );
   }, [isSearchActive, searchQuery, dietaryFilteredItems, availableRestaurants]);
 
-  // Category-filtered restaurants
+  // Category/diet-filtered restaurants from restaurant payload
   const filteredRestaurants = useMemo(() => {
-    if (!selectedCategoryId) return availableRestaurants;
+    return availableRestaurants.filter((restaurant) => {
+      const matchesCategory =
+        !selectedCategoryId ||
+        (restaurant.categories ?? []).some(
+          (category) => category.id === selectedCategoryId
+        );
 
-    const matchingRestaurantIds = new Set(
-      dietaryFilteredItems
-        .filter((item) => item.categoryId === selectedCategoryId)
-        .map((item) => item.restaurantId)
-    );
+      const matchesDiet =
+        selectedDietaryFilters.length === 0 ||
+        selectedDietaryFilters.every((filter) =>
+          (restaurant.dietaryFilters ?? []).includes(filter)
+        );
 
-    return availableRestaurants.filter((restaurant) =>
-      matchingRestaurantIds.has(restaurant.id)
-    );
-  }, [availableRestaurants, dietaryFilteredItems, selectedCategoryId]);
+      return matchesCategory && matchesDiet;
+    });
+  }, [availableRestaurants, selectedCategoryId, selectedDietaryFilters]);
 
   // --- View 2: Restaurant Menu ---
 
