@@ -372,6 +372,11 @@ export default function CateringOrderBuilder() {
 
   // Handle session pill click
   const handleSessionPillClick = (sessionIndex: number) => {
+    const session = mealSessions[sessionIndex];
+    if (session?.sessionDate) {
+      setSelectedDayDate(session.sessionDate);
+      setNavMode("sessions");
+    }
     setExpandedSessionIndex(sessionIndex);
     setActiveSessionIndex(sessionIndex);
     setTimeout(() => {
@@ -390,6 +395,11 @@ export default function CateringOrderBuilder() {
 
   // Toggle session accordion
   const toggleSessionExpand = (sessionIndex: number) => {
+    const session = mealSessions[sessionIndex];
+    if (session?.sessionDate) {
+      setSelectedDayDate(session.sessionDate);
+      setNavMode("sessions");
+    }
     setExpandedSessionIndex((prev) =>
       prev === sessionIndex ? null : sessionIndex
     );
@@ -520,6 +530,8 @@ export default function CateringOrderBuilder() {
       addMealSession(newSession);
     }
 
+    setSelectedDayDate(dayDate);
+    setNavMode("sessions");
     setActiveSessionIndex(newIndex);
     setExpandedSessionIndex(newIndex);
     selectMainsCategory();
@@ -566,7 +578,13 @@ export default function CateringOrderBuilder() {
     setIsNewSession(false);
 
     if (sessionIndex !== null && !cancelled) {
+      const session = mealSessions[sessionIndex];
+      if (session?.sessionDate) {
+        setSelectedDayDate(session.sessionDate);
+        setNavMode("sessions");
+      }
       setExpandedSessionIndex(sessionIndex);
+      setActiveSessionIndex(sessionIndex);
       setTimeout(() => {
         const element = sessionAccordionRefs.current.get(sessionIndex);
         if (element) {
