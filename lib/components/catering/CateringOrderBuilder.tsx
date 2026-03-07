@@ -336,6 +336,21 @@ export default function CateringOrderBuilder() {
     return dayGroups.find((g) => g.date === selectedDayDate) || null;
   }, [dayGroups, selectedDayDate]);
 
+  useEffect(() => {
+    if (navMode !== "sessions" || expandedSessionIndex === null) {
+      return;
+    }
+
+    const expandedSession = mealSessions[expandedSessionIndex];
+    if (!expandedSession?.sessionDate) {
+      return;
+    }
+
+    if (selectedDayDate !== expandedSession.sessionDate) {
+      setSelectedDayDate(expandedSession.sessionDate);
+    }
+  }, [navMode, expandedSessionIndex, mealSessions, selectedDayDate]);
+
   // Handle clicking a date tab
   const handleDateClick = (dayDate: string) => {
     setSelectedDayDate(dayDate);
@@ -620,6 +635,7 @@ export default function CateringOrderBuilder() {
 
       if (remainingSessions.length === 0) {
         setSelectedDayDate(null);
+        setNavMode("dates");
         setExpandedSessionIndex(0);
         setActiveSessionIndex(0);
       } else {
