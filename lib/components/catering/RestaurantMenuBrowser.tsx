@@ -4,18 +4,9 @@ import { useState, useMemo, useEffect, RefObject } from "react";
 import { Search, X, ArrowLeft, ChevronDown, ChevronUp, Info } from "lucide-react";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 import { DietaryFilter } from "@/types/menuItem";
+import { CategoryWithSubcategories } from "@/types/catering.types";
+import { categoryService } from "@/services/api/category.api";
 import MenuItemCard from "./MenuItemCard";
-
-const CUISINE_FILTERS = [
-  { id: "thai", label: "Thai", icon: "\u{1F35C}" },
-  { id: "indian", label: "Indian", icon: "\u{1F35B}" },
-  { id: "chinese", label: "Chinese", icon: "\u{1F961}" },
-  { id: "mexican", label: "Mexican", icon: "\u{1F32E}" },
-  { id: "italian", label: "Italian", icon: "\u{1F35D}" },
-  { id: "japanese", label: "Japanese", icon: "\u{1F363}" },
-  { id: "mediterranean", label: "Mediterranean", icon: "\u{1F959}" },
-  { id: "american", label: "American", icon: "\u{1F354}" },
-];
 
 interface RestaurantMenuBrowserProps {
   restaurants: Restaurant[];
@@ -58,13 +49,31 @@ export default function RestaurantMenuBrowser({
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
-  const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
+  const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   // Eagerly load all menu items on mount
   useEffect(() => {
     fetchAllMenuItems();
   }, [fetchAllMenuItems]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const data = await categoryService.getCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const isSearchActive = searchQuery.trim().length > 0;
   const isRestaurantSearchActive = restaurantSearchQuery.trim().length > 0;
@@ -131,16 +140,20 @@ export default function RestaurantMenuBrowser({
     );
   }, [isSearchActive, searchQuery, dietaryFilteredItems, availableRestaurants]);
 
-  // Cuisine-filtered restaurants
-  // TODO: Replace with API-provided cuisine tags. Currently matches cuisine label against restaurant name as a placeholder.
+  // Category-filtered restaurants
   const filteredRestaurants = useMemo(() => {
-    if (!selectedCuisine) return availableRestaurants;
-    const cuisine = CUISINE_FILTERS.find((c) => c.id === selectedCuisine);
-    if (!cuisine) return availableRestaurants;
-    return availableRestaurants.filter((r) =>
-      r.restaurant_name.toLowerCase().includes(cuisine.label.toLowerCase())
+    if (!selectedCategoryId) return availableRestaurants;
+
+    const matchingRestaurantIds = new Set(
+      dietaryFilteredItems
+        .filter((item) => item.categoryId === selectedCategoryId)
+        .map((item) => item.restaurantId)
     );
-  }, [availableRestaurants, selectedCuisine]);
+
+    return availableRestaurants.filter((restaurant) =>
+      matchingRestaurantIds.has(restaurant.id)
+    );
+  }, [availableRestaurants, dietaryFilteredItems, selectedCategoryId]);
 
   // --- View 2: Restaurant Menu ---
 
@@ -254,7 +267,7 @@ export default function RestaurantMenuBrowser({
   const handleSelectRestaurant = (restaurantId: string) => {
     setSelectedRestaurantId(restaurantId);
     setRestaurantSearchQuery("");
-    setSelectedCuisine(null);
+    setSelectedCategoryId(null);
     setCollapsedGroups(new Set());
   };
 
@@ -523,31 +536,37 @@ export default function RestaurantMenuBrowser({
         )}
       </div>
 
-      {/* Cuisine filter row - hidden during search */}
+      {/* Category filter row - hidden during search */}
       {!isSearchActive && (
         <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide -mx-3 px-3 md:-mx-5 md:px-5">
           <div className="flex items-center gap-3">
-            {CUISINE_FILTERS.map((cuisine) => (
-              <button
-                key={cuisine.id}
-                onClick={() =>
-                  setSelectedCuisine(
-                    selectedCuisine === cuisine.id ? null : cuisine.id
-                  )
-                }
-                className={`
-                  flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all border
-                  ${
-                    selectedCuisine === cuisine.id
-                      ? "bg-primary/10 border-primary text-primary"
-                      : "bg-base-200 border-transparent text-gray-700 hover:bg-base-300"
-                  }
-                `}
-              >
-                <span className="text-xl leading-none">{cuisine.icon}</span>
-                <span className="text-[10px] font-medium">{cuisine.label}</span>
-              </button>
-            ))}
+            {categoriesLoading
+              ? [...Array(6)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-10 w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
+                  />
+                ))
+              : categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() =>
+                      setSelectedCategoryId(
+                        selectedCategoryId === category.id ? null : category.id
+                      )
+                    }
+                    className={`
+                      flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all border
+                      ${
+                        selectedCategoryId === category.id
+                          ? "bg-primary/10 border-primary text-primary"
+                          : "bg-base-200 border-transparent text-gray-700 hover:bg-base-300"
+                      }
+                    `}
+                  >
+                    {category.name}
+                  </button>
+                ))}
           </div>
         </div>
       )}
