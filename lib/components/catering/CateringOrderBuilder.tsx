@@ -612,7 +612,29 @@ export default function CateringOrderBuilder() {
 
   const confirmRemoveSession = () => {
     if (sessionToRemove !== null) {
+      const remainingSessions = mealSessions.filter(
+        (_, index) => index !== sessionToRemove
+      );
+
       removeMealSession(sessionToRemove);
+
+      if (remainingSessions.length === 0) {
+        setSelectedDayDate(null);
+        setExpandedSessionIndex(0);
+        setActiveSessionIndex(0);
+      } else {
+        const nextSessionIndex = Math.min(
+          sessionToRemove,
+          remainingSessions.length - 1
+        );
+        const nextSession = remainingSessions[nextSessionIndex];
+
+        setExpandedSessionIndex(nextSessionIndex);
+        setActiveSessionIndex(nextSessionIndex);
+        setSelectedDayDate(nextSession?.sessionDate || null);
+        setNavMode(nextSession?.sessionDate ? "sessions" : "dates");
+      }
+
       setEditingSessionIndex(null);
       setSessionToRemove(null);
     }
