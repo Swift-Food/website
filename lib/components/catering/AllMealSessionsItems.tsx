@@ -41,7 +41,8 @@ export default function AllMealSessionsItems({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categories = await categoryService.getCategoriesWithSubcategories();
+        const categories =
+          await categoryService.getCategoriesWithSubcategories();
         setCategoryOrder(categories.map((c) => c.name));
       } catch (error) {
         console.error("Failed to fetch categories for ordering:", error);
@@ -52,13 +53,13 @@ export default function AllMealSessionsItems({
 
   // Track expanded state for sessions and restaurants
   const [expandedSessions, setExpandedSessions] = useState<Set<number>>(
-    new Set(mealSessions.map((_, idx) => idx))
+    new Set(mealSessions.map((_, idx) => idx)),
   );
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [expandedAllergens, setExpandedAllergens] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const toggleSession = (sessionIndex: number) => {
@@ -184,31 +185,28 @@ export default function AllMealSessionsItems({
       const addonTotal = (item.selectedAddons || []).reduce(
         (sum: number, addon: { price: number; quantity: number }) =>
           sum + (addon.price || 0) * (addon.quantity || 0),
-        0
+        0,
       );
 
       return total + unitPrice * quantity + addonTotal;
     }, 0);
   };
 
-  const renderItemRow = (
-    groupedItem: GroupedItem,
-    sessionIndex: number
-  ) => {
+  const renderItemRow = (groupedItem: GroupedItem, sessionIndex: number) => {
     const { item, quantity, originalIndex } = groupedItem;
-    console.log("item", item)
+    console.log("item", item);
     const price = parseFloat(item.price?.toString() || "0");
     const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
     const itemPrice =
       item.isDiscount && discountPrice > 0 ? discountPrice : price;
     const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 7;
     const portions = quantity / BACKEND_QUANTITY_UNIT;
-    const serves = item.feedsPerUnit * portions
+    const serves = item.feedsPerUnit * portions;
 
     const addonTotal = (item.selectedAddons || []).reduce(
       (sum: number, addon: { price: number; quantity: number }) =>
         sum + (addon.price || 0) * (addon.quantity || 0),
-      0
+      0,
     );
     const subtotal = itemPrice * quantity + addonTotal;
 
@@ -241,14 +239,14 @@ export default function AllMealSessionsItems({
                   {item.selectedAddons.map(
                     (
                       addon: { name: string; quantity: number },
-                      idx: number
+                      idx: number,
                     ) => (
                       <span key={idx}>
                         + {addon.name}
                         {addon.quantity > 1 && ` (×${addon.quantity})`}
                         {idx < item.selectedAddons!.length - 1 ? ", " : ""}
                       </span>
-                    )
+                    ),
                   )}
                 </div>
               )}
@@ -266,7 +264,9 @@ export default function AllMealSessionsItems({
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className={`h-3 w-3 transition-transform ${
-                        expandedAllergens.has(`${sessionIndex}-${originalIndex}`)
+                        expandedAllergens.has(
+                          `${sessionIndex}-${originalIndex}`,
+                        )
                           ? "rotate-180"
                           : ""
                       }`}
@@ -282,11 +282,13 @@ export default function AllMealSessionsItems({
                       />
                     </svg>
                   </button>
-                  {expandedAllergens.has(`${sessionIndex}-${originalIndex}`) && (
+                  {expandedAllergens.has(
+                    `${sessionIndex}-${originalIndex}`,
+                  ) && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {item.allergens.map((allergenValue: string) => {
                         const allergen = ALLERGENS.find(
-                          (a) => a.value === allergenValue
+                          (a) => a.value === allergenValue,
                         );
                         return (
                           <span
@@ -332,7 +334,7 @@ export default function AllMealSessionsItems({
   const renderCategoryGroup = (
     categoryName: string,
     categoryGroup: CategoryGroup,
-    sessionIndex: number
+    sessionIndex: number,
   ) => {
     const categoryKey = `${sessionIndex}-${categoryName}`;
     const isCollapsed = collapsedCategories.has(categoryKey);
@@ -340,7 +342,7 @@ export default function AllMealSessionsItems({
       categoryGroup.items.length +
       Array.from(categoryGroup.subcategories.values()).reduce(
         (sum, items) => sum + items.length,
-        0
+        0,
       );
 
     return (
@@ -369,7 +371,7 @@ export default function AllMealSessionsItems({
         {!isCollapsed && (
           <div className="p-3 space-y-2">
             {categoryGroup.items.map((groupedItem) =>
-              renderItemRow(groupedItem, sessionIndex)
+              renderItemRow(groupedItem, sessionIndex),
             )}
 
             {Array.from(categoryGroup.subcategories.entries()).map(
@@ -380,11 +382,11 @@ export default function AllMealSessionsItems({
                   </p>
                   <div className="space-y-2">
                     {items.map((groupedItem) =>
-                      renderItemRow(groupedItem, sessionIndex)
+                      renderItemRow(groupedItem, sessionIndex),
                     )}
                   </div>
                 </div>
-              )
+              ),
             )}
           </div>
         )}
@@ -392,7 +394,10 @@ export default function AllMealSessionsItems({
     );
   };
 
-  const renderMealSession = (session: MealSessionState, sessionIndex: number) => {
+  const renderMealSession = (
+    session: MealSessionState,
+    sessionIndex: number,
+  ) => {
     const isExpanded = expandedSessions.has(sessionIndex);
     const groupedItems = groupItemsByCategory(session.orderItems);
     const sessionTotal = calculateSessionTotal(session.orderItems);
@@ -403,7 +408,7 @@ export default function AllMealSessionsItems({
     return (
       <div
         key={sessionIndex}
-        className="border-2 border-pink-200 rounded-xl overflow-hidden bg-white shadow-sm"
+        className="rounded-xl overflow-hidden bg-white shadow-sm"
       >
         {/* Session Header */}
         <button
@@ -411,7 +416,7 @@ export default function AllMealSessionsItems({
           className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 bg-gradient-to-r from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-150 transition-colors"
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left">
-            <h3 className="text-lg sm:text-xl font-bold text-pink-700">
+            <h3 className="text-lg sm:text-xl font-bold text-primary">
               {session.sessionName || `Session ${sessionIndex + 1}`}
             </h3>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-gray-600">
@@ -466,7 +471,11 @@ export default function AllMealSessionsItems({
             <div className="space-y-3">
               {Array.from(groupedItems.entries()).map(
                 ([categoryName, categoryGroup]) =>
-                  renderCategoryGroup(categoryName, categoryGroup, sessionIndex)
+                  renderCategoryGroup(
+                    categoryName,
+                    categoryGroup,
+                    sessionIndex,
+                  ),
               )}
             </div>
 
@@ -474,7 +483,9 @@ export default function AllMealSessionsItems({
             <div className="border-t border-gray-200 pt-4 mt-4">
               <div className="flex justify-between text-gray-900 font-bold">
                 <span>Session Total:</span>
-                <span className="text-pink-600">£{sessionTotal.toFixed(2)}</span>
+                <span className="text-pink-600">
+                  £{sessionTotal.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
@@ -485,7 +496,7 @@ export default function AllMealSessionsItems({
 
   // Filter out empty sessions
   const nonEmptySessions = mealSessions.filter(
-    (session) => session.orderItems.length > 0
+    (session) => session.orderItems.length > 0,
   );
 
   if (nonEmptySessions.length === 0) {
@@ -493,7 +504,7 @@ export default function AllMealSessionsItems({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div className="">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
           Your Order
@@ -541,7 +552,6 @@ export default function AllMealSessionsItems({
           return renderMealSession(session, actualIndex);
         })}
       </div>
-
     </div>
   );
 }
