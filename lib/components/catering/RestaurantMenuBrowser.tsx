@@ -19,6 +19,7 @@ const CUISINE_FILTERS = [
 
 interface RestaurantMenuBrowserProps {
   restaurants: Restaurant[];
+  restaurantsLoading: boolean;
   allMenuItems: MenuItem[] | null;
   fetchAllMenuItems: () => void;
   onAddItem: (item: MenuItem) => void;
@@ -37,6 +38,7 @@ interface RestaurantMenuBrowserProps {
 
 export default function RestaurantMenuBrowser({
   restaurants,
+  restaurantsLoading,
   allMenuItems,
   fetchAllMenuItems,
   onAddItem,
@@ -612,11 +614,18 @@ export default function RestaurantMenuBrowser({
         ) : null
       ) : (
         /* Restaurant cards grid */
-        <div
+      <div
           ref={restaurantListRef}
           className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"
         >
-          {filteredRestaurants.length === 0 ? (
+          {restaurantsLoading ? (
+            <div className="col-span-full py-8">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="mt-2 text-sm text-gray-500">Loading restaurants...</p>
+              </div>
+            </div>
+          ) : filteredRestaurants.length === 0 ? (
             <div className="col-span-full text-center py-6">
               <p className="text-gray-500 text-sm">
                 No restaurants found.

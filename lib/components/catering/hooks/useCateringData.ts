@@ -41,11 +41,13 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
 
   // Restaurants state for validation
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [restaurantsLoading, setRestaurantsLoading] = useState(true);
 
   // Fetch restaurants on mount (for validation)
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
+        setRestaurantsLoading(true);
         const response = await fetchWithAuth(
           `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_CATERING}`
         );
@@ -53,6 +55,8 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
         setRestaurants(data);
       } catch (error) {
         console.error("Error fetching restaurants:", error);
+      } finally {
+        setRestaurantsLoading(false);
       }
     };
     fetchRestaurants();
@@ -280,6 +284,7 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
 
     // Restaurants
     restaurants,
+    restaurantsLoading,
 
     // All menu items (for external consumers)
     allMenuItems,

@@ -127,6 +127,7 @@ export default function CateringOrderBuilder() {
     handleCategoryClick,
     selectMainsCategory,
     restaurants,
+    restaurantsLoading,
     selectedDietaryFilters,
     toggleDietaryFilter,
     allMenuItems,
@@ -987,6 +988,7 @@ export default function CateringOrderBuilder() {
 
       <RestaurantMenuBrowser
         restaurants={restaurants}
+        restaurantsLoading={restaurantsLoading}
         allMenuItems={allMenuItems}
         fetchAllMenuItems={fetchAllMenuItems}
         onAddItem={handleAddItem}
