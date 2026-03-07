@@ -126,7 +126,7 @@ export default function RestaurantCatalogue({
       ) : (
         <div className="flex flex-wrap sm:grid sm:grid-cols-3 gap-3 md:gap-4 pb-4">
           {restaurants.map((restaurant) => {
-            const isComingSoon = restaurant.restaurantType === "coming_soon";
+            const isComingSoon = restaurant.status === "coming_soon";
             return (
               <button
                 key={restaurant.id}

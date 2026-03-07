@@ -82,7 +82,7 @@ export default function RestaurantMenuBrowser({
 
   // Filter out coming_soon restaurants
   const availableRestaurants = useMemo(
-    () => restaurants.filter((r) => r.restaurantType !== "coming_soon"),
+    () => restaurants.filter((r) => r.status !== "coming_soon"),
     [restaurants]
   );
 
