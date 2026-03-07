@@ -787,6 +787,7 @@ export interface CategoryWithSubcategories {
   id: string;
   name: string;
   images?: string | null;
+  icon?: string | null;
   clicks: number;
   subcategories: Subcategory[];
 }

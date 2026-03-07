@@ -560,7 +560,8 @@ export default function RestaurantMenuBrowser({
                       )
                     }
                     className={`
-                      flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all border
+                      flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border
+                      flex flex-col items-center justify-center gap-0.5 leading-none
                       ${
                         selectedCategoryId === category.id
                           ? "bg-primary/10 border-primary text-primary"
@@ -568,6 +569,9 @@ export default function RestaurantMenuBrowser({
                       }
                     `}
                   >
+                    {category.icon ? (
+                      <span className="text-lg leading-none">{category.icon}</span>
+                    ) : null}
                     {category.name}
                   </button>
                 ))}

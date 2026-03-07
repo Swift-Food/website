@@ -445,6 +445,19 @@ export default function CateringOrderBuilder() {
     setIsAddDayModalOpen(true);
   };
 
+  const isUnconfiguredDefaultSession = (session: MealSessionState | undefined) => {
+    if (!session) return false;
+
+    return (
+      session.sessionName === "Main Event" &&
+      !session.sessionDate &&
+      !session.eventTime &&
+      !session.guestCount &&
+      !session.specialRequirements?.trim() &&
+      session.orderItems.length === 0
+    );
+  };
+
   // Handle confirm add day
   const handleConfirmAddDay = () => {
     if (!newDayDate) {
@@ -464,9 +477,17 @@ export default function CateringOrderBuilder() {
       eventTime: "",
       orderItems: [],
     };
-    addMealSession(newSession);
 
-    const newIndex = mealSessions.length;
+    const shouldReuseDefaultSession =
+      mealSessions.length === 1 && isUnconfiguredDefaultSession(mealSessions[0]);
+    const newIndex = shouldReuseDefaultSession ? 0 : mealSessions.length;
+
+    if (shouldReuseDefaultSession) {
+      updateMealSession(0, newSession);
+    } else {
+      addMealSession(newSession);
+    }
+
     setIsAddDayModalOpen(false);
     setSelectedDayDate(newDayDate);
     setNavMode("sessions");
@@ -488,9 +509,17 @@ export default function CateringOrderBuilder() {
       eventTime: "",
       orderItems: [],
     };
-    addMealSession(newSession);
 
-    const newIndex = mealSessions.length;
+    const shouldReuseDefaultSession =
+      mealSessions.length === 1 && isUnconfiguredDefaultSession(mealSessions[0]);
+    const newIndex = shouldReuseDefaultSession ? 0 : mealSessions.length;
+
+    if (shouldReuseDefaultSession) {
+      updateMealSession(0, newSession);
+    } else {
+      addMealSession(newSession);
+    }
+
     setActiveSessionIndex(newIndex);
     setExpandedSessionIndex(newIndex);
     selectMainsCategory();
