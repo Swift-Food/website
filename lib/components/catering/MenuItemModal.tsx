@@ -220,12 +220,12 @@ export default function MenuItemModal({
       group.items.forEach((addon) => {
         if (selectedAddons[groupTitle]?.[addon.name]) {
           const addonPrice = parseFloat(addon.price) || 0;
-          if (group.selectionType === "single") {
-            // For single selection: use the specific addon quantity
+          if (group.selectionType === "single" || group.minSelections != null || group.maxSelections != null) {
+            // For single selection or min/max groups: use the specific addon quantity
             const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
             addonCost += addonPrice * qty;
           } else {
-            // For multiple selection: use itemQuantity as the addon quantity
+            // For plain multiple selection: use itemQuantity as the addon quantity
             addonCost += addonPrice * itemQuantity;
           }
         }
@@ -258,7 +258,15 @@ export default function MenuItemModal({
       }
 
       const currentQty = newQuantities[groupTitle][addonName] || 0;
-      const newQty = Math.max(0, currentQty + change);
+      let newQty = Math.max(0, currentQty + change);
+
+      // Cap by maxSelections for the group (for min/max groups)
+      const group = addonGroups[groupTitle];
+      if (group?.maxSelections != null && change > 0) {
+        const totalWithoutCurrent = Object.values(newQuantities[groupTitle]).reduce((s, q) => s + q, 0) - currentQty;
+        const maxAllowed = group.maxSelections - totalWithoutCurrent;
+        newQty = Math.min(newQty, Math.max(0, maxAllowed));
+      }
 
       newQuantities[groupTitle][addonName] = newQty;
 
@@ -443,6 +451,13 @@ export default function MenuItemModal({
 
   // Helper to get total selected count for a multiple-selection group
   const getMultipleSelectionCount = (groupTitle: string) => {
+    const group = addonGroups[groupTitle];
+    // For min/max groups: sum quantities (allows multiple of the same addon)
+    if (group?.minSelections != null || group?.maxSelections != null) {
+      const quantities = addonQuantities[groupTitle] || {};
+      return Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+    }
+    // For plain multiple: count boolean selections
     const selections = selectedAddons[groupTitle] || {};
     return Object.values(selections).filter(Boolean).length;
   };
@@ -547,8 +562,22 @@ export default function MenuItemModal({
               });
               totalAddonPrice += addonPrice * qty;
             }
+          } else if (group.minSelections != null || group.maxSelections != null) {
+            // For min/max groups: use the specific addon quantity
+            const qty = addonQuantities[groupTitle]?.[addon.name] || 0;
+            if (qty > 0) {
+              addonsForCart.push({
+                name: addon.name,
+                price: addonPrice,
+                quantity: qty,
+                groupTitle: groupTitle,
+                allergens: addon.allergens,
+                dietaryRestrictions: addon.dietaryRestrictions,
+              });
+              totalAddonPrice += addonPrice * qty;
+            }
           } else {
-            // For multiple selection: quantity is always equal to itemQuantity
+            // For plain multiple selection: quantity is always equal to itemQuantity
             addonsForCart.push({
               name: addon.name,
               price: addonPrice,
@@ -1036,22 +1065,105 @@ export default function MenuItemModal({
                               </button>
                             </div>
                           </div>
+                        ) : (group.minSelections != null || group.maxSelections != null) ? (
+                          // Min/max group: Show quantity controls (allows multiple of the same addon)
+                          (() => {
+                            const addonQtyMM = addonQuantities[groupTitle]?.[addon.name] || 0;
+                            const addonQtyInputMM = addonQuantityInputs[groupTitle]?.[addon.name] || "0";
+                            const groupTotal = getMultipleSelectionCount(groupTitle);
+                            const isMaxReached = group.maxSelections != null && groupTotal >= group.maxSelections;
+                            return (
+                              <div
+                                key={index}
+                                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                                  addonQtyMM > 0
+                                    ? "border-primary bg-primary/5"
+                                    : "border-base-300 bg-base-100"
+                                }`}
+                              >
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-base-content">{addon.name}</span>
+                                    {addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0 && (
+                                      <div className="flex items-center gap-0.5">
+                                        {addon.dietaryRestrictions.map((restriction) => {
+                                          const iconInfo = DIETARY_ICON_MAP[restriction];
+                                          if (!iconInfo) return null;
+                                          return (
+                                            <div key={restriction} className="relative w-4 h-4" title={iconInfo.label}>
+                                              <Image src={`/dietary-icons/unfilled/${iconInfo.file}`} alt={iconInfo.label} fill className="object-contain" />
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {parseFloat(addon.price) > 0 && (
+                                    <span className="text-xs font-medium text-primary">
+                                      +£{parseFloat(addon.price).toFixed(2)} each
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => updateAddonQuantity(groupTitle, addon.name, -1)}
+                                    disabled={addonQtyMM === 0}
+                                    className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-base-100"
+                                  >
+                                    −
+                                  </button>
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={addonQtyInputMM}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      if (val === "" || /^\d+$/.test(val)) {
+                                        setAddonQuantityInputs((prev) => {
+                                          const newInputs: Record<string, Record<string, string>> = {};
+                                          Object.keys(prev).forEach((key) => { newInputs[key] = { ...prev[key] }; });
+                                          if (!newInputs[groupTitle]) newInputs[groupTitle] = {};
+                                          newInputs[groupTitle][addon.name] = val;
+                                          return newInputs;
+                                        });
+                                        if (val !== "" && !isNaN(parseInt(val))) {
+                                          const requested = parseInt(val);
+                                          const totalWithoutCurrent = getMultipleSelectionCount(groupTitle) - addonQtyMM;
+                                          const maxAllowed = group.maxSelections != null ? group.maxSelections - totalWithoutCurrent : Infinity;
+                                          const finalQty = Math.min(requested, Math.max(0, maxAllowed));
+                                          setAddonQuantityDirect(groupTitle, addon.name, finalQty);
+                                        }
+                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      if (e.target.value === "" || parseInt(e.target.value) < 0) {
+                                        setAddonQuantityDirect(groupTitle, addon.name, 0);
+                                      }
+                                    }}
+                                    className="w-12 text-center text-sm font-medium text-base-content bg-base-100 border border-base-300 rounded px-1 py-0.5"
+                                  />
+                                  <button
+                                    onClick={() => updateAddonQuantity(groupTitle, addon.name, 1)}
+                                    disabled={isMaxReached}
+                                    className="w-7 h-7 bg-base-100 border border-base-300 rounded hover:bg-base-200 flex items-center justify-center text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-base-100"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })()
                         ) : (
-                          // Multiple selection: Show checkbox
+                          // Plain multiple selection: Show checkbox
                           (() => {
                             const isSelected = selectedAddons[groupTitle]?.[addon.name] || false;
-                            const isMaxReached = group.maxSelections != null && getMultipleSelectionCount(groupTitle) >= group.maxSelections;
-                            const isDisabledByMax = !isSelected && isMaxReached;
                             return (
                           <button
                             key={index}
                             onClick={() => toggleAddon(groupTitle, addon.name)}
-                            disabled={isDisabledByMax}
                             className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
                               isSelected
                                 ? "border-primary bg-primary/5"
-                                : isDisabledByMax
-                                ? "border-base-300 bg-base-200 opacity-50 cursor-not-allowed"
                                 : "border-base-300 bg-base-100 hover:border-primary/50"
                             }`}
                           >
@@ -1063,7 +1175,7 @@ export default function MenuItemModal({
                                     : "border-base-300"
                                 }`}
                               >
-                                {selectedAddons[groupTitle]?.[addon.name] && (
+                                {isSelected && (
                                   <svg
                                     className="w-3 h-3 text-white"
                                     fill="none"
