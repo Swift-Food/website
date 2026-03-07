@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Clock, ImageIcon, ShoppingBag, MapPin, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, ImageIcon, ShoppingBag, MapPin, Tag, AlertCircle } from "lucide-react";
 import { SettingsMenuCard } from "./shared/SettingsMenuCard";
 
 interface SettingsMenuProps {
@@ -8,6 +8,7 @@ interface SettingsMenuProps {
   onProfile: () => void;
   onInventory: () => void;
   onPickupAddresses: () => void;
+  onCategories: () => void;
   onBack: () => void;
   showInventory: boolean;
   error?: string;
@@ -19,6 +20,7 @@ export const SettingsMenu = ({
   onProfile,
   onInventory,
   onPickupAddresses,
+  onCategories,
   onBack,
   showInventory,
   error,
@@ -98,6 +100,15 @@ export const SettingsMenu = ({
             icon={MapPin}
             color="blue"
             onClick={onPickupAddresses}
+          />
+
+          {/* Categories Card */}
+          <SettingsMenuCard
+            title="Categories"
+            description="Choose the cuisine types and categories that describe your restaurant"
+            icon={Tag}
+            color="emerald"
+            onClick={onCategories}
           />
         </div>
 

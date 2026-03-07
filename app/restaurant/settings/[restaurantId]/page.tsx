@@ -9,11 +9,12 @@ import { ProfileForm } from "../components/profile/ProfileForm";
 import { PendingEventImage } from "../components/profile/EventPhotosManager";
 import { InventorySection } from "../components/inventory/InventorySection";
 import { PickupAddressesSection } from "../components/PickupAddressesSection";
+import { CategoriesSection } from "../components/CategoriesSection";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
-type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | null;
+type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | "categories" | null;
 
 interface FormData {
   restaurant_name: string;
@@ -302,6 +303,7 @@ const RestaurantSettingsPage = () => {
         onProfile={() => setActiveSection("profile")}
         onInventory={() => setActiveSection("inventory")}
         onPickupAddresses={() => setActiveSection("pickupAddresses")}
+        onCategories={() => setActiveSection("categories")}
         onBack={() => router.push("/restaurant/dashboard")}
         showInventory={formData.isCatering || formData.isCorporate}
         error={error}
@@ -374,6 +376,16 @@ const RestaurantSettingsPage = () => {
   if (activeSection === "pickupAddresses") {
     return (
       <PickupAddressesSection
+        restaurantId={restaurantId}
+        onBack={() => setActiveSection(null)}
+      />
+    );
+  }
+
+  // Categories Editor
+  if (activeSection === "categories") {
+    return (
+      <CategoriesSection
         restaurantId={restaurantId}
         onBack={() => setActiveSection(null)}
       />

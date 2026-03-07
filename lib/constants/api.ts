@@ -26,6 +26,10 @@ export const API_ENDPOINTS = {
 
   // Catering Bundles
   CATERING_BUNDLE: (id: string) => `/catering-bundles/${id}`,
+
+  // Categories
+  CATEGORIES: '/categories',
+  RESTAURANT_CATEGORIES: (id: string) => `/restaurant/${id}/categories`,
 } as const;
 
 export const EXTERNAL_APIS = {
