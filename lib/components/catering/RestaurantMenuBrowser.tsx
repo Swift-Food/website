@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useMemo, useEffect, RefObject } from "react";
-import { Search, X, ArrowLeft, ChevronDown, ChevronUp, Info } from "lucide-react";
+import {
+  Search,
+  X,
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Info,
+} from "lucide-react";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 import { DietaryFilter } from "@/types/menuItem";
 import { CategoryWithSubcategories } from "@/types/catering.types";
@@ -46,13 +53,19 @@ export default function RestaurantMenuBrowser({
   expandedSessionIndex,
 }: RestaurantMenuBrowserProps) {
   // --- State ---
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<
+    string | null
+  >(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Eagerly load all menu items on mount
   useEffect(() => {
@@ -83,7 +96,7 @@ export default function RestaurantMenuBrowser({
   // Filter out coming_soon restaurants
   const availableRestaurants = useMemo(
     () => restaurants.filter((r) => r.status !== "coming_soon"),
-    [restaurants]
+    [restaurants],
   );
 
   // Apply dietary filters to items
@@ -91,9 +104,10 @@ export default function RestaurantMenuBrowser({
     if (!allMenuItems) return [];
     if (selectedDietaryFilters.length === 0) return allMenuItems;
     return allMenuItems.filter((item) => {
-      if (!item.dietaryFilters || item.dietaryFilters.length === 0) return false;
+      if (!item.dietaryFilters || item.dietaryFilters.length === 0)
+        return false;
       return selectedDietaryFilters.every((filter) =>
-        item.dietaryFilters!.includes(filter)
+        item.dietaryFilters!.includes(filter),
       );
     });
   }, [allMenuItems, selectedDietaryFilters]);
@@ -108,7 +122,7 @@ export default function RestaurantMenuBrowser({
       (item) =>
         item.menuItemName.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
-        item.groupTitle?.toLowerCase().includes(query)
+        item.groupTitle?.toLowerCase().includes(query),
     );
 
     const grouped = new Map<
@@ -120,7 +134,9 @@ export default function RestaurantMenuBrowser({
     >();
 
     matchingItems.forEach((item) => {
-      const restaurant = availableRestaurants.find((r) => r.id === item.restaurantId);
+      const restaurant = availableRestaurants.find(
+        (r) => r.id === item.restaurantId,
+      );
       if (!restaurant) return;
 
       const existing = grouped.get(restaurant.id);
@@ -136,7 +152,7 @@ export default function RestaurantMenuBrowser({
     });
 
     return Array.from(grouped.values()).sort((a, b) =>
-      a.restaurant.restaurant_name.localeCompare(b.restaurant.restaurant_name)
+      a.restaurant.restaurant_name.localeCompare(b.restaurant.restaurant_name),
     );
   }, [isSearchActive, searchQuery, dietaryFilteredItems, availableRestaurants]);
 
@@ -146,13 +162,13 @@ export default function RestaurantMenuBrowser({
       const matchesCategory =
         !selectedCategoryId ||
         (restaurant.categories ?? []).some(
-          (category) => category.id === selectedCategoryId
+          (category) => category.id === selectedCategoryId,
         );
 
       const matchesDiet =
         selectedDietaryFilters.length === 0 ||
         selectedDietaryFilters.every((filter) =>
-          (restaurant.dietaryFilters ?? []).includes(filter)
+          (restaurant.dietaryFilters ?? []).includes(filter),
         );
 
       return matchesCategory && matchesDiet;
@@ -162,14 +178,15 @@ export default function RestaurantMenuBrowser({
   // --- View 2: Restaurant Menu ---
 
   const selectedRestaurant = useMemo(
-    () => availableRestaurants.find((r) => r.id === selectedRestaurantId) || null,
-    [availableRestaurants, selectedRestaurantId]
+    () =>
+      availableRestaurants.find((r) => r.id === selectedRestaurantId) || null,
+    [availableRestaurants, selectedRestaurantId],
   );
 
   const restaurantItems = useMemo(() => {
     if (!selectedRestaurantId) return [];
     return dietaryFilteredItems.filter(
-      (item) => item.restaurantId === selectedRestaurantId
+      (item) => item.restaurantId === selectedRestaurantId,
     );
   }, [selectedRestaurantId, dietaryFilteredItems]);
 
@@ -181,7 +198,7 @@ export default function RestaurantMenuBrowser({
       (item) =>
         item.menuItemName.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
-        item.groupTitle?.toLowerCase().includes(query)
+        item.groupTitle?.toLowerCase().includes(query),
     );
   }, [restaurantItems, isRestaurantSearchActive, restaurantSearchQuery]);
 
@@ -207,7 +224,7 @@ export default function RestaurantMenuBrowser({
       });
     } else {
       groupNames = Array.from(
-        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other"))
+        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other")),
       ).sort((a, b) => a.localeCompare(b));
     }
 
@@ -281,7 +298,10 @@ export default function RestaurantMenuBrowser({
     setCollapsedGroups(new Set());
   };
 
-  const renderRestaurantCard = (restaurant: Restaurant, onClick?: () => void) => {
+  const renderRestaurantCard = (
+    restaurant: Restaurant,
+    onClick?: () => void,
+  ) => {
     const cardContent = (
       <>
         {restaurant.images && restaurant.images.length > 0 ? (
@@ -368,12 +388,12 @@ export default function RestaurantMenuBrowser({
 
   const renderCategoryFilters = () => (
     <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4 md:gap-6">
         {categoriesLoading
           ? [...Array(6)].map((_, index) => (
               <div
                 key={index}
-                className="h-10 w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
+                className="h-10 w-20 md:w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
               />
             ))
           : categories.map((category) => (
@@ -381,11 +401,11 @@ export default function RestaurantMenuBrowser({
                 key={category.id}
                 onClick={() =>
                   setSelectedCategoryId(
-                    selectedCategoryId === category.id ? null : category.id
+                    selectedCategoryId === category.id ? null : category.id,
                   )
                 }
                 className={`
-                  flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border
+                  flex-shrink-0 py-2.5 rounded-xl text-sm font-medium transition-all border
                   flex min-h-16 flex-col items-center justify-center gap-0.5 leading-none
                   ${
                     selectedCategoryId === category.id
@@ -394,10 +414,12 @@ export default function RestaurantMenuBrowser({
                   }
                 `}
               >
-                <span className="flex h-7 items-center justify-center text-2xl leading-none">
+                <span className="flex h-6 md:h-7 items-center justify-center text-xl md:text-2xl leading-none">
                   {category.icon || ""}
                 </span>
-                <span className="text-center">{category.name}</span>
+                <span className="text-center text-xs md:text-sm">
+                  {category.name}
+                </span>
               </button>
             ))}
       </div>
@@ -467,9 +489,7 @@ export default function RestaurantMenuBrowser({
           )}
         </div>
 
-        <div className="mt-2">
-          {renderDietaryFilters()}
-        </div>
+        <div className="mt-2">{renderDietaryFilters()}</div>
 
         {/* Grouped items */}
         <div className="mt-3">
@@ -534,7 +554,7 @@ export default function RestaurantMenuBrowser({
                             isExpanded={expandedItemId === item.id}
                             onToggleExpand={() =>
                               setExpandedItemId(
-                                expandedItemId === item.id ? null : item.id
+                                expandedItemId === item.id ? null : item.id,
                               )
                             }
                             onAddItem={onAddItem}
@@ -604,7 +624,7 @@ export default function RestaurantMenuBrowser({
               <div key={result.restaurant.id} className="mb-6">
                 <div className="mb-3 max-w-sm">
                   {renderRestaurantCard(result.restaurant, () =>
-                    handleSelectRestaurant(result.restaurant.id)
+                    handleSelectRestaurant(result.restaurant.id),
                   )}
                 </div>
 
@@ -625,7 +645,7 @@ export default function RestaurantMenuBrowser({
                             isExpanded={expandedItemId === item.id}
                             onToggleExpand={() =>
                               setExpandedItemId(
-                                expandedItemId === item.id ? null : item.id
+                                expandedItemId === item.id ? null : item.id,
                               )
                             }
                             onAddItem={onAddItem}
@@ -643,7 +663,7 @@ export default function RestaurantMenuBrowser({
         ) : null
       ) : (
         /* Restaurant cards grid */
-      <div
+        <div
           ref={restaurantListRef}
           className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"
         >
@@ -651,20 +671,20 @@ export default function RestaurantMenuBrowser({
             <div className="col-span-full py-8">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="mt-2 text-sm text-gray-500">Loading restaurants...</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Loading restaurants...
+                </p>
               </div>
             </div>
           ) : filteredRestaurants.length === 0 ? (
             <div className="col-span-full text-center py-6">
-              <p className="text-gray-500 text-sm">
-                No restaurants found.
-              </p>
+              <p className="text-gray-500 text-sm">No restaurants found.</p>
             </div>
           ) : (
             filteredRestaurants.map((restaurant) => (
               <div key={restaurant.id}>
                 {renderRestaurantCard(restaurant, () =>
-                  handleSelectRestaurant(restaurant.id)
+                  handleSelectRestaurant(restaurant.id),
                 )}
               </div>
             ))
