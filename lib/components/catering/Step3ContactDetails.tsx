@@ -1201,11 +1201,10 @@ export default function Step3ContactInfo() {
               isGeneratingPdf={generatingPdf}
             />
             <div
-              className={`lg:hidden fixed inset-x-4 bottom-4 z-30 transition-all duration-200 ${
-                showBackToTopButton
-                  ? "pointer-events-auto opacity-100 translate-y-0"
-                  : "pointer-events-none opacity-0 translate-y-4"
-              }`}
+              className={`lg:hidden fixed inset-x-4 bottom-4 z-30 transition-all duration-200 ${showBackToTopButton
+                ? "pointer-events-auto opacity-100 translate-y-0"
+                : "pointer-events-none opacity-0 translate-y-4"
+                }`}
             >
               <button
                 type="button"
@@ -1240,7 +1239,7 @@ export default function Step3ContactInfo() {
               </span>
             </button>
 
-            <div className="bg-base-200/30 rounded-3xl border border-base-300 shadow-xl shadow-base-300/30 p-4 md:p-8">
+            <div className="bg-base-200/40 rounded-3xl p-4 md:p-8">
               <h3 className="text-xl font-bold mb-8 flex items-center gap-3 text-base-content">
                 <span className="w-1.5 h-6 bg-dark-pink rounded-full"></span>
                 Contact & Delivery Details
