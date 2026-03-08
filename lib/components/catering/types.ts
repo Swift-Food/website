@@ -96,7 +96,7 @@ export interface PdfDownloadModalProps {
 export type TutorialPhase =
   | "initial"
   | "navigation"
-  | "categories"
+  | "restaurants"
   | "menu_items"
   | "completed";
 
@@ -131,4 +131,8 @@ export interface UseCateringDataReturn {
 
   // Restaurants
   restaurants: Restaurant[];
+
+  // All menu items
+  allMenuItems: MenuItem[] | null;
+  fetchAllMenuItems: () => void;
 }

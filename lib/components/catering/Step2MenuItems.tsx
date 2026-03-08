@@ -11,10 +11,19 @@ import { fetchWithAuth } from "@/lib/api-client/auth-client";
 export interface Restaurant {
   id: string;
   restaurant_name: string;
-  restaurantType: string;
+  status: "active" | "inactive" | "coming_soon";
   images: string[];
   eventImages?: string[];
   averageRating: string;
+  dietaryFilters?: string[];
+  categories?: {
+    id: string;
+    name: string;
+    images?: string | null;
+    selectedImage?: string | null;
+    icon?: string | null;
+    displayOrder?: number;
+  }[];
   minCateringOrderQuantity?: number;
   minimumDeliveryNoticeHours?: number;
   advanceNoticeSettings?: {
@@ -51,6 +60,7 @@ export interface Restaurant {
         timeSlots?: { open: string; close: string }[];
       }[]
     | null;
+  menuGroupSettings?: Record<string, { displayOrder?: number; information?: string }>;
 }
 
 export interface Addon {

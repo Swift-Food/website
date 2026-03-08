@@ -124,12 +124,21 @@ export function mapToMenuItem(item: MenuItemDetails): MenuItem {
     averageRating: item.averageRating,
     restaurantId: item.restaurantId,
     restaurantName: (item as any).restaurant?.restaurant_name,
+    restaurant: (item as any).restaurant ? {
+      id: (item as any).restaurant.id || item.restaurantId,
+      name: (item as any).restaurant.restaurant_name || (item as any).restaurant.name,
+      restaurantId: item.restaurantId,
+      menuGroupSettings: (item as any).restaurant.menuGroupSettings,
+    } : undefined,
     groupTitle: item.groupTitle,
     status: item.status,
     itemDisplayOrder: item.itemDisplayOrder || 0,
     cateringQuantityUnit: (item as any).cateringQuantityUnit,
     feedsPerUnit: (item as any).feedsPerUnit,
     dietaryFilters: (item as any).dietaryFilters,
+    categoryId: (item as any).categories?.[0]?.id || (item as any).categoryId,
+    categoryName:
+      (item as any).categories?.[0]?.name || (item as any).categoryName,
     // Include subcategory info from API response
     subcategoryId: (item as any).subcategories?.[0]?.id,
     subcategoryName: (item as any).subcategories?.[0]?.name,

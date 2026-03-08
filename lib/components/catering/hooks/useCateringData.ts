@@ -41,11 +41,13 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
 
   // Restaurants state for validation
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [restaurantsLoading, setRestaurantsLoading] = useState(true);
 
   // Fetch restaurants on mount (for validation)
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
+        setRestaurantsLoading(true);
         const response = await fetchWithAuth(
           `${API_BASE_URL}${API_ENDPOINTS.RESTAURANT_CATERING}`
         );
@@ -53,6 +55,8 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
         setRestaurants(data);
       } catch (error) {
         console.error("Error fetching restaurants:", error);
+      } finally {
+        setRestaurantsLoading(false);
       }
     };
     fetchRestaurants();
@@ -144,8 +148,10 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
   }, [selectedCategory, selectedSubcategory]);
 
   // Fetch all menu items for search (cached after first fetch)
+  const allMenuItemsFetchedRef = useRef(false);
   const fetchAllMenuItems = useCallback(async () => {
-    if (allMenuItems !== null) return; // Already cached
+    if (allMenuItemsFetchedRef.current) return;
+    allMenuItemsFetchedRef.current = true;
     setAllMenuItemsLoading(true);
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/catering`);
@@ -154,10 +160,11 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
       setAllMenuItems(mapped);
     } catch (error) {
       console.error("Failed to fetch all menu items for search:", error);
+      allMenuItemsFetchedRef.current = false; // allow retry on error
     } finally {
       setAllMenuItemsLoading(false);
     }
-  }, [allMenuItems]);
+  }, []);
 
   // Trigger fetch when user starts searching
   useEffect(() => {
@@ -277,5 +284,10 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
 
     // Restaurants
     restaurants,
+    restaurantsLoading,
+
+    // All menu items (for external consumers)
+    allMenuItems,
+    fetchAllMenuItems,
   };
 }
