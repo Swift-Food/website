@@ -19,6 +19,10 @@ const HeroSectionNew: React.FC = () => {
     router.push("/event-order");
   };
 
+  const handleInquiryClick = () => {
+    router.push("/contact");
+  };
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -201,17 +205,34 @@ const HeroSectionNew: React.FC = () => {
                 under a minute.
               </p>
 
-              <div className="flex flex-col items-center gap-6">
-                <button
-                  onClick={handleOrderClick}
-                  className="group bg-[#ff4fa5] rounded-xl text-white px-10 py-4 text-[14px] font-black uppercase tracking-[0.4em] flex items-center gap-4 hover:bg-white hover:text-black transition-all shadow-2xl"
-                >
-                  Order Now{" "}
-                  <ArrowRight
-                    size={14}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </button>
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex w-full max-w-md flex-col items-center gap-3 sm:max-w-none sm:flex-row sm:justify-center">
+                  <button
+                    onClick={handleInquiryClick}
+                    className="order-2 sm:order-1 group flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 px-8 py-4 text-[12px] font-black uppercase tracking-[0.28em] text-white backdrop-blur-sm transition-all hover:bg-white hover:text-black sm:w-auto"
+                  >
+                    Add Catering to your site
+                    <MoveUpRight
+                      size={14}
+                      className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </button>
+
+                  <button
+                    onClick={handleOrderClick}
+                    className="order-1 sm:order-2 group flex w-full items-center justify-center gap-4 rounded-xl bg-[#ff4fa5] px-10 py-4 text-[14px] font-black uppercase tracking-[0.4em] text-white shadow-2xl transition-all hover:bg-white hover:text-black sm:w-auto"
+                  >
+                    Order Now{" "}
+                    <ArrowRight
+                      size={14}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </button>
+
+                </div>
+                <p className="max-w-xl text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  Want to embed this catering flow on your own site? Contact us.
+                </p>
                 {/* <p className="text-[9px] font-black uppercase tracking-[0.6em] text-white/30 pointer-events-none">
                   SIMPLE • LOCAL • RELIABLE
                 </p> */}
