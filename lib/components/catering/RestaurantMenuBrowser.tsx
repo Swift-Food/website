@@ -366,6 +366,44 @@ export default function RestaurantMenuBrowser({
     </div>
   );
 
+  const renderCategoryFilters = () => (
+    <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide">
+      <div className="flex items-center gap-3">
+        {categoriesLoading
+          ? [...Array(6)].map((_, index) => (
+              <div
+                key={index}
+                className="h-10 w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
+              />
+            ))
+          : categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() =>
+                  setSelectedCategoryId(
+                    selectedCategoryId === category.id ? null : category.id
+                  )
+                }
+                className={`
+                  flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border
+                  flex min-h-16 flex-col items-center justify-center gap-0.5 leading-none
+                  ${
+                    selectedCategoryId === category.id
+                      ? "bg-transparent border-primary text-primary"
+                      : "bg-transparent border-transparent text-gray-700 hover:text-primary"
+                  }
+                `}
+              >
+                <span className="flex h-7 items-center justify-center text-2xl leading-none">
+                  {category.icon || ""}
+                </span>
+                <span className="text-center">{category.name}</span>
+              </button>
+            ))}
+      </div>
+    </div>
+  );
+
   // ============================================================
   // VIEW 2: Restaurant Menu
   // ============================================================
@@ -409,11 +447,8 @@ export default function RestaurantMenuBrowser({
           </div>
         </div>
 
-        {/* Dietary filters */}
-        {renderDietaryFilters()}
-
         {/* Search within restaurant */}
-        <div className="relative mt-3 mb-1">
+        <div className="relative mt-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -430,6 +465,10 @@ export default function RestaurantMenuBrowser({
               <X className="w-4 h-4" />
             </button>
           )}
+        </div>
+
+        <div className="mt-2">
+          {renderDietaryFilters()}
         </div>
 
         {/* Grouped items */}
@@ -540,47 +579,10 @@ export default function RestaurantMenuBrowser({
         )}
       </div>
 
-      {/* Category filter row - hidden during search */}
-      {!isSearchActive && (
-        <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide -mx-3 px-3 md:-mx-5 md:px-5">
-          <div className="flex items-center gap-3">
-            {categoriesLoading
-              ? [...Array(6)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="h-10 w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
-                  />
-                ))
-              : categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() =>
-                      setSelectedCategoryId(
-                        selectedCategoryId === category.id ? null : category.id
-                      )
-                    }
-                    className={`
-                      flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border
-                      flex min-h-16 flex-col items-center justify-center gap-0.5 leading-none
-                      ${
-                        selectedCategoryId === category.id
-                          ? "bg-transparent border-primary text-primary"
-                          : "bg-transparent border-transparent text-gray-700 hover:text-primary"
-                      }
-                    `}
-                  >
-                    <span className="flex h-7 items-center justify-center text-2xl leading-none">
-                      {category.icon || ""}
-                    </span>
-                    <span className="text-center">{category.name}</span>
-                  </button>
-                ))}
-          </div>
-        </div>
-      )}
-
-      {/* Dietary filters */}
-      {renderDietaryFilters()}
+      <div>
+        {!isSearchActive && renderCategoryFilters()}
+        {renderDietaryFilters()}
+      </div>
 
       {/* Search results view */}
       {isSearchActive ? (
