@@ -1200,8 +1200,8 @@ export default function CateringOrderBuilder() {
                   <Clock className="w-6 h-6 text-white" />
                 </div>
 
-                <div className="flex-1 md:bg-amber-50 md:rounded-2xl md:p-4 border border-amber-200 rounded-xl">
-                  <div className="mb-3 flex items-start gap-3 p-3 md:p-0">
+                <div className="flex-1 md:bg-amber-50 md:rounded-2xl md:p-4 md:border md:border-amber-200">
+                  <div className="mb-3 flex items-start gap-3">
                     <div className="md:hidden flex-shrink-0 w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center">
                       <Clock className="w-5 h-5" />
                     </div>
@@ -1215,7 +1215,7 @@ export default function CateringOrderBuilder() {
                     </div>
                   </div>
 
-                  <div className="space-y-3 px-3 pb-3 md:px-0 md:pb-0">
+                  <div className="space-y-3">
                     {dayGroups
                       .find((day) => day.date === "unscheduled")
                       ?.sessions.map(({ session, index }) =>
