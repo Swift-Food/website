@@ -335,7 +335,7 @@ export default function RestaurantMenuBrowser({
 
     if (!onClick) {
       return (
-        <div className="bg-white rounded-xl border border-base-300 overflow-hidden">
+        <div className="w-full bg-white rounded-xl border border-base-300 overflow-hidden">
           {cardContent}
         </div>
       );
@@ -344,7 +344,7 @@ export default function RestaurantMenuBrowser({
     return (
       <button
         onClick={onClick}
-        className="bg-white rounded-xl border border-base-300 overflow-hidden text-left hover:shadow-md transition-shadow"
+        className="block w-full bg-white rounded-xl border border-base-300 overflow-hidden text-left hover:shadow-md transition-shadow"
       >
         {cardContent}
       </button>
