@@ -748,10 +748,18 @@ const EditMenuItemPage = () => {
                     type="checkbox"
                     checked={selectedCategories?.includes(cat.id) || false}
                     onChange={(e) => {
+                      const subcatIds = cat.subcategories?.map(sub => sub.id) || [];
                       if (e.target.checked) {
                         setSelectedCategories([
                           ...(selectedCategories || []),
                           cat.id,
+                        ]);
+                        // Auto-select all subcategories of this category
+                        setSelectedSubcategories([
+                          ...(selectedSubcategories || []).filter(
+                            (id) => !subcatIds.includes(id)
+                          ),
+                          ...subcatIds,
                         ]);
                       } else {
                         setSelectedCategories(
@@ -760,7 +768,6 @@ const EditMenuItemPage = () => {
                           )
                         );
                         // Remove subcategories of this category
-                        const subcatIds = cat.subcategories?.map(sub => sub.id) || [];
                         setSelectedSubcategories(
                           (selectedSubcategories || []).filter(
                             (id) => !subcatIds.includes(id)
