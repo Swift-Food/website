@@ -14,7 +14,7 @@ export const BalanceCards = ({ balance }: BalanceCardsProps) => {
       <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
         <div className="flex items-center mb-2">
           <DollarSign size={24} />
-          <span className="ml-2 text-sm font-medium">Available Balance</span>
+          <span className="ml-2 text-sm font-medium">Available Balance (Payment will be available after 5 working days of the order date)</span>
         </div>
         <p className="text-4xl font-bold">
           £{balance?.available.toFixed(2) || "0.00"}
