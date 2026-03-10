@@ -535,7 +535,7 @@ export default function RestaurantMenuBrowser({
   // ============================================================
   if (selectedRestaurantId && selectedRestaurant) {
     return (
-      <div>
+      <div style={{ contain: "inline-size" }}>
         {/* Back button */}
         <button
           onClick={handleBackToRestaurants}
