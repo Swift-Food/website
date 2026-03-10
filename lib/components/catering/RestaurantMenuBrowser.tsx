@@ -494,43 +494,45 @@ export default function RestaurantMenuBrowser({
   );
 
   const renderCategoryFilters = () => (
-    <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide">
-      <div className="flex items-center gap-2 md:gap-3">
-        {categoriesLoading
-          ? [...Array(6)].map((_, index) => (
-            <div
-              key={index}
-              className="h-10 w-20 md:w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
-            />
-          ))
-          : categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() =>
-                setSelectedCategoryId(
-                  selectedCategoryId === category.id ? null : category.id,
-                )
-              }
-              className={`
+    <div style={{ contain: "inline-size" }}>
+      <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide">
+        <div className="flex items-center gap-2 md:gap-3">
+          {categoriesLoading
+            ? [...Array(6)].map((_, index) => (
+              <div
+                key={index}
+                className="h-10 w-20 md:w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
+              />
+            ))
+            : categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() =>
+                  setSelectedCategoryId(
+                    selectedCategoryId === category.id ? null : category.id,
+                  )
+                }
+                className={`
                   flex-shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border
                   flex flex-col items-center justify-center gap-0.5 leading-none
                   ${category.icon ? "min-h-16" : ""}
                   ${selectedCategoryId === category.id
-                  ? "bg-base-200/30 border-primary text-primary"
-                  : "bg-base-200/30 border-transparent text-gray-700 hover:text-primary"
-                }
+                    ? "bg-base-200/30 border-primary text-primary"
+                    : "bg-base-200/30 border-transparent text-gray-700 hover:text-primary"
+                  }
                 `}
-            >
-              {category.icon && (
-                <span className="flex h-6 md:h-7 items-center justify-center text-xl md:text-2xl leading-none">
-                  {category.icon}
+              >
+                {category.icon && (
+                  <span className="flex h-6 md:h-7 items-center justify-center text-xl md:text-2xl leading-none">
+                    {category.icon}
+                  </span>
+                )}
+                <span className="text-center text-xs md:text-sm">
+                  {category.name}
                 </span>
-              )}
-              <span className="text-center text-xs md:text-sm">
-                {category.name}
-              </span>
-            </button>
-          ))}
+              </button>
+            ))}
+        </div>
       </div>
     </div>
   );
@@ -725,7 +727,7 @@ export default function RestaurantMenuBrowser({
   // VIEW 1: Restaurant List (default)
   // ============================================================
   return (
-    <div>
+    <div style={{ contain: "inline-size" }}>
       {/* Search bar */}
       <div className="relative mt-2 mb-2">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
