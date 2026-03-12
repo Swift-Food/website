@@ -894,7 +894,8 @@ export default function Step3ContactInfo() {
           sessions={pdfData.sessions}
           showPrices={pdfData.showPrices}
           deliveryCharge={pdfData.deliveryCharge}
-          totalPrice={pdfData.totalPrice}
+          promoDiscount={pricing?.promoDiscount}
+          totalPrice={pricing?.total ?? pdfData.totalPrice}
           logoUrl={pdfData.logoUrl}
         />,
       ).toBlob();

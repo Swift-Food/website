@@ -140,6 +140,7 @@ export default function CateringDashboardPage() {
           sessions={pdfData.sessions}
           showPrices={pdfData.showPrices}
           deliveryCharge={pdfData.deliveryCharge}
+          promoDiscount={pdfData.promoDiscount}
           totalPrice={pdfData.totalPrice}
           logoUrl={pdfData.logoUrl}
         />
