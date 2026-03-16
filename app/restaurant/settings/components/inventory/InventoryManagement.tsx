@@ -16,13 +16,13 @@ interface IngredientItem {
 
 interface InventoryManagementProps {
   restaurantId: string;
-  isCatering: boolean;
+  showOnSite: boolean;
   isCorporate: boolean;
 }
 
 export const InventoryManagement = ({
   restaurantId,
-  isCatering,
+  showOnSite,
   isCorporate,
 }: InventoryManagementProps) => {
   const [loading, setLoading] = useState(true);
@@ -83,7 +83,7 @@ export const InventoryManagement = ({
       }
 
       // Load inventory settings (unified — used by both catering and corporate)
-      if (isCatering || isCorporate) {
+      if (showOnSite || isCorporate) {
         try {
           const settings = await restaurantApi.getInventorySettings(restaurantId);
 
@@ -279,7 +279,7 @@ export const InventoryManagement = ({
       />
 
       {/* Unified Inventory Card - shown for catering OR corporate restaurants */}
-      {(isCatering || isCorporate) && (
+      {(showOnSite || isCorporate) && (
         <PortionLimitsCard
           sessionResetPeriod={sessionResetPeriod}
           maxPortionsPerSession={maxPortionsPerSession}
@@ -304,7 +304,7 @@ export const InventoryManagement = ({
       )}
 
       {/* None */}
-      {!isCatering && !isCorporate && (
+      {!showOnSite && !isCorporate && (
         <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
           <Package className="mx-auto text-gray-400 mb-4" size={48} />
           <h3 className="text-lg font-bold text-gray-900 mb-2">
