@@ -111,7 +111,7 @@ export default function SelectedItemsByCategory({
       // Bundle items are rendered in their own section, skip them here
       if (orderItem.bundleId) return;
 
-      const catName = orderItem.item.categoryName || "Uncategorized";
+      const catName = orderItem.item.categoryName || (orderItem.item as any).groupTitle || "Uncategorized";
       const subName = orderItem.item.subcategoryName || "";
 
       if (!map.has(catName)) {
