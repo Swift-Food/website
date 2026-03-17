@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, RefObject } from "react";
+import { useState, useMemo, useEffect, useRef, RefObject, useCallback } from "react";
 import {
   Search,
   X,
@@ -8,16 +8,28 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Package,
+  Clock3,
 } from "lucide-react";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 import { DietaryFilter } from "@/types/menuItem";
 import { CategoryWithSubcategories } from "@/types/catering.types";
+import { CateringBundleItem, CateringBundleResponse } from "@/types/api/catering.api.types";
 import { categoryService } from "@/services/api/category.api";
+import { cateringService } from "@/services/api/catering.api";
+import { useCatering } from "@/context/CateringContext";
 import MenuItemCard from "./MenuItemCard";
+import BundleCard from "./BundleCard";
+import BundleDetailModal from "./modals/BundleDetailModal";
+import { mapToMenuItem } from "./catering-order-helpers";
 
 interface RestaurantMenuBrowserProps {
   restaurants: Restaurant[];
   restaurantsLoading: boolean;
+  onOpenBundles?: () => void;
+  sessionDate?: string;
+  eventTime?: string;
+  defaultBundleGuestCount?: number;
   allMenuItems: MenuItem[] | null;
   fetchAllMenuItems: () => void;
   onAddItem: (item: MenuItem) => void;
@@ -34,9 +46,86 @@ interface RestaurantMenuBrowserProps {
   expandedSessionIndex: number | null;
 }
 
+interface MenuItemGroup {
+  type: "items";
+  name: string;
+  items: MenuItem[];
+  information: string | null;
+}
+
+interface BundleGroup {
+  type: "bundles";
+  name: string;
+  bundles: CateringBundleResponse[];
+}
+
+type RestaurantGroup = MenuItemGroup | BundleGroup;
+
+function enrichBundleItemAddons(
+  bundleItem: CateringBundleItem,
+  menuItem: MenuItem
+): MenuItem["selectedAddons"] {
+  if (!bundleItem.selectedAddons || bundleItem.selectedAddons.length === 0) {
+    return [];
+  }
+  return bundleItem.selectedAddons.map((bundleAddon) => {
+    const matchedAddon = menuItem.addons?.find((addon) => addon.name === bundleAddon.name);
+    return {
+      name: bundleAddon.name,
+      price: Number(matchedAddon?.price ?? 0),
+      quantity: bundleAddon.quantity,
+      groupTitle: matchedAddon?.groupTitle ?? "Options",
+    };
+  });
+}
+
+function getRestaurantAdvanceNoticeText(restaurant: Restaurant): string | null {
+  const advanceNotice = restaurant.advanceNoticeSettings;
+
+  if (
+    advanceNotice?.type === "hours" &&
+    typeof advanceNotice.hours === "number" &&
+    advanceNotice.hours > 0
+  ) {
+    return `${advanceNotice.hours}h notice`;
+  }
+
+  if (
+    advanceNotice?.type === "days_before_time" &&
+    typeof advanceNotice.days === "number"
+  ) {
+    if (advanceNotice.cutoffTime) {
+      const [h, m] = advanceNotice.cutoffTime.split(":").map(Number);
+      const period = h >= 12 ? "PM" : "AM";
+      const h12 = h % 12 || 12;
+      const timeStr = `${h12}:${m.toString().padStart(2, "0")} ${period}`;
+      if (advanceNotice.days === 0) return `Order by ${timeStr}`;
+      const label = advanceNotice.days === 1 ? "day" : "days";
+      return `${advanceNotice.days} ${label} notice by ${timeStr}`;
+    }
+    if (advanceNotice.days > 0) {
+      const label = advanceNotice.days === 1 ? "day" : "days";
+      return `${advanceNotice.days} ${label} notice`;
+    }
+  }
+
+  if (
+    typeof restaurant.minimumDeliveryNoticeHours === "number" &&
+    restaurant.minimumDeliveryNoticeHours > 0
+  ) {
+    return `${restaurant.minimumDeliveryNoticeHours}h notice`;
+  }
+
+  return null;
+}
+
 export default function RestaurantMenuBrowser({
   restaurants,
   restaurantsLoading,
+  onOpenBundles = () => {},
+  sessionDate,
+  eventTime,
+  defaultBundleGuestCount = 1,
   allMenuItems,
   fetchAllMenuItems,
   onAddItem,
@@ -52,22 +141,27 @@ export default function RestaurantMenuBrowser({
   sessionIndex,
   expandedSessionIndex,
 }: RestaurantMenuBrowserProps) {
+  const { addMenuItem } = useCatering();
+
   // --- State ---
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<
-    string | null
-  >(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null,
-  );
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [activeGroupName, setActiveGroupName] = useState<string | null>(null);
   const [stickyTopOffset, setStickyTopOffset] = useState(72);
+
+  // Bundle state
+  const [restaurantBundles, setRestaurantBundles] = useState<CateringBundleResponse[]>([]);
+  const [bundlesLoading, setBundlesLoading] = useState(false);
+  const [bundlesError, setBundlesError] = useState<string | null>(null);
+  const [selectedBundle, setSelectedBundle] = useState<CateringBundleResponse | null>(null);
+  const [addingBundleId, setAddingBundleId] = useState<string | null>(null);
+  const [menuItemsCache, setMenuItemsCache] = useState<MenuItem[] | null>(null);
+
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const groupButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const isProgrammaticScroll = useRef(false);
@@ -76,6 +170,10 @@ export default function RestaurantMenuBrowser({
   useEffect(() => {
     fetchAllMenuItems();
   }, [fetchAllMenuItems]);
+
+  useEffect(() => {
+    if (allMenuItems) setMenuItemsCache(allMenuItems);
+  }, [allMenuItems]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -89,37 +187,57 @@ export default function RestaurantMenuBrowser({
         setCategoriesLoading(false);
       }
     };
-
     fetchCategories();
   }, []);
+
+  // Fetch bundles when restaurant selection changes
+  useEffect(() => {
+    if (!selectedRestaurantId) {
+      setRestaurantBundles([]);
+      setBundlesLoading(false);
+      setBundlesError(null);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchRestaurantBundles = async () => {
+      try {
+        setBundlesLoading(true);
+        setBundlesError(null);
+        const bundles = await cateringService.getBundlesByRestaurant(selectedRestaurantId);
+        if (!cancelled) setRestaurantBundles(bundles);
+      } catch (error) {
+        console.error("Failed to fetch restaurant bundles:", error);
+        if (!cancelled) {
+          setRestaurantBundles([]);
+          setBundlesError("Failed to load bundles for this restaurant.");
+        }
+      } finally {
+        if (!cancelled) setBundlesLoading(false);
+      }
+    };
+    fetchRestaurantBundles();
+    return () => { cancelled = true; };
+  }, [selectedRestaurantId]);
 
   const isSearchActive = searchQuery.trim().length > 0;
   const isRestaurantSearchActive = restaurantSearchQuery.trim().length > 0;
 
   // --- Derived data ---
-
-  // Filter out coming_soon restaurants
   const availableRestaurants = useMemo(
     () => restaurants.filter((r) => r.status !== "coming_soon"),
-    [restaurants],
+    [restaurants]
   );
 
-  // Apply dietary filters to items
   const dietaryFilteredItems = useMemo(() => {
     if (!allMenuItems) return [];
     if (selectedDietaryFilters.length === 0) return allMenuItems;
     return allMenuItems.filter((item) => {
-      if (!item.dietaryFilters || item.dietaryFilters.length === 0)
-        return false;
-      return selectedDietaryFilters.every((filter) =>
-        item.dietaryFilters!.includes(filter),
-      );
+      if (!item.dietaryFilters || item.dietaryFilters.length === 0) return false;
+      return selectedDietaryFilters.every((filter) => item.dietaryFilters!.includes(filter));
     });
   }, [allMenuItems, selectedDietaryFilters]);
 
-  // --- View 1: Restaurant List ---
-
-  // Search results grouped by restaurant
   const searchResults = useMemo(() => {
     if (!isSearchActive) return null;
     const query = searchQuery.toLowerCase();
@@ -127,99 +245,64 @@ export default function RestaurantMenuBrowser({
       (item) =>
         item.menuItemName.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
-        item.groupTitle?.toLowerCase().includes(query),
+        item.groupTitle?.toLowerCase().includes(query)
     );
 
-    const grouped = new Map<
-      string,
-      {
-        restaurant: Restaurant;
-        items: MenuItem[];
-      }
-    >();
-
+    const grouped = new Map<string, { restaurant: Restaurant; items: MenuItem[] }>();
     matchingItems.forEach((item) => {
-      const restaurant = availableRestaurants.find(
-        (r) => r.id === item.restaurantId,
-      );
+      const restaurant = availableRestaurants.find((r) => r.id === item.restaurantId);
       if (!restaurant) return;
-
       const existing = grouped.get(restaurant.id);
-      if (existing) {
-        existing.items.push(item);
-        return;
-      }
-
-      grouped.set(restaurant.id, {
-        restaurant,
-        items: [item],
-      });
+      if (existing) { existing.items.push(item); return; }
+      grouped.set(restaurant.id, { restaurant, items: [item] });
     });
 
     return Array.from(grouped.values()).sort((a, b) =>
-      a.restaurant.restaurant_name.localeCompare(b.restaurant.restaurant_name),
+      a.restaurant.restaurant_name.localeCompare(b.restaurant.restaurant_name)
     );
   }, [isSearchActive, searchQuery, dietaryFilteredItems, availableRestaurants]);
 
-  // Category/diet-filtered restaurants from restaurant payload
   const filteredRestaurants = useMemo(() => {
     return availableRestaurants.filter((restaurant) => {
       const matchesCategory =
         !selectedCategoryId ||
-        (restaurant.categories ?? []).some(
-          (category) => category.id === selectedCategoryId,
-        );
-
+        (restaurant.categories ?? []).some((category) => category.id === selectedCategoryId);
       const matchesDiet =
         selectedDietaryFilters.length === 0 ||
-        selectedDietaryFilters.every((filter) =>
-          (restaurant.dietaryFilters ?? []).includes(filter),
-        );
-
+        selectedDietaryFilters.every((filter) => (restaurant.dietaryFilters ?? []).includes(filter));
       return matchesCategory && matchesDiet;
     });
   }, [availableRestaurants, selectedCategoryId, selectedDietaryFilters]);
 
-  // --- View 2: Restaurant Menu ---
-
   const selectedRestaurant = useMemo(
-    () =>
-      availableRestaurants.find((r) => r.id === selectedRestaurantId) || null,
-    [availableRestaurants, selectedRestaurantId],
+    () => availableRestaurants.find((r) => r.id === selectedRestaurantId) || null,
+    [availableRestaurants, selectedRestaurantId]
   );
 
   const restaurantItems = useMemo(() => {
     if (!selectedRestaurantId) return [];
-    return dietaryFilteredItems.filter(
-      (item) => item.restaurantId === selectedRestaurantId,
-    );
+    return dietaryFilteredItems.filter((item) => item.restaurantId === selectedRestaurantId);
   }, [selectedRestaurantId, dietaryFilteredItems]);
 
   const filteredRestaurantItems = useMemo(() => {
     if (!isRestaurantSearchActive) return restaurantItems;
     const query = restaurantSearchQuery.toLowerCase();
-
     return restaurantItems.filter(
       (item) =>
         item.menuItemName.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
-        item.groupTitle?.toLowerCase().includes(query),
+        item.groupTitle?.toLowerCase().includes(query)
     );
   }, [restaurantItems, isRestaurantSearchActive, restaurantSearchQuery]);
 
-  // Group items by groupTitle, sorted by menuGroupSettings displayOrder
-  const groupedItems = useMemo(() => {
+  const groupedItems = useMemo<MenuItemGroup[]>(() => {
     if (filteredRestaurantItems.length === 0) return [];
 
-    // Get menuGroupSettings from the restaurant object (more reliable than item.restaurant)
     const restaurant = restaurants.find((r) => r.id === selectedRestaurantId);
     const menuGroupSettings =
-      restaurant?.menuGroupSettings ||
-      filteredRestaurantItems[0]?.restaurant?.menuGroupSettings;
-    const hasSettings =
-      menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
+      restaurant?.menuGroupSettings || filteredRestaurantItems[0]?.restaurant?.menuGroupSettings;
+    const hasSettings = menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
 
-    // Determine group order
     let groupNames: string[];
     if (hasSettings) {
       groupNames = Object.keys(menuGroupSettings!).sort((a, b) => {
@@ -229,11 +312,10 @@ export default function RestaurantMenuBrowser({
       });
     } else {
       groupNames = Array.from(
-        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other")),
+        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other"))
       ).sort((a, b) => a.localeCompare(b));
     }
 
-    // Bucket items into groups
     const buckets: Record<string, MenuItem[]> = {};
     groupNames.forEach((g) => (buckets[g] = []));
     filteredRestaurantItems.forEach((item) => {
@@ -242,7 +324,6 @@ export default function RestaurantMenuBrowser({
       buckets[group].push(item);
     });
 
-    // Helper: display price
     const getDisplayPrice = (item: MenuItem) => {
       const price = parseFloat(item.price?.toString() || "0");
       const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
@@ -252,12 +333,10 @@ export default function RestaurantMenuBrowser({
       );
     };
 
-    // Build result: only groups with items
     return groupNames
       .filter((name) => buckets[name] && buckets[name].length > 0)
       .map((name) => {
         const items = buckets[name];
-        // Sort by itemDisplayOrder (primary), then images first, then by price
         items.sort((a, b) => {
           const orderA = a.itemDisplayOrder ?? 999;
           const orderB = b.itemDisplayOrder ?? 999;
@@ -267,25 +346,81 @@ export default function RestaurantMenuBrowser({
           if (aHasImage !== bHasImage) return aHasImage - bHasImage;
           return getDisplayPrice(a) - getDisplayPrice(b);
         });
-
         const information = menuGroupSettings?.[name]?.information || null;
-
-        return {
-          name,
-          items,
-          information,
-        };
+        return { type: "items" as const, name, items, information };
       });
   }, [filteredRestaurantItems, restaurants, selectedRestaurantId]);
+
+  const filteredRestaurantBundles = useMemo(() => {
+    if (!isRestaurantSearchActive) return restaurantBundles;
+    const query = restaurantSearchQuery.toLowerCase();
+    return restaurantBundles.filter(
+      (bundle) =>
+        bundle.name.toLowerCase().includes(query) ||
+        bundle.description?.toLowerCase().includes(query) ||
+        bundle.items.some((item) => item.menuItemName.toLowerCase().includes(query))
+    );
+  }, [restaurantBundles, isRestaurantSearchActive, restaurantSearchQuery]);
+
+  const restaurantGroups = useMemo<RestaurantGroup[]>(() => {
+    const groups: RestaurantGroup[] = [];
+    const shouldShowBundlesSection =
+      bundlesLoading || bundlesError !== null || filteredRestaurantBundles.length > 0;
+    if (shouldShowBundlesSection) {
+      groups.push({ type: "bundles", name: "Bundles", bundles: filteredRestaurantBundles });
+    }
+    groups.push(...groupedItems);
+    return groups;
+  }, [bundlesLoading, bundlesError, filteredRestaurantBundles, groupedItems]);
+
+  const firstMenuGroupName = groupedItems[0]?.name ?? null;
+
+  const ensureMenuItems = useCallback(async (): Promise<MenuItem[]> => {
+    if (menuItemsCache) return menuItemsCache;
+    if (allMenuItems) {
+      setMenuItemsCache(allMenuItems);
+      return allMenuItems;
+    }
+    fetchAllMenuItems();
+    const response = await cateringService.getMenuItems();
+    const items = (response || []).map(mapToMenuItem);
+    setMenuItemsCache(items);
+    return items;
+  }, [menuItemsCache, allMenuItems, fetchAllMenuItems]);
+
+  const handleAddBundle = useCallback(
+    async (bundle: CateringBundleResponse, guestQuantity: number) => {
+      setAddingBundleId(bundle.id);
+      try {
+        const items = await ensureMenuItems();
+        for (const bundleItem of bundle.items) {
+          const menuItem = items.find((item) => item.id === bundleItem.menuItemId);
+          if (!menuItem) continue;
+          const enrichedAddons = enrichBundleItemAddons(bundleItem, menuItem);
+          const scaledQuantity = bundleItem.quantity * guestQuantity;
+          addMenuItem(sessionIndex, {
+            item: { ...menuItem, selectedAddons: enrichedAddons },
+            quantity: scaledQuantity,
+            bundleId: bundle.id,
+            bundleName: bundle.name,
+          });
+        }
+        setSelectedBundle(null);
+      } catch (error) {
+        console.error("Failed to add bundle:", error);
+        alert("Failed to add bundle. Please try again.");
+      } finally {
+        setAddingBundleId(null);
+      }
+    },
+    [addMenuItem, ensureMenuItems, sessionIndex]
+  );
 
   const toggleGroupCollapse = (groupName: string) => {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(groupName)) {
-        next.delete(groupName);
-      } else {
-        next.add(groupName);
-      }
+      if (next.has(groupName)) next.delete(groupName);
+      else next.add(groupName);
       return next;
     });
   };
@@ -306,77 +441,51 @@ export default function RestaurantMenuBrowser({
   };
 
   useEffect(() => {
-    const navElement = document.querySelector<HTMLElement>(
-      "[data-catering-session-nav='true']",
-    );
+    const navElement = document.querySelector<HTMLElement>("[data-catering-session-nav='true']");
     if (!navElement) return;
-
-    const updateOffset = () => {
-      setStickyTopOffset(navElement.getBoundingClientRect().height);
-    };
-
+    const updateOffset = () => setStickyTopOffset(navElement.getBoundingClientRect().height);
     updateOffset();
-
     if (typeof ResizeObserver === "undefined") return;
-
     const observer = new ResizeObserver(updateOffset);
     observer.observe(navElement);
-
     return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
     sectionRefs.current.clear();
     groupButtonRefs.current.clear();
-    setActiveGroupName(groupedItems[0]?.name || null);
-  }, [groupedItems, selectedRestaurantId]);
+    setActiveGroupName(restaurantGroups[0]?.name || null);
+  }, [restaurantGroups, selectedRestaurantId]);
 
   useEffect(() => {
     if (!activeGroupName) return;
-
     const activeButton = groupButtonRefs.current.get(activeGroupName);
-    activeButton?.scrollIntoView({
-      behavior: "smooth",
-      inline: "center",
-      block: "nearest",
-    });
+    activeButton?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeGroupName]);
 
   useEffect(() => {
-    if (!selectedRestaurantId || groupedItems.length === 0) return;
-
+    if (!selectedRestaurantId || restaurantGroups.length === 0) return;
     const updateActiveGroup = () => {
       if (isProgrammaticScroll.current) return;
-
       const activationLine = stickyTopOffset + 96;
-      let nextActiveGroup = groupedItems[0]?.name || null;
-
-      for (const group of groupedItems) {
+      let nextActiveGroup = restaurantGroups[0]?.name || null;
+      for (const group of restaurantGroups) {
         const section = sectionRefs.current.get(group.name);
         if (!section) continue;
-
         const { top } = section.getBoundingClientRect();
-        if (top <= activationLine) {
-          nextActiveGroup = group.name;
-        } else {
-          break;
-        }
+        if (top <= activationLine) nextActiveGroup = group.name;
+        else break;
       }
-
-      setActiveGroupName((prev) =>
-        prev === nextActiveGroup ? prev : nextActiveGroup,
-      );
+      setActiveGroupName((prev) => (prev === nextActiveGroup ? prev : nextActiveGroup));
     };
-
     updateActiveGroup();
     window.addEventListener("scroll", updateActiveGroup, { passive: true });
     window.addEventListener("resize", updateActiveGroup);
-
     return () => {
       window.removeEventListener("scroll", updateActiveGroup);
       window.removeEventListener("resize", updateActiveGroup);
     };
-  }, [groupedItems, selectedRestaurantId, stickyTopOffset]);
+  }, [restaurantGroups, selectedRestaurantId, stickyTopOffset]);
 
   const handleGroupTabClick = (groupName: string) => {
     setCollapsedGroups((prev) => {
@@ -385,40 +494,24 @@ export default function RestaurantMenuBrowser({
       next.delete(groupName);
       return next;
     });
-
     setActiveGroupName(groupName);
-
     const section = sectionRefs.current.get(groupName);
     if (!section) return;
-
     isProgrammaticScroll.current = true;
     const topOffset = stickyTopOffset + 80;
-    const nextTop =
-      section.getBoundingClientRect().top + window.scrollY - topOffset;
-
-    window.scrollTo({
-      top: Math.max(nextTop, 0),
-      behavior: "smooth",
-    });
-
-    window.setTimeout(() => {
-      isProgrammaticScroll.current = false;
-    }, 450);
+    const nextTop = section.getBoundingClientRect().top + window.scrollY - topOffset;
+    window.scrollTo({ top: Math.max(nextTop, 0), behavior: "smooth" });
+    window.setTimeout(() => { isProgrammaticScroll.current = false; }, 450);
   };
 
-  const renderRestaurantCard = (
-    restaurant: Restaurant,
-    onClick?: () => void,
-  ) => {
+  const renderRestaurantCard = (restaurant: Restaurant, onClick?: () => void) => {
+    const advanceNoticeText = getRestaurantAdvanceNoticeText(restaurant);
+
     const cardContent = (
       <>
         {restaurant.images && restaurant.images.length > 0 ? (
           <div className="relative w-full aspect-video bg-gray-100">
-            <img
-              src={restaurant.images[0]}
-              alt={restaurant.restaurant_name}
-              className="w-full h-full object-cover"
-            />
+            <img src={restaurant.images[0]} alt={restaurant.restaurant_name} className="w-full h-full object-cover" />
           </div>
         ) : (
           <div className="w-full aspect-video bg-base-200 flex items-center justify-center">
@@ -427,39 +520,44 @@ export default function RestaurantMenuBrowser({
             </span>
           </div>
         )}
-        <div className="p-2">
-          <p className="text-sm font-semibold text-gray-900 line-clamp-1">
+        <div className="p-3">
+          <p className="line-clamp-2 text-sm font-semibold leading-tight text-gray-900">
             {restaurant.restaurant_name}
           </p>
-          {restaurant.minCateringOrderQuantity &&
-            restaurant.minCateringOrderQuantity > 0 && (
-              <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+          {restaurant.minCateringOrderQuantity && restaurant.minCateringOrderQuantity > 0 ? (
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">
                 Min {restaurant.minCateringOrderQuantity} items
               </span>
-            )}
+            </div>
+          ) : null}
+          {advanceNoticeText ? (
+            <div className="mt-1.5 flex items-center gap-1.5 text-[11px] leading-4 text-gray-500">
+              <Clock3 className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+              <span className="line-clamp-1">{advanceNoticeText}</span>
+            </div>
+          ) : null}
         </div>
       </>
     );
 
     if (!onClick) {
       return (
-        <div className="w-full bg-white rounded-xl border border-base-300 overflow-hidden">
+        <div className="w-full overflow-hidden rounded-xl border border-base-300 bg-white shadow-sm">
           {cardContent}
         </div>
       );
     }
-
     return (
       <button
         onClick={onClick}
-        className="block w-full bg-white rounded-xl border border-base-300 overflow-hidden text-left hover:shadow-md transition-shadow"
+        className="block w-full overflow-hidden rounded-xl border border-base-300 bg-white text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
       >
         {cardContent}
       </button>
     );
   };
 
-  // --- Dietary filter pills (shared between both views) ---
   const renderDietaryFilters = () => (
     <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-hide">
       <span className="flex-shrink-0 text-xs text-gray-500 mr-1">Diet:</span>
@@ -474,19 +572,15 @@ export default function RestaurantMenuBrowser({
         <button
           key={option.value}
           onClick={() => toggleDietaryFilter(option.value)}
-          className={`
-            flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border
-            ${selectedDietaryFilters.includes(option.value)
+          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+            selectedDietaryFilters.includes(option.value)
               ? "bg-green-600 text-white border-green-600"
               : "bg-white text-gray-600 border-gray-300 hover:border-green-500 hover:text-green-600"
-            }
-          `}
+          }`}
         >
           {option.label}
           {selectedDietaryFilters.includes(option.value) && (
-            <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
-              x
-            </span>
+            <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">x</span>
           )}
         </button>
       ))}
@@ -499,37 +593,28 @@ export default function RestaurantMenuBrowser({
         <div className="flex items-center gap-2 md:gap-3">
           {categoriesLoading
             ? [...Array(6)].map((_, index) => (
-              <div
-                key={index}
-                className="h-10 w-20 md:w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
-              />
+              <div key={index} className="h-10 w-20 md:w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse" />
             ))
             : categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() =>
-                  setSelectedCategoryId(
-                    selectedCategoryId === category.id ? null : category.id,
-                  )
+                  setSelectedCategoryId(selectedCategoryId === category.id ? null : category.id)
                 }
-                className={`
-                  flex-shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border
-                  flex flex-col items-center justify-center gap-0.5 leading-none
-                  ${category.icon ? "min-h-16" : ""}
-                  ${selectedCategoryId === category.id
+                className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border flex flex-col items-center justify-center gap-0.5 leading-none ${
+                  category.icon ? "min-h-16" : ""
+                } ${
+                  selectedCategoryId === category.id
                     ? "bg-base-200/30 border-primary text-primary"
                     : "bg-base-200/30 border-transparent text-gray-700 hover:text-primary"
-                  }
-                `}
+                }`}
               >
                 {category.icon && (
                   <span className="flex h-6 md:h-7 items-center justify-center text-xl md:text-2xl leading-none">
                     {category.icon}
                   </span>
                 )}
-                <span className="text-center text-xs md:text-sm">
-                  {category.name}
-                </span>
+                <span className="text-center text-xs md:text-sm">{category.name}</span>
               </button>
             ))}
         </div>
@@ -543,7 +628,6 @@ export default function RestaurantMenuBrowser({
   if (selectedRestaurantId && selectedRestaurant) {
     return (
       <div style={{ contain: "inline-size" }}>
-        {/* Back button */}
         <button
           onClick={handleBackToRestaurants}
           className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline mb-3"
@@ -552,7 +636,6 @@ export default function RestaurantMenuBrowser({
           Back to Restaurants
         </button>
 
-        {/* Restaurant header */}
         <div className="flex items-center gap-3 mb-3">
           {selectedRestaurant.images && selectedRestaurant.images.length > 0 ? (
             <img
@@ -568,9 +651,7 @@ export default function RestaurantMenuBrowser({
             </div>
           )}
           <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              {selectedRestaurant.restaurant_name}
-            </h2>
+            <h2 className="text-lg font-bold text-gray-900">{selectedRestaurant.restaurant_name}</h2>
             {selectedRestaurant.minCateringOrderQuantity &&
               selectedRestaurant.minCateringOrderQuantity > 0 && (
                 <p className="text-xs text-gray-500">
@@ -580,7 +661,6 @@ export default function RestaurantMenuBrowser({
           </div>
         </div>
 
-        {/* Search within restaurant */}
         <div className="relative mt-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -602,13 +682,10 @@ export default function RestaurantMenuBrowser({
 
         <div className="mt-2">{renderDietaryFilters()}</div>
 
-        {/* Grouped items */}
         <div className="mt-3">
-          {groupedItems.length === 0 ? (
+          {restaurantGroups.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-gray-500 text-sm">
-                No items match the current filters.
-              </p>
+              <p className="text-gray-500 text-sm">No items match the current filters.</p>
             </div>
           ) : (
             <>
@@ -617,7 +694,7 @@ export default function RestaurantMenuBrowser({
                 style={{ top: stickyTopOffset + 8 }}
               >
                 <div className="flex gap-2 md:gap-5">
-                  {groupedItems.map((group) => {
+                  {restaurantGroups.map((group) => {
                     const isActive = activeGroupName === group.name;
                     return (
                       <button
@@ -627,10 +704,11 @@ export default function RestaurantMenuBrowser({
                           else groupButtonRefs.current.delete(group.name);
                         }}
                         onClick={() => handleGroupTabClick(group.name)}
-                        className={`flex-shrink-0 whitespace-nowrap rounded-full px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-semibold transition-colors ${isActive
-                          ? "bg-primary text-white"
-                          : "text-gray-500 hover:bg-black/5 hover:text-gray-700"
-                          }`}
+                        className={`flex-shrink-0 whitespace-nowrap rounded-full px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-semibold transition-colors ${
+                          isActive
+                            ? "bg-primary text-white"
+                            : "text-gray-500 hover:bg-black/5 hover:text-gray-700"
+                        }`}
                       >
                         {group.name}
                       </button>
@@ -639,8 +717,10 @@ export default function RestaurantMenuBrowser({
                 </div>
               </div>
 
-              {groupedItems.map((group) => {
+              {restaurantGroups.map((group) => {
                 const isCollapsed = collapsedGroups.has(group.name);
+                const groupCount =
+                  group.type === "bundles" ? group.bundles.length : group.items.length;
                 return (
                   <div
                     key={group.name}
@@ -652,18 +732,13 @@ export default function RestaurantMenuBrowser({
                     style={{ scrollMarginTop: stickyTopOffset + 80 }}
                     className="mb-4"
                   >
-                    {/* Group header */}
                     <button
                       onClick={() => toggleGroupCollapse(group.name)}
                       className="w-full flex items-center justify-between py-2 px-1 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-primary">
-                          {group.name}
-                        </h3>
-                        <span className="text-xs text-gray-400 font-normal">
-                          ({group.items.length})
-                        </span>
+                        <h3 className="text-base font-bold text-primary">{group.name}</h3>
+                        <span className="text-xs text-gray-400 font-normal">({groupCount})</span>
                       </div>
                       {isCollapsed ? (
                         <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -672,46 +747,63 @@ export default function RestaurantMenuBrowser({
                       )}
                     </button>
 
-                    {/* Group information */}
-                    {group.information && !isCollapsed && (
+                    {group.type === "items" && group.information && !isCollapsed && (
                       <div className="flex items-start gap-1.5 px-1 pb-2">
                         <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-gray-500 whitespace-pre-line">
-                          {group.information}
-                        </p>
+                        <p className="text-xs text-gray-500 whitespace-pre-line">{group.information}</p>
                       </div>
                     )}
 
-                    {/* Items grid */}
                     {!isCollapsed && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
-                        {group.items.map((item, itemIdx) => (
-                          <div
-                            key={item.id}
-                            ref={
-                              expandedSessionIndex === sessionIndex &&
-                                itemIdx === 0 &&
-                                group === groupedItems[0]
-                                ? firstMenuItemRef
-                                : undefined
-                            }
-                          >
-                            <MenuItemCard
-                              item={item}
-                              quantity={getItemQuantity(item.id)}
-                              isExpanded={expandedItemId === item.id}
-                              onToggleExpand={() =>
-                                setExpandedItemId(
-                                  expandedItemId === item.id ? null : item.id,
-                                )
-                              }
-                              onAddItem={onAddItem}
-                              onUpdateQuantity={onUpdateQuantity}
-                              onAddOrderPress={onAddOrderPress}
-                            />
+                      group.type === "bundles" ? (
+                        bundlesLoading ? (
+                          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+                            <span className="loading loading-spinner loading-sm text-primary" />
+                            Loading bundles...
                           </div>
-                        ))}
-                      </div>
+                        ) : bundlesError ? (
+                          <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            {bundlesError}
+                          </div>
+                        ) : group.bundles.length === 0 ? (
+                          <div className="mt-2 rounded-xl border border-dashed border-base-300 bg-base-100/60 px-4 py-5 text-sm text-gray-500">
+                            No bundles match the current filters.
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+                            {group.bundles.map((bundle) => (
+                              <BundleCard key={bundle.id} bundle={bundle} onClick={setSelectedBundle} />
+                            ))}
+                          </div>
+                        )
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+                          {group.items.map((item, itemIdx) => (
+                            <div
+                              key={item.id}
+                              ref={
+                                expandedSessionIndex === sessionIndex &&
+                                itemIdx === 0 &&
+                                group.name === firstMenuGroupName
+                                  ? firstMenuItemRef
+                                  : undefined
+                              }
+                            >
+                              <MenuItemCard
+                                item={item}
+                                quantity={getItemQuantity(item.id)}
+                                isExpanded={expandedItemId === item.id}
+                                onToggleExpand={() =>
+                                  setExpandedItemId(expandedItemId === item.id ? null : item.id)
+                                }
+                                onAddItem={onAddItem}
+                                onUpdateQuantity={onUpdateQuantity}
+                                onAddOrderPress={onAddOrderPress}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )
                     )}
                   </div>
                 );
@@ -719,6 +811,17 @@ export default function RestaurantMenuBrowser({
             </>
           )}
         </div>
+
+        {selectedBundle && (
+          <BundleDetailModal
+            bundle={selectedBundle}
+            defaultQuantity={defaultBundleGuestCount}
+            isAdding={addingBundleId === selectedBundle.id}
+            onAdd={handleAddBundle}
+            onClose={() => setSelectedBundle(null)}
+            allMenuItems={menuItemsCache || allMenuItems}
+          />
+        )}
       </div>
     );
   }
@@ -728,7 +831,6 @@ export default function RestaurantMenuBrowser({
   // ============================================================
   return (
     <div style={{ contain: "inline-size" }}>
-      {/* Search bar */}
       <div className="relative mt-2 mb-2">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
@@ -749,11 +851,32 @@ export default function RestaurantMenuBrowser({
       </div>
 
       <div>
+        {!isSearchActive && (
+          <button
+            type="button"
+            onClick={onOpenBundles}
+            className="mb-3 flex w-full items-start justify-between rounded-2xl border border-primary/15 bg-primary/[0.05] px-4 py-4 text-left transition-colors hover:bg-primary/[0.08]"
+          >
+            <span className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-primary shadow-sm">
+                <Package className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block text-sm font-semibold text-gray-900">
+                  Don&apos;t know what to get?
+                </span>
+                <span className="mt-1 block text-sm text-gray-600">Look at our bundles.</span>
+              </span>
+            </span>
+            <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+              Browse
+            </span>
+          </button>
+        )}
         {!isSearchActive && renderCategoryFilters()}
         {renderDietaryFilters()}
       </div>
 
-      {/* Search results view */}
       {isSearchActive ? (
         !allMenuItems ? (
           <div className="text-center py-6">
@@ -763,9 +886,7 @@ export default function RestaurantMenuBrowser({
         ) : searchResults && searchResults.length === 0 ? (
           <div className="text-center py-6">
             <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">
-              No items found for &ldquo;{searchQuery}&rdquo;
-            </p>
+            <p className="text-gray-500 text-sm">No items found for &ldquo;{searchQuery}&rdquo;</p>
           </div>
         ) : searchResults ? (
           <div className="mt-3">
@@ -773,17 +894,14 @@ export default function RestaurantMenuBrowser({
               <div key={result.restaurant.id} className="mb-6">
                 <div className="mb-3 max-w-sm">
                   {renderRestaurantCard(result.restaurant, () =>
-                    handleSelectRestaurant(result.restaurant.id),
+                    handleSelectRestaurant(result.restaurant.id)
                   )}
                 </div>
-
                 {result.items.length > 0 && (
                   <div>
                     <h3 className="text-sm font-bold text-primary mb-2">
                       Matching items{" "}
-                      <span className="text-gray-400 font-normal">
-                        ({result.items.length})
-                      </span>
+                      <span className="text-gray-400 font-normal">({result.items.length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {result.items.map((item) => (
@@ -793,9 +911,7 @@ export default function RestaurantMenuBrowser({
                             quantity={getItemQuantity(item.id)}
                             isExpanded={expandedItemId === item.id}
                             onToggleExpand={() =>
-                              setExpandedItemId(
-                                expandedItemId === item.id ? null : item.id,
-                              )
+                              setExpandedItemId(expandedItemId === item.id ? null : item.id)
                             }
                             onAddItem={onAddItem}
                             onUpdateQuantity={onUpdateQuantity}
@@ -811,7 +927,6 @@ export default function RestaurantMenuBrowser({
           </div>
         ) : null
       ) : (
-        /* Restaurant cards grid */
         <div
           ref={restaurantListRef}
           className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"
@@ -820,9 +935,7 @@ export default function RestaurantMenuBrowser({
             <div className="col-span-full py-8">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="mt-2 text-sm text-gray-500">
-                  Loading restaurants...
-                </p>
+                <p className="mt-2 text-sm text-gray-500">Loading restaurants...</p>
               </div>
             </div>
           ) : filteredRestaurants.length === 0 ? (
@@ -832,9 +945,7 @@ export default function RestaurantMenuBrowser({
           ) : (
             filteredRestaurants.map((restaurant) => (
               <div key={restaurant.id}>
-                {renderRestaurantCard(restaurant, () =>
-                  handleSelectRestaurant(restaurant.id),
-                )}
+                {renderRestaurantCard(restaurant, () => handleSelectRestaurant(restaurant.id))}
               </div>
             ))
           )}
