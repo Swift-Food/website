@@ -54,6 +54,7 @@ interface CateringContextType {
 
   // Pricing
   getSessionTotal: (sessionIndex: number) => number;
+  getSessionDiscount: (sessionIndex: number) => { discount: number; promotion: any | null };
   getTotalPrice: () => number;
 
   // Helper
@@ -277,6 +278,46 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   const getTotalPrice = useCallback((): number => {
     return mealSessions.reduce((sum, _, index) => sum + getSessionTotal(index), 0);
   }, [mealSessions, getSessionTotal]);
+
+  const getSessionDiscount = useCallback((sessionIndex: number): { discount: number; promotion: any | null } => {
+    const session = mealSessions[sessionIndex];
+    if (!session || session.orderItems.length === 0) return { discount: 0, promotion: null };
+
+    // Group session items by restaurant
+    const byRestaurant: Record<string, { subtotal: number; cartItems: Array<{ menuItemId: string; groupTitle: string; price: number; quantity: number; restaurantId: string }> }> = {};
+
+    session.orderItems.forEach(({ item, quantity }) => {
+      const rid = item.restaurantId;
+      if (!byRestaurant[rid]) byRestaurant[rid] = { subtotal: 0, cartItems: [] };
+
+      const price = parseFloat(item.price?.toString() || "0");
+      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+      const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      const addonTotal = (item.selectedAddons || []).reduce(
+        (sum, { price, quantity }) => sum + (price || 0) * (quantity || 0), 0
+      );
+
+      byRestaurant[rid].subtotal += (unitPrice * quantity) + addonTotal;
+      byRestaurant[rid].cartItems.push({
+        menuItemId: item.id,
+        groupTitle: item.groupTitle || '',
+        price: unitPrice,
+        quantity,
+        restaurantId: rid,
+      });
+    });
+
+    let totalDiscount = 0;
+    let primaryPromotion: any = null;
+
+    Object.entries(byRestaurant).forEach(([rid, { subtotal, cartItems }]) => {
+      const { discount, promotion } = calculatePromotionDiscount(rid, subtotal, cartItems);
+      totalDiscount += discount;
+      if (discount > 0 && !primaryPromotion) primaryPromotion = promotion;
+    });
+
+    return { discount: Number(totalDiscount.toFixed(2)), promotion: primaryPromotion };
+  }, [mealSessions, calculatePromotionDiscount]);
 
   const getAllItems = useCallback((): SelectedMenuItem[] => {
     return mealSessions.flatMap(session => session.orderItems);
@@ -674,6 +715,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
 
         // Pricing
         getSessionTotal,
+        getSessionDiscount,
         getTotalPrice,
 
         // Helper

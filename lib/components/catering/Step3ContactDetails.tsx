@@ -60,6 +60,7 @@ export default function Step3ContactInfo() {
     markOrderAsSubmitted,
     corporateUser,
     updateMealSession,
+    restaurantDiscounts,
   } = useCatering();
 
   // Get all items from all sessions for pricing calculations
@@ -1329,6 +1330,7 @@ export default function Step3ContactInfo() {
                   pricing={pricing}
                   calculatingPricing={calculatingPricing}
                   estimatedTotal={estimatedTotal}
+                  restaurantDiscounts={restaurantDiscounts}
                 />
 
                 {/* Important Notes */}

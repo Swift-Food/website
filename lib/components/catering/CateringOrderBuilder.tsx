@@ -55,6 +55,7 @@ export default function CateringOrderBuilder() {
     removeMenuItemByIndex,
     updateMenuItemByIndex,
     getSessionTotal,
+    getSessionDiscount,
     getTotalPrice,
     setCurrentStep,
   } = useCatering();
@@ -1121,6 +1122,8 @@ export default function CateringOrderBuilder() {
       isExpanded={expandedSessionIndex === index}
       onToggle={() => toggleSessionExpand(index)}
       sessionTotal={getSessionTotal(index)}
+      sessionDiscount={getSessionDiscount(index).discount}
+      sessionPromotion={getSessionDiscount(index).promotion}
       accordionRef={(el) => {
         if (el) sessionAccordionRefs.current.set(index, el);
         else sessionAccordionRefs.current.delete(index);
