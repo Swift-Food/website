@@ -759,8 +759,9 @@ export default function CateringOrderBuilder() {
     const BACKEND_QUANTITY_UNIT = updatedItem.cateringQuantityUnit || 7;
     const quantity = (updatedItem.portionQuantity || 1) * BACKEND_QUANTITY_UNIT;
 
-    const originalItem =
-      mealSessions[activeSessionIndex].orderItems[editingItemIndex].item;
+    const originalOrderItem =
+      mealSessions[activeSessionIndex].orderItems[editingItemIndex];
+    const originalItem = originalOrderItem.item;
 
     updateMenuItemByIndex(activeSessionIndex, editingItemIndex, {
       item: {
@@ -775,6 +776,8 @@ export default function CateringOrderBuilder() {
             : originalItem.restaurant?.name,
       },
       quantity,
+      bundleId: originalOrderItem.bundleId,
+      bundleName: originalOrderItem.bundleName,
     });
 
     setIsEditModalOpen(false);
