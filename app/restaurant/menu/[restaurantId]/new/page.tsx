@@ -60,6 +60,7 @@ const NewMenuItemPage = () => {
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
   // const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
   const [deliveryPortionSize, setDeliveryPortionSize] = useState<string>("");
+  const [minOrderQuantity, setMinOrderQuantity] = useState<string>("1");
   const [vatApplicable, setVatApplicable] = useState(false);
 
   // Group management state
@@ -390,6 +391,7 @@ const NewMenuItemPage = () => {
         addons: addons && addons.length > 0 ? addons : null,
         // ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
         ...(deliveryPortionSize ? { deliveryPortionSize } : {}),
+        minOrderQuantity: parseInt(minOrderQuantity) || 1,
         vatApplicable,
       };
 
@@ -568,6 +570,25 @@ const NewMenuItemPage = () => {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Portion size for delivery orders (optional)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Min Order Quantity
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10000"
+                  value={minOrderQuantity}
+                  onChange={(e) => setMinOrderQuantity(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  placeholder="1"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Minimum portions per order for this item
                 </p>
               </div>
 

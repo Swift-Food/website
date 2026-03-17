@@ -62,7 +62,7 @@ export default function MenuItemCard({
       onAddOrderPress?.(item);
     } else {
       // On md and larger with no addons, directly add to cart with default quantity
-      onAddItem?.({ ...item, portionQuantity: 1 });
+      onAddItem?.({ ...item, portionQuantity: item.minOrderQuantity || 1 });
     }
   };
 
@@ -86,6 +86,11 @@ export default function MenuItemCard({
                   <h3 className="font-bold text-sm text-gray-900 flex-1 line-clamp-1">
                     {item.menuItemName}
                   </h3>
+                  {item.minOrderQuantity && item.minOrderQuantity > 1 && (
+                    <span className="text-[9px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium whitespace-nowrap ml-1">
+                      Min {item.minOrderQuantity}
+                    </span>
+                  )}
                 </div>
 
                 {/* Restaurant Name */}

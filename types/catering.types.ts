@@ -42,6 +42,7 @@ export interface SearchResult {
   groupTitle?: string;
   cateringQuantityUnit?: number;
   feedsPerUnit?: number;
+  minOrderQuantity?: number;
   rating?: number;
   reviews?: number;
   isOpen?: boolean;
