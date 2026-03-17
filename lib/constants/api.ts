@@ -26,6 +26,8 @@ export const API_ENDPOINTS = {
 
   // Catering Bundles
   CATERING_BUNDLE: (id: string) => `/catering-bundles/${id}`,
+  CATERING_BUNDLES_CATERING: '/catering-bundles?type=catering',
+  CATERING_BUNDLES_RESTAURANT: (restaurantId: string) => `/catering-bundles/restaurant/${restaurantId}`,
 
   // Categories
   CATEGORIES: '/categories',
