@@ -200,6 +200,8 @@ export interface EventDetails {
 export interface SelectedMenuItem {
   item: SearchResult | MenuItem;
   quantity: number;
+  bundleId?: string;
+  bundleName?: string;
 }
 
 /**
