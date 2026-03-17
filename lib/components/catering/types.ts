@@ -26,6 +26,8 @@ export interface SessionAccordionProps {
   isExpanded: boolean;
   onToggle: () => void;
   sessionTotal: number;
+  sessionDiscount?: number;
+  sessionPromotion?: any;
   accordionRef: (el: HTMLDivElement | null) => void;
   onEditSession: () => void;
   onRemoveSession: (e: React.MouseEvent) => void;
