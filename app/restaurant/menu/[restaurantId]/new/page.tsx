@@ -574,8 +574,12 @@ const NewMenuItemPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 group relative">
                   Min Order Quantity
+                  <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-[10px] font-bold cursor-help">?</span>
+                  <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
+                    The minimum number of portions a customer must order for this item. When a customer adds this item to their order, the quantity will automatically start at this number and cannot go below it. For example, setting this to 10 means customers must order at least 10 portions of this item. Leave as 1 for no minimum.
+                  </span>
                 </label>
                 <input
                   type="number"
