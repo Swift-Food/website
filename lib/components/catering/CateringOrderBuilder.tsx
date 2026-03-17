@@ -19,6 +19,7 @@ import { validateSessionMinOrders } from "@/lib/utils/catering-min-order-validat
 
 // Extracted components
 import RestaurantMenuBrowser from "./RestaurantMenuBrowser";
+import BundleBrowser from "./BundleBrowser";
 import SessionEditor from "./SessionEditor";
 import SessionAccordion from "./SessionAccordion";
 import DateSessionNav from "./DateSessionNav";
@@ -108,6 +109,9 @@ export default function CateringOrderBuilder() {
 
   // Catering hours validation errors
   const [sessionValidationErrors, setSessionValidationErrors] = useState<Record<number, string>>({});
+
+  // Bundle browser state
+  const [showBundleBrowser, setShowBundleBrowser] = useState(false);
 
   // Tutorial refs
   const addDayButtonRef = useRef<HTMLButtonElement>(null);
@@ -394,6 +398,7 @@ export default function CateringOrderBuilder() {
     }
     setExpandedSessionIndex(sessionIndex);
     setActiveSessionIndex(sessionIndex);
+    setShowBundleBrowser(false);
     setTimeout(() => {
       const element = sessionAccordionRefs.current.get(sessionIndex);
       if (element) {
@@ -419,6 +424,7 @@ export default function CateringOrderBuilder() {
       prev === sessionIndex ? null : sessionIndex
     );
     setActiveSessionIndex(sessionIndex);
+    setShowBundleBrowser(false);
   };
 
   // Handle navigation from min order modal to a specific section
@@ -1071,24 +1077,36 @@ export default function CateringOrderBuilder() {
         </div>
       )}
 
-      <RestaurantMenuBrowser
-        restaurants={restaurants}
-        restaurantsLoading={restaurantsLoading}
-        allMenuItems={allMenuItems}
-        fetchAllMenuItems={fetchAllMenuItems}
-        onAddItem={handleAddItem}
-        onUpdateQuantity={handleUpdateQuantity}
-        onAddOrderPress={handleAddOrderPress}
-        getItemQuantity={getItemQuantity}
-        expandedItemId={expandedItemId}
-        setExpandedItemId={setExpandedItemId}
-        selectedDietaryFilters={selectedDietaryFilters}
-        toggleDietaryFilter={toggleDietaryFilter}
-        restaurantListRef={restaurantListRef}
-        firstMenuItemRef={firstMenuItemRef}
-        sessionIndex={index}
-        expandedSessionIndex={expandedSessionIndex}
-      />
+      {showBundleBrowser && expandedSessionIndex === index ? (
+        <BundleBrowser
+          sessionIndex={index}
+          allMenuItems={allMenuItems}
+          fetchAllMenuItems={fetchAllMenuItems}
+          onBack={() => setShowBundleBrowser(false)}
+          defaultGuestCount={mealSessions[index]?.guestCount ?? 1}
+        />
+      ) : (
+        <RestaurantMenuBrowser
+          restaurants={restaurants}
+          restaurantsLoading={restaurantsLoading}
+          onOpenBundles={() => setShowBundleBrowser(true)}
+          defaultBundleGuestCount={mealSessions[index]?.guestCount ?? 1}
+          allMenuItems={allMenuItems}
+          fetchAllMenuItems={fetchAllMenuItems}
+          onAddItem={handleAddItem}
+          onUpdateQuantity={handleUpdateQuantity}
+          onAddOrderPress={handleAddOrderPress}
+          getItemQuantity={getItemQuantity}
+          expandedItemId={expandedItemId}
+          setExpandedItemId={setExpandedItemId}
+          selectedDietaryFilters={selectedDietaryFilters}
+          toggleDietaryFilter={toggleDietaryFilter}
+          restaurantListRef={restaurantListRef}
+          firstMenuItemRef={firstMenuItemRef}
+          sessionIndex={index}
+          expandedSessionIndex={expandedSessionIndex}
+        />
+      )}
     </SessionAccordion>
   );
 
