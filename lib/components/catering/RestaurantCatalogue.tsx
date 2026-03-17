@@ -178,11 +178,12 @@ export default function RestaurantCatalogue({
                     <div className="absolute top-2 right-2">
                       <div className="bg-green-700 text-white px-3 py-1.5 rounded-lg shadow-lg flex items-center justify-center gap-1.5 backdrop-blur-sm bg-opacity-95">
                         <span className="font-bold text-sm">
-                          {
-                            restaurantPromotions[restaurant.id][0]
-                              .discountPercentage
+                          {restaurantPromotions[restaurant.id][0].promotionType === 'BUY_MORE_SAVE_MORE' && restaurantPromotions[restaurant.id][0].discountTiers?.length
+                            ? `Up to ${Math.max(...restaurantPromotions[restaurant.id][0].discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                            : restaurantPromotions[restaurant.id][0].promotionType === 'BUY_MORE_SAVE_MORE'
+                              ? 'Tiered Discount'
+                              : `${Number(restaurantPromotions[restaurant.id][0].discountPercentage)}% OFF`
                           }
-                          % OFF
                         </span>
                         {restaurantPromotions[restaurant.id][0].minOrderAmount >
                           0 && (

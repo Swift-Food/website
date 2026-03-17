@@ -41,7 +41,7 @@ export default function EditPromotionPage() {
       setPromotion(data);
     } catch (error: any) {
       console.error("Failed to load promotion:", error);
-      alert(error.response?.data?.message || "Failed to load promotion");
+      alert(error.message || "Failed to load promotion");
       router.push(`/restaurant/promotions/${restaurantId}`);
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ export default function EditPromotionPage() {
       router.push(`/restaurant/promotions/${restaurantId}`);
     } catch (error: any) {
       console.error("Failed to update promotion:", error);
-      alert(error.response?.data?.message || "Failed to update promotion. Please try again.");
+      alert(error.message || "Failed to update promotion. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -75,7 +75,7 @@ export default function EditPromotionPage() {
       router.push(`/restaurant/promotions/${restaurantId}`);
     } catch (error: any) {
       console.error("Failed to delete promotion:", error);
-      alert(error.response?.data?.message || "Failed to delete promotion");
+      alert(error.message || "Failed to delete promotion");
       setSubmitting(false);
     }
   };

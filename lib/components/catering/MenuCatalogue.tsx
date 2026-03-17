@@ -126,8 +126,24 @@ const PromotionDetailsCard = ({ promotions }: { promotions: any[] }) => {
                   {promo.name}
                 </h4>
                 <p className="text-green-800 font-bold text-lg mb-2">
-                  {promo.discountPercentage}% OFF
+                  {promo.promotionType === 'BUY_MORE_SAVE_MORE' && promo.discountTiers?.length
+                    ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                    : promo.promotionType === 'BUY_MORE_SAVE_MORE'
+                      ? 'Tiered Discount'
+                      : `${Number(promo.discountPercentage)}% OFF`
+                  }
                 </p>
+                {promo.promotionType === 'BUY_MORE_SAVE_MORE' && promo.discountTiers?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {[...promo.discountTiers]
+                      .sort((a: any, b: any) => a.minQuantity - b.minQuantity)
+                      .map((tier: any, idx: number) => (
+                        <span key={idx} className="text-green-700 text-xs font-medium bg-green-100 px-1.5 py-0.5 rounded">
+                          {tier.minQuantity}+ items → {Number(tier.discountPercentage)}% off
+                        </span>
+                      ))}
+                  </div>
+                )}
                 {promo.description && (
                   <p className="text-green-700 text-xs mb-2 line-clamp-2">
                     {promo.description}

@@ -40,7 +40,7 @@ export default function CreatePromotionPage() {
       router.push(`/restaurant/promotions/${restaurantId}`);
     } catch (error: any) {
       console.error("Failed to create promotion:", error);
-      alert(error.response?.data?.message || "Failed to create promotion. Please try again.");
+      alert(error.message || "Failed to create promotion. Please try again.");
     } finally {
       setSubmitting(false);
     }
