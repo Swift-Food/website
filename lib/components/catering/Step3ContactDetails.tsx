@@ -872,12 +872,17 @@ export default function Step3ContactInfo() {
     if (generatingPdf) return;
     setGeneratingPdf(true);
     try {
+      const pricingSessions = (pricing as any)?.mealSessions as
+        | Array<{ deliveryFee?: number }>
+        | undefined;
+
       // Convert mealSessions to LocalMealSession format
       const sessionsForPreview: LocalMealSession[] = mealSessions.map(
-        (session) => ({
+        (session, index) => ({
           sessionName: session.sessionName,
           sessionDate: session.sessionDate,
           eventTime: session.eventTime,
+          deliveryFee: pricingSessions?.[index]?.deliveryFee,
           orderItems: session.orderItems.map((orderItem) => ({
             item: {
               id: orderItem.item.id,
@@ -902,10 +907,11 @@ export default function Step3ContactInfo() {
       );
 
       // Transform to PDF data format (now async to fetch images)
-      // Don't pass delivery fee - show as TBC (same as CateringOrderBuilder)
+      // Include delivery fee when pricing has been calculated, otherwise keep it as TBC.
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
         withPrices,
+        pricing?.deliveryFee,
       );
       // Generate and download PDF
       const blob = await pdf(
