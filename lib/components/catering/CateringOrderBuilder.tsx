@@ -29,6 +29,7 @@ import EmptySessionWarningModal from "./modals/EmptySessionWarningModal";
 import RemoveSessionConfirmModal from "./modals/RemoveSessionConfirmModal";
 import MinOrderModal from "./modals/MinOrderModal";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
+import SwapItemModal from "./modals/SwapItemModal";
 
 // Hooks
 import { useCateringTutorial } from "./hooks/useCateringTutorial";
@@ -112,6 +113,10 @@ export default function CateringOrderBuilder() {
 
   // Bundle browser state
   const [showBundleBrowser, setShowBundleBrowser] = useState(false);
+
+  // Swap item state (for bundle items)
+  const [swapItemIndex, setSwapItemIndex] = useState<number | null>(null);
+  const [swapAlternatives, setSwapAlternatives] = useState<MenuItem[]>([]);
 
   // Tutorial refs
   const addDayButtonRef = useRef<HTMLButtonElement>(null);
@@ -686,6 +691,67 @@ export default function CateringOrderBuilder() {
     removeMenuItemByIndex(activeSessionIndex, itemIndex);
   };
 
+  const handleRemoveBundle = (bundleId: string) => {
+    const session = mealSessions[activeSessionIndex];
+    if (!session) return;
+    const indices = session.orderItems
+      .map((item, idx) => (item.bundleId === bundleId ? idx : -1))
+      .filter((idx) => idx !== -1)
+      .sort((a, b) => b - a);
+    indices.forEach((idx) => removeMenuItemByIndex(activeSessionIndex, idx));
+  };
+
+  // Handle swap item (for bundle items) — opens SwapItemModal with same-category alternatives
+  const handleSwapItem = (itemIndex: number) => {
+    const session = mealSessions[activeSessionIndex];
+    if (!session) return;
+    const orderItem = session.orderItems[itemIndex];
+    if (!orderItem) return;
+
+    const item = orderItem.item as MenuItem;
+    const restaurantId = item.restaurantId;
+    const groupTitle = item.groupTitle;
+
+    let alternatives: MenuItem[] = [];
+    if (allMenuItems && restaurantId && groupTitle) {
+      alternatives = allMenuItems.filter(
+        (mi) => mi.restaurantId === restaurantId && mi.groupTitle === groupTitle
+      );
+    }
+
+    setSwapAlternatives(alternatives);
+    setSwapItemIndex(itemIndex);
+  };
+
+  const handleConfirmSwap = (newItem: MenuItem) => {
+    if (swapItemIndex === null) return;
+    const session = mealSessions[activeSessionIndex];
+    if (!session) return;
+
+    const oldOrderItem = session.orderItems[swapItemIndex];
+    const backendQuantityUnit = newItem.cateringQuantityUnit || 7;
+    const quantity =
+      newItem.portionQuantity && newItem.portionQuantity > 0
+        ? newItem.portionQuantity * backendQuantityUnit
+        : oldOrderItem.quantity;
+
+    updateMenuItemByIndex(activeSessionIndex, swapItemIndex, {
+      item: {
+        ...newItem,
+        categoryId: oldOrderItem.item.categoryId,
+        categoryName: oldOrderItem.item.categoryName,
+        subcategoryId: oldOrderItem.item.subcategoryId,
+        subcategoryName: oldOrderItem.item.subcategoryName,
+      },
+      quantity,
+      bundleId: oldOrderItem.bundleId,
+      bundleName: oldOrderItem.bundleName,
+    });
+
+    setSwapItemIndex(null);
+    setSwapAlternatives([]);
+  };
+
   // Handle save edited item
   const handleSaveEditedItem = (updatedItem: MenuItem) => {
     if (editingItemIndex === null) return;
@@ -1070,6 +1136,8 @@ export default function CateringOrderBuilder() {
             sessionIndex={index}
             onEdit={handleEditItem}
             onRemove={handleRemoveItem}
+            onSwapItem={handleSwapItem}
+            onRemoveBundle={handleRemoveBundle}
             collapsedCategories={collapsedCategories}
             onToggleCategory={handleToggleCategory}
             onViewMenu={handleViewMenu}
@@ -1411,6 +1479,18 @@ export default function CateringOrderBuilder() {
           onDownload={handlePdfDownload}
           onClose={() => setShowPdfModal(false)}
           isGenerating={generatingPdf}
+        />
+      )}
+
+      {/* Swap Item Modal */}
+      {swapItemIndex !== null && (
+        <SwapItemModal
+          currentItem={mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]?.item as MenuItem}
+          currentQuantity={mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]?.quantity ?? 0}
+          alternatives={swapAlternatives}
+          isOpen={true}
+          onClose={() => { setSwapItemIndex(null); setSwapAlternatives([]); }}
+          onSwap={handleConfirmSwap}
         />
       )}
 

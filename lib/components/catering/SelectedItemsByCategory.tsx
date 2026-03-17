@@ -23,6 +23,8 @@ interface SelectedItemsByCategoryProps {
   sessionIndex?: number;
   onEdit?: (index: number) => void;
   onRemove?: (index: number) => void;
+  onSwapItem?: (index: number) => void;
+  onRemoveBundle?: (bundleId: string) => void;
   collapsedCategories?: Set<string>;
   onToggleCategory?: (categoryName: string) => void;
   showActions?: boolean;
@@ -33,6 +35,8 @@ export default function SelectedItemsByCategory({
   sessionIndex,
   onEdit,
   onRemove,
+  onSwapItem,
+  onRemoveBundle,
   collapsedCategories: externalCollapsedCategories,
   onToggleCategory: externalOnToggleCategory,
   showActions = true,
@@ -104,6 +108,9 @@ export default function SelectedItemsByCategory({
     const map = new Map<string, CategoryGroup>();
 
     orderItems.forEach((orderItem: SelectedMenuItem, index: number) => {
+      // Bundle items are rendered in their own section, skip them here
+      if (orderItem.bundleId) return;
+
       const catName = orderItem.item.categoryName || "Uncategorized";
       const subName = orderItem.item.subcategoryName || "";
 
@@ -150,15 +157,17 @@ export default function SelectedItemsByCategory({
   }, [orderItems, categoryOrder]);
 
   const bundleGroups = useMemo(() => {
-    const map = new Map<string, { bundleName: string; indices: number[] }>();
-    orderItems.forEach((orderItem, idx) => {
-      const bundleId = orderItem.bundleId;
-      const bundleName = orderItem.bundleName;
-      if (!bundleId) return;
-      if (!map.has(bundleId)) {
-        map.set(bundleId, { bundleName: bundleName ?? "Bundle", indices: [] });
+    const map = new Map<string, { name: string; items: GroupedItem[] }>();
+    orderItems.forEach((orderItem: SelectedMenuItem, index: number) => {
+      if (!orderItem.bundleId) return;
+      if (!map.has(orderItem.bundleId)) {
+        map.set(orderItem.bundleId, { name: orderItem.bundleName ?? "Bundle", items: [] });
       }
-      map.get(bundleId)!.indices.push(idx);
+      map.get(orderItem.bundleId)!.items.push({
+        item: orderItem.item,
+        quantity: orderItem.quantity,
+        originalIndex: index,
+      });
     });
     return map;
   }, [orderItems]);
@@ -167,6 +176,7 @@ export default function SelectedItemsByCategory({
 
   const renderItemRow = (groupedItem: GroupedItem) => {
     const { item, quantity, originalIndex } = groupedItem;
+    const restaurantName = item.restaurantName || item.restaurant?.name;
     const price = parseFloat(item.price?.toString() || "0");
     const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
     const itemPrice =
@@ -202,11 +212,8 @@ export default function SelectedItemsByCategory({
             <p className="font-semibold text-gray-800 italic">
               {item.menuItemName}
             </p>
-            {orderItems[originalIndex]?.bundleName && (
-              <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
-                <Package className="w-2.5 h-2.5" />
-                {orderItems[originalIndex].bundleName}
-              </span>
+            {restaurantName && (
+              <p className="mt-0.5 text-xs text-gray-500">From: {restaurantName}</p>
             )}
             {item.selectedAddons && item.selectedAddons.length > 0 && (
               <div className="text-sm text-gray-600 mt-1">
@@ -314,7 +321,15 @@ export default function SelectedItemsByCategory({
             </p>
           </div>
           {showActions && onEdit && onRemove && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:hidden">
+              {onSwapItem && orderItems[originalIndex]?.bundleId && (
+                <button
+                  onClick={() => onSwapItem(originalIndex)}
+                  className="px-3 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 transition-colors text-sm font-medium"
+                >
+                  Swap
+                </button>
+              )}
               <button
                 onClick={() => onEdit(originalIndex)}
                 className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
@@ -344,11 +359,8 @@ export default function SelectedItemsByCategory({
         {/* Name + Addons */}
         <div className="hidden sm:block flex-1 min-w-0">
           <p className="font-semibold text-gray-800">{item.menuItemName}</p>
-          {orderItems[originalIndex]?.bundleName && (
-            <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
-              <Package className="w-2.5 h-2.5" />
-              {orderItems[originalIndex].bundleName}
-            </span>
+          {restaurantName && (
+            <p className="mt-0.5 text-xs text-gray-500">From: {restaurantName}</p>
           )}
           {item.selectedAddons && item.selectedAddons.length > 0 && (
             <div className="text-sm text-gray-600 mt-1">
@@ -454,6 +466,14 @@ export default function SelectedItemsByCategory({
         {/* Actions */}
         {showActions && onEdit && onRemove && (
           <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+            {onSwapItem && orderItems[originalIndex]?.bundleId && (
+              <button
+                onClick={() => onSwapItem(originalIndex)}
+                className="px-3 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 transition-colors text-sm font-medium"
+              >
+                Swap
+              </button>
+            )}
             <button
               onClick={() => onEdit(originalIndex)}
               className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
@@ -502,31 +522,49 @@ export default function SelectedItemsByCategory({
         )}
       </div> */}
 
-      {/* Bundle Groups */}
-      {bundleGroups.size > 0 && onRemove && (
-        <div className="mb-3">
-          {Array.from(bundleGroups.entries()).map(([bundleId, { bundleName, indices }]) => (
-            <div key={bundleId} className="flex items-center justify-between py-1.5 px-2 bg-primary/5 rounded-xl mb-2">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-                <Package className="w-3.5 h-3.5" />
-                {bundleName}
-                <span className="text-gray-500 font-normal">({indices.length} items)</span>
-              </span>
-              <button
-                onClick={() => {
-                  [...indices].sort((a, b) => b - a).forEach((i) => onRemove!(i));
-                }}
-                className="text-xs text-red-500 hover:text-red-700 font-medium"
-              >
-                Remove bundle
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Categories */}
       <div className="space-y-4">
+        {/* Bundle Groups */}
+        {Array.from(bundleGroups.entries()).map(([bundleId, { name, items }]) => (
+          <div
+            key={bundleId}
+            className="border-2 border-dashed border-primary/30 rounded-2xl overflow-hidden bg-primary/[0.02]"
+          >
+            <div className="flex items-center gap-2 px-4 py-3 bg-primary/10 border-b border-primary/20">
+              <Package className="w-4 h-4 text-primary" />
+              <span className="font-semibold text-primary text-sm">{name}</span>
+              <span className="text-xs text-primary/60">
+                ({items.length} item{items.length !== 1 ? "s" : ""})
+              </span>
+              <div className="flex-1" />
+              {onRemoveBundle && (
+                <>
+                  <button
+                    onClick={() => onRemoveBundle(bundleId)}
+                    className="sm:hidden w-7 h-7 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => onRemoveBundle(bundleId)}
+                    className="hidden sm:flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    Remove Bundle
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="p-2 space-y-3">
+              {items.map(renderItemRow)}
+            </div>
+          </div>
+        ))}
+
+        {/* Categories */}
         {Array.from(grouped.entries()).map(([categoryName, categoryGroup]) => {
           const isCollapsed = collapsedCategories.has(categoryName);
           const totalItems =

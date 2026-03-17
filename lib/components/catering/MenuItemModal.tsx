@@ -30,6 +30,8 @@ interface MenuItemModalProps {
   onAddItem?: (item: MenuItem) => void;
   onUpdateQuantity?: (itemId: string, quantity: number) => void;
   isEditMode?: boolean;
+  forceAddMode?: boolean; // When true, always shows the Add button regardless of quantity/edit state
+  addButtonLabel?: string; // Override label for the add/confirm button
   onRemoveItem?: (index: number) => void;
   editingIndex?: number | null;
   viewOnly?: boolean; // When true, shows menu item details without add/edit functionality
@@ -52,6 +54,8 @@ export default function MenuItemModal({
   onAddItem,
   onUpdateQuantity,
   isEditMode = false,
+  forceAddMode = false,
+  addButtonLabel,
   onRemoveItem,
   editingIndex = null,
   viewOnly = false,
@@ -1265,7 +1269,19 @@ export default function MenuItemModal({
           )
         ) : (
           <div className="sticky bottom-0 p-4 pt-3 md:p-6 md:pt-4 bg-base-100 border-t border-base-300 rounded-b-xl">
-            {isEditMode ? (
+            {forceAddMode ? (
+              <button
+                onClick={handleAddToCart}
+                disabled={isMinSelectionsUnmet}
+                className={`w-full py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base ${
+                  isMinSelectionsUnmet
+                    ? "bg-base-300 text-base-content/50 cursor-not-allowed"
+                    : "bg-primary hover:opacity-90 text-white"
+                }`}
+              >
+                {addButtonLabel ?? "Add to Order"}
+              </button>
+            ) : isEditMode ? (
               <div className="space-y-1.5 md:space-y-2">
                 <button
                   onClick={handleAddToCart}
