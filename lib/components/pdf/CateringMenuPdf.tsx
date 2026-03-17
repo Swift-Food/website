@@ -763,7 +763,7 @@ const SessionPage: React.FC<{
             {deliveryCharge !== undefined ? "Grand Total" : "Estimated Grand Total"}
           </Text>
           <Text style={styles.grandTotalValue}>
-            {totalPrice !== undefined
+            {deliveryCharge !== undefined && totalPrice !== undefined
               ? `£${totalPrice.toFixed(2)}`
               : deliveryCharge !== undefined
                 ? `£${(totalCatering + deliveryCharge - (promoDiscount || 0)).toFixed(2)}`
