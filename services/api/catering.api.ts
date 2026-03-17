@@ -137,6 +137,22 @@ class CateringService {
     return response.json();
   }
 
+  async getCateringBundles(): Promise<CateringBundleResponse[]> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}${API_ENDPOINTS.CATERING_BUNDLES_CATERING}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch catering bundles");
+    return response.json();
+  }
+
+  async getBundlesByRestaurant(restaurantId: string): Promise<CateringBundleResponse[]> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}${API_ENDPOINTS.CATERING_BUNDLES_RESTAURANT(restaurantId)}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch restaurant bundles");
+    return response.json();
+  }
+
   async submitCateringOrder(
     eventDetails: EventDetails,
     mealSessions: MealSessionState[],
