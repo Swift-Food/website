@@ -46,9 +46,11 @@ export default function CateringDashboardPage() {
   }, [token]);
 
   useEffect(() => {
-    console.log("it runs", JSON.stringify(order))
     if (order) {
-      loadRefunds();
+      // Only load refunds if user is authenticated (endpoint requires JWT)
+      if (typeof window !== "undefined" && localStorage.getItem("access_token")) {
+        loadRefunds();
+      }
       loadDeliveryTracking(order);
     }
   }, [order]);
@@ -140,6 +142,7 @@ export default function CateringDashboardPage() {
           sessions={pdfData.sessions}
           showPrices={pdfData.showPrices}
           deliveryCharge={pdfData.deliveryCharge}
+          promoDiscount={pdfData.promoDiscount}
           totalPrice={pdfData.totalPrice}
           logoUrl={pdfData.logoUrl}
         />

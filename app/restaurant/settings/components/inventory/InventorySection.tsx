@@ -8,14 +8,14 @@ import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 
 interface InventorySectionProps {
   restaurantId: string;
-  isCatering: boolean;
+  showOnSite: boolean;
   isCorporate: boolean;
   onBack: () => void;
 }
 
 export const InventorySection = ({
   restaurantId,
-  isCatering,
+  showOnSite,
   isCorporate,
   onBack,
 }: InventorySectionProps) => {
@@ -253,7 +253,7 @@ export const InventorySection = ({
 
         <InventoryManagement
           restaurantId={restaurantId}
-          isCatering={isCatering}
+          showOnSite={showOnSite}
           isCorporate={isCorporate}
         />
       </div>

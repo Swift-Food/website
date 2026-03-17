@@ -23,7 +23,7 @@ interface FormData {
   contactNumber: string;
   images: string[];
   eventImages: string[];
-  isCatering: boolean;
+  showOnSite: boolean;
   isCorporate: boolean;
 }
 
@@ -46,7 +46,7 @@ const RestaurantSettingsPage = () => {
     contactNumber: "",
     images: [],
     eventImages: [],
-    isCatering: false,
+    showOnSite: false,
     isCorporate: false,
   });
 
@@ -77,7 +77,7 @@ const RestaurantSettingsPage = () => {
           contactNumber: restaurantDetails.contactNumber || "",
           images: images,
           eventImages: eventImages,
-          isCatering: restaurantDetails.isCatering || false,
+          showOnSite: restaurantDetails.showOnSite || false,
           isCorporate: restaurantDetails.isCorporate || false,
         });
         setLoading(false);
@@ -105,7 +105,7 @@ const RestaurantSettingsPage = () => {
         contactNumber: restaurantDetails.contactNumber || "",
         images: images,
         eventImages: eventImages,
-        isCatering: restaurantDetails.isCatering || false,
+        showOnSite: restaurantDetails.showOnSite || false,
         isCorporate: restaurantDetails.isCorporate || false,
       });
     } catch (err: any) {
@@ -305,7 +305,7 @@ const RestaurantSettingsPage = () => {
         onPickupAddresses={() => setActiveSection("pickupAddresses")}
         onCategories={() => setActiveSection("categories")}
         onBack={() => router.push("/restaurant/dashboard")}
-        showInventory={formData.isCatering || formData.isCorporate}
+        showInventory={formData.showOnSite || formData.isCorporate}
         error={error}
         success={success}
       />
@@ -365,7 +365,7 @@ const RestaurantSettingsPage = () => {
     return (
       <InventorySection
         restaurantId={restaurantId}
-        isCatering={formData.isCatering}
+        showOnSite={formData.showOnSite}
         isCorporate={formData.isCorporate}
         onBack={() => setActiveSection(null)}
       />
