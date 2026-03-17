@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { Package } from "lucide-react";
 import { useCatering } from "@/context/CateringContext";
 import { SelectedMenuItem } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
@@ -148,6 +149,20 @@ export default function SelectedItemsByCategory({
     return map;
   }, [orderItems, categoryOrder]);
 
+  const bundleGroups = useMemo(() => {
+    const map = new Map<string, { bundleName: string; indices: number[] }>();
+    orderItems.forEach((orderItem, idx) => {
+      const bundleId = orderItem.bundleId;
+      const bundleName = orderItem.bundleName;
+      if (!bundleId) return;
+      if (!map.has(bundleId)) {
+        map.set(bundleId, { bundleName: bundleName ?? "Bundle", indices: [] });
+      }
+      map.get(bundleId)!.indices.push(idx);
+    });
+    return map;
+  }, [orderItems]);
+
   if (orderItems.length === 0) return null;
 
   const renderItemRow = (groupedItem: GroupedItem) => {
@@ -187,6 +202,12 @@ export default function SelectedItemsByCategory({
             <p className="font-semibold text-gray-800 italic">
               {item.menuItemName}
             </p>
+            {orderItems[originalIndex]?.bundleName && (
+              <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                <Package className="w-2.5 h-2.5" />
+                {orderItems[originalIndex].bundleName}
+              </span>
+            )}
             {item.selectedAddons && item.selectedAddons.length > 0 && (
               <div className="text-sm text-gray-600 mt-1">
                 {(() => {
@@ -323,6 +344,12 @@ export default function SelectedItemsByCategory({
         {/* Name + Addons */}
         <div className="hidden sm:block flex-1 min-w-0">
           <p className="font-semibold text-gray-800">{item.menuItemName}</p>
+          {orderItems[originalIndex]?.bundleName && (
+            <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+              <Package className="w-2.5 h-2.5" />
+              {orderItems[originalIndex].bundleName}
+            </span>
+          )}
           {item.selectedAddons && item.selectedAddons.length > 0 && (
             <div className="text-sm text-gray-600 mt-1">
               {(() => {
@@ -474,6 +501,29 @@ export default function SelectedItemsByCategory({
           </button>
         )}
       </div> */}
+
+      {/* Bundle Groups */}
+      {bundleGroups.size > 0 && onRemove && (
+        <div className="mb-3">
+          {Array.from(bundleGroups.entries()).map(([bundleId, { bundleName, indices }]) => (
+            <div key={bundleId} className="flex items-center justify-between py-1.5 px-2 bg-primary/5 rounded-xl mb-2">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                <Package className="w-3.5 h-3.5" />
+                {bundleName}
+                <span className="text-gray-500 font-normal">({indices.length} items)</span>
+              </span>
+              <button
+                onClick={() => {
+                  [...indices].sort((a, b) => b - a).forEach((i) => onRemove!(i));
+                }}
+                className="text-xs text-red-500 hover:text-red-700 font-medium"
+              >
+                Remove bundle
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Categories */}
       <div className="space-y-4">
