@@ -2,6 +2,7 @@
 
 import HeroSection from "@/lib/components/containers/HeroSection";
 import SocialProofSection from "@/lib/components/containers/SocialProofSection";
+import PartnersSection from "@/lib/components/containers/PartnersSection";
 import EventGallerySection from "@/lib/components/containers/EventGallerySection";
 import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
 
@@ -11,6 +12,7 @@ export default function HomeClient() {
       <main>
         <HeroSection />
         <SocialProofSection />
+        <PartnersSection />
         <EventGallerySection />
         <FeatureDemosSection />
       </main>

@@ -1,0 +1,172 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@400;500;600;700;900&display=swap');
+
+  .preview-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #fa43ad;
+    font-weight: 700;
+  }
+  .preview-heading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: #282828;
+    margin: 6px 0 8px;
+  }
+  .preview-body {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .preview-tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fa43ad;
+    border: 1px solid #fa43ad;
+    border-radius: 3px;
+    padding: 2px 7px;
+    margin-bottom: 8px;
+  }
+  .preview-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    padding: 20px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: #6b7280;
+  }
+  .logo-block {
+    width: 80px;
+    height: 40px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 11px;
+    color: #9ca3af;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .pink-dot {
+    width: 6px; height: 6px;
+    background: #fa43ad;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+  }
+</style>
+
+<h2>Partners Section Layout</h2>
+<p class="subtitle">Choose a layout that works for 1 partner now and scales to many later</p>
+
+<div class="cards">
+
+  <!-- Option A: Scrollable Cards Row -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fafafa;padding:16px;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#fa43ad;font-weight:700;margin-bottom:8px;">OUR PARTNERS</div>
+      <div style="font-family:'Inter',sans-serif;font-weight:900;font-size:17px;text-transform:uppercase;color:#282828;margin-bottom:12px;">SPACES WE WORK IN</div>
+      <!-- Cards row -->
+      <div style="display:flex;gap:10px;overflow:hidden;">
+        <!-- Active card -->
+        <div style="min-width:160px;border:1.5px solid #282828;border-radius:6px;padding:12px;background:#fff;">
+          <div class="logo-block" style="width:60px;height:30px;font-size:9px;margin-bottom:8px;">HALKIN</div>
+          <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:11px;color:#282828;margin-bottom:3px;">Halkin</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#fa43ad;margin-bottom:5px;">COWORKING</div>
+          <div style="font-family:'Inter',sans-serif;font-size:9px;color:#6b7280;line-height:1.4;">Premium coworking space in central London.</div>
+        </div>
+        <!-- Ghost future cards -->
+        <div style="min-width:160px;border:1px dashed #d1d5db;border-radius:6px;padding:12px;background:#f9fafb;display:flex;align-items:center;justify-content:center;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#d1d5db;letter-spacing:0.1em;">COMING SOON</div>
+        </div>
+        <div style="min-width:160px;border:1px dashed #d1d5db;border-radius:6px;padding:12px;background:#f9fafb;display:flex;align-items:center;justify-content:center;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#d1d5db;letter-spacing:0.1em;">COMING SOON</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Scrollable Cards Row</h3>
+      <p>Partner cards in a horizontal scroll. Add more cards as you grow. Clean and compact — sits lightly between the two sections.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Featured Split -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fafafa;padding:16px;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#fa43ad;font-weight:700;margin-bottom:8px;">OUR PARTNERS</div>
+      <!-- Split layout -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;">
+        <!-- Left: text -->
+        <div>
+          <div style="font-family:'Inter',sans-serif;font-weight:900;font-size:17px;text-transform:uppercase;color:#282828;margin-bottom:6px;line-height:1.1;">VENUES WE WORK WITH</div>
+          <div style="font-family:'Inter',sans-serif;font-size:9px;color:#6b7280;line-height:1.5;margin-bottom:10px;">We partner with premium spaces to bring great food to great communities.</div>
+          <div style="display:flex;gap:6px;">
+            <div style="width:8px;height:8px;background:#282828;border-radius:50%;margin-top:2px;"></div>
+            <div style="width:8px;height:8px;background:#e5e7eb;border-radius:50%;margin-top:2px;"></div>
+            <div style="width:8px;height:8px;background:#e5e7eb;border-radius:50%;margin-top:2px;"></div>
+          </div>
+        </div>
+        <!-- Right: partner card -->
+        <div style="border:1.5px solid #282828;border-radius:8px;padding:12px;background:#fff;">
+          <div class="logo-block" style="width:100%;height:35px;font-size:10px;margin-bottom:8px;border-radius:4px;">HALKIN</div>
+          <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:11px;color:#282828;margin-bottom:2px;">Halkin Coworking</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#fa43ad;margin-bottom:5px;">BISHOPSGATE, LONDON</div>
+          <div style="font-family:'Inter',sans-serif;font-size:9px;color:#6b7280;line-height:1.4;">Premium flexible workspace for teams and founders.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Featured Split (Carousel)</h3>
+      <p>Left side has headline text; right side shows one featured partner. Dots navigate between partners. Elegant — always shows one at a time with full focus.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Wide Banner Cards -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fafafa;padding:16px;">
+      <div style="text-align:center;margin-bottom:12px;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#fa43ad;font-weight:700;margin-bottom:4px;">OUR PARTNERS</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:900;font-size:17px;text-transform:uppercase;color:#282828;">SPACES WE LOVE</div>
+      </div>
+      <!-- Wide banner card -->
+      <div style="border:1.5px solid #282828;border-radius:8px;overflow:hidden;display:grid;grid-template-columns:90px 1fr;background:#fff;">
+        <!-- Left accent block -->
+        <div style="background:#282828;display:flex;align-items:center;justify-content:center;padding:10px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:10px;color:#fff;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:0.15em;">HALKIN</div>
+        </div>
+        <!-- Right content -->
+        <div style="padding:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div>
+              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:11px;color:#282828;margin-bottom:2px;">Halkin Coworking</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#fa43ad;">COWORKING SPACE</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#9ca3af;border:1px solid #e5e7eb;border-radius:3px;padding:2px 5px;">PARTNER</div>
+          </div>
+          <div style="font-family:'Inter',sans-serif;font-size:9px;color:#6b7280;line-height:1.5;">Premium coworking space in the City of London. Home to founders, startups, and growing teams.</div>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#d1d5db;text-align:center;margin-top:8px;letter-spacing:0.1em;">+ MORE PARTNERS COMING SOON</div>
+    </div>
+    <div class="card-body">
+      <h3>C — Wide Banner Cards (Stacked)</h3>
+      <p>Each partner gets a full-width horizontal banner card, stacked vertically. Dark accent block on the left with vertical name — bold and editorial. Stacks naturally as you add partners.</p>
+    </div>
+  </div>
+
+</div>

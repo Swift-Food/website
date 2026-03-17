@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partner Section Layouts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/feather-icons"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f0f0f0;
+    padding: 32px 24px;
+    min-height: 100vh;
+  }
+
+  .page-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .page-heading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    text-align: center;
+    color: #111;
+    margin-bottom: 6px;
+  }
+  .page-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  /* ---- Option wrapper ---- */
+  .option-wrap {
+    margin-bottom: 28px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .option-wrap:hover { transform: translateY(-2px); }
+  .option-wrap.selected .option-label-bar { background: #fa43ad; color: #fff; }
+  .option-wrap.selected .section-preview { box-shadow: 0 0 0 3px #fa43ad; }
+
+  .option-label-bar {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: #282828;
+    color: #fff;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 6px 6px 0 0;
+    transition: background 0.2s;
+  }
+  .option-label-bar .check {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .option-wrap.selected .option-label-bar .check {
+    background: #fff;
+    border-color: #fff;
+    color: #fa43ad;
+  }
+
+  .section-preview {
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+
+  .option-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 8px;
+    padding: 0 4px;
+    line-height: 1.5;
+  }
+
+  /* ---- Shared section styles (mirror site CSS) ---- */
+  .pink-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #fa43ad;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .big-heading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: #111;
+    line-height: 1.0;
+    margin-bottom: 12px;
+  }
+  .big-heading-white {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: #fff;
+    line-height: 1.0;
+    margin-bottom: 12px;
+  }
+  .body-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    color: #9ca3af;
+    line-height: 1.6;
+    max-width: 400px;
+  }
+
+  /* ---- OPTION A: Two-column - heading left, card right ---- */
+  .opt-a-section {
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 64px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .partner-card-a {
+    border: 1.5px solid #111;
+    border-radius: 4px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .partner-card-a .logo-area {
+    width: 100%;
+    height: 56px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    color: #282828;
+  }
+  .partner-card-a .partner-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .partner-card-a .partner-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #111;
+  }
+  .partner-card-a .partner-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fa43ad;
+  }
+  .partner-card-a .partner-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.55;
+  }
+  .partner-card-a .partner-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #111;
+    text-decoration: none;
+    border-bottom: 1px solid #111;
+    padding-bottom: 2px;
+    display: inline-block;
+    width: fit-content;
+  }
+  .nav-dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .nav-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #111;
+  }
+  .nav-dot.inactive { background: #e5e7eb; }
+
+  /* ---- OPTION B: Dark section ---- */
+  .opt-b-section {
+    background: #111;
+    padding: 64px 48px;
+  }
+  .opt-b-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .partner-card-b {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .partner-card-b .logo-area {
+    width: 100%;
+    height: 52px;
+    background: #222;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: #fff;
+  }
+  .partner-card-b .partner-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+  }
+  .partner-card-b .partner-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fa43ad;
+    margin-top: -8px;
+  }
+  .partner-card-b .partner-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.55;
+  }
+  .partner-card-b .partner-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fff;
+    border-bottom: 1px solid #444;
+    padding-bottom: 2px;
+    display: inline-block;
+    width: fit-content;
+  }
+  .pink-label-white {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #fa43ad;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .body-text-white {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    color: #4b5563;
+    line-height: 1.6;
+  }
+  .nav-dot-white { background: #fff; }
+  .nav-dot-white.inactive { background: #333; }
+
+  /* ---- OPTION C: Centered with cards below ---- */
+  .opt-c-section {
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 64px 48px;
+    text-align: center;
+  }
+  .opt-c-cards {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+    justify-content: center;
+  }
+  .partner-card-c {
+    border: 1.5px solid #111;
+    border-radius: 4px;
+    padding: 24px;
+    text-align: left;
+    flex: 1;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .partner-card-c .logo-area {
+    width: 100%;
+    height: 48px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: #282828;
+  }
+  .partner-card-c .partner-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: #111;
+  }
+  .partner-card-c .partner-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fa43ad;
+    margin-top: -4px;
+  }
+  .partner-card-c .partner-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.55;
+  }
+  .ghost-card {
+    border: 1.5px dashed #e5e7eb;
+    border-radius: 4px;
+    padding: 24px;
+    flex: 1;
+    max-width: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ghost-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #d1d5db;
+  }
+
+  /* Selected state */
+  .selected-indicator {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #fa43ad;
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 10px 18px;
+    border-radius: 4px;
+    z-index: 999;
+  }
+  .selected-indicator.visible { display: block; }
+</style>
+</head>
+<body>
+
+<p class="page-title">Partner Section — Layout Options</p>
+<h1 class="page-heading">Which layout feels right?</h1>
+<p class="page-sub">Click a section to select it. These show how the section looks on the real site between Trusted By and the Portfolio.</p>
+
+<!-- OPTION A -->
+<div class="option-wrap" id="opt-a" onclick="select('a')">
+  <div class="option-label-bar">
+    <span>A — Split: Heading left, Partner card right</span>
+    <div class="check">✓</div>
+  </div>
+  <div class="section-preview">
+    <div class="opt-a-section">
+      <div>
+        <span class="pink-label">Our Partners</span>
+        <h2 class="big-heading">Spaces<br>We Work<br>From</h2>
+        <p class="body-text">We partner with premium coworking spaces to bring great food to great communities.</p>
+        <div class="nav-dots" style="margin-top:24px;">
+          <div class="nav-dot"></div>
+          <div class="nav-dot inactive"></div>
+          <div class="nav-dot inactive"></div>
+        </div>
+      </div>
+      <div>
+        <div class="partner-card-a">
+          <div class="logo-area">HALKIN</div>
+          <div>
+            <div class="partner-name">Halkin</div>
+            <div class="partner-type" style="margin-top:4px;">Coworking Space</div>
+          </div>
+          <p class="partner-desc">Premium flexible workspace in the City of London — home to founders, startups, and growing teams.</p>
+          <a class="partner-link">Visit Halkin →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="option-desc">Left: section title + description. Right: partner card. Dots navigate between partners as you add more. Clean — fits the site's existing split-layout pattern.</p>
+</div>
+
+<!-- OPTION B -->
+<div class="option-wrap" id="opt-b" onclick="select('b')">
+  <div class="option-label-bar">
+    <span>B — Dark section (contrast break)</span>
+    <div class="check">✓</div>
+  </div>
+  <div class="section-preview">
+    <div class="opt-b-section">
+      <div class="opt-b-inner">
+        <div>
+          <span class="pink-label-white">Our Partners</span>
+          <h2 class="big-heading-white">Spaces<br>We Work<br>From</h2>
+          <p class="body-text-white">We partner with premium coworking spaces to bring great food to great communities.</p>
+          <div class="nav-dots" style="margin-top:24px;">
+            <div class="nav-dot nav-dot-white"></div>
+            <div class="nav-dot nav-dot-white inactive"></div>
+            <div class="nav-dot nav-dot-white inactive"></div>
+          </div>
+        </div>
+        <div>
+          <div class="partner-card-b">
+            <div class="logo-area">HALKIN</div>
+            <div>
+              <div class="partner-name">Halkin</div>
+              <div class="partner-type" style="margin-top:4px;">Coworking Space</div>
+            </div>
+            <p class="partner-desc">Premium flexible workspace in the City of London — home to founders, startups, and growing teams.</p>
+            <a class="partner-link">Visit Halkin →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="option-desc">Dark background creates a visual contrast break between Trusted By and Portfolio. Bold — stands out as a distinct section. Same structure as A, different feel.</p>
+</div>
+
+<!-- OPTION C -->
+<div class="option-wrap" id="opt-c" onclick="select('c')">
+  <div class="option-label-bar">
+    <span>C — Centred heading with cards below</span>
+    <div class="check">✓</div>
+  </div>
+  <div class="section-preview">
+    <div class="opt-c-section">
+      <span class="pink-label" style="display:block;">Our Partners</span>
+      <h2 class="big-heading" style="max-width:500px;margin:0 auto 12px;">Spaces We Work From</h2>
+      <p class="body-text" style="margin:0 auto;text-align:center;">We partner with premium coworking spaces to bring great food to great communities.</p>
+      <div class="opt-c-cards">
+        <div class="partner-card-c">
+          <div class="logo-area">HALKIN</div>
+          <div>
+            <div class="partner-name">Halkin</div>
+            <div class="partner-type" style="margin-top:4px;">Coworking Space</div>
+          </div>
+          <p class="partner-desc">Premium flexible workspace in the City of London — home to founders, startups, and growing teams.</p>
+        </div>
+        <div class="ghost-card">
+          <span class="ghost-text">More coming soon</span>
+        </div>
+        <div class="ghost-card">
+          <span class="ghost-text">More coming soon</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="option-desc">Centred layout, cards below. Easy to scan at a glance. Ghost placeholder cards hint at future partners. Best for showing 2–4 partners side-by-side.</p>
+</div>
+
+<div class="selected-indicator" id="indicator"></div>
+
+<script>
+  let selected = null;
+  function select(choice) {
+    if (selected) {
+      document.getElementById('opt-' + selected).classList.remove('selected');
+    }
+    selected = choice;
+    document.getElementById('opt-' + choice).classList.add('selected');
+    const labels = { a: 'A — Split Layout', b: 'B — Dark Section', c: 'C — Centred Cards' };
+    const indicator = document.getElementById('indicator');
+    indicator.textContent = '✓ Selected: ' + labels[choice];
+    indicator.classList.add('visible');
+
+    // Record event
+    try {
+      const events = JSON.parse(localStorage.getItem('vc_events') || '[]');
+      events.push({ type: 'click', choice, text: labels[choice], timestamp: Date.now() });
+      localStorage.setItem('vc_events', JSON.stringify(events));
+    } catch(e) {}
+
+    // Post to server
+    fetch('/__select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ choice, text: labels[choice] })
+    }).catch(() => {});
+  }
+</script>
+
+</body>
+</html>

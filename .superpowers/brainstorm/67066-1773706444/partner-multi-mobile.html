@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-partner + Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f0f0f0; padding: 28px 20px; }
+
+  .page-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #6b7280; text-align: center; margin-bottom: 6px; }
+  .page-heading { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 20px; text-align: center; color: #111; margin-bottom: 4px; }
+  .page-sub { font-family: 'Inter', sans-serif; font-size: 13px; color: #6b7280; text-align: center; margin-bottom: 30px; }
+
+  .section-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; background: #282828; color: #fff; padding: 8px 16px; border-radius: 4px 4px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .section-block { border-radius: 0 0 6px 6px; overflow: hidden; margin-bottom: 32px; }
+
+  .option-wrap { cursor: pointer; margin-bottom: 28px; }
+  .option-wrap:hover .section-label { background: #333; }
+  .option-wrap.selected .section-label { background: #fa43ad; }
+  .option-wrap.selected .section-block { box-shadow: 0 0 0 3px #fa43ad; }
+
+  .check { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .selected .check { background: #fff; border-color: #fff; color: #fa43ad; }
+
+  .option-desc { font-family: 'Inter', sans-serif; font-size: 12px; color: #6b7280; margin-top: 8px; padding: 0 4px; line-height: 1.5; }
+
+  /* Shared type */
+  .pink-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: #fa43ad; display: block; margin-bottom: 14px; }
+  .big-heading { font-family: 'Inter', sans-serif; font-weight: 900; font-size: clamp(24px, 3.5vw, 40px); letter-spacing: -0.02em; text-transform: uppercase; color: #111; line-height: 1.0; margin-bottom: 14px; }
+  .body-text { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 14px; color: #9ca3af; line-height: 1.6; }
+
+  .partner-type { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fa43ad; margin-top: 3px; }
+  .partner-name { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; color: #111; }
+  .partner-desc { font-family: 'Inter', sans-serif; font-size: 12px; color: #6b7280; line-height: 1.55; margin-top: 6px; }
+  .partner-link { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #111; border-bottom: 1px solid #111; padding-bottom: 1px; margin-top: 10px; display: inline-block; }
+
+  .logo-area { width: 100%; height: 50px; background: #f3f4f6; border-radius: 3px; display: flex; align-items: center; padding: 0 14px; font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.1em; color: #282828; margin-bottom: 10px; }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #111; display: inline-block; margin-right: 5px; }
+  .dot.off { background: #e5e7eb; }
+
+  /* ---- Option A — Carousel (one card at a time) ---- */
+  .opt-a-wrap { background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 56px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+
+  .a-card { border: 1.5px solid #111; border-radius: 4px; padding: 24px; }
+  .a-card-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .a-tab { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-radius: 3px; cursor: pointer; border: 1px solid #e5e7eb; color: #9ca3af; }
+  .a-tab.active { background: #111; color: #fff; border-color: #111; }
+
+  /* ---- Option A — Grid (multiple visible) ---- */
+  .opt-a2-wrap { background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 56px 48px; }
+  .a2-head { margin-bottom: 32px; }
+  .a2-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .a2-card { border: 1.5px solid #111; border-radius: 4px; padding: 20px; }
+  .a2-ghost { border: 1.5px dashed #e5e7eb; border-radius: 4px; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 140px; }
+  .a2-ghost span { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #d1d5db; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* ---- Option C mobile ---- */
+  .c-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+
+  .desktop-frame { background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 40px 32px; }
+  .desktop-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 28px; }
+  .c-card { border: 1.5px solid #111; border-radius: 4px; padding: 18px; }
+  .c-ghost { border: 1.5px dashed #e5e7eb; border-radius: 4px; padding: 18px; display: flex; align-items: center; justify-content: center; min-height: 120px; }
+  .c-ghost span { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #d1d5db; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .frame-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #9ca3af; margin-bottom: 8px; }
+
+  /* Phone frame */
+  .phone-frame { background: #1a1a1a; border-radius: 28px; padding: 12px; width: 100%; max-width: 220px; margin: 0 auto; }
+  .phone-screen { background: #fff; border-radius: 18px; overflow: hidden; }
+  .phone-section { padding: 28px 20px; }
+  .phone-pink-label { font-family: 'IBM Plex Mono', monospace; font-size: 8px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #fa43ad; display: block; margin-bottom: 10px; }
+  .phone-heading { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 18px; letter-spacing: -0.01em; text-transform: uppercase; color: #111; line-height: 1.05; margin-bottom: 10px; }
+  .phone-body { font-family: 'Inter', sans-serif; font-size: 10px; color: #9ca3af; line-height: 1.5; margin-bottom: 18px; }
+
+  /* Scroll hint strip */
+  .phone-scroll-row { display: flex; gap: 10px; overflow: hidden; margin: 0 -20px; padding: 0 20px; }
+  .phone-card { min-width: 140px; border: 1.5px solid #111; border-radius: 4px; padding: 12px; flex-shrink: 0; }
+  .phone-logo { width: 100%; height: 32px; background: #f3f4f6; border-radius: 3px; display: flex; align-items: center; padding: 0 10px; font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 9px; letter-spacing: 0.08em; color: #282828; margin-bottom: 7px; }
+  .phone-partner-name { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 11px; color: #111; }
+  .phone-partner-type { font-family: 'IBM Plex Mono', monospace; font-size: 7px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #fa43ad; margin-top: 2px; }
+  .phone-partner-desc { font-family: 'Inter', sans-serif; font-size: 9px; color: #6b7280; line-height: 1.45; margin-top: 5px; }
+  .phone-ghost-card { min-width: 140px; border: 1.5px dashed #e5e7eb; border-radius: 4px; padding: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; height: 110px; }
+  .phone-ghost-text { font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: #d1d5db; letter-spacing: 0.1em; text-transform: uppercase; }
+  .phone-dots { display: flex; gap: 5px; margin-top: 14px; padding: 0 0 4px; }
+
+  .selected-indicator { display: none; position: fixed; bottom: 20px; right: 20px; background: #fa43ad; color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; padding: 10px 16px; border-radius: 4px; z-index: 999; }
+  .selected-indicator.visible { display: block; }
+</style>
+</head>
+<body>
+
+<p class="page-title">Multi-partner + Mobile</p>
+<h1 class="page-heading">A with multiple partners, and C on mobile</h1>
+<p class="page-sub">Click to select your preferred approach</p>
+
+<!-- ===== OPTION A1: Carousel (one at a time, tabs/dots) ===== -->
+<div class="option-wrap" id="opt-a1" onclick="select('a1')">
+  <div class="section-label">
+    <span>A1 — Carousel: one partner at a time (current: Halkin, tab to switch)</span>
+    <div class="check">✓</div>
+  </div>
+  <div class="section-block">
+    <div class="opt-a-wrap">
+      <div>
+        <span class="pink-label">Our Partners</span>
+        <h2 class="big-heading">Spaces<br>We Work<br>From</h2>
+        <p class="body-text">We partner with premium coworking spaces to bring great food to great communities.</p>
+      </div>
+      <div>
+        <!-- Tab switcher -->
+        <div class="a-card-tabs">
+          <div class="a-tab active">Halkin</div>
+          <div class="a-tab">Partner 2</div>
+          <div class="a-tab">Partner 3</div>
+        </div>
+        <div class="a-card">
+          <div class="logo-area">HALKIN</div>
+          <div class="partner-name">Halkin</div>
+          <div class="partner-type">Coworking Space · City of London</div>
+          <p class="partner-desc">Premium flexible workspace for founders, startups, and growing teams. A space that values great food as much as great work.</p>
+          <a class="partner-link">Visit Halkin →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="option-desc">The right side cycles through partners — tabs or dots to navigate. Left heading stays fixed. Works well for 2–6 partners. Focused storytelling for each.</p>
+</div>
+
+<!-- ===== OPTION A2: Grid (multiple visible at once) ===== -->
+<div class="option-wrap" id="opt-a2" onclick="select('a2')">
+  <div class="section-label">
+    <span>A2 — Grid: all partners visible at once</span>
+    <div class="check">✓</div>
+  </div>
+  <div class="section-block">
+    <div class="opt-a2-wrap">
+      <div class="a2-head" style="display:flex;justify-content:space-between;align-items:flex-end;">
+        <div>
+          <span class="pink-label">Our Partners</span>
+          <h2 class="big-heading">Spaces We Work From</h2>
+        </div>
+        <p class="body-text" style="max-width:320px;text-align:right;">Premium coworking spaces where we bring great food to great communities.</p>
+      </div>
+      <div class="a2-grid">
+        <div class="a2-card">
+          <div class="logo-area" style="height:44px;font-size:12px;">HALKIN</div>
+          <div class="partner-name">Halkin</div>
+          <div class="partner-type">Coworking Space</div>
+          <p class="partner-desc" style="font-size:11px;">City of London — premium flexible workspace for founders and teams.</p>
+        </div>
+        <div class="a2-ghost"><span>Partner 2</span></div>
+        <div class="a2-ghost"><span>Partner 3</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="option-desc">All partners shown at once in a grid. No interaction needed. Ghost cards hint at more coming. Grows naturally — add a card, grid expands. Best once you have 2+ partners.</p>
+</div>
+
+<!-- ===== OPTION C: Desktop + Mobile side by side ===== -->
+<div class="option-wrap" id="opt-c" onclick="select('c')">
+  <div class="section-label">
+    <span>C — Horizontal scroll on mobile (cards snap into view)</span>
+    <div class="check">✓</div>
+  </div>
+  <div class="section-block" style="background:#f8f8f8;padding:24px;">
+    <div class="c-split">
+      <!-- Desktop -->
+      <div>
+        <p class="frame-label" style="margin-bottom:10px;">Desktop</p>
+        <div class="desktop-frame">
+          <span class="pink-label">Our Partners</span>
+          <h2 class="big-heading" style="font-size:26px;">Spaces We Work From</h2>
+          <p class="body-text" style="font-size:12px;margin-bottom:0;">We partner with premium coworking spaces.</p>
+          <div class="desktop-cards">
+            <div class="c-card">
+              <div class="logo-area" style="height:40px;font-size:11px;margin-bottom:8px;">HALKIN</div>
+              <div class="partner-name" style="font-size:13px;">Halkin</div>
+              <div class="partner-type">Coworking</div>
+              <p class="partner-desc" style="font-size:11px;">City of London — flexible workspace for founders.</p>
+            </div>
+            <div class="c-ghost"><span>Partner 2</span></div>
+            <div class="c-ghost"><span>Partner 3</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile phone -->
+      <div>
+        <p class="frame-label" style="margin-bottom:10px;text-align:center;">Mobile</p>
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <div class="phone-section">
+              <span class="phone-pink-label">Our Partners</span>
+              <h2 class="phone-heading">Spaces<br>We Work<br>From</h2>
+              <p class="phone-body">We partner with premium coworking spaces to bring great food to great communities.</p>
+              <!-- Horizontal scroll strip -->
+              <div class="phone-scroll-row">
+                <div class="phone-card">
+                  <div class="phone-logo">HALKIN</div>
+                  <div class="phone-partner-name">Halkin</div>
+                  <div class="phone-partner-type">Coworking</div>
+                  <p class="phone-partner-desc">City of London — flexible workspace for founders.</p>
+                </div>
+                <div class="phone-ghost-card">
+                  <span class="phone-ghost-text">More soon</span>
+                </div>
+              </div>
+              <div class="phone-dots">
+                <div class="dot" style="width:6px;height:6px;background:#111;"></div>
+                <div class="dot" style="width:6px;height:6px;background:#e5e7eb;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="option-desc">Desktop: 3-column grid. Mobile: horizontal scroll (snap) with dots. Heading stacks above the scroll strip. Clean on both. Ghost cards show future slots.</p>
+</div>
+
+<div class="selected-indicator" id="indicator"></div>
+
+<script>
+  let selected = null;
+  function select(choice) {
+    if (selected) document.getElementById('opt-' + selected).classList.remove('selected');
+    selected = choice;
+    document.getElementById('opt-' + choice).classList.add('selected');
+    const labels = { a1: 'A1 — Carousel', a2: 'A2 — Grid', c: 'C — Scroll on mobile' };
+    const indicator = document.getElementById('indicator');
+    indicator.textContent = '✓ Selected: ' + labels[choice];
+    indicator.classList.add('visible');
+    fetch('/__select', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ choice, text: labels[choice] }) }).catch(()=>{});
+  }
+</script>
+</body>
+</html>
