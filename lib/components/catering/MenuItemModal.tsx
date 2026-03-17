@@ -264,7 +264,7 @@ export default function MenuItemModal({
       const group = addonGroups[groupTitle];
       if (group?.maxSelections != null && change > 0) {
         const totalWithoutCurrent = Object.values(newQuantities[groupTitle]).reduce((s, q) => s + q, 0) - currentQty;
-        const maxAllowed = group.maxSelections - totalWithoutCurrent;
+        const maxAllowed = group.maxSelections * itemQuantity - totalWithoutCurrent;
         newQty = Math.min(newQty, Math.max(0, maxAllowed));
       }
 
@@ -519,9 +519,10 @@ export default function MenuItemModal({
     Object.entries(addonGroups).forEach(([groupTitle, group]) => {
       if (group.minSelections != null) {
         const count = getMultipleSelectionCount(groupTitle);
-        if (count < group.minSelections) {
+        const effectiveMin = group.minSelections * itemQuantity;
+        if (count < effectiveMin) {
           multipleSelectionErrors.push(
-            `${groupTitle}: Please select at least ${group.minSelections} option${group.minSelections > 1 ? "s" : ""} (currently ${count})`
+            `${groupTitle}: Please select at least ${effectiveMin} option${effectiveMin > 1 ? "s" : ""} (currently ${count})`
           );
         }
       }
@@ -609,7 +610,7 @@ export default function MenuItemModal({
   const isMinSelectionsUnmet = Object.entries(addonGroups).some(
     ([groupTitle, group]) =>
       group.minSelections != null &&
-      getMultipleSelectionCount(groupTitle) < group.minSelections
+      getMultipleSelectionCount(groupTitle) < group.minSelections * itemQuantity
   );
 
   if (!isOpen) return null;
@@ -853,16 +854,18 @@ export default function MenuItemModal({
                             {group.minSelections != null || group.maxSelections != null
                               ? (() => {
                                   const count = getMultipleSelectionCount(groupTitle);
-                                  const target = group.maxSelections ?? group.minSelections;
+                                  const effectiveMin = group.minSelections != null ? group.minSelections * itemQuantity : null;
+                                  const effectiveMax = group.maxSelections != null ? group.maxSelections * itemQuantity : null;
+                                  const target = effectiveMax ?? effectiveMin;
                                   let label = "";
-                                  if (group.minSelections != null && group.maxSelections != null && group.minSelections === group.maxSelections) {
-                                    label = `Select ${group.minSelections}`;
-                                  } else if (group.minSelections != null && group.maxSelections != null) {
-                                    label = `Select ${group.minSelections}–${group.maxSelections}`;
-                                  } else if (group.minSelections != null) {
-                                    label = `Select at least ${group.minSelections}`;
+                                  if (effectiveMin != null && effectiveMax != null && effectiveMin === effectiveMax) {
+                                    label = `Select ${effectiveMin}`;
+                                  } else if (effectiveMin != null && effectiveMax != null) {
+                                    label = `Select ${effectiveMin}–${effectiveMax}`;
+                                  } else if (effectiveMin != null) {
+                                    label = `Select at least ${effectiveMin}`;
                                   } else {
-                                    label = `Select up to ${group.maxSelections}`;
+                                    label = `Select up to ${effectiveMax}`;
                                   }
                                   return `${label} (${count} / ${target} selected)`;
                                 })()
@@ -1071,7 +1074,7 @@ export default function MenuItemModal({
                             const addonQtyMM = addonQuantities[groupTitle]?.[addon.name] || 0;
                             const addonQtyInputMM = addonQuantityInputs[groupTitle]?.[addon.name] || "0";
                             const groupTotal = getMultipleSelectionCount(groupTitle);
-                            const isMaxReached = group.maxSelections != null && groupTotal >= group.maxSelections;
+                            const isMaxReached = group.maxSelections != null && groupTotal >= group.maxSelections * itemQuantity;
                             return (
                               <div
                                 key={index}
@@ -1129,7 +1132,7 @@ export default function MenuItemModal({
                                         if (val !== "" && !isNaN(parseInt(val))) {
                                           const requested = parseInt(val);
                                           const totalWithoutCurrent = getMultipleSelectionCount(groupTitle) - addonQtyMM;
-                                          const maxAllowed = group.maxSelections != null ? group.maxSelections - totalWithoutCurrent : Infinity;
+                                          const maxAllowed = group.maxSelections != null ? group.maxSelections * itemQuantity - totalWithoutCurrent : Infinity;
                                           const finalQty = Math.min(requested, Math.max(0, maxAllowed));
                                           setAddonQuantityDirect(groupTitle, addon.name, finalQty);
                                         }
