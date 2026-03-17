@@ -616,16 +616,11 @@ export default function SelectedItemsByCategory({
                   {/* Items without subcategory */}
                   {categoryGroup.items.map(renderItemRow)}
 
-                  {/* Subcategories */}
-                  {Array.from(categoryGroup.subcategories.entries()).map(
-                    ([subName, items]) => (
-                      <div key={subName}>
-                        <p className="text-sm font-medium text-gray-600 mb-2 pl-2">
-                          {subName}
-                        </p>
-                        <div className="space-y-3">
-                          {items.map(renderItemRow)}
-                        </div>
+                  {/* Subcategories (label hidden, items shown flat) */}
+                  {Array.from(categoryGroup.subcategories.values()).map(
+                    (items, i) => (
+                      <div key={i} className="space-y-3">
+                        {items.map(renderItemRow)}
                       </div>
                     )
                   )}
