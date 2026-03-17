@@ -27,8 +27,6 @@ interface RestaurantMenuBrowserProps {
   restaurants: Restaurant[];
   restaurantsLoading: boolean;
   onOpenBundles?: () => void;
-  sessionDate?: string;
-  eventTime?: string;
   defaultBundleGuestCount?: number;
   allMenuItems: MenuItem[] | null;
   fetchAllMenuItems: () => void;
@@ -123,8 +121,6 @@ export default function RestaurantMenuBrowser({
   restaurants,
   restaurantsLoading,
   onOpenBundles = () => {},
-  sessionDate,
-  eventTime,
   defaultBundleGuestCount = 1,
   allMenuItems,
   fetchAllMenuItems,
