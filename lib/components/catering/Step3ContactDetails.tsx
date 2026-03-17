@@ -163,8 +163,14 @@ export default function Step3ContactInfo() {
     if (!phone.trim()) {
       return "Phone number is required";
     }
-    // UK phone number validation (accepts various formats)
-    const cleanPhone = phone.replace(/[\s()-]/g, "");
+    // Strip spaces, dashes, parentheses, and leading +
+    let cleanPhone = phone.replace(/[\s()\-+]/g, "");
+    // Normalise UK international prefix: +44 / 0044 → leading 0
+    if (cleanPhone.startsWith("440")) {
+      cleanPhone = "0" + cleanPhone.slice(2);
+    } else if (cleanPhone.startsWith("44") && cleanPhone.length === 12) {
+      cleanPhone = "0" + cleanPhone.slice(2);
+    }
     if (cleanPhone.length < 10 || cleanPhone.length > 11) {
       return "Please enter a valid UK phone number";
     }
