@@ -6,17 +6,21 @@ import {
   Subcategory,
 } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
+import { promotionsServices } from "@/services/api/promotion.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { MenuItem, Restaurant } from "../Step2MenuItems";
 import { mapToMenuItem } from "../catering-order-helpers";
 import { DietaryFilter } from "@/types/menuItem";
+import { useCatering } from "@/context/CateringContext";
 
 interface UseCateringDataOptions {
   expandedSessionIndex: number | null;
 }
 
 export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions) {
+  const { setRestaurantPromotions } = useCatering();
+
   // Category state
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
   const [selectedCategory, setSelectedCategory] =
@@ -61,6 +65,28 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     };
     fetchRestaurants();
   }, []);
+
+  // Fetch promotions when restaurants are loaded
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      if (restaurants.length === 0) return;
+      try {
+        const promotionsMap: Record<string, any[]> = {};
+        await Promise.all(
+          restaurants.map(async (r) => {
+            const promos = await promotionsServices.getRestaurantPromotions(r.id);
+            if (promos && promos.length > 0) {
+              promotionsMap[r.id] = promos;
+            }
+          })
+        );
+        setRestaurantPromotions(promotionsMap);
+      } catch (error) {
+        console.error("Error fetching promotions:", error);
+      }
+    };
+    fetchPromotions();
+  }, [restaurants, setRestaurantPromotions]);
 
   // Fetch categories on mount
   useEffect(() => {
