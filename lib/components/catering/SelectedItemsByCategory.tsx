@@ -29,6 +29,7 @@ interface SelectedItemsByCategoryProps {
   onToggleCategory?: (categoryName: string) => void;
   showActions?: boolean;
   onViewMenu?: () => void;
+  compactLayout?: boolean;
 }
 
 export default function SelectedItemsByCategory({
@@ -40,6 +41,7 @@ export default function SelectedItemsByCategory({
   collapsedCategories: externalCollapsedCategories,
   onToggleCategory: externalOnToggleCategory,
   showActions = true,
+  compactLayout = false,
   // onViewMenu,
 }: SelectedItemsByCategoryProps) {
   const { mealSessions, activeSessionIndex } = useCatering();
@@ -192,13 +194,20 @@ export default function SelectedItemsByCategory({
     );
     const subtotal = itemPrice * quantity + addonTotal;
   
+    const showMobile = compactLayout ? "" : " sm:hidden";
+    const showDesktop = compactLayout ? " hidden" : " hidden sm:flex";
+    const showDesktopBlock = compactLayout ? " hidden" : " hidden sm:block";
+    const rootLayout = compactLayout
+      ? "flex flex-col gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden"
+      : "flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden";
+
     return (
       <div
         key={originalIndex}
-        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden"
+        className={rootLayout}
       >
         {/* Mobile Layout */}
-        <div className="flex gap-3 sm:hidden">
+        <div className={`flex gap-3${showMobile}`}>
           {/* Image */}
           {item.image && (
             <img
@@ -311,7 +320,7 @@ export default function SelectedItemsByCategory({
         </div>
 
         {/* Mobile Price & Portions + Actions */}
-        <div className="flex items-center justify-between sm:hidden">
+        <div className={`flex items-center justify-between${showMobile}`}>
           <div>
             <p className="font-bold text-primary text-lg">
               £{subtotal.toFixed(2)}
@@ -321,7 +330,7 @@ export default function SelectedItemsByCategory({
             </p>
           </div>
           {showActions && onEdit && onRemove && (
-            <div className="flex items-center gap-2 sm:hidden">
+            <div className={`flex items-center gap-2${showMobile}`}>
               {onSwapItem && orderItems[originalIndex]?.bundleId && (
                 <button
                   onClick={() => onSwapItem(originalIndex)}
@@ -352,12 +361,12 @@ export default function SelectedItemsByCategory({
           <img
             src={item.image}
             alt={item.menuItemName}
-            className="hidden sm:block w-16 h-16 rounded-lg object-cover flex-shrink-0"
+            className={`${showDesktopBlock} w-16 h-16 rounded-lg object-cover flex-shrink-0`}
           />
         )}
 
         {/* Name + Addons */}
-        <div className="hidden sm:block flex-1 min-w-0">
+        <div className={`${showDesktopBlock} flex-1 min-w-0`}>
           <p className="font-semibold text-gray-800">{item.menuItemName}</p>
           {restaurantName && (
             <p className="mt-0.5 text-xs text-gray-500">From: {restaurantName}</p>
@@ -454,7 +463,7 @@ export default function SelectedItemsByCategory({
         </div>
 
         {/* Price & Portions */}
-        <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
+        <div className={`${showDesktop} items-center gap-4 flex-shrink-0`}>
           <p className="font-bold text-primary text-lg">
             £{subtotal.toFixed(2)}
           </p>
@@ -465,7 +474,7 @@ export default function SelectedItemsByCategory({
 
         {/* Actions */}
         {showActions && onEdit && onRemove && (
-          <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+          <div className={`${showDesktop} items-center gap-2 flex-shrink-0`}>
             {onSwapItem && orderItems[originalIndex]?.bundleId && (
               <button
                 onClick={() => onSwapItem(originalIndex)}
@@ -540,7 +549,7 @@ export default function SelectedItemsByCategory({
                 <>
                   <button
                     onClick={() => onRemoveBundle(bundleId)}
-                    className="sm:hidden w-7 h-7 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                    className={`${compactLayout ? "" : "sm:hidden"} w-7 h-7 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -548,7 +557,7 @@ export default function SelectedItemsByCategory({
                   </button>
                   <button
                     onClick={() => onRemoveBundle(bundleId)}
-                    className="hidden sm:flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
+                    className={`${compactLayout ? "hidden" : "hidden sm:flex"} items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />

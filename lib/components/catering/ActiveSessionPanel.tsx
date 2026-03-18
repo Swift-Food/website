@@ -191,6 +191,7 @@ export default function ActiveSessionPanel({
               collapsedCategories={collapsedCategories}
               onToggleCategory={onToggleCategory}
               onViewMenu={onViewMenu}
+              compactLayout
             />
           </div>
         ) : (
