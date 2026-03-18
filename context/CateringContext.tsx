@@ -588,7 +588,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
 
   const updateItemQuantity = (sessionIndex: number, itemId: string, quantity: number) => {
     // Find the item to check its minOrderQuantity
-    const session = mealSessionsState[sessionIndex];
+    const session = mealSessions[sessionIndex];
     const orderItem = session?.orderItems.find((i) => i.item.id === itemId);
     const minQty = (orderItem?.item as any)?.minOrderQuantity || 1;
 

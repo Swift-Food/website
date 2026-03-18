@@ -818,6 +818,7 @@ export interface CreateMenuItemDto {
   feedsPerUnit?: number;
   deliveryPortionSize?: string;
   vatApplicable?: boolean;
+  minOrderQuantity?: number;
 }
 
 export interface MenuItemDetails extends CreateMenuItemDto {

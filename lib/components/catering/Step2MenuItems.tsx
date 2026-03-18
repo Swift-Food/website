@@ -87,6 +87,7 @@ export interface MenuItem {
   averageRating?: string;
   cateringQuantityUnit?: number;
   feedsPerUnit?: number;
+  minOrderQuantity?: number;
   restaurantId: string;
   restaurantName?: string;
   groupTitle?: string;
