@@ -137,6 +137,7 @@ export interface ActiveSessionPanelProps {
   totalPrice: number;
   onCheckout: () => void;
   showCheckoutButton?: boolean;
+  restaurants?: { id: string; restaurant_name: string; images: string[] }[];
 }
 
 // ViewOrderModal component props
@@ -172,6 +173,7 @@ export interface ViewOrderModalProps {
   onBackToDates: () => void;
   onAddDay: () => void;
   onAddSessionToDay: (dayDate: string) => void;
+  restaurants?: { id: string; restaurant_name: string; images: string[] }[];
 }
 
 // Catering data hook return type

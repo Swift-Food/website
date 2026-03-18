@@ -1117,6 +1117,7 @@ export default function CateringOrderBuilder() {
                 isCurrentSessionValid={isCurrentSessionValid}
                 totalPrice={getTotalPrice()}
                 onCheckout={handleCheckout}
+                restaurants={restaurants}
               />
             )}
           </div>
@@ -1192,6 +1193,7 @@ export default function CateringOrderBuilder() {
         onBackToDates={handleBackToDates}
         onAddDay={handleAddDay}
         onAddSessionToDay={handleAddSessionToDay}
+        restaurants={restaurants}
       />
 
       {/* Edit Item Modal */}

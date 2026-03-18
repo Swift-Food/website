@@ -37,6 +37,7 @@ export default function ViewOrderModal({
   onBackToDates,
   onAddDay,
   onAddSessionToDay,
+  restaurants,
 }: ViewOrderModalProps) {
   if (!isOpen) return null;
 
@@ -249,6 +250,7 @@ export default function ViewOrderModal({
                 collapsedCategories={collapsedCategories}
                 onToggleCategory={onToggleCategory}
                 onViewMenu={onViewMenu}
+                restaurants={restaurants}
               />
             </div>
           ) : (
@@ -277,10 +279,7 @@ export default function ViewOrderModal({
         {/* Checkout bar */}
         <div className="p-4 bg-primary">
           <button
-            onClick={() => {
-              onClose();
-              onCheckout();
-            }}
+            onClick={onCheckout}
             className="w-full flex items-center justify-between text-white"
           >
             <div className="flex items-center gap-2">

@@ -26,6 +26,7 @@ export default function ActiveSessionPanel({
   totalPrice,
   onCheckout,
   showCheckoutButton = true,
+  restaurants,
 }: ActiveSessionPanelProps) {
   const totalItemCount = session.orderItems.reduce(
     (sum, oi) => sum + oi.quantity,
@@ -60,39 +61,6 @@ export default function ActiveSessionPanel({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-base-200">
-      {/* Validation Error Banner */}
-      {validationError && (
-        <div className="p-4 bg-red-50 border-b-2 border-red-500 rounded-t-xl flex items-start gap-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-red-800 mb-1">
-              Catering Hours Conflict
-            </p>
-            <p className="text-sm text-red-700">{validationError}</p>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditSession();
-              }}
-              className="mt-3 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Edit Session Time
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Unscheduled Warning */}
       {isUnscheduled && (
         <div className="p-4 bg-amber-50 border-b border-amber-200 rounded-t-xl flex items-start gap-3">
@@ -205,6 +173,7 @@ export default function ActiveSessionPanel({
               onToggleCategory={onToggleCategory}
               onViewMenu={onViewMenu}
               compactLayout
+              restaurants={restaurants}
             />
           </div>
         ) : (
@@ -214,6 +183,39 @@ export default function ActiveSessionPanel({
           </div>
         )}
       </div>
+
+      {/* Validation Error Banner */}
+      {validationError && (
+        <div className="mx-4 mb-2 p-4 bg-red-50 border-2 border-red-500 rounded-xl flex items-start gap-3">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-800 mb-1">
+              Catering Hours Conflict
+            </p>
+            <p className="text-sm text-red-700">{validationError}</p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditSession();
+              }}
+              className="mt-3 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Edit Session Time
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Inline Checkout Button */}
       {showCheckoutButton && session.orderItems.length > 0 && (

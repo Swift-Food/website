@@ -108,6 +108,7 @@ export interface MenuItem {
     name: string;
     restaurantId: string;
     menuGroupSettings?: Record<string, any>;
+    images?: string[];
   };
   dietaryFilters?: string[];
   categoryId?: string;
