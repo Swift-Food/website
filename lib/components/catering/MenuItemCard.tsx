@@ -208,6 +208,7 @@ export default function MenuItemCard({
                 </div>
 
                 {/* Add to order button / quantity controls - Hidden in viewOnly mode */}
+                {/*
                 {!viewOnly && (
                   <div
                     onClick={(e) => e.stopPropagation()}
@@ -215,7 +216,6 @@ export default function MenuItemCard({
                   >
                     {quantity > 0 ? (
                       <>
-                        {/* On md and smaller: show simple add button that opens modal */}
                         <button
                           onClick={() => onAddOrderPress?.(item)}
                           className="lg:hidden w-8 h-8 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
@@ -237,7 +237,6 @@ export default function MenuItemCard({
                           </svg>
                         </button>
 
-                        {/* On lg and larger: show quantity controls */}
                         <div className="hidden lg:flex bg-[#F5F1E8] p-1 rounded-md border border-[#F0ECE3] items-center gap-1">
                           <button
                             onClick={() => {
@@ -281,7 +280,6 @@ export default function MenuItemCard({
                             }}
                             className="w-8 text-center font-medium text-xs text-gray-900 bg-white border border-gray-300 rounded px-0.5 py-0.5 flex-shrink-0"
                           />
-
                           <button
                             onClick={() => {
                               const newPortionQty = portionQuantity + 1;
@@ -319,6 +317,7 @@ export default function MenuItemCard({
                     )}
                   </div>
                 )}
+                */}
               </div>
             </div>
           </div>
