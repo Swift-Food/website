@@ -32,6 +32,16 @@ export default function ActiveSessionPanel({
     0
   );
 
+  const formatDate = (date: string | undefined) => {
+    if (!date) return "Date not set";
+    return new Date(date).toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   const formatTime = (eventTime: string | undefined) => {
     if (!eventTime) return "Time not set";
     const [hours, minutes] = eventTime.split(":");
@@ -111,6 +121,9 @@ export default function ActiveSessionPanel({
           <div>
             <p className="text-sm md:text-base font-semibold text-gray-800">
               {session.sessionName}
+            </p>
+            <p className="text-xs text-gray-500">
+              {formatDate(session.sessionDate)}
             </p>
             <p className="text-xs text-gray-500">
               {formatTime(session.eventTime)}

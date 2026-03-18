@@ -448,8 +448,6 @@ export default function RestaurantMenuBrowser({
   }, []);
 
   useEffect(() => {
-    sectionRefs.current.clear();
-    groupButtonRefs.current.clear();
     setActiveGroupName(restaurantGroups[0]?.name || null);
   }, [restaurantGroups, selectedRestaurantId]);
 
