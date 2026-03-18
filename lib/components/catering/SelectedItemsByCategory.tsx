@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Package } from "lucide-react";
+import { Package, ArrowLeftRight, Pencil, Trash2 } from "lucide-react";
 import { useCatering } from "@/context/CateringContext";
 import { SelectedMenuItem } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
@@ -334,22 +334,28 @@ export default function SelectedItemsByCategory({
               {onSwapItem && orderItems[originalIndex]?.bundleId && (
                 <button
                   onClick={() => onSwapItem(originalIndex)}
-                  className="px-3 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 transition-colors text-sm font-medium"
+                  className={`p-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 transition-colors${compactLayout ? "" : " sm:px-3 sm:py-2"}`}
+                  title="Swap"
                 >
-                  Swap
+                  <ArrowLeftRight className={`w-4 h-4${compactLayout ? "" : " sm:hidden"}`} />
+                  <span className={compactLayout ? "hidden" : "hidden sm:inline text-sm font-medium"}>Swap</span>
                 </button>
               )}
               <button
                 onClick={() => onEdit(originalIndex)}
-                className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+                className={`p-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors${compactLayout ? "" : " sm:px-4 sm:py-2"}`}
+                title="Edit"
               >
-                Edit
+                <Pencil className={`w-4 h-4${compactLayout ? "" : " sm:hidden"}`} />
+                <span className={compactLayout ? "hidden" : "hidden sm:inline text-sm font-medium"}>Edit</span>
               </button>
               <button
                 onClick={() => onRemove(originalIndex)}
-                className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+                className={`p-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors${compactLayout ? "" : " sm:px-4 sm:py-2"}`}
+                title="Remove"
               >
-                Remove
+                <Trash2 className={`w-4 h-4${compactLayout ? "" : " sm:hidden"}`} />
+                <span className={compactLayout ? "hidden" : "hidden sm:inline text-sm font-medium"}>Remove</span>
               </button>
             </div>
           )}
@@ -539,11 +545,13 @@ export default function SelectedItemsByCategory({
             className="border-2 border-dashed border-primary/30 rounded-2xl overflow-hidden bg-primary/[0.02]"
           >
             <div className="flex items-center gap-2 px-4 py-3 bg-primary/10 border-b border-primary/20">
-              <Package className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-primary text-sm">{name}</span>
-              <span className="text-xs text-primary/60">
-                ({items.length} item{items.length !== 1 ? "s" : ""})
-              </span>
+              <Package className="w-4 h-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <span className="font-semibold text-primary text-sm">{name}</span>
+                <span className="block sm:inline sm:ml-1 text-xs text-primary/60">
+                  ({items.length} item{items.length !== 1 ? "s" : ""})
+                </span>
+              </div>
               <div className="flex-1" />
               {onRemoveBundle && (
                 <>
