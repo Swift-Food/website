@@ -182,7 +182,7 @@ export default function BundleBrowser({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         {bundles.map((bundle) => (
           <BundleCard key={bundle.id} bundle={bundle} onClick={setSelectedBundle} />
         ))}

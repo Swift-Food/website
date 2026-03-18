@@ -1084,7 +1084,7 @@ export default function CateringOrderBuilder() {
           </div>
 
           {/* Right Column: Active Session (Desktop only) */}
-          <div className="hidden md:block w-[40%] flex-shrink-0">
+          <div className="hidden md:block md:w-[50%] xl:w-[40%] flex-shrink-0">
             {mealSessions[activeSessionIndex] && (
               <ActiveSessionPanel
                 session={mealSessions[activeSessionIndex]}
