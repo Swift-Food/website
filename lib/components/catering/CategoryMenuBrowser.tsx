@@ -117,7 +117,7 @@ export default function CategoryMenuBrowser(props: CategoryMenuBrowserProps) {
                     key={category.id}
                     onClick={() => handleCategoryClick(category)}
                     className={`
-                      flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                      flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2
                       ${
                         selectedCategory?.id === category.id
                           ? "bg-primary text-white"
@@ -125,6 +125,9 @@ export default function CategoryMenuBrowser(props: CategoryMenuBrowserProps) {
                       }
                     `}
                   >
+                    {(category as any).images && (
+                      <img src={(category as any).images} alt="" className="h-5 w-5 object-contain rounded-sm" />
+                    )}
                     {category.name}
                   </button>
                 ))}
