@@ -365,7 +365,7 @@ export interface PricingOrderItemDto {
 
   // Restaurant totals
   restaurantBaseTotal: number;
-  restaurantPromotionDiscount: number;
+  promotionDiscount: number;
   restaurantBaseTotalAfterPromotions: number;
   restaurantCommissionTotal: number;
   restaurantNetAmount: number;
@@ -467,8 +467,8 @@ export interface CateringPricingResult {
   isValid: boolean;
   subtotal: number;
   deliveryFee: number;
-  restaurantPromotionDiscount?: number; // NEW: Restaurant promotion discount
-  totalDiscount?: number; // NEW: Combined discount
+  promotionDiscount?: number;
+  totalDiscount?: number;
   promoDiscount?: number;
   total: number;
   error?: string;

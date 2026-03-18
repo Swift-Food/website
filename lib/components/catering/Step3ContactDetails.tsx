@@ -1125,11 +1125,11 @@ export default function Step3ContactInfo() {
                 </div>
 
                 {/* Restaurant Promotion Discount - FROM BACKEND */}
-                {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
+                {(pricing.promotionDiscount ?? 0) > 0 && (
                   <div className="flex justify-between text-sm text-green-600 font-semibold">
                     <span>Restaurant Promotion</span>
                     <span>
-                      -£{pricing.restaurantPromotionDiscount!.toFixed(2)}
+                      -£{pricing.promotionDiscount!.toFixed(2)}
                     </span>
                   </div>
                 )}

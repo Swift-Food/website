@@ -51,9 +51,8 @@ export default function PricingSummary({
                   : `${Number(promo.discountPercentage)}% OFF`;
 
               // Use backend-calculated discount if available, otherwise frontend estimate
-              const discountAmount = (pricing.restaurantPromotionDiscount ?? 0) > 0
-                ? pricing.restaurantPromotionDiscount!
-                : entry.discount;
+              const backendDiscount = pricing.promotionDiscount ?? 0;
+              const discountAmount = backendDiscount > 0 ? backendDiscount : entry.discount;
 
               return (
                 <div
@@ -79,11 +78,11 @@ export default function PricingSummary({
           <span>£{pricing.subtotal.toFixed(2)}</span>
         </div>
 
-        {/* Restaurant Promotion Discount */}
-        {(pricing.restaurantPromotionDiscount ?? 0) > 0 && (
+        {/* Promotion Discount */}
+        {((pricing.promotionDiscount ?? 0) > 0) && (
           <div className="flex justify-between text-sm text-green-600 font-semibold">
             <span>Restaurant Promotion</span>
-            <span>-£{pricing.restaurantPromotionDiscount!.toFixed(2)}</span>
+            <span>-£{pricing.promotionDiscount!.toFixed(2)}</span>
           </div>
         )}
 
