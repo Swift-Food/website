@@ -261,10 +261,10 @@ export default function ViewOrderModal({
       </div>
 
       {/* Fixed Bottom – identical to main page View Order bar */}
-      <div className="relative">
-        {/* Session detail pill */}
-        <div className="flex justify-center pb-2 px-4">
-          <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/80 backdrop-blur-md shadow-sm border border-base-200">
+      <div className="relative flex-shrink-0">
+        {/* Floating session detail pill */}
+        <div className="absolute -top-14 left-0 right-0 flex justify-center pointer-events-none z-10">
+          <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200">
             <span className="text-xs font-semibold text-gray-800">{activeSession.sessionName}</span>
             <span className="text-[10px] text-gray-500">
               {activeSession.sessionDate
@@ -286,7 +286,7 @@ export default function ViewOrderModal({
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5" />
               <span className="font-semibold">
-                {isCurrentSessionValid ? "Proceed to Checkout" : "Min. Order Not Met"}
+                {isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}
               </span>
             </div>
             <div className="flex items-center gap-2">

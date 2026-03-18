@@ -517,7 +517,7 @@ export default function CateringOrderBuilder() {
   // Calculate totals
   const totalDays = dayGroups.filter((g) => g.date !== "unscheduled").length;
   const totalSessions = mealSessions.length;
-  const totalItems = mealSessions.reduce((acc, s) => acc + s.orderItems.length, 0);
+  const totalItems = mealSessions.reduce((acc, s) => acc + s.orderItems.reduce((sum, oi) => sum + oi.quantity, 0), 0);
 
   // Handle editor close
   const handleEditorClose = (cancelled: boolean) => {
@@ -1118,7 +1118,7 @@ export default function CateringOrderBuilder() {
         <div className="fixed bottom-0 left-0 right-0 md:hidden z-50">
           {/* Session detail pill */}
           <div className="flex justify-center pb-2 px-4">
-            <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/80 backdrop-blur-md shadow-sm border border-base-200">
+            <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200">
               <span className="text-xs font-semibold text-gray-800">{mealSessions[activeSessionIndex]?.sessionName}</span>
               <span className="text-[10px] text-gray-500">
                 {mealSessions[activeSessionIndex]?.sessionDate
