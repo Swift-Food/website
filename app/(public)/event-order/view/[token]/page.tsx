@@ -7,12 +7,12 @@ import { cateringService } from "@/services/api/catering.api";
 import { CateringOrderResponse } from "@/types/api";
 import OrderStatusBadge from "@/lib/components/catering/dashboard/OrderStatusBadge";
 import OrderDetails from "@/lib/components/catering/dashboard/OrderDetails";
-import OrderItemsByCategory from "@/lib/components/catering/dashboard/OrderItemsByCategory";
+import OrderItems from "@/lib/components/catering/dashboard/OrderItems";
 import DeliveryInfo from "@/lib/components/catering/dashboard/DeliveryInfo";
 import SharedAccessManager from "@/lib/components/catering/dashboard/SharedAccessManager";
 import PickupContactManager from "@/lib/components/catering/dashboard/PickupContactManager";
 import DeliveryTimeManager from "@/lib/components/catering/dashboard/DeliveryTimeManager";
-import { Loader2, Eye } from "lucide-react";
+import { Loader2, Eye, FileText } from "lucide-react";
 import RefundRequestButton from "@/lib/components/catering/dashboard/RefundRequestButton";
 import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
 import { pdf } from "@react-pdf/renderer";
@@ -249,7 +249,23 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <OrderItemsByCategory order={order} onViewMenu={handleDownloadPdf} isGeneratingPdf={generatingPdf} />
+            <div className="space-y-3">
+              <div className="flex justify-end">
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={generatingPdf}
+                  className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-4 py-2 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {generatingPdf ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4" />
+                  )}
+                  {generatingPdf ? "Preparing PDF..." : "View Menu PDF"}
+                </button>
+              </div>
+              <OrderItems order={order} />
+            </div>
           </div>
 
           {/* Sidebar */}

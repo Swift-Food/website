@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Package } from "lucide-react";
+import { Package, ArrowLeftRight, Pencil, Trash2, Store } from "lucide-react";
 import { useCatering } from "@/context/CateringContext";
 import { SelectedMenuItem } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
@@ -29,6 +29,8 @@ interface SelectedItemsByCategoryProps {
   onToggleCategory?: (categoryName: string) => void;
   showActions?: boolean;
   onViewMenu?: () => void;
+  compactLayout?: boolean;
+  restaurants?: { id: string; restaurant_name: string; images: string[] }[];
 }
 
 export default function SelectedItemsByCategory({
@@ -40,6 +42,8 @@ export default function SelectedItemsByCategory({
   collapsedCategories: externalCollapsedCategories,
   onToggleCategory: externalOnToggleCategory,
   showActions = true,
+  compactLayout = false,
+  restaurants,
   // onViewMenu,
 }: SelectedItemsByCategoryProps) {
   const { mealSessions, activeSessionIndex } = useCatering();
@@ -67,6 +71,9 @@ export default function SelectedItemsByCategory({
   // Internal collapsed state if not provided externally
   const [internalCollapsedCategories, setInternalCollapsedCategories] =
     useState<Set<string>>(new Set());
+
+  // Track collapsed restaurant sections
+  const [collapsedRestaurants, setCollapsedRestaurants] = useState<Set<string>>(new Set());
 
   // Track expanded allergen sections by item index
   const [expandedAllergens, setExpandedAllergens] = useState<Set<number>>(new Set());
@@ -103,80 +110,78 @@ export default function SelectedItemsByCategory({
     }
   };
 
-  // Group items by category -> subcategory
-  const grouped = useMemo(() => {
-    const map = new Map<string, CategoryGroup>();
+  // Group everything by restaurant
+  const restaurantGrouped = useMemo(() => {
+    const map = new Map<string, {
+      name: string;
+      image?: string;
+      bundles: Map<string, { name: string; items: GroupedItem[] }>;
+      categories: Map<string, CategoryGroup>;
+    }>();
 
     orderItems.forEach((orderItem: SelectedMenuItem, index: number) => {
-      // Bundle items are rendered in their own section, skip them here
-      if (orderItem.bundleId) return;
+      const restName = (orderItem.item as any).restaurantName || orderItem.item.restaurant?.name || "Unknown Restaurant";
+      // Look up restaurant image from restaurants prop first, then fall back to item data
+      const restId = orderItem.item.restaurantId || orderItem.item.restaurant?.restaurantId;
+      const matchedRestaurant = restaurants?.find(r => r.id === restId);
+      const restImage = matchedRestaurant?.images?.[0];
 
-      const catName = orderItem.item.categoryName || (orderItem.item as any).groupTitle || "Uncategorized";
-      const subName = orderItem.item.subcategoryName || "";
-
-      if (!map.has(catName)) {
-        map.set(catName, { items: [], subcategories: new Map() });
+      if (!map.has(restName)) {
+        map.set(restName, { name: restName, image: restImage, bundles: new Map(), categories: new Map() });
       }
+      const restaurant = map.get(restName)!;
 
-      const category = map.get(catName)!;
       const groupedItem: GroupedItem = {
         item: orderItem.item,
         quantity: orderItem.quantity,
         originalIndex: index,
       };
 
-      if (subName) {
-        if (!category.subcategories.has(subName)) {
-          category.subcategories.set(subName, []);
+      if (orderItem.bundleId) {
+        if (!restaurant.bundles.has(orderItem.bundleId)) {
+          restaurant.bundles.set(orderItem.bundleId, { name: orderItem.bundleName ?? "Bundle", items: [] });
         }
-        category.subcategories.get(subName)!.push(groupedItem);
+        restaurant.bundles.get(orderItem.bundleId)!.items.push(groupedItem);
       } else {
-        category.items.push(groupedItem);
+        const catName = orderItem.item.categoryName || (orderItem.item as any).groupTitle || "Uncategorized";
+        const subName = orderItem.item.subcategoryName || "";
+
+        if (!restaurant.categories.has(catName)) {
+          restaurant.categories.set(catName, { items: [], subcategories: new Map() });
+        }
+        const category = restaurant.categories.get(catName)!;
+
+        if (subName) {
+          if (!category.subcategories.has(subName)) {
+            category.subcategories.set(subName, []);
+          }
+          category.subcategories.get(subName)!.push(groupedItem);
+        } else {
+          category.items.push(groupedItem);
+        }
       }
     });
 
-    // Sort categories by the order from the API
+    // Sort categories within each restaurant
     if (categoryOrder.length > 0) {
-      const sortedMap = new Map<string, CategoryGroup>();
-      const entries = Array.from(map.entries());
-
-      entries.sort((a, b) => {
-        const indexA = categoryOrder.indexOf(a[0]);
-        const indexB = categoryOrder.indexOf(b[0]);
-        // Put unknown categories at the end
-        const orderA = indexA === -1 ? 999 : indexA;
-        const orderB = indexB === -1 ? 999 : indexB;
-        return orderA - orderB;
+      map.forEach((restaurant) => {
+        const entries = Array.from(restaurant.categories.entries());
+        entries.sort((a, b) => {
+          const orderA = categoryOrder.indexOf(a[0]);
+          const orderB = categoryOrder.indexOf(b[0]);
+          return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+        });
+        restaurant.categories = new Map(entries);
       });
-
-      entries.forEach(([key, value]) => sortedMap.set(key, value));
-      return sortedMap;
     }
 
     return map;
   }, [orderItems, categoryOrder]);
 
-  const bundleGroups = useMemo(() => {
-    const map = new Map<string, { name: string; items: GroupedItem[] }>();
-    orderItems.forEach((orderItem: SelectedMenuItem, index: number) => {
-      if (!orderItem.bundleId) return;
-      if (!map.has(orderItem.bundleId)) {
-        map.set(orderItem.bundleId, { name: orderItem.bundleName ?? "Bundle", items: [] });
-      }
-      map.get(orderItem.bundleId)!.items.push({
-        item: orderItem.item,
-        quantity: orderItem.quantity,
-        originalIndex: index,
-      });
-    });
-    return map;
-  }, [orderItems]);
-
   if (orderItems.length === 0) return null;
 
   const renderItemRow = (groupedItem: GroupedItem) => {
     const { item, quantity, originalIndex } = groupedItem;
-    const restaurantName = item.restaurantName || item.restaurant?.name;
     const price = parseFloat(item.price?.toString() || "0");
     const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
     const itemPrice =
@@ -192,13 +197,20 @@ export default function SelectedItemsByCategory({
     );
     const subtotal = itemPrice * quantity + addonTotal;
   
+    const showMobile = compactLayout ? "" : " sm:hidden";
+    const showDesktop = compactLayout ? " hidden" : " hidden sm:flex";
+    const showDesktopBlock = compactLayout ? " hidden" : " hidden sm:block";
+    const rootLayout = compactLayout
+      ? "flex flex-col gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden"
+      : "flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden";
+
     return (
       <div
         key={originalIndex}
-        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden"
+        className={rootLayout}
       >
         {/* Mobile Layout */}
-        <div className="flex gap-3 sm:hidden">
+        <div className={`flex gap-3${showMobile}`}>
           {/* Image */}
           {item.image && (
             <img
@@ -212,9 +224,6 @@ export default function SelectedItemsByCategory({
             <p className="font-semibold text-gray-800 italic">
               {item.menuItemName}
             </p>
-            {restaurantName && (
-              <p className="mt-0.5 text-xs text-gray-500">From: {restaurantName}</p>
-            )}
             {item.selectedAddons && item.selectedAddons.length > 0 && (
               <div className="text-sm text-gray-600 mt-1">
                 {(() => {
@@ -311,7 +320,7 @@ export default function SelectedItemsByCategory({
         </div>
 
         {/* Mobile Price & Portions + Actions */}
-        <div className="flex items-center justify-between sm:hidden">
+        <div className={`flex items-center justify-between${showMobile}`}>
           <div>
             <p className="font-bold text-primary text-lg">
               £{subtotal.toFixed(2)}
@@ -321,26 +330,32 @@ export default function SelectedItemsByCategory({
             </p>
           </div>
           {showActions && onEdit && onRemove && (
-            <div className="flex items-center gap-2 sm:hidden">
+            <div className={`flex items-center gap-2${showMobile}`}>
               {onSwapItem && orderItems[originalIndex]?.bundleId && (
                 <button
                   onClick={() => onSwapItem(originalIndex)}
-                  className="px-3 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 transition-colors text-sm font-medium"
+                  className={`p-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 transition-colors${compactLayout ? "" : " sm:px-3 sm:py-2"}`}
+                  title="Swap"
                 >
-                  Swap
+                  <ArrowLeftRight className={`w-4 h-4${compactLayout ? "" : " sm:hidden"}`} />
+                  <span className={compactLayout ? "hidden" : "hidden sm:inline text-sm font-medium"}>Swap</span>
                 </button>
               )}
               <button
                 onClick={() => onEdit(originalIndex)}
-                className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+                className={`p-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors${compactLayout ? "" : " sm:px-4 sm:py-2"}`}
+                title="Edit"
               >
-                Edit
+                <Pencil className={`w-4 h-4${compactLayout ? "" : " sm:hidden"}`} />
+                <span className={compactLayout ? "hidden" : "hidden sm:inline text-sm font-medium"}>Edit</span>
               </button>
               <button
                 onClick={() => onRemove(originalIndex)}
-                className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
+                className={`p-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors${compactLayout ? "" : " sm:px-4 sm:py-2"}`}
+                title="Remove"
               >
-                Remove
+                <Trash2 className={`w-4 h-4${compactLayout ? "" : " sm:hidden"}`} />
+                <span className={compactLayout ? "hidden" : "hidden sm:inline text-sm font-medium"}>Remove</span>
               </button>
             </div>
           )}
@@ -352,16 +367,13 @@ export default function SelectedItemsByCategory({
           <img
             src={item.image}
             alt={item.menuItemName}
-            className="hidden sm:block w-16 h-16 rounded-lg object-cover flex-shrink-0"
+            className={`${showDesktopBlock} w-16 h-16 rounded-lg object-cover flex-shrink-0`}
           />
         )}
 
         {/* Name + Addons */}
-        <div className="hidden sm:block flex-1 min-w-0">
+        <div className={`${showDesktopBlock} flex-1 min-w-0`}>
           <p className="font-semibold text-gray-800">{item.menuItemName}</p>
-          {restaurantName && (
-            <p className="mt-0.5 text-xs text-gray-500">From: {restaurantName}</p>
-          )}
           {item.selectedAddons && item.selectedAddons.length > 0 && (
             <div className="text-sm text-gray-600 mt-1">
               {(() => {
@@ -454,7 +466,7 @@ export default function SelectedItemsByCategory({
         </div>
 
         {/* Price & Portions */}
-        <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
+        <div className={`${showDesktop} items-center gap-4 flex-shrink-0`}>
           <p className="font-bold text-primary text-lg">
             £{subtotal.toFixed(2)}
           </p>
@@ -465,7 +477,7 @@ export default function SelectedItemsByCategory({
 
         {/* Actions */}
         {showActions && onEdit && onRemove && (
-          <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+          <div className={`${showDesktop} items-center gap-2 flex-shrink-0`}>
             {onSwapItem && orderItems[originalIndex]?.bundleId && (
               <button
                 onClick={() => onSwapItem(originalIndex)}
@@ -522,112 +534,157 @@ export default function SelectedItemsByCategory({
         )}
       </div> */}
 
-      <div className="space-y-4">
-        {/* Bundle Groups */}
-        {Array.from(bundleGroups.entries()).map(([bundleId, { name, items }]) => (
-          <div
-            key={bundleId}
-            className="border-2 border-dashed border-primary/30 rounded-2xl overflow-hidden bg-primary/[0.02]"
-          >
-            <div className="flex items-center gap-2 px-4 py-3 bg-primary/10 border-b border-primary/20">
-              <Package className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-primary text-sm">{name}</span>
-              <span className="text-xs text-primary/60">
-                ({items.length} item{items.length !== 1 ? "s" : ""})
-              </span>
-              <div className="flex-1" />
-              {onRemoveBundle && (
-                <>
-                  <button
-                    onClick={() => onRemoveBundle(bundleId)}
-                    className="sm:hidden w-7 h-7 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => onRemoveBundle(bundleId)}
-                    className="hidden sm:flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    Remove Bundle
-                  </button>
-                </>
-              )}
-            </div>
-            <div className="p-2 space-y-3">
-              {items.map(renderItemRow)}
-            </div>
-          </div>
-        ))}
-
-        {/* Categories */}
-        {Array.from(grouped.entries()).map(([categoryName, categoryGroup]) => {
-          const isCollapsed = collapsedCategories.has(categoryName);
-          const totalItems =
-            categoryGroup.items.length +
-            Array.from(categoryGroup.subcategories.values()).reduce(
-              (sum, items) => sum + items.length,
-              0
-            );
+      <div className="space-y-5">
+        {Array.from(restaurantGrouped.entries()).map(([restName, restaurant]) => {
+          const isRestaurantCollapsed = collapsedRestaurants.has(restName);
+          const totalRestaurantItems = Array.from(restaurant.bundles.values()).reduce((sum, b) => sum + b.items.length, 0)
+            + Array.from(restaurant.categories.values()).reduce((sum, c) => sum + c.items.length + Array.from(c.subcategories.values()).reduce((s, items) => s + items.length, 0), 0);
 
           return (
-            <div
-              key={categoryName}
-              className="border-2 border-base-200 rounded-xl overflow-hidden"
+          <div key={restName}>
+            {/* Restaurant Header */}
+            <button
+              onClick={() => setCollapsedRestaurants(prev => {
+                const next = new Set(prev);
+                if (next.has(restName)) next.delete(restName);
+                else next.add(restName);
+                return next;
+              })}
+              className="w-full flex items-center gap-3 mb-2 px-1 hover:bg-base-100 rounded-lg py-1 transition-colors"
             >
-              {/* Category Header */}
-              <button
-                onClick={() => handleToggleCategory(categoryName)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-base-200 hover:bg-base-200 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-800">
-                    {categoryName}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    ({totalItems} item{totalItems !== 1 ? "s" : ""})
-                  </span>
-                </div>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`h-5 w-5 text-gray-500 transition-transform ${
-                    isCollapsed ? "" : "rotate-180"
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-
-              {/* Category Content */}
-              {!isCollapsed && (
-                <div className="p-2 space-y-3 min-w-0 overflow-hidden">
-                  {/* Items without subcategory */}
-                  {categoryGroup.items.map(renderItemRow)}
-
-                  {/* Subcategories (label hidden, items shown flat) */}
-                  {Array.from(categoryGroup.subcategories.values()).map(
-                    (items, i) => (
-                      <div key={i} className="space-y-3">
-                        {items.map(renderItemRow)}
-                      </div>
-                    )
-                  )}
-                </div>
+              {restaurant.image ? (
+                <img src={restaurant.image} alt={restName} className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+              ) : (
+                <Store className="w-5 h-5 text-gray-500 flex-shrink-0" />
               )}
+              <span className="font-bold text-base text-gray-800">{restName}</span>
+              <span className="text-sm text-gray-400">({totalRestaurantItems})</span>
+              <div className="flex-1" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-5 w-5 text-gray-400 transition-transform ${isRestaurantCollapsed ? "" : "rotate-180"}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {!isRestaurantCollapsed && (
+            <div className="space-y-4">
+              {/* Bundle Groups */}
+              {Array.from(restaurant.bundles.entries()).map(([bundleId, { name, items }]) => (
+                <div
+                  key={bundleId}
+                  className="border-2 border-dashed border-primary/30 rounded-2xl overflow-hidden bg-primary/[0.02]"
+                >
+                  <div className="flex items-center gap-2 px-4 py-3 bg-primary/10 border-b border-primary/20">
+                    <Package className="w-4 h-4 text-primary flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="font-semibold text-primary text-sm">{name}</span>
+                      <span className="block sm:inline sm:ml-1 text-xs text-primary/60">
+                        ({items.length} item{items.length !== 1 ? "s" : ""})
+                      </span>
+                    </div>
+                    <div className="flex-1" />
+                    {onRemoveBundle && (
+                      <>
+                        <button
+                          onClick={() => onRemoveBundle(bundleId)}
+                          className={`${compactLayout ? "" : "sm:hidden"} w-7 h-7 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => onRemoveBundle(bundleId)}
+                          className={`${compactLayout ? "hidden" : "hidden sm:flex"} items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                          Remove Bundle
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <div className="p-2 space-y-3">
+                    {items.map(renderItemRow)}
+                  </div>
+                </div>
+              ))}
+
+              {/* Categories */}
+              {Array.from(restaurant.categories.entries()).map(([categoryName, categoryGroup]) => {
+                const isCollapsed = collapsedCategories.has(categoryName);
+                const totalItems =
+                  categoryGroup.items.length +
+                  Array.from(categoryGroup.subcategories.values()).reduce(
+                    (sum, items) => sum + items.length,
+                    0
+                  );
+
+                return (
+                  <div
+                    key={categoryName}
+                    className="border-2 border-base-200 rounded-xl overflow-hidden"
+                  >
+                    {/* Category Header */}
+                    <button
+                      onClick={() => handleToggleCategory(categoryName)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-base-200 hover:bg-base-200 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-800">
+                          {categoryName}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          ({totalItems} item{totalItems !== 1 ? "s" : ""})
+                        </span>
+                      </div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-5 w-5 text-gray-500 transition-transform ${
+                          isCollapsed ? "" : "rotate-180"
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    {/* Category Content */}
+                    {!isCollapsed && (
+                      <div className="p-2 space-y-3 min-w-0 overflow-hidden">
+                        {/* Items without subcategory */}
+                        {categoryGroup.items.map(renderItemRow)}
+
+                        {/* Subcategories (label hidden, items shown flat) */}
+                        {Array.from(categoryGroup.subcategories.values()).map(
+                          (items, i) => (
+                            <div key={i} className="space-y-3">
+                              {items.map(renderItemRow)}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          );
+            )}
+          </div>
+        );
         })}
       </div>
     </div>

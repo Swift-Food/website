@@ -8,7 +8,6 @@ import { cateringService } from "@/services/api/catering.api";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem } from "./Step2MenuItems";
 import TutorialTooltip from "./TutorialTooltip";
-import SelectedItemsByCategory from "./SelectedItemsByCategory";
 import {
   LocalMealSession,
   transformLocalSessionsToPdfData,
@@ -18,12 +17,11 @@ import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import { validateSessionMinOrders } from "@/lib/utils/catering-min-order-validation";
 
 // Extracted components
-import RestaurantMenuBrowser from "./RestaurantMenuBrowser";
-import BundleBrowser from "./BundleBrowser";
 import SessionEditor from "./SessionEditor";
-import SessionAccordion from "./SessionAccordion";
 import DateSessionNav from "./DateSessionNav";
-import CheckoutBar from "./CheckoutBar";
+import ActiveSessionPanel from "./ActiveSessionPanel";
+import ViewOrderModal from "./ViewOrderModal";
+import MenuBrowserColumn from "./MenuBrowserColumn";
 import AddDayModal from "./modals/AddDayModal";
 import EmptySessionWarningModal from "./modals/EmptySessionWarningModal";
 import RemoveSessionConfirmModal from "./modals/RemoveSessionConfirmModal";
@@ -39,7 +37,7 @@ import { useCateringData } from "./hooks/useCateringData";
 import { groupSessionsByDay, formatTimeDisplay } from "./catering-order-helpers";
 
 // Icons
-import { Plus, Clock, Calendar } from "lucide-react";
+import { ShoppingBag, X } from "lucide-react";
 
 export default function CateringOrderBuilder() {
   const searchParams = useSearchParams();
@@ -67,15 +65,10 @@ export default function CateringOrderBuilder() {
   // Navigation state
   const [navMode, setNavMode] = useState<"dates" | "sessions">("dates");
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
-  const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(0);
 
   // Add day modal state
   const [isAddDayModalOpen, setIsAddDayModalOpen] = useState(false);
   const [newDayDate, setNewDayDate] = useState("");
-
-  // Refs for scroll-to behavior
-  const sessionAccordionRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-  const dayRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Sticky nav detection
   const [isNavSticky, setIsNavSticky] = useState(false);
@@ -119,8 +112,13 @@ export default function CateringOrderBuilder() {
   const [swapItemIndex, setSwapItemIndex] = useState<number | null>(null);
   const [swapAlternatives, setSwapAlternatives] = useState<MenuItem[]>([]);
 
+  // Mobile View Order modal state
+  const [isViewOrderOpen, setIsViewOrderOpen] = useState(false);
+
+  // Remove item confirmation
+  const [removeItemIndex, setRemoveItemIndex] = useState<number | null>(null);
+
   // Tutorial refs
-  const addDayButtonRef = useRef<HTMLButtonElement>(null);
   const addDayNavButtonRef = useRef<HTMLButtonElement>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const firstDayTabRef = useRef<HTMLButtonElement>(null);
@@ -142,7 +140,7 @@ export default function CateringOrderBuilder() {
     toggleDietaryFilter,
     allMenuItems,
     fetchAllMenuItems,
-  } = useCateringData({ expandedSessionIndex });
+  } = useCateringData({ expandedSessionIndex: activeSessionIndex });
 
   const {
     tutorialStep,
@@ -346,37 +344,32 @@ export default function CateringOrderBuilder() {
     return dayGroups.find((g) => g.date === selectedDayDate) || null;
   }, [dayGroups, selectedDayDate]);
 
+  // Sync selected day date with active session
   useEffect(() => {
-    if (navMode !== "sessions" || expandedSessionIndex === null) {
+    if (navMode !== "sessions" || activeSessionIndex === null) {
       return;
     }
 
-    const expandedSession = mealSessions[expandedSessionIndex];
-    if (!expandedSession?.sessionDate) {
+    const activeSession = mealSessions[activeSessionIndex];
+    if (!activeSession?.sessionDate) {
       return;
     }
 
-    if (selectedDayDate !== expandedSession.sessionDate) {
-      setSelectedDayDate(expandedSession.sessionDate);
+    if (selectedDayDate !== activeSession.sessionDate) {
+      setSelectedDayDate(activeSession.sessionDate);
     }
-  }, [navMode, expandedSessionIndex, mealSessions, selectedDayDate]);
+  }, [navMode, activeSessionIndex, mealSessions, selectedDayDate]);
 
   // Handle clicking a date tab
   const handleDateClick = (dayDate: string) => {
     setSelectedDayDate(dayDate);
     setNavMode("sessions");
-    setTimeout(() => {
-      const element = dayRefs.current.get(dayDate);
-      if (element) {
-        const headerOffset = 60;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-      }
-    }, 150);
+
+    // Select first session on this day
+    const dayGroup = dayGroups.find((g) => g.date === dayDate);
+    if (dayGroup && dayGroup.sessions.length > 0) {
+      setActiveSessionIndex(dayGroup.sessions[0].index);
+    }
   };
 
   // Handle back to dates view
@@ -402,33 +395,6 @@ export default function CateringOrderBuilder() {
       setSelectedDayDate(session.sessionDate);
       setNavMode("sessions");
     }
-    setExpandedSessionIndex(sessionIndex);
-    setActiveSessionIndex(sessionIndex);
-    setShowBundleBrowser(false);
-    setTimeout(() => {
-      const element = sessionAccordionRefs.current.get(sessionIndex);
-      if (element) {
-        const headerOffset = 60;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-      }
-    }, 150);
-  };
-
-  // Toggle session accordion
-  const toggleSessionExpand = (sessionIndex: number) => {
-    const session = mealSessions[sessionIndex];
-    if (session?.sessionDate) {
-      setSelectedDayDate(session.sessionDate);
-      setNavMode("sessions");
-    }
-    setExpandedSessionIndex((prev) =>
-      prev === sessionIndex ? null : sessionIndex
-    );
     setActiveSessionIndex(sessionIndex);
     setShowBundleBrowser(false);
   };
@@ -438,16 +404,14 @@ export default function CateringOrderBuilder() {
     if (!minOrderModalSession) return;
 
     const sessionIndex = minOrderModalSession.index;
-    const session = mealSessions[sessionIndex];
 
     // Close the modal
     setMinOrderModalSession(null);
 
-    // Ensure the session is expanded and active
-    setExpandedSessionIndex(sessionIndex);
+    // Ensure the session is active
     setActiveSessionIndex(sessionIndex);
 
-    // Set nav mode to sessions and select the correct day
+    const session = mealSessions[sessionIndex];
     if (session?.sessionDate) {
       setSelectedDayDate(session.sessionDate);
       setNavMode("sessions");
@@ -460,20 +424,6 @@ export default function CateringOrderBuilder() {
     if (matchingCategory) {
       handleCategoryClick(matchingCategory);
     }
-
-    // Scroll to the session accordion
-    setTimeout(() => {
-      const element = sessionAccordionRefs.current.get(sessionIndex);
-      if (element) {
-        const headerOffset = 60;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-      }
-    }, 150);
   };
 
   // Handle adding a new day
@@ -528,7 +478,6 @@ export default function CateringOrderBuilder() {
     setIsAddDayModalOpen(false);
     setSelectedDayDate(newDayDate);
     setNavMode("sessions");
-    setExpandedSessionIndex(newIndex);
     selectMainsCategory();
 
     setTimeout(() => {
@@ -560,29 +509,18 @@ export default function CateringOrderBuilder() {
     setSelectedDayDate(dayDate);
     setNavMode("sessions");
     setActiveSessionIndex(newIndex);
-    setExpandedSessionIndex(newIndex);
     selectMainsCategory();
 
     setTimeout(() => {
       setEditingSessionIndex(newIndex);
       setIsNewSession(true);
-      const element = sessionAccordionRefs.current.get(newIndex);
-      if (element) {
-        const headerOffset = 80;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-      }
     }, 150);
   };
 
   // Calculate totals
   const totalDays = dayGroups.filter((g) => g.date !== "unscheduled").length;
   const totalSessions = mealSessions.length;
-  const totalItems = mealSessions.reduce((acc, s) => acc + s.orderItems.length, 0);
+  const totalItems = mealSessions.reduce((acc, s) => acc + s.orderItems.reduce((sum, oi) => sum + oi.quantity, 0), 0);
 
   // Handle editor close
   const handleEditorClose = (cancelled: boolean) => {
@@ -610,20 +548,7 @@ export default function CateringOrderBuilder() {
         setSelectedDayDate(session.sessionDate);
         setNavMode("sessions");
       }
-      setExpandedSessionIndex(sessionIndex);
       setActiveSessionIndex(sessionIndex);
-      setTimeout(() => {
-        const element = sessionAccordionRefs.current.get(sessionIndex);
-        if (element) {
-          const headerOffset = 80;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-        }
-      }, 150);
 
       if (wasNewSession && tutorialPhase === "initial") {
         triggerNavigationTutorial();
@@ -648,7 +573,6 @@ export default function CateringOrderBuilder() {
       if (remainingSessions.length === 0) {
         setSelectedDayDate(null);
         setNavMode("dates");
-        setExpandedSessionIndex(0);
         setActiveSessionIndex(0);
       } else {
         const nextSessionIndex = Math.min(
@@ -657,7 +581,6 @@ export default function CateringOrderBuilder() {
         );
         const nextSession = remainingSessions[nextSessionIndex];
 
-        setExpandedSessionIndex(nextSessionIndex);
         setActiveSessionIndex(nextSessionIndex);
         setSelectedDayDate(nextSession?.sessionDate || null);
         setNavMode(nextSession?.sessionDate ? "sessions" : "dates");
@@ -689,7 +612,14 @@ export default function CateringOrderBuilder() {
 
   // Handle remove item from cart
   const handleRemoveItem = (itemIndex: number) => {
-    removeMenuItemByIndex(activeSessionIndex, itemIndex);
+    setRemoveItemIndex(itemIndex);
+  };
+
+  const confirmRemoveItem = () => {
+    if (removeItemIndex !== null) {
+      removeMenuItemByIndex(activeSessionIndex, removeItemIndex);
+      setRemoveItemIndex(null);
+    }
   };
 
   const handleRemoveBundle = (bundleId: string) => {
@@ -702,7 +632,7 @@ export default function CateringOrderBuilder() {
     indices.forEach((idx) => removeMenuItemByIndex(activeSessionIndex, idx));
   };
 
-  // Handle swap item (for bundle items) — opens SwapItemModal with same-category alternatives
+  // Handle swap item (for bundle items)
   const handleSwapItem = (itemIndex: number) => {
     const session = mealSessions[activeSessionIndex];
     if (!session) return;
@@ -892,7 +822,7 @@ export default function CateringOrderBuilder() {
             }
           }
         } else {
-          // Regular weekly schedule — find all slots for this day
+          // Regular weekly schedule
           const daySlots = cateringHours.filter(
             (schedule) =>
               schedule.day.toLowerCase() === dayOfWeek && schedule.enabled
@@ -939,20 +869,6 @@ export default function CateringOrderBuilder() {
       setSessionValidationErrors(errors);
       const firstErrorSessionIndex = parseInt(Object.keys(errors)[0]);
       setActiveSessionIndex(firstErrorSessionIndex);
-      setExpandedSessionIndex(firstErrorSessionIndex);
-      setTimeout(() => {
-        const element = sessionAccordionRefs.current.get(firstErrorSessionIndex);
-        if (element) {
-          const headerOffset = 80;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition =
-            elementPosition + window.pageYOffset - headerOffset;
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-        }
-      }, 150);
       return;
     }
 
@@ -981,22 +897,7 @@ export default function CateringOrderBuilder() {
         setNavMode("sessions");
       }
 
-      setExpandedSessionIndex(emptySessionIndex);
       setEmptySessionIndex(null);
-
-      setTimeout(() => {
-        const element = sessionAccordionRefs.current.get(emptySessionIndex);
-        if (element) {
-          const headerOffset = 80;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition =
-            elementPosition + window.pageYOffset - headerOffset;
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-        }
-      }, 150);
     }
   };
 
@@ -1070,120 +971,6 @@ export default function CateringOrderBuilder() {
     }
   };
 
-  // Render validation error banner
-  const renderValidationErrorBanner = (index: number) => {
-    if (!sessionValidationErrors[index]) return null;
-
-    return (
-      <div className="mb-4 p-4 bg-red-50 border-2 border-red-500 rounded-xl flex items-start gap-3">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-            clipRule="evenodd"
-          />
-        </svg>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-red-800 mb-1">
-            Catering Hours Conflict
-          </p>
-          <p className="text-sm text-red-700">
-            {sessionValidationErrors[index]}
-          </p>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditingSessionIndex(index);
-            }}
-            className="mt-3 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Edit Session Time
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // Render session content (selected items + restaurant menu browser)
-  // NOTE: Old category-based browsing preserved in CategoryMenuBrowser.tsx for revert
-  const renderSessionContent = (
-    session: MealSessionState,
-    index: number,
-    isUnscheduled: boolean = false
-  ) => (
-    <SessionAccordion
-      key={index}
-      session={session}
-      isExpanded={expandedSessionIndex === index}
-      onToggle={() => toggleSessionExpand(index)}
-      sessionTotal={getSessionTotal(index)}
-      sessionDiscount={getSessionDiscount(index).discount}
-      sessionPromotion={getSessionDiscount(index).promotion}
-      accordionRef={(el) => {
-        if (el) sessionAccordionRefs.current.set(index, el);
-        else sessionAccordionRefs.current.delete(index);
-      }}
-      onEditSession={() => {
-        setEditingSessionIndex(index);
-      }}
-      onRemoveSession={(e) => handleRemoveSession(index, e)}
-      canRemove={isUnscheduled ? mealSessions.length > 1 : true}
-    >
-      {renderValidationErrorBanner(index)}
-
-      {session.orderItems.length > 0 && (
-        <div className="mb-4 min-w-0 overflow-hidden">
-          <SelectedItemsByCategory
-            sessionIndex={index}
-            onEdit={handleEditItem}
-            onRemove={handleRemoveItem}
-            onSwapItem={handleSwapItem}
-            onRemoveBundle={handleRemoveBundle}
-            collapsedCategories={collapsedCategories}
-            onToggleCategory={handleToggleCategory}
-            onViewMenu={handleViewMenu}
-          />
-        </div>
-      )}
-
-      {showBundleBrowser && expandedSessionIndex === index ? (
-        <BundleBrowser
-          sessionIndex={index}
-          allMenuItems={allMenuItems}
-          fetchAllMenuItems={fetchAllMenuItems}
-          onBack={() => setShowBundleBrowser(false)}
-          defaultGuestCount={mealSessions[index]?.guestCount ?? 1}
-        />
-      ) : (
-        <RestaurantMenuBrowser
-          restaurants={restaurants}
-          restaurantsLoading={restaurantsLoading}
-          onOpenBundles={() => setShowBundleBrowser(true)}
-          defaultBundleGuestCount={mealSessions[index]?.guestCount ?? 1}
-          allMenuItems={allMenuItems}
-          fetchAllMenuItems={fetchAllMenuItems}
-          onAddItem={handleAddItem}
-          onUpdateQuantity={handleUpdateQuantity}
-          onAddOrderPress={handleAddOrderPress}
-          getItemQuantity={getItemQuantity}
-          expandedItemId={expandedItemId}
-          setExpandedItemId={setExpandedItemId}
-          selectedDietaryFilters={selectedDietaryFilters}
-          toggleDietaryFilter={toggleDietaryFilter}
-          restaurantListRef={restaurantListRef}
-          firstMenuItemRef={firstMenuItemRef}
-          sessionIndex={index}
-          expandedSessionIndex={expandedSessionIndex}
-        />
-      )}
-    </SessionAccordion>
-  );
-
   return (
     <div className="min-h-screen bg-base-100">
       {/* Sticky Navigation */}
@@ -1192,7 +979,7 @@ export default function CateringOrderBuilder() {
         dayGroups={dayGroups}
         selectedDayDate={selectedDayDate}
         currentDayGroup={currentDayGroup}
-        expandedSessionIndex={expandedSessionIndex}
+        expandedSessionIndex={activeSessionIndex}
         isNavSticky={isNavSticky}
         onDateClick={handleDateClick}
         onBackToDates={handleBackToDates}
@@ -1218,7 +1005,7 @@ export default function CateringOrderBuilder() {
         />
       )}
 
-      <div className="max-w-6xl mx-auto p-2">
+      <div className="max-w-7xl mx-auto p-2">
         {/* Summary Card */}
         <div className="flex gap-3 mb-6">
           <div className="flex-1 bg-white rounded-xl shadow-sm border border-base-200 p-3 md:p-4 flex items-center justify-between">
@@ -1279,127 +1066,135 @@ export default function CateringOrderBuilder() {
           )}
         </div>
 
-        {/* Timeline */}
-        <div className="relative mb-8">
-          {/* Timeline Line */}
-          <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-primary/20 hidden md:block" />
+        {/* Two-Column Layout */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left Column: Menu Browser */}
+          <div className="flex-1 min-w-0">
+            <MenuBrowserColumn
+              showBundleBrowser={showBundleBrowser}
+              onToggleBundleBrowser={setShowBundleBrowser}
+              sessionIndex={activeSessionIndex}
+              allMenuItems={allMenuItems}
+              fetchAllMenuItems={fetchAllMenuItems}
+              defaultGuestCount={mealSessions[activeSessionIndex]?.guestCount ?? 1}
+              restaurants={restaurants}
+              restaurantsLoading={restaurantsLoading}
+              onAddItem={handleAddItem}
+              onUpdateQuantity={handleUpdateQuantity}
+              onAddOrderPress={handleAddOrderPress}
+              getItemQuantity={getItemQuantity}
+              expandedItemId={expandedItemId}
+              setExpandedItemId={setExpandedItemId}
+              selectedDietaryFilters={selectedDietaryFilters}
+              toggleDietaryFilter={toggleDietaryFilter}
+              restaurantListRef={restaurantListRef}
+              firstMenuItemRef={firstMenuItemRef}
+              expandedSessionIndex={activeSessionIndex}
+            />
+          </div>
 
-          {/* Unscheduled Sessions */}
-          {dayGroups.find((day) => day.date === "unscheduled") && (
-            <div className="relative mb-8">
-              <div className="flex flex-col md:flex-row md:gap-4">
-                <div className="hidden md:flex flex-shrink-0 w-12 h-12 rounded-xl bg-amber-500 flex-col items-center justify-center z-10 shadow-lg">
-                  <Clock className="w-6 h-6 text-white" />
-                </div>
-
-                <div className="flex-1 md:bg-amber-50 md:rounded-2xl md:p-4 md:border md:border-amber-200">
-                  <div className="mb-3 flex items-start gap-3">
-                    <div className="md:hidden flex-shrink-0 w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center">
-                      <Clock className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800">
-                        Unscheduled Sessions
-                      </h3>
-                      <p className="text-sm text-amber-600">
-                        Set date & time to continue
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {dayGroups
-                      .find((day) => day.date === "unscheduled")
-                      ?.sessions.map(({ session, index }) =>
-                        renderSessionContent(session, index, true)
-                      )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Scheduled Days */}
-          {dayGroups
-            .filter((day) => day.date !== "unscheduled")
-            .map((day) => (
-              <div
-                key={day.date}
-                ref={(el) => {
-                  if (el) dayRefs.current.set(day.date, el);
-                  else dayRefs.current.delete(day.date);
-                }}
-                className="relative mb-8 last:mb-0"
-              >
-                <div className="flex flex-col md:flex-row md:gap-4">
-                  <div className="hidden md:flex flex-shrink-0 w-12 h-12 rounded-xl bg-primary flex-col items-center justify-center z-10 shadow-lg">
-                    <span className="text-xs font-medium text-white/80">
-                      {day.dayName}
-                    </span>
-                    <span className="text-sm font-bold text-white">
-                      {day.displayDate.split(" ")[0]}
-                    </span>
-                  </div>
-
-                  <div className="flex-1 md:bg-primary/5 md:rounded-2xl md:p-4">
-                    <div className="mb-3 flex items-start gap-3">
-                      <div className="md:hidden flex-shrink-0 w-11 h-11 rounded-xl bg-primary text-white flex flex-col items-center justify-center">
-                        <span className="text-[10px] font-medium leading-tight">
-                          {day.dayName}
-                        </span>
-                        <span className="text-sm font-bold leading-tight">
-                          {day.displayDate.split(" ")[0]}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">
-                          {day.fullDate}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {day.sessions.length} session
-                          {day.sessions.length !== 1 ? "s" : ""} • £
-                          {day.total.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {day.sessions.map(({ session, index }) =>
-                        renderSessionContent(session, index)
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {day.date !== "unscheduled" && (
-                  <div className="md:ml-16 mt-3">
-                    <button
-                      onClick={() => handleAddSessionToDay(day.date)}
-                      className="w-full p-3 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span className="text-sm font-medium">
-                        Add Session to {day.displayDate}
-                      </span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-
-          {/* Add Day Button */}
-          <div className={`relative mt-6 ${totalDays > 0 ? "md:ml-14" : ""}`}>
-            <button
-              ref={addDayButtonRef}
-              onClick={handleAddDay}
-              className="w-full p-4 rounded-xl border-2 border-dashed border-base-300 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
-            >
-              <Calendar className="w-5 h-5" />
-              <span className="font-medium">Add Day</span>
-            </button>
+          {/* Right Column: Active Session (Desktop only) */}
+          <div className="hidden md:block md:w-[50%] xl:w-[40%] flex-shrink-0">
+            {mealSessions[activeSessionIndex] && (
+              <ActiveSessionPanel
+                session={mealSessions[activeSessionIndex]}
+                sessionIndex={activeSessionIndex}
+                sessionTotal={getSessionTotal(activeSessionIndex)}
+                sessionDiscount={getSessionDiscount(activeSessionIndex).discount}
+                sessionPromotion={getSessionDiscount(activeSessionIndex).promotion}
+                validationError={sessionValidationErrors[activeSessionIndex] || null}
+                isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
+                canRemove={mealSessions.length > 1}
+                onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
+                onRemoveSession={(e) => handleRemoveSession(activeSessionIndex, e)}
+                onEditItem={handleEditItem}
+                onRemoveItem={handleRemoveItem}
+                onSwapItem={handleSwapItem}
+                onRemoveBundle={handleRemoveBundle}
+                collapsedCategories={collapsedCategories}
+                onToggleCategory={handleToggleCategory}
+                onViewMenu={handleViewMenu}
+                isCurrentSessionValid={isCurrentSessionValid}
+                totalPrice={getTotalPrice()}
+                onCheckout={handleCheckout}
+                restaurants={restaurants}
+              />
+            )}
           </div>
         </div>
       </div>
+
+      {/* Mobile: View Order Bar */}
+      {mealSessions.some((s) => s.orderItems.length > 0) && (
+        <div className="fixed bottom-0 left-0 right-0 md:hidden z-50">
+          {/* Session detail pill */}
+          <div className="flex justify-center pb-2 px-4">
+            <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200">
+              <span className="text-xs font-semibold text-gray-800">{mealSessions[activeSessionIndex]?.sessionName}</span>
+              <span className="text-[10px] text-gray-500">
+                {mealSessions[activeSessionIndex]?.sessionDate
+                  ? new Date(mealSessions[activeSessionIndex].sessionDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+                  : "Date not set"}
+                {mealSessions[activeSessionIndex]?.eventTime && ` · ${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
+              </span>
+            </div>
+          </div>
+          {/* View Order bar */}
+          <div className="p-4 bg-primary">
+            <button
+              onClick={() => setIsViewOrderOpen(true)}
+              className="w-full flex items-center justify-between text-white"
+            >
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5" />
+                <span className="font-semibold">View Order</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold">£{getTotalPrice().toFixed(2)}</span>
+                <span className="text-sm opacity-80">{totalItems} items</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile: View Order Modal */}
+      <ViewOrderModal
+        isOpen={isViewOrderOpen}
+        onClose={() => setIsViewOrderOpen(false)}
+        mealSessions={mealSessions}
+        activeSessionIndex={activeSessionIndex}
+        onSessionChange={setActiveSessionIndex}
+        getSessionTotal={getSessionTotal}
+        getSessionDiscount={getSessionDiscount}
+        validationErrors={sessionValidationErrors}
+        onEditSession={(index) => {
+          setIsViewOrderOpen(false);
+          setEditingSessionIndex(index);
+        }}
+        onRemoveSession={(index, e) => handleRemoveSession(index, e)}
+        onEditItem={handleEditItem}
+        onRemoveItem={handleRemoveItem}
+        onSwapItem={handleSwapItem}
+        onRemoveBundle={handleRemoveBundle}
+        collapsedCategories={collapsedCategories}
+        onToggleCategory={handleToggleCategory}
+        onViewMenu={handleViewMenu}
+        isCurrentSessionValid={isCurrentSessionValid}
+        totalPrice={getTotalPrice()}
+        onCheckout={handleCheckout}
+        canRemoveSession={() => mealSessions.length > 1}
+        formatTimeDisplay={formatTimeDisplay}
+        navMode={navMode}
+        dayGroups={dayGroups}
+        selectedDayDate={selectedDayDate}
+        currentDayGroup={currentDayGroup}
+        onDateClick={handleDateClick}
+        onBackToDates={handleBackToDates}
+        onAddDay={handleAddDay}
+        onAddSessionToDay={handleAddSessionToDay}
+        restaurants={restaurants}
+      />
 
       {/* Edit Item Modal */}
       {isEditModalOpen && editingItemIndex !== null && (
@@ -1460,6 +1255,42 @@ export default function CateringOrderBuilder() {
         />
       )}
 
+      {/* Remove Item Confirmation Modal */}
+      {removeItemIndex !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <X className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Remove Item</h3>
+                <p className="text-sm text-gray-500">
+                  {mealSessions[activeSessionIndex]?.orderItems[removeItemIndex]?.item.menuItemName || "Item"}
+                </p>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to remove this item from your order?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRemoveItemIndex(null)}
+                className="flex-1 px-4 py-3 border border-base-300 text-gray-600 rounded-xl hover:bg-base-100 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRemoveItem}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Remove Session Confirmation Modal */}
       {sessionToRemove !== null && (
         <RemoveSessionConfirmModal
@@ -1497,15 +1328,6 @@ export default function CateringOrderBuilder() {
           isOpen={true}
           onClose={() => { setSwapItemIndex(null); setSwapAlternatives([]); }}
           onSwap={handleConfirmSwap}
-        />
-      )}
-
-      {/* Checkout Button */}
-      {mealSessions.some((s) => s.orderItems.length > 0) && (
-        <CheckoutBar
-          isCurrentSessionValid={isCurrentSessionValid}
-          totalPrice={getTotalPrice()}
-          onCheckout={handleCheckout}
         />
       )}
 

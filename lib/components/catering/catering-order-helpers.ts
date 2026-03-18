@@ -129,6 +129,7 @@ export function mapToMenuItem(item: MenuItemDetails): MenuItem {
       name: (item as any).restaurant.restaurant_name || (item as any).restaurant.name,
       restaurantId: item.restaurantId,
       menuGroupSettings: (item as any).restaurant.menuGroupSettings,
+      images: (item as any).restaurant.images || (item as any).restaurant.image,
     } : undefined,
     groupTitle: item.groupTitle,
     status: item.status,

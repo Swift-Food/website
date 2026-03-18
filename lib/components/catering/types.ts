@@ -114,6 +114,68 @@ export interface UseCateringTutorialReturn {
   getTutorialSteps: () => import("./TutorialTooltip").TutorialStep[];
 }
 
+// ActiveSessionPanel component props
+export interface ActiveSessionPanelProps {
+  session: MealSessionState;
+  sessionIndex: number;
+  sessionTotal: number;
+  sessionDiscount?: number;
+  sessionPromotion?: any;
+  validationError?: string | null;
+  isUnscheduled?: boolean;
+  canRemove: boolean;
+  onEditSession: () => void;
+  onRemoveSession: (e: React.MouseEvent) => void;
+  onEditItem: (itemIndex: number) => void;
+  onRemoveItem: (itemIndex: number) => void;
+  onSwapItem: (itemIndex: number) => void;
+  onRemoveBundle: (bundleId: string) => void;
+  collapsedCategories: Set<string>;
+  onToggleCategory: (categoryName: string) => void;
+  onViewMenu: () => void;
+  isCurrentSessionValid: boolean;
+  totalPrice: number;
+  onCheckout: () => void;
+  showCheckoutButton?: boolean;
+  restaurants?: { id: string; restaurant_name: string; images: string[] }[];
+}
+
+// ViewOrderModal component props
+export interface ViewOrderModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  mealSessions: MealSessionState[];
+  activeSessionIndex: number;
+  onSessionChange: (index: number) => void;
+  getSessionTotal: (index: number) => number;
+  getSessionDiscount: (index: number) => { discount: number; promotion?: any };
+  validationErrors: Record<number, string>;
+  onEditSession: (index: number) => void;
+  onRemoveSession: (index: number, e: React.MouseEvent) => void;
+  onEditItem: (itemIndex: number) => void;
+  onRemoveItem: (itemIndex: number) => void;
+  onSwapItem: (itemIndex: number) => void;
+  onRemoveBundle: (bundleId: string) => void;
+  collapsedCategories: Set<string>;
+  onToggleCategory: (categoryName: string) => void;
+  onViewMenu: () => void;
+  isCurrentSessionValid: boolean;
+  totalPrice: number;
+  onCheckout: () => void;
+  canRemoveSession: (index: number) => boolean;
+  formatTimeDisplay: (eventTime: string | undefined) => string;
+  // DateSessionNav props for modal
+  navMode: "dates" | "sessions";
+  dayGroups: DayGroup[];
+  selectedDayDate: string | null;
+  currentDayGroup: DayGroup | null;
+  onDateClick: (dayDate: string) => void;
+  onBackToDates: () => void;
+  onAddDay: () => void;
+  onAddSessionToDay: (dayDate: string) => void;
+  restaurants?: { id: string; restaurant_name: string; images: string[] }[];
+}
+
 // Catering data hook return type
 export interface UseCateringDataReturn {
   // Categories
