@@ -1,8 +1,10 @@
 "use client";
 
+import { createRef } from "react";
 import { X, Clock, Tag, Pencil, ShoppingBag, AlertTriangle } from "lucide-react";
 import { ViewOrderModalProps } from "./types";
 import SelectedItemsByCategory from "./SelectedItemsByCategory";
+import DateSessionNav from "./DateSessionNav";
 
 export default function ViewOrderModal({
   isOpen,
@@ -27,6 +29,14 @@ export default function ViewOrderModal({
   onCheckout,
   canRemoveSession,
   formatTimeDisplay,
+  navMode,
+  dayGroups,
+  selectedDayDate,
+  currentDayGroup,
+  onDateClick,
+  onBackToDates,
+  onAddDay,
+  onAddSessionToDay,
 }: ViewOrderModalProps) {
   if (!isOpen) return null;
 
@@ -81,34 +91,26 @@ export default function ViewOrderModal({
         </button>
       </div>
 
-      {/* Session Picker */}
-      {mealSessions.length > 1 && (
-        <div className="px-4 py-2 border-b border-base-200 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2">
-            {mealSessions.map((session, index) => (
-              <button
-                key={index}
-                onClick={() => onSessionChange(index)}
-                className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
-                  index === activeSessionIndex
-                    ? "bg-primary text-white"
-                    : "bg-base-200 text-gray-600 hover:bg-base-300"
-                }`}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                <span className="whitespace-nowrap">
-                  {session.sessionName}
-                  {session.eventTime && (
-                    <span className="ml-1 opacity-80">
-                      {formatTimeDisplay(session.eventTime)}
-                    </span>
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Session Nav - same as main page */}
+      <DateSessionNav
+        navMode={navMode}
+        dayGroups={dayGroups}
+        selectedDayDate={selectedDayDate}
+        currentDayGroup={currentDayGroup}
+        expandedSessionIndex={activeSessionIndex}
+        isNavSticky={false}
+        onDateClick={onDateClick}
+        onBackToDates={onBackToDates}
+        onSessionPillClick={onSessionChange}
+        onAddDay={onAddDay}
+        onAddSessionToDay={onAddSessionToDay}
+        formatTimeDisplay={formatTimeDisplay}
+        addDayNavButtonRef={createRef()}
+        backButtonRef={createRef()}
+        firstDayTabRef={createRef()}
+        firstSessionPillRef={createRef()}
+        addSessionNavButtonRef={createRef()}
+      />
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
@@ -258,27 +260,41 @@ export default function ViewOrderModal({
         </div>
       </div>
 
-      {/* Fixed Bottom Checkout */}
-      <div className="px-4 py-3 border-t border-base-200 bg-white">
-        <button
-          onClick={() => {
-            onClose();
-            onCheckout();
-          }}
-          className={`w-full flex items-center justify-between px-5 py-3.5 rounded-xl text-white font-semibold transition-colors ${
-            isCurrentSessionValid
-              ? "bg-primary hover:bg-primary/90"
-              : "bg-warning hover:bg-warning/90"
-          }`}
-        >
-          <div>
-            <span className="text-sm opacity-90">Total</span>
-            <span className="ml-2 text-lg font-bold">£{totalPrice.toFixed(2)}</span>
+      {/* Fixed Bottom – identical to main page View Order bar */}
+      <div className="relative">
+        {/* Session detail pill */}
+        <div className="flex justify-center pb-2 px-4">
+          <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/80 backdrop-blur-md shadow-sm border border-base-200">
+            <span className="text-xs font-semibold text-gray-800">{activeSession.sessionName}</span>
+            <span className="text-[10px] text-gray-500">
+              {activeSession.sessionDate
+                ? new Date(activeSession.sessionDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+                : "Date not set"}
+              {activeSession.eventTime && ` · ${formatTimeDisplay(activeSession.eventTime)}`}
+            </span>
           </div>
-          <span>
-            {isCurrentSessionValid ? "Proceed to Checkout" : "Min. Order Not Met"}
-          </span>
-        </button>
+        </div>
+        {/* Checkout bar */}
+        <div className="p-4 bg-primary">
+          <button
+            onClick={() => {
+              onClose();
+              onCheckout();
+            }}
+            className="w-full flex items-center justify-between text-white"
+          >
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5" />
+              <span className="font-semibold">
+                {isCurrentSessionValid ? "Proceed to Checkout" : "Min. Order Not Met"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold">£{totalPrice.toFixed(2)}</span>
+              <span className="text-sm opacity-80">{totalItemCount} items</span>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -163,6 +163,15 @@ export interface ViewOrderModalProps {
   onCheckout: () => void;
   canRemoveSession: (index: number) => boolean;
   formatTimeDisplay: (eventTime: string | undefined) => string;
+  // DateSessionNav props for modal
+  navMode: "dates" | "sessions";
+  dayGroups: DayGroup[];
+  selectedDayDate: string | null;
+  currentDayGroup: DayGroup | null;
+  onDateClick: (dayDate: string) => void;
+  onBackToDates: () => void;
+  onAddDay: () => void;
+  onAddSessionToDay: (dayDate: string) => void;
 }
 
 // Catering data hook return type
