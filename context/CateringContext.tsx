@@ -521,6 +521,9 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       const existingIndex = session.orderItems.findIndex((i) => {
         if (i.item.id !== newItem.item.id) return false;
 
+        // Bundle items should only merge with items in the same bundle
+        if (i.bundleId !== newItem.bundleId) return false;
+
         const existingAddons = i.item.selectedAddons || [];
         const newAddons = newItem.item.selectedAddons || [];
 
