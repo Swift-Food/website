@@ -38,7 +38,7 @@ export default function PricingSummary({
 
     return (
       <div className="space-y-2 pt-4 border-t border-base-300">
-        {/* Promotion offer banner */}
+        {/* Promotion offer banner — amount from backend, not frontend estimate */}
         {activePromotions.length > 0 && (
           <div className="flex flex-col gap-1.5 mb-1">
             {activePromotions.map((entry, i) => {
@@ -50,6 +50,11 @@ export default function PricingSummary({
                   ? "Buy One Get One"
                   : `${Number(promo.discountPercentage)}% OFF`;
 
+              // Use backend-calculated discount if available, otherwise frontend estimate
+              const discountAmount = (pricing.restaurantPromotionDiscount ?? 0) > 0
+                ? pricing.restaurantPromotionDiscount!
+                : entry.discount;
+
               return (
                 <div
                   key={i}
@@ -60,7 +65,7 @@ export default function PricingSummary({
                     {promo.name || "Restaurant Promotion"} — {label}
                   </span>
                   <span className="text-xs font-bold text-green-700">
-                    -£{entry.discount.toFixed(2)}
+                    -£{discountAmount.toFixed(2)}
                   </span>
                 </div>
               );
