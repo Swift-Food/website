@@ -852,4 +852,5 @@ export interface UpdateMenuItemDto {
   deliveryPortionSize?: string;
   cateringQuantityUnit?: number;
   vatApplicable?: boolean;
+  minOrderQuantity?: number;
 }
