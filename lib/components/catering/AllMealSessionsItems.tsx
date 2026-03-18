@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCatering } from "@/context/CateringContext";
 import { MealSessionState, SelectedMenuItem } from "@/types/catering.types";
-import { ChefHat, ChevronDown, ChevronUp, Calendar, Clock, Package } from "lucide-react";
+import { ChefHat, ChevronDown, ChevronUp, Calendar, Clock, Package, Store } from "lucide-react";
 import { categoryService } from "@/services/api/category.api";
 import { ALLERGENS } from "@/lib/constants/allergens";
 
@@ -61,6 +61,9 @@ export default function AllMealSessionsItems({
   const [expandedAllergens, setExpandedAllergens] = useState<Set<string>>(
     new Set(),
   );
+  const [collapsedRestaurants, setCollapsedRestaurants] = useState<Set<string>>(
+    new Set(),
+  );
 
   const toggleSession = (sessionIndex: number) => {
     setExpandedSessions((prev) => {
@@ -98,6 +101,81 @@ export default function AllMealSessionsItems({
     });
   };
 
+  const toggleRestaurant = (key: string) => {
+    setCollapsedRestaurants((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) newSet.delete(key);
+      else newSet.add(key);
+      return newSet;
+    });
+  };
+
+  // Group items by restaurant, then by bundles/categories within each restaurant
+  const groupItemsByRestaurant = (orderItems: SelectedMenuItem[]) => {
+    const map = new Map<string, {
+      name: string;
+      image?: string;
+      bundles: Map<string, { name: string; items: GroupedItem[] }>;
+      categories: Map<string, CategoryGroup>;
+    }>();
+
+    orderItems.forEach((orderItem, index) => {
+      const restName = (orderItem.item as any).restaurantName || orderItem.item.restaurant?.name || "Unknown Restaurant";
+      const restData = orderItem.item.restaurant as any;
+      const restImage = restData?.images?.[0] || restData?.image?.[0];
+
+      if (!map.has(restName)) {
+        map.set(restName, { name: restName, image: restImage, bundles: new Map(), categories: new Map() });
+      }
+      const restaurant = map.get(restName)!;
+
+      const groupedItem: GroupedItem = {
+        item: orderItem.item,
+        quantity: orderItem.quantity,
+        originalIndex: index,
+      };
+
+      if (orderItem.bundleId) {
+        if (!restaurant.bundles.has(orderItem.bundleId)) {
+          restaurant.bundles.set(orderItem.bundleId, { name: orderItem.bundleName || "Bundle", items: [] });
+        }
+        restaurant.bundles.get(orderItem.bundleId)!.items.push(groupedItem);
+      } else {
+        const catName = orderItem.item.categoryName || (orderItem.item as any).groupTitle || "Uncategorized";
+        const subName = orderItem.item.subcategoryName || "";
+
+        if (!restaurant.categories.has(catName)) {
+          restaurant.categories.set(catName, { items: [], subcategories: new Map() });
+        }
+        const category = restaurant.categories.get(catName)!;
+
+        if (subName) {
+          if (!category.subcategories.has(subName)) {
+            category.subcategories.set(subName, []);
+          }
+          category.subcategories.get(subName)!.push(groupedItem);
+        } else {
+          category.items.push(groupedItem);
+        }
+      }
+    });
+
+    // Sort categories within each restaurant
+    if (categoryOrder.length > 0) {
+      map.forEach((restaurant) => {
+        const entries = Array.from(restaurant.categories.entries());
+        entries.sort((a, b) => {
+          const orderA = categoryOrder.indexOf(a[0]);
+          const orderB = categoryOrder.indexOf(b[0]);
+          return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+        });
+        restaurant.categories = new Map(entries);
+      });
+    }
+
+    return map;
+  };
+
   const formatDate = (date: string) => {
     if (!date) return "Date TBD";
     return new Date(date).toLocaleDateString("en-GB", {
@@ -122,76 +200,6 @@ export default function AllMealSessionsItems({
     const endAmpm = endHour >= 12 ? "PM" : "AM";
     const endHour12 = endHour % 12 || 12;
     return `${start} – ${endHour12}:${String(endMinute).padStart(2, "0")} ${endAmpm}`;
-  };
-
-  // Group bundle items by bundleId
-  const getBundleGroups = (orderItems: SelectedMenuItem[]) => {
-    const bundleMap = new Map<string, { bundleName: string; items: GroupedItem[] }>();
-    orderItems.forEach((orderItem, index) => {
-      if (!orderItem.bundleId) return;
-      if (!bundleMap.has(orderItem.bundleId)) {
-        bundleMap.set(orderItem.bundleId, { bundleName: orderItem.bundleName || "Bundle", items: [] });
-      }
-      bundleMap.get(orderItem.bundleId)!.items.push({
-        item: orderItem.item,
-        quantity: orderItem.quantity,
-        originalIndex: index,
-      });
-    });
-    return bundleMap;
-  };
-
-  // Group items by category -> subcategory for a session
-  const groupItemsByCategory = (orderItems: SelectedMenuItem[]) => {
-    const map = new Map<string, CategoryGroup>();
-
-    orderItems.forEach((orderItem, index) => {
-      // Skip bundle items — they're rendered separately
-      if (orderItem.bundleId) return;
-
-      const catName = orderItem.item.categoryName || (orderItem.item as any).groupTitle || "Uncategorized";
-      const subName = orderItem.item.subcategoryName || "";
-
-      if (!map.has(catName)) {
-        map.set(catName, { items: [], subcategories: new Map() });
-      }
-
-      const category = map.get(catName)!;
-      const groupedItem: GroupedItem = {
-        item: orderItem.item,
-        quantity: orderItem.quantity,
-        originalIndex: index,
-      };
-
-      if (subName) {
-        if (!category.subcategories.has(subName)) {
-          category.subcategories.set(subName, []);
-        }
-        category.subcategories.get(subName)!.push(groupedItem);
-      } else {
-        category.items.push(groupedItem);
-      }
-    });
-
-    // Sort categories by the order from the API
-    if (categoryOrder.length > 0) {
-      const sortedMap = new Map<string, CategoryGroup>();
-      const entries = Array.from(map.entries());
-
-      entries.sort((a, b) => {
-        const indexA = categoryOrder.indexOf(a[0]);
-        const indexB = categoryOrder.indexOf(b[0]);
-        // Put unknown categories at the end
-        const orderA = indexA === -1 ? 999 : indexA;
-        const orderB = indexB === -1 ? 999 : indexB;
-        return orderA - orderB;
-      });
-
-      entries.forEach(([key, value]) => sortedMap.set(key, value));
-      return sortedMap;
-    }
-
-    return map;
   };
 
   // Calculate session total
@@ -461,8 +469,7 @@ export default function AllMealSessionsItems({
     sessionIndex: number,
   ) => {
     const isExpanded = expandedSessions.has(sessionIndex);
-    const groupedItems = groupItemsByCategory(session.orderItems);
-    const bundleGroups = getBundleGroups(session.orderItems);
+    const restaurantGroups = groupItemsByRestaurant(session.orderItems);
     const sessionTotal = calculateSessionTotal(session.orderItems);
     const itemCount = session.orderItems.length;
 
@@ -530,26 +537,54 @@ export default function AllMealSessionsItems({
               </div>
             )}
 
-            {/* Bundle groups */}
-            {bundleGroups.size > 0 && (
-              <div className="space-y-3">
-                {Array.from(bundleGroups.entries()).map(
-                  ([bundleId, { bundleName, items }]) =>
-                    renderBundleGroup(bundleId, bundleName, items, sessionIndex),
-                )}
-              </div>
-            )}
+            {/* Restaurant groups */}
+            <div className="space-y-5">
+              {Array.from(restaurantGroups.entries()).map(([restName, restaurant]) => {
+                const restKey = `${sessionIndex}-rest-${restName}`;
+                const isRestaurantCollapsed = collapsedRestaurants.has(restKey);
+                const totalRestaurantItems = Array.from(restaurant.bundles.values()).reduce((sum, b) => sum + b.items.length, 0)
+                  + Array.from(restaurant.categories.values()).reduce((sum, c) => sum + c.items.length + Array.from(c.subcategories.values()).reduce((s, items) => s + items.length, 0), 0);
 
-            {/* Categories and items */}
-            <div className="space-y-3">
-              {Array.from(groupedItems.entries()).map(
-                ([categoryName, categoryGroup]) =>
-                  renderCategoryGroup(
-                    categoryName,
-                    categoryGroup,
-                    sessionIndex,
-                  ),
-              )}
+                return (
+                  <div key={restKey}>
+                    {/* Restaurant Header */}
+                    <button
+                      onClick={() => toggleRestaurant(restKey)}
+                      className="w-full flex items-center gap-3 mb-2 px-1 hover:bg-gray-50 rounded-lg py-1 transition-colors"
+                    >
+                      {restaurant.image ? (
+                        <img src={restaurant.image} alt={restName} className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                      ) : (
+                        <Store className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                      )}
+                      <span className="font-bold text-base text-gray-800">{restName}</span>
+                      <span className="text-sm text-gray-400">({totalRestaurantItems})</span>
+                      <div className="flex-1" />
+                      {isRestaurantCollapsed ? (
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+
+                    {!isRestaurantCollapsed && (
+                      <div className="space-y-3">
+                        {/* Bundle groups for this restaurant */}
+                        {Array.from(restaurant.bundles.entries()).map(
+                          ([bundleId, { name, items }]) =>
+                            renderBundleGroup(bundleId, name, items, sessionIndex),
+                        )}
+
+                        {/* Categories for this restaurant */}
+                        {Array.from(restaurant.categories.entries()).map(
+                          ([categoryName, categoryGroup]) =>
+                            renderCategoryGroup(categoryName, categoryGroup, sessionIndex),
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Session Total */}
