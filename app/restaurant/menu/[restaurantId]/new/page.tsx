@@ -964,29 +964,36 @@ const NewMenuItemPage = () => {
               <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 Selection
-                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-52 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
-                  How customers choose this addon: Pick One, No repeat, or Repeat.
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-64 p-2.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                  <strong className="block mb-1">How does the customer choose?</strong>
+                  <strong className="text-green-400">Pick One</strong> — customer picks one option only. e.g. Choose your protein: Chicken or Tofu.<br/>
+                  <strong className="text-blue-400">No repeat</strong> — customer can pick several different options, but only once each.<br/>
+                  <strong className="text-purple-400">Repeat</strong> — customer can pick the same option more than once. e.g. Extra Cheese x3.
                 </span>
               </div>
               <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
                 <span className="w-2 h-2 rounded-full bg-amber-500" />
                 Required
-                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
-                  Whether the customer must select this addon.
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-56 p-2.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                  <strong className="block mb-1">Must the customer choose?</strong>
+                  When a group is <strong className="text-amber-400">Required</strong>, the customer cannot place their order without selecting from this group.<br/>
+                  When <strong className="text-gray-400">Optional</strong>, the customer can skip it.
                 </span>
               </div>
               <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
                 <span className="w-2 h-2 rounded-full bg-purple-500" />
                 Default
-                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
-                  Pre-selected when the customer opens the item.
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-56 p-2.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                  <strong className="block mb-1">Pre-selected for the customer</strong>
+                  Options marked as default will already be selected when the customer opens the item. They can still change their choice.
                 </span>
               </div>
               <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
                 <span className="w-2 h-2 rounded-full bg-red-500" />
                 Limits
-                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-52 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
-                  Min/max selection limits for the group (e.g. 1-3).
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-56 p-2.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                  <strong className="block mb-1">How many can the customer choose?</strong>
+                  Set a minimum and maximum. e.g. &quot;1–3&quot; means the customer must pick at least 1 but no more than 3 from this group.
                 </span>
               </div>
             </div>
@@ -1015,9 +1022,9 @@ const NewMenuItemPage = () => {
 
               const getSelectionTooltip = (type: string | undefined) => {
                 const normalized = normalizeSelectionType(type);
-                if (normalized === "single") return "The customer chooses one option from this group.";
-                if (normalized === "multiple_no_repeat") return "The customer can select this once, alongside others in the group.";
-                return "The customer can add this more than once. E.g. Extra Cheese \u00d73.";
+                if (normalized === "single") return "Customer picks one option only. e.g. Choose Chicken or Tofu.";
+                if (normalized === "multiple_no_repeat") return "Customer can pick several different options, but only once each.";
+                return "Customer can pick the same option more than once. e.g. Extra Cheese x3.";
               };
 
               // Group addons by groupTitle
@@ -1115,36 +1122,46 @@ const NewMenuItemPage = () => {
                             {groupAddons.length} {groupAddons.length === 1 ? "item" : "items"}
                           </span>
                           {/* Group-level selection type badge */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const types: Array<'single' | 'multiple_no_repeat' | 'multiple_repeat'> = ['single', 'multiple_no_repeat', 'multiple_repeat'];
-                              const current = normalizeSelectionType(firstAddon?.selectionType);
-                              const nextIdx = (types.indexOf(current) + 1) % types.length;
-                              handleApplySelectionType(types[nextIdx]);
-                            }}
-                            className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${getSelectionBadgeClass(firstAddon?.selectionType)}`}
-                            title={getSelectionTooltip(firstAddon?.selectionType) + " Click to change."}
-                          >
-                            {getSelectionLabel(firstAddon?.selectionType)}
-                          </button>
+                          <div className="group/sel relative">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const types: Array<'single' | 'multiple_no_repeat' | 'multiple_repeat'> = ['single', 'multiple_no_repeat', 'multiple_repeat'];
+                                const current = normalizeSelectionType(firstAddon?.selectionType);
+                                const nextIdx = (types.indexOf(current) + 1) % types.length;
+                                handleApplySelectionType(types[nextIdx]);
+                              }}
+                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${getSelectionBadgeClass(firstAddon?.selectionType)}`}
+                            >
+                              {getSelectionLabel(firstAddon?.selectionType)}
+                            </button>
+                            <span className="invisible group-hover/sel:visible absolute left-0 top-full mt-1 z-10 w-60 p-2.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                              {getSelectionTooltip(firstAddon?.selectionType)} <span className="text-gray-400">Click to change.</span>
+                            </span>
+                          </div>
                           {/* Group-level required toggle */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleApplyRequired(!firstAddon?.isRequired);
-                            }}
-                            className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${
-                              firstAddon?.isRequired
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-gray-100 text-gray-500"
-                            }`}
-                            title={firstAddon?.isRequired ? "Required — click to make optional" : "Optional — click to make required"}
-                          >
-                            {firstAddon?.isRequired ? "Required" : "Optional"}
-                          </button>
+                          <div className="group/req relative">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApplyRequired(!firstAddon?.isRequired);
+                              }}
+                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${
+                                firstAddon?.isRequired
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-gray-100 text-gray-500"
+                              }`}
+                            >
+                              {firstAddon?.isRequired ? "Required" : "Optional"}
+                            </button>
+                            <span className="invisible group-hover/req:visible absolute left-0 top-full mt-1 z-10 w-56 p-2.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                              {firstAddon?.isRequired
+                                ? "The customer must choose from this group before ordering. Click to make optional."
+                                : "The customer can skip this group. Click to make required."}
+                            </span>
+                          </div>
                           <div className="ml-auto flex items-center gap-2">
                             <button
                               type="button"
