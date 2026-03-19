@@ -190,12 +190,25 @@ const NewMenuItemPage = () => {
       // Update local state
       setExistingGroups((prev) => [...prev, newGroupName.trim()]);
 
-      // Set as selected group
-      setGroupTitle(newGroupName.trim());
-
-      // Close modal and reset
+      // Close the group modal
       setShowNewGroupModal(false);
+      const createdGroupName = newGroupName.trim();
       setNewGroupName("");
+
+      // Open the addon modal pre-filled for this new group so the user can add the first addon
+      setCurrentAddon({
+        name: "",
+        price: 0,
+        allergens: [],
+        dietaryRestrictions: [],
+        groupTitle: createdGroupName,
+        selectionType: "multiple_no_repeat",
+        isRequired: false,
+        isDefault: false,
+        displayOrder: 0,
+      } as any);
+      setEditingAddonIndex(null);
+      setShowAddonModal(true);
 
       setSuccess("Group created successfully");
       setTimeout(() => setSuccess(""), 3000);
