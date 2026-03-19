@@ -2038,103 +2038,91 @@ const EditMenuItemPage = () => {
               {/* Step content */}
               <div className="flex-1 overflow-y-auto px-6 pb-4">
                 {wizardStep === 1 && (
-                  <div className="space-y-5 pt-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">Set up your add-on group</h3>
-                      <p className="text-sm text-gray-500 mt-0.5">An add-on group is a set of choices you offer the customer. For example: &quot;Choose your protein&quot; or &quot;Extra toppings&quot;.</p>
-                    </div>
+                  <div className="space-y-4 pt-2">
+                    <h3 className="text-lg font-bold text-gray-900">New add-on group</h3>
 
                     {/* Group name */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">What should this group be called?</label>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Group name</label>
                       <input
                         type="text"
                         value={wizardGroup.groupTitle}
                         onChange={e => setWizardGroup(g => ({ ...g, groupTitle: e.target.value }))}
-                        placeholder="e.g., Choose your protein, Extra toppings, Sides"
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                        placeholder="e.g. Choose your protein"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
                         autoFocus
                       />
                     </div>
 
-                    {/* Selection type */}
+                    {/* Selection type — compact horizontal cards */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">How does the customer choose?</label>
-                      <div className="space-y-2">
+                      <label className="block text-xs font-medium text-gray-500 mb-1.5">Selection type</label>
+                      <div className="grid grid-cols-3 gap-2">
                         {([
-                          { value: "single" as const, label: "Pick one", desc: "Customer picks one option only.", example: "e.g. Choose Chicken or Tofu" },
-                          { value: "multiple_no_repeat" as const, label: "Pick many", desc: "Customer can select several different options.", example: "e.g. Add Lettuce, Tomato, Onion" },
-                          { value: "multiple_repeat" as const, label: "Pick many with quantities", desc: "Customer can pick the same option more than once.", example: "e.g. Extra Cheese x3, Bacon x2" },
+                          { value: "single" as const, label: "Pick one", icon: "\u25C9" },
+                          { value: "multiple_no_repeat" as const, label: "Pick many", icon: "\u2611" },
+                          { value: "multiple_repeat" as const, label: "Quantities", icon: "\u00b1" },
                         ]).map(opt => (
                           <button
                             key={opt.value}
                             type="button"
                             onClick={() => setWizardGroup(g => ({ ...g, selectionType: opt.value }))}
-                            className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                            className={`text-center px-2 py-2.5 rounded-lg border-2 transition-all ${
                               wizardGroup.selectionType === opt.value
                                 ? "border-blue-500 bg-blue-50"
                                 : "border-gray-200 hover:border-blue-200"
                             }`}
                           >
-                            <div className="text-sm font-medium text-gray-900">{opt.label}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{opt.desc} <span className="text-gray-400">{opt.example}</span></div>
+                            <div className="text-lg leading-none mb-1">{opt.icon}</div>
+                            <div className="text-xs font-medium text-gray-900">{opt.label}</div>
                           </button>
                         ))}
                       </div>
+                      <p className="text-[11px] text-gray-400 mt-1.5">
+                        {wizardGroup.selectionType === "single" && "Customer picks one option only. e.g. Chicken or Tofu."}
+                        {wizardGroup.selectionType === "multiple_no_repeat" && "Customer can select several different options. e.g. Lettuce, Tomato, Onion."}
+                        {wizardGroup.selectionType === "multiple_repeat" && "Customer can add the same option more than once. e.g. Extra Cheese x3."}
+                      </p>
                     </div>
 
-                    {/* Required toggle */}
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <div className="text-sm font-medium text-gray-700">Must the customer choose from this group?</div>
-                        <div className="text-xs text-gray-500">If yes, the customer cannot order without making a selection here.</div>
-                      </div>
+                    {/* Required + Limits in a compact row */}
+                    <div className="flex items-center gap-4">
                       <button
                         type="button"
-                        role="switch"
-                        aria-checked={wizardGroup.isRequired}
                         onClick={() => setWizardGroup(g => ({ ...g, isRequired: !g.isRequired }))}
-                        className="relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200"
-                        style={{ backgroundColor: wizardGroup.isRequired ? "#3b82f6" : "#d1d5db" }}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all text-sm ${
+                          wizardGroup.isRequired ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 text-gray-600 hover:border-blue-200"
+                        }`}
                       >
-                        <span
-                          className="pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] duration-200"
-                          style={{ left: wizardGroup.isRequired ? "calc(100% - 1.375rem)" : "0.125rem" }}
-                        />
+                        <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] ${
+                          wizardGroup.isRequired ? "bg-blue-500 border-blue-500 text-white" : "border-gray-300"
+                        }`}>{wizardGroup.isRequired ? "\u2713" : ""}</span>
+                        Required
                       </button>
-                    </div>
 
-                    {/* Min/Max - only for non-single */}
-                    {wizardGroup.selectionType !== "single" && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Limit how many the customer can choose?</label>
-                        <p className="text-xs text-gray-400 mb-2">Leave empty for no limit.</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">At least</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={wizardGroup.minSelections ?? ""}
-                              onChange={e => setWizardGroup(g => ({ ...g, minSelections: e.target.value ? parseInt(e.target.value) : undefined }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
-                              placeholder="0"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">At most</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={wizardGroup.maxSelections ?? ""}
-                              onChange={e => setWizardGroup(g => ({ ...g, maxSelections: e.target.value ? parseInt(e.target.value) : undefined }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
-                              placeholder="No limit"
-                            />
-                          </div>
+                      {wizardGroup.selectionType !== "single" && (
+                        <div className="flex items-center gap-2 flex-1">
+                          <label className="text-xs text-gray-500 whitespace-nowrap">Min</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={wizardGroup.minSelections ?? ""}
+                            onChange={e => setWizardGroup(g => ({ ...g, minSelections: e.target.value ? parseInt(e.target.value) : undefined }))}
+                            className="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="-"
+                          />
+                          <label className="text-xs text-gray-500 whitespace-nowrap">Max</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={wizardGroup.maxSelections ?? ""}
+                            onChange={e => setWizardGroup(g => ({ ...g, maxSelections: e.target.value ? parseInt(e.target.value) : undefined }))}
+                            className="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="-"
+                          />
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
 
