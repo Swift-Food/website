@@ -111,6 +111,13 @@ const EditMenuItemPage = () => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // Track form changes after initial data load
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  useEffect(() => {
+    if (!initialDataLoaded) return;
+    setHasUnsavedChanges(true);
+  }, [name, description, price, addons, image]);
+
   useEffect(() => {
     fetchData();
   }, [itemId]);
@@ -230,6 +237,7 @@ const EditMenuItemPage = () => {
       setError(err.message || "Failed to load menu item");
     } finally {
       setLoading(false);
+      setTimeout(() => setInitialDataLoaded(true), 100);
     }
   };
 
@@ -487,6 +495,7 @@ const EditMenuItemPage = () => {
 
       await cateringService.updateMenuItem(itemId, updateData);
       setSuccess("Menu item updated successfully!");
+      setHasUnsavedChanges(false);
       setTimeout(() => {
         router.push(`/restaurant/menu/${restaurantId}`);
       }, 1500);
