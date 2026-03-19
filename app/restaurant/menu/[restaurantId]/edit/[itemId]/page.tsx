@@ -98,6 +98,19 @@ const EditMenuItemPage = () => {
   const [applyToAllOpen, setApplyToAllOpen] = useState<string | null>(null);
   const [editingGroupTitle, setEditingGroupTitle] = useState<Record<string, string>>({});
 
+  // Unsaved changes warning
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   useEffect(() => {
     fetchData();
   }, [itemId]);
