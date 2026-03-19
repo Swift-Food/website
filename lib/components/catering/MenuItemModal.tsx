@@ -41,7 +41,7 @@ interface MenuItemModalProps {
 interface AddonGroup {
   items: Addon[];
   isRequired: boolean;
-  selectionType: "single" | "multiple";
+  selectionType: "single" | "multiple" | "multiple_no_repeat" | "multiple_repeat";
   minSelections?: number;
   maxSelections?: number;
 }

@@ -753,10 +753,12 @@ export interface MenuItemAddon {
   allergens: string[];
   dietaryRestrictions?: string[];
   groupTitle?: string;
-  selectionType?: "single" | "multiple";
+  selectionType?: "single" | "multiple" | "multiple_no_repeat" | "multiple_repeat";
   isRequired?: boolean;
   minSelections?: number;
   maxSelections?: number;
+  isDefault?: boolean;
+  displayOrder?: number;
 }
 
 export enum MenuItemStatus {
