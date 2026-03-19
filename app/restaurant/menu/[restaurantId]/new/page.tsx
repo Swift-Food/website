@@ -955,7 +955,7 @@ const NewMenuItemPage = () => {
                 className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
               >
                 <Plus size={16} />
-                Add Option
+                New Add-on
               </button>
             </div>
 
@@ -1173,10 +1173,10 @@ const NewMenuItemPage = () => {
                           <span />
                           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Name</span>
                           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Price</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Selection</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Req&apos;d</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Def.</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Limits</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider" title="How customers select this add-on">Selection</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center" title="Required — customer must choose">Req&apos;d</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center" title="Default — pre-selected for customer">Def.</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center" title="Min/Max — how many the customer can choose">Limits</span>
                           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Edit</span>
                         </div>
 
@@ -1290,6 +1290,28 @@ const NewMenuItemPage = () => {
                               </div>
                             );
                           })}
+                          {/* Add addon to this group */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentAddon({
+                                name: "",
+                                price: 0,
+                                allergens: [],
+                                dietaryRestrictions: [],
+                                groupTitle: groupTitle === "Other" ? "" : groupTitle,
+                                selectionType: "multiple_no_repeat",
+                                isRequired: false,
+                                isDefault: false,
+                                displayOrder: 0,
+                              } as any);
+                              setEditingAddonIndex(null);
+                              setShowAddonModal(true);
+                            }}
+                            className="w-full py-2 text-sm text-gray-500 hover:text-blue-600 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                          >
+                            + Add add-on to this group
+                          </button>
                         </div>
                       </div>
                     );
@@ -1297,7 +1319,7 @@ const NewMenuItemPage = () => {
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 italic">
-                  No add-ons yet. Click &quot;Add Option&quot; to create one.
+                  No add-ons yet. Click &quot;New Add-on&quot; to create one.
                 </p>
               );
             })()}
@@ -1585,9 +1607,13 @@ const NewMenuItemPage = () => {
                         </div>
 
                         {/* Min / Max selections */}
+                        <div className="mb-2">
+                          <p className="text-sm font-medium text-gray-700 mb-0.5">How many can the customer choose?</p>
+                          <p className="text-xs text-gray-400 mb-2">Set a minimum and maximum number of choices. Leave empty for no limit.</p>
+                        </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Min Selections</label>
+                            <label className="block text-xs text-gray-500 mb-1">At least</label>
                             <input
                               type="number"
                               min="0"
@@ -1598,7 +1624,7 @@ const NewMenuItemPage = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Max Selections</label>
+                            <label className="block text-xs text-gray-500 mb-1">At most</label>
                             <input
                               type="number"
                               min="0"
@@ -1609,8 +1635,8 @@ const NewMenuItemPage = () => {
                             />
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 -mt-2">
-                          Max cannot exceed {groupAddonsCount} (addons in this group).
+                        <p className="text-xs text-gray-400 -mt-2">
+                          This group has {groupAddonsCount} options. Example: &quot;At least 1, at most 3&quot; means the customer picks between 1 and 3.
                         </p>
                       </div>
                     </div>
