@@ -1142,8 +1142,8 @@ const NewMenuItemPage = () => {
                             }}
                             className="font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-0.5 text-sm"
                           />
-                          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
-                            {groupAddons.length}
+                          <span className="text-xs text-gray-400">
+                            {groupAddons.length} {groupAddons.length === 1 ? "item" : "items"}
                           </span>
                           {/* Group-level selection type badge */}
                           <button
@@ -1167,13 +1167,15 @@ const NewMenuItemPage = () => {
                               e.stopPropagation();
                               handleApplyRequired(!firstAddon?.isRequired);
                             }}
-                            className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                            className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${
                               firstAddon?.isRequired
-                                ? "bg-amber-500 border-amber-500"
-                                : "bg-gray-200 border-gray-300"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-gray-100 text-gray-500"
                             }`}
                             title={firstAddon?.isRequired ? "Required — click to make optional" : "Optional — click to make required"}
-                          />
+                          >
+                            {firstAddon?.isRequired ? "Required" : "Optional"}
+                          </button>
                           <div className="ml-auto flex items-center gap-2">
                             <button
                               type="button"
@@ -1472,7 +1474,7 @@ const NewMenuItemPage = () => {
                   </div>
                 </div>
 
-                {/* ── Section 2: Selection Rules ── */}
+                {/* ── Section 2: Addon Settings ── */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <button
                     type="button"
@@ -1486,18 +1488,15 @@ const NewMenuItemPage = () => {
                       >
                         &#9662;
                       </span>
-                      <span className="text-sm font-semibold text-gray-900">Selection Rules</span>
+                      <span className="text-sm font-semibold text-gray-900">Addon Settings</span>
                     </div>
                     {/* Summary pills */}
                     <div
                       className="flex items-center gap-2 transition-opacity duration-200"
                       style={{ opacity: addonSectionOpen.selectionRules ? 0.4 : 1 }}
                     >
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                        {selectionLabel}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${currentAddon.isRequired ? "bg-pink-100 text-pink-700" : "bg-gray-200 text-gray-600"}`}>
-                        {currentAddon.isRequired ? "Required" : "Optional"}
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${currentAddon.isDefault ? "bg-purple-100 text-purple-700" : "bg-gray-200 text-gray-600"}`}>
+                        {currentAddon.isDefault ? "Default" : "Not default"}
                       </span>
                     </div>
                   </button>
@@ -1510,59 +1509,6 @@ const NewMenuItemPage = () => {
                   >
                     <div className="overflow-hidden">
                       <div className="px-4 py-4 space-y-4">
-                        {/* Selection type radio cards */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Selection Type</label>
-                          <div className="space-y-2">
-                            {([
-                              { value: "single" as const, label: "Pick One", desc: "The customer chooses one option from this group." },
-                              { value: "multiple_no_repeat" as const, label: "Pick Many (no repeats)", desc: "The customer can select this once, alongside others in the group." },
-                              { value: "multiple_repeat" as const, label: "Pick Many (can repeat)", desc: "The customer can add this more than once. E.g. Extra Cheese \u00d73." },
-                            ]).map((opt) => {
-                              const isSelected = (currentAddon.selectionType || "multiple_no_repeat") === opt.value;
-                              return (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() => setCurrentAddon({ ...currentAddon, selectionType: opt.value })}
-                                  className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                                    isSelected
-                                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
-                                      : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/30"
-                                  }`}
-                                >
-                                  <div className="text-sm font-medium text-gray-900">{opt.label}</div>
-                                  <div className="text-xs text-gray-500 mt-0.5">{opt.desc}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Required toggle */}
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-sm font-medium text-gray-700">Required</div>
-                            <div className="text-xs text-gray-500">Customer must select from this group</div>
-                          </div>
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={currentAddon.isRequired || false}
-                            onClick={() => setCurrentAddon({ ...currentAddon, isRequired: !currentAddon.isRequired })}
-                            className="relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-250 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            style={{ backgroundColor: currentAddon.isRequired ? "#fa43ad" : "#d1d5db", transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)" }}
-                          >
-                            <span
-                              className="pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow ring-0 transition-[left] duration-[250ms]"
-                              style={{
-                                left: currentAddon.isRequired ? "calc(100% - 1.375rem)" : "0.125rem",
-                                transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-                              }}
-                            />
-                          </button>
-                        </div>
-
                         {/* Default toggle */}
                         <div className="flex items-center justify-between">
                           <div>
@@ -1586,39 +1532,6 @@ const NewMenuItemPage = () => {
                             />
                           </button>
                         </div>
-
-                        {/* Min / Max selections */}
-                        <div className="mb-2">
-                          <p className="text-sm font-medium text-gray-700 mb-0.5">How many can the customer choose?</p>
-                          <p className="text-xs text-gray-400 mb-2">Set a minimum and maximum number of choices. Leave empty for no limit.</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">At least</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={currentAddon.minSelections ?? ""}
-                              onChange={(e) => setCurrentAddon({ ...currentAddon, minSelections: e.target.value ? parseInt(e.target.value, 10) : undefined })}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                              placeholder="0"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">At most</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={currentAddon.maxSelections ?? ""}
-                              onChange={(e) => setCurrentAddon({ ...currentAddon, maxSelections: e.target.value ? parseInt(e.target.value, 10) : undefined })}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                              placeholder="No limit"
-                            />
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-400 -mt-2">
-                          This group has {groupAddonsCount} options. Example: &quot;At least 1, at most 3&quot; means the customer picks between 1 and 3.
-                        </p>
                       </div>
                     </div>
                   </div>
