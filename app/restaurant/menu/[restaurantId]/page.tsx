@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Loader,
@@ -47,6 +47,12 @@ const MenuListPage = () => {
   const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
+  // Sticky group nav state
+  const [activeGroup, setActiveGroup] = useState<string>("");
+  const groupRefs = useRef<Record<string, HTMLElement>>({});
+  const navBarRef = useRef<HTMLDivElement>(null);
+  const pillRefs = useRef<Record<string, HTMLElement>>({});
+
   useEffect(() => {
     if (restaurantId) {
       fetchMenuItems();
@@ -69,6 +75,89 @@ const MenuListPage = () => {
       return () => document.removeEventListener("click", handleClickOutside);
     }
   }, [statusDropdownOpen]);
+
+  // Intersection Observer for sticky group nav
+  useEffect(() => {
+    const refs = groupRefs.current;
+    const elements = Object.values(refs);
+    if (elements.length < 2) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const groupName = entry.target.getAttribute("data-group-name");
+            if (groupName) {
+              setActiveGroup(groupName);
+            }
+          }
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "-100px 0px -70% 0px",
+      }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, [filteredItems, selectedGroup, selectedStatus, searchQuery]);
+
+  // Auto-scroll nav bar to keep active pill visible
+  useEffect(() => {
+    if (activeGroup && pillRefs.current[activeGroup] && navBarRef.current) {
+      const pill = pillRefs.current[activeGroup];
+      const nav = navBarRef.current;
+      const pillLeft = pill.offsetLeft;
+      const pillWidth = pill.offsetWidth;
+      const navScrollLeft = nav.scrollLeft;
+      const navWidth = nav.offsetWidth;
+
+      if (pillLeft < navScrollLeft) {
+        nav.scrollTo({ left: pillLeft - 16, behavior: "smooth" });
+      } else if (pillLeft + pillWidth > navScrollLeft + navWidth) {
+        nav.scrollTo({
+          left: pillLeft + pillWidth - navWidth + 16,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [activeGroup]);
+
+  const scrollToGroup = useCallback((groupName: string) => {
+    const el = groupRefs.current[groupName];
+    if (el) {
+      const offset = 60; // account for sticky nav height
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  }, []);
+
+  const setGroupRef = useCallback(
+    (groupName: string) => (el: HTMLElement | null) => {
+      if (el) {
+        groupRefs.current[groupName] = el;
+      } else {
+        delete groupRefs.current[groupName];
+      }
+    },
+    []
+  );
+
+  const setPillRef = useCallback(
+    (groupName: string) => (el: HTMLElement | null) => {
+      if (el) {
+        pillRefs.current[groupName] = el;
+      } else {
+        delete pillRefs.current[groupName];
+      }
+    },
+    []
+  );
 
   const fetchMenuItems = async () => {
     setLoading(true);
@@ -494,6 +583,37 @@ const MenuListPage = () => {
           </div>
         </div>
 
+        {/* Sticky Group Navigation Bar */}
+        {(() => {
+          const groupedItems = getGroupedItems();
+          if (groupedItems && groupedItems.length >= 2) {
+            return (
+              <div className="sticky top-0 z-30 bg-white border-b border-gray-100 py-2 px-4 mb-6 rounded-lg">
+                <div
+                  ref={navBarRef}
+                  className="overflow-x-auto scrollbar-hide flex gap-2"
+                >
+                  {groupedItems.map(({ groupName }) => (
+                    <button
+                      key={groupName}
+                      ref={setPillRef(groupName)}
+                      onClick={() => scrollToGroup(groupName)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                        activeGroup === groupName
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {groupName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         {/* Menu Items Grid */}
         {filteredItems.length === 0 ? (
           <div className="bg-white rounded-lg p-12 text-center">
@@ -518,7 +638,11 @@ const MenuListPage = () => {
                 <div className="space-y-8">
                   {groupedItems.map(({ groupName, items }) => (
                     <div key={groupName}>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                      <h2
+                        ref={setGroupRef(groupName)}
+                        data-group-name={groupName}
+                        className="text-2xl font-bold text-gray-900 mb-4"
+                      >
                         {groupName}
                       </h2>
                       <div className="space-y-4">
@@ -749,6 +873,11 @@ const MenuListPage = () => {
               {item.vatApplicable && (
                 <span className="text-xs text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full font-medium">
                   VAT
+                </span>
+              )}
+              {item.addons && item.addons.length > 0 && (
+                <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                  {item.addons.length} add-on{item.addons.length !== 1 ? "s" : ""}
                 </span>
               )}
             </div>
