@@ -100,7 +100,10 @@ const EditMenuItemPage = () => {
 
   // Unsaved changes warning
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
+  // Fallback: browser beforeunload for tab close / refresh (can't show custom UI for that)
   useEffect(() => {
     if (!hasUnsavedChanges) return;
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -110,6 +113,15 @@ const EditMenuItemPage = () => {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  const handleNavigation = (url: string) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(url);
+      setShowLeaveModal(true);
+    } else {
+      router.push(url);
+    }
+  };
 
   // Track form changes after initial data load
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -526,7 +538,7 @@ const EditMenuItemPage = () => {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => router.push(`/restaurant/menu/${restaurantId}`)}
+            onClick={() => handleNavigation(`/restaurant/menu/${restaurantId}`)}
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
@@ -1031,11 +1043,11 @@ const EditMenuItemPage = () => {
               <h2 className="text-xl font-bold text-gray-900">Add-ons</h2>
               <button
                 type="button"
-                onClick={handleAddAddon}
+                onClick={() => setShowNewGroupModal(true)}
                 className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
               >
                 <Plus size={16} />
-                New Add-on
+                New Group
               </button>
             </div>
 
@@ -1375,18 +1387,21 @@ const EditMenuItemPage = () => {
                           <button
                             type="button"
                             onClick={() => {
+                              const inheritSelectionType = firstAddon?.selectionType || "multiple_no_repeat";
+                              const inheritRequired = firstAddon?.isRequired || false;
                               setCurrentAddon({
                                 name: "",
                                 price: 0,
                                 allergens: [],
                                 dietaryRestrictions: [],
-                                groupTitle: groupTitle === "Other" ? "" : groupTitle,
-                                selectionType: "multiple_no_repeat",
-                                isRequired: false,
+                                groupTitle: grpTitle === "Other" ? "" : grpTitle,
+                                selectionType: inheritSelectionType === "multiple" ? "multiple_no_repeat" : inheritSelectionType,
+                                isRequired: inheritRequired,
                                 isDefault: false,
                                 displayOrder: 0,
                               } as any);
                               setEditingAddonIndex(null);
+                              setAddonSectionOpen({ basicInfo: true, selectionRules: false, allergensDietary: false });
                               setShowAddonModal(true);
                             }}
                             className="w-full py-2 text-sm text-gray-500 hover:text-blue-600 hover:bg-gray-50 transition-colors border-t border-gray-100"
@@ -1400,7 +1415,7 @@ const EditMenuItemPage = () => {
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 italic">
-                  No add-ons yet. Click &quot;New Add-on&quot; to create one.
+                  No add-ons yet. Click &quot;New Group&quot; to create a group, then add add-ons to it.
                 </p>
               );
             })()}
@@ -1496,7 +1511,7 @@ const EditMenuItemPage = () => {
           <div className="flex gap-4 pt-6 border-t">
             <button
               type="button"
-              onClick={() => router.push(`/restaurant/menu/${restaurantId}`)}
+              onClick={() => handleNavigation(`/restaurant/menu/${restaurantId}`)}
               className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors"
             >
               Cancel
@@ -2053,6 +2068,51 @@ const EditMenuItemPage = () => {
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Create Group
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Unsaved Changes Leave Modal */}
+        {showLeaveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/50 animate-[fadeIn_0.2s_ease-out]"
+              onClick={() => setShowLeaveModal(false)}
+            />
+            {/* Modal */}
+            <div
+              className="relative bg-white rounded-lg max-w-md w-full p-6 animate-[modalIn_0.25s_ease-out]"
+              style={{ animationFillMode: "both" }}
+            >
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                You have unsaved changes
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Your changes will be lost if you leave this page.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowLeaveModal(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-colors"
+                >
+                  Stay on page
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLeaveModal(false);
+                    setHasUnsavedChanges(false);
+                    if (pendingNavigation) {
+                      router.push(pendingNavigation);
+                    }
+                  }}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors"
+                >
+                  Leave without saving
                 </button>
               </div>
             </div>
