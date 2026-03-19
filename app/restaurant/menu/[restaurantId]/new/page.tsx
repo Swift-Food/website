@@ -69,6 +69,20 @@ const NewMenuItemPage = () => {
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
 
+  // New group wizard state
+  const [showGroupWizard, setShowGroupWizard] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [wizardGroup, setWizardGroup] = useState({
+    groupTitle: "",
+    selectionType: "multiple_no_repeat" as "single" | "multiple_no_repeat" | "multiple_repeat",
+    isRequired: false,
+    minSelections: undefined as number | undefined,
+    maxSelections: undefined as number | undefined,
+  });
+  const [wizardItems, setWizardItems] = useState<Array<{ name: string; price: number; isDefault: boolean }>>([]);
+  const [wizardNewItemName, setWizardNewItemName] = useState("");
+  const [wizardNewItemPrice, setWizardNewItemPrice] = useState("");
+
   // Addon modal state
   const [showAddonModal, setShowAddonModal] = useState(false);
   const [editingAddonIndex, setEditingAddonIndex] = useState<number | null>(
@@ -212,6 +226,52 @@ const NewMenuItemPage = () => {
 
       setSuccess("Group created successfully");
       setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to create group");
+    }
+  };
+
+  const openGroupWizard = () => {
+    setWizardStep(1);
+    setWizardGroup({ groupTitle: "", selectionType: "multiple_no_repeat", isRequired: false, minSelections: undefined, maxSelections: undefined });
+    setWizardItems([]);
+    setWizardNewItemName("");
+    setWizardNewItemPrice("");
+    setShowGroupWizard(true);
+  };
+
+  const wizardAddItem = () => {
+    if (!wizardNewItemName.trim()) return;
+    setWizardItems(prev => [...prev, { name: wizardNewItemName.trim(), price: parseFloat(wizardNewItemPrice) || 0, isDefault: false }]);
+    setWizardNewItemName("");
+    setWizardNewItemPrice("");
+  };
+
+  const wizardRemoveItem = (idx: number) => setWizardItems(prev => prev.filter((_, i) => i !== idx));
+
+  const wizardToggleDefault = (idx: number) => {
+    setWizardItems(prev => prev.map((item, i) => {
+      if (wizardGroup.selectionType === "single") return { ...item, isDefault: i === idx ? !item.isDefault : false };
+      return i === idx ? { ...item, isDefault: !item.isDefault } : item;
+    }));
+  };
+
+  const wizardSave = async () => {
+    if (wizardItems.length === 0) return;
+    try {
+      const maxOrder = existingGroups.length;
+      const currentSettings = existingGroups.reduce((acc, group, idx) => { acc[group] = { displayOrder: idx + 1 }; return acc; }, {} as Record<string, { displayOrder: number }>);
+      await cateringService.reorderGroups(restaurantId, { ...currentSettings, [wizardGroup.groupTitle]: { displayOrder: maxOrder + 1 } });
+      setExistingGroups(prev => [...prev, wizardGroup.groupTitle]);
+      const newAddons: MenuItemAddon[] = wizardItems.map((item, idx) => ({
+        name: item.name, price: item.price, allergens: [], dietaryRestrictions: [],
+        groupTitle: wizardGroup.groupTitle, selectionType: wizardGroup.selectionType,
+        isRequired: wizardGroup.isRequired, minSelections: wizardGroup.minSelections,
+        maxSelections: wizardGroup.maxSelections, isDefault: item.isDefault, displayOrder: idx,
+      }));
+      setAddons(prev => [...(prev || []), ...newAddons]);
+      setShowGroupWizard(false);
     } catch (err) {
       console.error(err);
       setError("Failed to create group");
@@ -549,7 +609,7 @@ const NewMenuItemPage = () => {
                 </select>
                 <button
                   type="button"
-                  onClick={() => setShowNewGroupModal(true)}
+                  onClick={() => openGroupWizard()}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
                 >
                   <Plus size={20} />
@@ -1738,50 +1798,121 @@ const NewMenuItemPage = () => {
           );
         })()}
 
-        {/* New Group Modal */}
-        {showNewGroupModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Create New Group
-              </h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Group Name
-                </label>
-                <input
-                  type="text"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  placeholder="e.g., Appetizers, Mains, Desserts"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                  autoFocus
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleCreateNewGroup();
-                    }
-                  }}
-                />
+        {/* New Group Wizard */}
+        {showGroupWizard && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden">
+              {/* Progress bar */}
+              <div className="flex items-center gap-0 px-6 pt-5 pb-3">
+                {[1, 2].map(step => (
+                  <div key={step} className="flex items-center flex-1">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                      wizardStep >= step ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
+                    }`}>{wizardStep > step ? "\u2713" : step}</div>
+                    <div className="flex-1 mx-2">
+                      <div className="text-[11px] font-medium text-gray-500">{step === 1 ? "Group settings" : "Add options"}</div>
+                      <div className={`h-1 rounded-full mt-0.5 transition-colors ${wizardStep > step ? "bg-blue-600" : wizardStep === step ? "bg-blue-200" : "bg-gray-100"}`} />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowNewGroupModal(false);
-                    setNewGroupName("");
-                  }}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateNewGroup}
-                  disabled={!newGroupName.trim()}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Create Group
-                </button>
+              <div className="flex-1 overflow-y-auto px-6 pb-4">
+                {wizardStep === 1 && (
+                  <div className="space-y-5 pt-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Set up your add-on group</h3>
+                      <p className="text-sm text-gray-500 mt-0.5">An add-on group is a set of choices you offer the customer. For example: &quot;Choose your protein&quot; or &quot;Extra toppings&quot;.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">What should this group be called?</label>
+                      <input type="text" value={wizardGroup.groupTitle} onChange={e => setWizardGroup(g => ({ ...g, groupTitle: e.target.value }))} placeholder="e.g., Choose your protein, Extra toppings, Sides" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm" autoFocus />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">How does the customer choose?</label>
+                      <div className="space-y-2">
+                        {([
+                          { value: "single" as const, label: "Pick one", desc: "Customer picks one option only.", example: "e.g. Choose Chicken or Tofu" },
+                          { value: "multiple_no_repeat" as const, label: "Pick many", desc: "Customer can select several different options.", example: "e.g. Add Lettuce, Tomato, Onion" },
+                          { value: "multiple_repeat" as const, label: "Pick many with quantities", desc: "Customer can pick the same option more than once.", example: "e.g. Extra Cheese x3, Bacon x2" },
+                        ]).map(opt => (
+                          <button key={opt.value} type="button" onClick={() => setWizardGroup(g => ({ ...g, selectionType: opt.value }))} className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${wizardGroup.selectionType === opt.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-200"}`}>
+                            <div className="text-sm font-medium text-gray-900">{opt.label}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">{opt.desc} <span className="text-gray-400">{opt.example}</span></div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <div className="text-sm font-medium text-gray-700">Must the customer choose from this group?</div>
+                        <div className="text-xs text-gray-500">If yes, the customer cannot order without making a selection here.</div>
+                      </div>
+                      <button type="button" role="switch" aria-checked={wizardGroup.isRequired} onClick={() => setWizardGroup(g => ({ ...g, isRequired: !g.isRequired }))} className="relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200" style={{ backgroundColor: wizardGroup.isRequired ? "#3b82f6" : "#d1d5db" }}>
+                        <span className="pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] duration-200" style={{ left: wizardGroup.isRequired ? "calc(100% - 1.375rem)" : "0.125rem" }} />
+                      </button>
+                    </div>
+                    {wizardGroup.selectionType !== "single" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Limit how many the customer can choose?</label>
+                        <p className="text-xs text-gray-400 mb-2">Leave empty for no limit.</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">At least</label>
+                            <input type="number" min="0" value={wizardGroup.minSelections ?? ""} onChange={e => setWizardGroup(g => ({ ...g, minSelections: e.target.value ? parseInt(e.target.value) : undefined }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm" placeholder="0" />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">At most</label>
+                            <input type="number" min="0" value={wizardGroup.maxSelections ?? ""} onChange={e => setWizardGroup(g => ({ ...g, maxSelections: e.target.value ? parseInt(e.target.value) : undefined }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm" placeholder="No limit" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {wizardStep === 2 && (
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Add options to &quot;{wizardGroup.groupTitle}&quot;</h3>
+                      <p className="text-sm text-gray-500 mt-0.5">These are the choices the customer will see. You can add more later.</p>
+                    </div>
+                    {wizardItems.length > 0 && (
+                      <div className="space-y-2">
+                        {wizardItems.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-lg">
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                              {item.price > 0 && <span className="text-xs text-gray-500 ml-2">+£{item.price.toFixed(2)}</span>}
+                            </div>
+                            <button type="button" onClick={() => wizardToggleDefault(idx)} className={`text-[10px] px-2 py-0.5 rounded-full transition-colors ${item.isDefault ? "bg-purple-100 text-purple-700" : "bg-gray-200 text-gray-500 hover:bg-purple-50"}`}>{item.isDefault ? "Default" : "Set default"}</button>
+                            <button type="button" onClick={() => wizardRemoveItem(idx)} className="text-gray-400 hover:text-red-500 transition-colors p-1"><X size={14} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <input type="text" value={wizardNewItemName} onChange={e => setWizardNewItemName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); wizardAddItem(); } }} placeholder="Option name, e.g. Chicken" className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm" autoFocus />
+                      <input type="number" value={wizardNewItemPrice} onChange={e => setWizardNewItemPrice(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); wizardAddItem(); } }} placeholder="£0" min="0" step="0.01" className="w-20 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm" />
+                      <button type="button" onClick={wizardAddItem} disabled={!wizardNewItemName.trim()} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"><Plus size={18} /></button>
+                    </div>
+                    <p className="text-xs text-gray-400">Press Enter or click + to add. You can add allergens and dietary info later by editing each option.</p>
+                    {wizardItems.length > 0 && (
+                      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div className="text-xs font-medium text-blue-800 mb-1">Preview</div>
+                        <div className="text-xs text-blue-700">
+                          <strong>{wizardGroup.groupTitle}</strong>{" · "}{wizardGroup.selectionType === "single" ? "Pick one" : wizardGroup.selectionType === "multiple_repeat" ? "Pick many with quantities" : "Pick many"}{wizardGroup.isRequired && " · Required"}{wizardGroup.minSelections != null && ` · At least ${wizardGroup.minSelections}`}{wizardGroup.maxSelections != null && ` · At most ${wizardGroup.maxSelections}`}{" · "}{wizardItems.length} option{wizardItems.length !== 1 ? "s" : ""}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <button type="button" onClick={() => setShowGroupWizard(false)} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Cancel</button>
+                <div className="flex gap-2">
+                  {wizardStep > 1 && <button type="button" onClick={() => setWizardStep(s => s - 1)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Back</button>}
+                  {wizardStep === 1 && <button type="button" onClick={() => setWizardStep(2)} disabled={!wizardGroup.groupTitle.trim()} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Next: Add options</button>}
+                  {wizardStep === 2 && <button type="button" onClick={wizardSave} disabled={wizardItems.length === 0} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Save group ({wizardItems.length} option{wizardItems.length !== 1 ? "s" : ""})</button>}
+                </div>
               </div>
             </div>
           </div>
