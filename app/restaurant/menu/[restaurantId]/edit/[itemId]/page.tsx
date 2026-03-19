@@ -1503,8 +1503,8 @@ const EditMenuItemPage = () => {
             </button>
             <button
               type="submit"
-              disabled={saving || uploadingImage}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={saving || uploadingImage || !hasUnsavedChanges}
+              className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-all disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {saving ? (
                 <>
@@ -1514,7 +1514,7 @@ const EditMenuItemPage = () => {
               ) : (
                 <>
                   <Save size={20} />
-                  Save Changes
+                  {hasUnsavedChanges ? "Save Changes" : "No Changes"}
                 </>
               )}
             </button>
