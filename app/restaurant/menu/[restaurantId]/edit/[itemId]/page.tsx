@@ -1251,9 +1251,8 @@ const EditMenuItemPage = () => {
                               <div key={addonIdx}>
                                 {/* Row */}
                                 <div
-                                  className="grid items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50"
+                                  className="grid items-center px-4 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50"
                                   style={{ gridTemplateColumns: "28px 1fr 72px 86px 52px 46px 56px 46px" }}
-                                  onClick={() => setExpandedAddonIndex(isExpanded ? null : addonIdx)}
                                 >
                                   <span className="text-gray-300 select-none">&#x2807;</span>
                                   <span className="font-medium text-gray-900 text-sm truncate pr-2">{addon.name}</span>
@@ -1261,12 +1260,27 @@ const EditMenuItemPage = () => {
                                     {addon.price > 0 ? `+\u00a3${addon.price.toFixed(2)}` : "\u00a30.00"}
                                   </span>
                                   {/* Selection pill */}
+                                  {/* Selection pill — clickable to cycle */}
                                   <div className="group relative">
-                                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${getSelectionBadgeClass(addon.selectionType)}`}>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const types: Array<'single' | 'multiple_no_repeat' | 'multiple_repeat'> = ['single', 'multiple_no_repeat', 'multiple_repeat'];
+                                        const current = normalizeSelectionType(addon.selectionType);
+                                        const nextIdx = (types.indexOf(current) + 1) % types.length;
+                                        setAddons((prev) =>
+                                          (prev || []).map((a, i) =>
+                                            i === addonIdx ? { ...a, selectionType: types[nextIdx] } : a
+                                          )
+                                        );
+                                      }}
+                                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${getSelectionBadgeClass(addon.selectionType)}`}
+                                    >
                                       {getSelectionLabel(addon.selectionType)}
-                                    </span>
-                                    <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
-                                      {getSelectionTooltip(addon.selectionType)}
+                                    </button>
+                                    <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                                      {getSelectionTooltip(addon.selectionType)} <span className="text-gray-400">Click to change.</span>
                                     </span>
                                   </div>
                                   {/* Required toggle */}
@@ -1332,92 +1346,6 @@ const EditMenuItemPage = () => {
                                   </div>
                                 </div>
 
-                                {/* Expandable Detail Card */}
-                                <div
-                                  className="grid transition-all duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
-                                  style={{
-                                    gridTemplateRows: isExpanded ? "1fr" : "0fr",
-                                  }}
-                                >
-                                  <div className="overflow-hidden">
-                                    <div
-                                      className="px-6 py-4 bg-gray-50 border-b border-gray-100 transition-opacity duration-300"
-                                      style={{ opacity: isExpanded ? 1 : 0 }}
-                                    >
-                                      <div className="grid grid-cols-2 gap-6">
-                                        {/* Left column */}
-                                        <div className="space-y-3">
-                                          <div>
-                                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Selection Type</span>
-                                            <p className="text-sm text-gray-700 mt-0.5">
-                                              <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full mr-1.5 ${getSelectionBadgeClass(addon.selectionType)}`}>
-                                                {getSelectionLabel(addon.selectionType)}
-                                              </span>
-                                              {getSelectionTooltip(addon.selectionType)}
-                                            </p>
-                                          </div>
-                                          <div>
-                                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Required</span>
-                                            <p className="text-sm text-gray-700 mt-0.5">
-                                              {addon.isRequired ? "Yes \u2014 customer must select this" : "No \u2014 optional addon"}
-                                            </p>
-                                          </div>
-                                          {(groupMin != null || groupMax != null) && (
-                                            <div>
-                                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Group Limits</span>
-                                              <p className="text-sm text-gray-700 mt-0.5">
-                                                Min: {groupMin ?? "none"}, Max: {groupMax ?? "none"}
-                                              </p>
-                                            </div>
-                                          )}
-                                        </div>
-                                        {/* Right column */}
-                                        <div className="space-y-3">
-                                          {addon.allergens && addon.allergens.length > 0 && (
-                                            <div>
-                                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Allergens</span>
-                                              <div className="flex flex-wrap gap-1.5 mt-1">
-                                                {addon.allergens.map((allergenValue) => {
-                                                  const allergen = ALLERGENS.find((a) => a.value === allergenValue);
-                                                  return (
-                                                    <span
-                                                      key={allergenValue}
-                                                      className="inline-flex items-center bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs"
-                                                    >
-                                                      {allergen?.label || allergenValue}
-                                                    </span>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          )}
-                                          {addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0 && (
-                                            <div>
-                                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Dietary</span>
-                                              <div className="flex flex-wrap gap-1.5 mt-1">
-                                                {addon.dietaryRestrictions.map((filterValue) => {
-                                                  const filter = DIETARY_FILTERS.find((f) => f.value === filterValue);
-                                                  return (
-                                                    <span
-                                                      key={filterValue}
-                                                      className="inline-flex items-center bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs"
-                                                    >
-                                                      {filter?.label || filterValue}
-                                                    </span>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          )}
-                                          {(!addon.allergens || addon.allergens.length === 0) &&
-                                            (!addon.dietaryRestrictions || addon.dietaryRestrictions.length === 0) && (
-                                              <p className="text-sm text-gray-400 italic">No allergens or dietary info set</p>
-                                            )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
                               </div>
                             );
                           })}
@@ -1572,7 +1500,7 @@ const EditMenuItemPage = () => {
             />
             {/* Modal */}
             <div
-              className="relative bg-white rounded-lg max-w-lg w-full max-h-[90vh] flex flex-col animate-[modalIn_0.25s_ease-out]"
+              className="relative bg-white rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col animate-[modalIn_0.25s_ease-out]"
               style={{ animationFillMode: "both" }}
             >
               {/* Header */}
