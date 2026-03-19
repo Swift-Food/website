@@ -52,6 +52,7 @@ const MenuListPage = () => {
   const groupRefs = useRef<Record<string, HTMLElement>>({});
   const navBarRef = useRef<HTMLDivElement>(null);
   const pillRefs = useRef<Record<string, HTMLElement>>({});
+  const isScrollingToRef = useRef(false);
 
   useEffect(() => {
     if (restaurantId) {
@@ -84,6 +85,7 @@ const MenuListPage = () => {
 
     const observer = new IntersectionObserver(
       (entries) => {
+        if (isScrollingToRef.current) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
             const groupName = entry.target.getAttribute("data-group-name");
@@ -131,9 +133,18 @@ const MenuListPage = () => {
   const scrollToGroup = useCallback((groupName: string) => {
     const el = groupRefs.current[groupName];
     if (el) {
-      const offset = 60; // account for sticky nav height
+      // Immediately set active group and suppress observer during scroll
+      isScrollingToRef.current = true;
+      setActiveGroup(groupName);
+
+      const offset = 60;
       const top = el.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top, behavior: "smooth" });
+
+      // Re-enable observer after scroll completes
+      setTimeout(() => {
+        isScrollingToRef.current = false;
+      }, 800);
     }
   }, []);
 
