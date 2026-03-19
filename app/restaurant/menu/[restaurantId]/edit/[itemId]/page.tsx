@@ -22,9 +22,55 @@ import {
   MenuItemStatus,
   MenuItemStyle,
   MenuItemAddon,
+  MenuItemAddonGroup,
+  MenuItemAddonItem,
 } from "@/types/catering.types";
 import { ALLERGENS, PREP_TIMES, DIETARY_FILTERS } from "@/lib/constants/allergens";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
+
+/** Flatten AddonGroup[] from API into flat MenuItemAddon[] for internal state */
+function flattenAddonGroups(groups: MenuItemAddonGroup[]): MenuItemAddon[] {
+  if (!groups) return [];
+  return groups.flatMap(group =>
+    group.items.map(item => ({
+      ...item,
+      groupTitle: group.groupTitle,
+      selectionType: group.selectionType,
+      isRequired: group.isRequired,
+      minSelections: group.minSelections,
+      maxSelections: group.maxSelections,
+    }))
+  );
+}
+
+/** Group flat MenuItemAddon[] back into AddonGroup[] for API */
+function groupAddonsForApi(addons: MenuItemAddon[]): MenuItemAddonGroup[] {
+  if (!addons || addons.length === 0) return [];
+  const groups: Record<string, MenuItemAddonGroup> = {};
+  for (const addon of addons) {
+    const title = addon.groupTitle || "Other";
+    if (!groups[title]) {
+      const selType = addon.selectionType === "multiple" ? "multiple_no_repeat" : (addon.selectionType || "multiple_no_repeat");
+      groups[title] = {
+        groupTitle: title,
+        selectionType: selType as MenuItemAddonGroup["selectionType"],
+        isRequired: addon.isRequired || false,
+        minSelections: addon.minSelections,
+        maxSelections: addon.maxSelections,
+        items: [],
+      };
+    }
+    groups[title].items.push({
+      name: addon.name,
+      price: addon.price,
+      allergens: addon.allergens || [],
+      dietaryRestrictions: addon.dietaryRestrictions,
+      isDefault: addon.isDefault,
+      displayOrder: addon.displayOrder,
+    });
+  }
+  return Object.values(groups);
+}
 
 const EditMenuItemPage = () => {
   const params = useParams();
@@ -239,7 +285,11 @@ const EditMenuItemPage = () => {
       console.log("ite", JSON.stringify(item))
       setSelectedAllergens(item.allergens || []);
       setSelectedDietaryFilters(item.dietaryFilters || []);
-      setAddons(item.addons || []);
+      // API returns AddonGroup[] — flatten to flat array for internal state
+      const flatAddons = Array.isArray(item.addons) && item.addons.length > 0 && item.addons[0]?.items
+        ? flattenAddonGroups(item.addons as MenuItemAddonGroup[])
+        : (item.addons || []) as MenuItemAddon[];
+      setAddons(flatAddons);
       setFeedsPerUnit(item.feedsPerUnit ? String(item.feedsPerUnit) : "");
       setDeliveryPortionSize(item.deliveryPortionSize || "");
       setMinOrderQuantity(item.minOrderQuantity ? String(item.minOrderQuantity) : "1");
@@ -497,7 +547,7 @@ const EditMenuItemPage = () => {
         subcategoryIds: selectedSubcategories || [],
         allergens: selectedAllergens || [],
         dietaryFilters: selectedDietaryFilters || [],
-        addons: addons && addons.length > 0 ? addons : null,
+        addons: addons && addons.length > 0 ? groupAddonsForApi(addons) : null,
         ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
         ...(deliveryPortionSize ? { deliveryPortionSize } : {}),
         minOrderQuantity: parseInt(minOrderQuantity) || 1,
@@ -1135,8 +1185,6 @@ const EditMenuItemPage = () => {
                     const firstAddon = groupAddons[0];
                     const groupMin = firstAddon?.minSelections;
                     const groupMax = firstAddon?.maxSelections;
-                    const isApplyOpen = applyToAllOpen === grpTitle;
-
                     const handleRenameGroup = (newTitle: string) => {
                       setAddons((prev) =>
                         (prev || []).map((addon) =>
@@ -1163,7 +1211,6 @@ const EditMenuItemPage = () => {
                             : addon
                         )
                       );
-                      setApplyToAllOpen(null);
                     };
 
                     const handleApplyRequired = (required: boolean) => {
@@ -1174,7 +1221,6 @@ const EditMenuItemPage = () => {
                             : addon
                         )
                       );
-                      setApplyToAllOpen(null);
                     };
 
                     return (
@@ -1210,43 +1256,36 @@ const EditMenuItemPage = () => {
                           <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
                             {groupAddons.length}
                           </span>
+                          {/* Group-level selection type badge */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const types: Array<'single' | 'multiple_no_repeat' | 'multiple_repeat'> = ['single', 'multiple_no_repeat', 'multiple_repeat'];
+                              const current = normalizeSelectionType(firstAddon?.selectionType);
+                              const nextIdx = (types.indexOf(current) + 1) % types.length;
+                              handleApplySelectionType(types[nextIdx]);
+                            }}
+                            className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${getSelectionBadgeClass(firstAddon?.selectionType)}`}
+                            title={getSelectionTooltip(firstAddon?.selectionType) + " Click to change."}
+                          >
+                            {getSelectionLabel(firstAddon?.selectionType)}
+                          </button>
+                          {/* Group-level required toggle */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleApplyRequired(!firstAddon?.isRequired);
+                            }}
+                            className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                              firstAddon?.isRequired
+                                ? "bg-amber-500 border-amber-500"
+                                : "bg-gray-200 border-gray-300"
+                            }`}
+                            title={firstAddon?.isRequired ? "Required — click to make optional" : "Optional — click to make required"}
+                          />
                           <div className="ml-auto flex items-center gap-2">
-                            {/* Apply to All dropdown */}
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setApplyToAllOpen(isApplyOpen ? null : grpTitle);
-                                }}
-                                className="text-xs text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-2.5 py-1 flex items-center gap-1 hover:bg-white transition-colors"
-                              >
-                                Apply to all
-                                <ChevronDown size={12} className={`transition-transform ${isApplyOpen ? "rotate-180" : ""}`} />
-                              </button>
-                              {isApplyOpen && (
-                                <div className="absolute right-0 top-full mt-1 z-20 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
-                                  <div className="px-3 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Selection type</div>
-                                  <button type="button" onClick={() => handleApplySelectionType("single")} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-green-500" /> Pick One
-                                  </button>
-                                  <button type="button" onClick={() => handleApplySelectionType("multiple_no_repeat")} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-blue-500" /> No repeat
-                                  </button>
-                                  <button type="button" onClick={() => handleApplySelectionType("multiple_repeat")} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-purple-500" /> Repeat
-                                  </button>
-                                  <div className="border-t border-gray-100 my-1" />
-                                  <div className="px-3 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Required</div>
-                                  <button type="button" onClick={() => handleApplyRequired(true)} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    Set all required
-                                  </button>
-                                  <button type="button" onClick={() => handleApplyRequired(false)} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    Set all optional
-                                  </button>
-                                </div>
-                              )}
-                            </div>
                             <button
                               type="button"
                               onClick={handleDeleteGroup}
@@ -1260,15 +1299,19 @@ const EditMenuItemPage = () => {
                         {/* Column Headers */}
                         <div
                           className="grid items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50"
-                          style={{ gridTemplateColumns: "28px 1fr 72px 86px 52px 46px 56px 46px" }}
+                          style={{ gridTemplateColumns: "28px 1fr 72px 46px 56px 46px" }}
                         >
                           <span />
                           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Name</span>
                           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Price</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider" title="How customers select this add-on">Selection</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center" title="Required — customer must choose">Req&apos;d</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center" title="Default — pre-selected for customer">Def.</span>
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center" title="Min/Max — how many the customer can choose">Limits</span>
+                          <span className="group/hdr2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center cursor-help">
+                            <span className="group-hover/hdr2:hidden transition-opacity">Def.</span>
+                            <span className="hidden group-hover/hdr2:inline text-gray-500 transition-opacity">Default</span>
+                          </span>
+                          <span className="group/hdr3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center cursor-help">
+                            <span className="group-hover/hdr3:hidden transition-opacity">Limits</span>
+                            <span className="hidden group-hover/hdr3:inline text-gray-500 transition-opacity">Min/Max</span>
+                          </span>
                           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Edit</span>
                         </div>
 
@@ -1286,57 +1329,13 @@ const EditMenuItemPage = () => {
                                 {/* Row */}
                                 <div
                                   className="grid items-center px-4 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50"
-                                  style={{ gridTemplateColumns: "28px 1fr 72px 86px 52px 46px 56px 46px" }}
+                                  style={{ gridTemplateColumns: "28px 1fr 72px 46px 56px 46px" }}
                                 >
                                   <span className="text-gray-300 select-none">&#x2807;</span>
                                   <span className="font-medium text-gray-900 text-sm truncate pr-2">{addon.name}</span>
                                   <span className="text-sm text-gray-700">
                                     {addon.price > 0 ? `+\u00a3${addon.price.toFixed(2)}` : "\u00a30.00"}
                                   </span>
-                                  {/* Selection pill */}
-                                  {/* Selection pill — clickable to cycle */}
-                                  <div className="group relative">
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        const types: Array<'single' | 'multiple_no_repeat' | 'multiple_repeat'> = ['single', 'multiple_no_repeat', 'multiple_repeat'];
-                                        const current = normalizeSelectionType(addon.selectionType);
-                                        const nextIdx = (types.indexOf(current) + 1) % types.length;
-                                        setAddons((prev) =>
-                                          (prev || []).map((a, i) =>
-                                            i === addonIdx ? { ...a, selectionType: types[nextIdx] } : a
-                                          )
-                                        );
-                                      }}
-                                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity ${getSelectionBadgeClass(addon.selectionType)}`}
-                                    >
-                                      {getSelectionLabel(addon.selectionType)}
-                                    </button>
-                                    <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed pointer-events-none">
-                                      {getSelectionTooltip(addon.selectionType)} <span className="text-gray-400">Click to change.</span>
-                                    </span>
-                                  </div>
-                                  {/* Required toggle */}
-                                  <div className="flex justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setAddons((prev) =>
-                                          (prev || []).map((a, i) =>
-                                            i === addonIdx ? { ...a, isRequired: !a.isRequired } : a
-                                          )
-                                        );
-                                      }}
-                                      className={`w-4 h-4 rounded-full border-2 transition-colors ${
-                                        addon.isRequired
-                                          ? "bg-amber-500 border-amber-500"
-                                          : "bg-gray-200 border-gray-300"
-                                      }`}
-                                      title={addon.isRequired ? "Required (click to make optional)" : "Optional (click to make required)"}
-                                    />
-                                  </div>
                                   {/* Default toggle */}
                                   <div className="flex justify-center">
                                     <button

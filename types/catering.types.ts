@@ -747,6 +747,28 @@ export interface UpdateDeliveryTimeDto {
 }
 
 // MENU MANAGEMENT TYPES
+
+/** Per-item addon fields */
+export interface MenuItemAddonItem {
+  name: string;
+  price: number;
+  allergens: string[];
+  dietaryRestrictions?: string[];
+  isDefault?: boolean;
+  displayOrder?: number;
+}
+
+/** Group-level addon configuration */
+export interface MenuItemAddonGroup {
+  groupTitle: string;
+  selectionType: "single" | "multiple_no_repeat" | "multiple_repeat";
+  isRequired: boolean;
+  minSelections?: number;
+  maxSelections?: number;
+  items: MenuItemAddonItem[];
+}
+
+/** @deprecated Flat format — kept for backward compat with customer-facing code */
 export interface MenuItemAddon {
   name: string;
   price: number;
@@ -812,7 +834,7 @@ export interface CreateMenuItemDto {
   isAvailable: boolean;
   allergens: string[];
   dietaryFilters?: string[];
-  addons: MenuItemAddon[] | null;
+  addons: MenuItemAddonGroup[] | null;
   itemDisplayOrder?: number;
   popular?: boolean;
   style?: MenuItemStyle;
@@ -846,7 +868,7 @@ export interface UpdateMenuItemDto {
   isAvailable?: boolean;
   allergens?: string[];
   dietaryFilters?: string[];
-  addons?: MenuItemAddon[] | null;
+  addons?: MenuItemAddonGroup[] | null;
   itemDisplayOrder?: number;
   popular?: boolean;
   style?: MenuItemStyle;
