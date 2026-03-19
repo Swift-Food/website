@@ -12,6 +12,7 @@ import {
   Upload,
   AlertCircle,
   Edit2,
+  ChevronDown,
 } from "lucide-react";
 import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
@@ -84,6 +85,11 @@ const EditMenuItemPage = () => {
     selectionType: "multiple",
     isRequired: false,
   });
+
+  // Addon table redesign state
+  const [expandedAddonIndex, setExpandedAddonIndex] = useState<number | null>(null);
+  const [applyToAllOpen, setApplyToAllOpen] = useState<string | null>(null);
+  const [editingGroupTitle, setEditingGroupTitle] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchData();
@@ -993,140 +999,418 @@ const EditMenuItemPage = () => {
               </button>
             </div>
 
+            {/* Key/Filter Bar */}
+            <div className="flex flex-wrap gap-2">
+              <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                Selection
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-52 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
+                  How customers choose this addon: Pick One, No repeat, or Repeat.
+                </span>
+              </div>
+              <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                Required
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
+                  Whether the customer must select this addon.
+                </span>
+              </div>
+              <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                <span className="w-2 h-2 rounded-full bg-purple-500" />
+                Default
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
+                  Pre-selected when the customer opens the item.
+                </span>
+              </div>
+              <div className="group relative inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                Limits
+                <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-52 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
+                  Min/max selection limits for the group (e.g. 1-3).
+                </span>
+              </div>
+            </div>
+
             {(() => {
+              // Normalize selectionType: map legacy 'multiple' to 'multiple_no_repeat'
+              const normalizeSelectionType = (type: string | undefined): "single" | "multiple_no_repeat" | "multiple_repeat" => {
+                if (type === "multiple") return "multiple_no_repeat";
+                if (type === "single" || type === "multiple_no_repeat" || type === "multiple_repeat") return type;
+                return "multiple_no_repeat";
+              };
+
+              const getSelectionLabel = (type: string | undefined) => {
+                const normalized = normalizeSelectionType(type);
+                if (normalized === "single") return "Pick One";
+                if (normalized === "multiple_no_repeat") return "No repeat";
+                return "Repeat";
+              };
+
+              const getSelectionBadgeClass = (type: string | undefined) => {
+                const normalized = normalizeSelectionType(type);
+                if (normalized === "single") return "bg-green-100 text-green-800";
+                if (normalized === "multiple_no_repeat") return "bg-blue-100 text-blue-800";
+                return "bg-purple-100 text-purple-800";
+              };
+
+              const getSelectionTooltip = (type: string | undefined) => {
+                const normalized = normalizeSelectionType(type);
+                if (normalized === "single") return "The customer chooses one option from this group.";
+                if (normalized === "multiple_no_repeat") return "The customer can select this once, alongside others in the group.";
+                return "The customer can add this more than once. E.g. Extra Cheese \u00d73.";
+              };
+
               // Group addons by groupTitle
-              const grouped: Record<string, MenuItemAddon[]> = {};
+              const grouped: Record<string, (MenuItemAddon & { _idx: number })[]> = {};
               (addons || []).forEach((addon, index) => {
-                const group = addon.groupTitle || "Ungrouped";
+                const group = addon.groupTitle || "Other";
                 if (!grouped[group]) {
                   grouped[group] = [];
                 }
-                grouped[group].push({ ...addon, index } as any);
+                grouped[group].push({ ...addon, _idx: index });
               });
 
-              return Object.keys(grouped).length > 0 ? (
-                <div className="space-y-4">
-                  {Object.entries(grouped).map(([groupTitle, groupAddons]) => {
-                    const firstAddon = groupAddons[0] as any;
+              // Sort groups by displayOrder of first addon
+              const sortedGroups = Object.entries(grouped).sort(([, a], [, b]) => {
+                const aOrder = a[0]?.displayOrder ?? 999;
+                const bOrder = b[0]?.displayOrder ?? 999;
+                return aOrder - bOrder;
+              });
+
+              return sortedGroups.length > 0 ? (
+                <div className="space-y-6">
+                  {sortedGroups.map(([grpTitle, groupAddons]) => {
+                    const firstAddon = groupAddons[0];
                     const groupMin = firstAddon?.minSelections;
                     const groupMax = firstAddon?.maxSelections;
+                    const isApplyOpen = applyToAllOpen === grpTitle;
 
-                    const updateGroupSelections = (field: "minSelections" | "maxSelections", value: number | undefined) => {
+                    const handleRenameGroup = (newTitle: string) => {
                       setAddons((prev) =>
                         (prev || []).map((addon) =>
-                          (addon.groupTitle || "Ungrouped") === groupTitle
-                            ? { ...addon, [field]: value }
+                          (addon.groupTitle || "Other") === grpTitle
+                            ? { ...addon, groupTitle: newTitle }
                             : addon
                         )
                       );
                     };
 
+                    const handleDeleteGroup = () => {
+                      setAddons((prev) =>
+                        (prev || []).filter(
+                          (addon) => (addon.groupTitle || "Other") !== grpTitle
+                        )
+                      );
+                    };
+
+                    const handleApplySelectionType = (selType: "single" | "multiple_no_repeat" | "multiple_repeat") => {
+                      setAddons((prev) =>
+                        (prev || []).map((addon) =>
+                          (addon.groupTitle || "Other") === grpTitle
+                            ? { ...addon, selectionType: selType }
+                            : addon
+                        )
+                      );
+                      setApplyToAllOpen(null);
+                    };
+
+                    const handleApplyRequired = (required: boolean) => {
+                      setAddons((prev) =>
+                        (prev || []).map((addon) =>
+                          (addon.groupTitle || "Other") === grpTitle
+                            ? { ...addon, isRequired: required }
+                            : addon
+                        )
+                      );
+                      setApplyToAllOpen(null);
+                    };
+
                     return (
-                    <div
-                      key={groupTitle}
-                      className="border border-gray-200 rounded-lg p-4"
-                    >
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        {groupTitle}
-                      </h3>
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">
-                            Min Selections
-                          </label>
+                      <div
+                        key={grpTitle}
+                        className="border border-gray-200 rounded-lg overflow-hidden"
+                      >
+                        {/* Group Header */}
+                        <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
+                          <span className="text-gray-400 cursor-default select-none" title="Drag to reorder (visual only)">&#x2807;</span>
                           <input
-                            type="number"
-                            min="0"
-                            value={groupMin ?? ""}
+                            type="text"
+                            value={editingGroupTitle[grpTitle] !== undefined ? editingGroupTitle[grpTitle] : grpTitle}
                             onChange={(e) =>
-                              updateGroupSelections(
-                                "minSelections",
-                                e.target.value === "" ? undefined : parseInt(e.target.value) || 0
-                              )
+                              setEditingGroupTitle((prev) => ({ ...prev, [grpTitle]: e.target.value }))
                             }
-                            onWheel={(e) => e.currentTarget.blur()}
-                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                            placeholder="No min"
+                            onBlur={() => {
+                              const newTitle = (editingGroupTitle[grpTitle] ?? "").trim();
+                              if (newTitle && newTitle !== grpTitle) {
+                                handleRenameGroup(newTitle);
+                              }
+                              setEditingGroupTitle((prev) => {
+                                const next = { ...prev };
+                                delete next[grpTitle];
+                                return next;
+                              });
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                            }}
+                            className="font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-0.5 text-sm"
                           />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">
-                            Max Selections
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={groupMax ?? ""}
-                            onChange={(e) =>
-                              updateGroupSelections(
-                                "maxSelections",
-                                e.target.value === "" ? undefined : parseInt(e.target.value) || 0
-                              )
-                            }
-                            onWheel={(e) => e.currentTarget.blur()}
-                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                            placeholder="No max"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        {groupAddons.map((addon: any) => (
-                          <div
-                            key={addon.index}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">
-                                  {addon.name}
-                                </span>
-                                <span
-                                  className={`text-xs px-2 py-0.5 rounded-full ${
-                                    addon.isRequired
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-gray-200 text-gray-700"
-                                  }`}
-                                >
-                                  {addon.isRequired ? "Required" : "Optional"}
-                                </span>
-                                {addon.selectionType && (
-                                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                                    {addon.selectionType === "single"
-                                      ? "Single"
-                                      : "Multiple"}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-sm text-gray-600">
-                                £{addon.price.toFixed(2)}
-                              </span>
-                            </div>
-                            <div className="flex gap-2">
+                          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
+                            {groupAddons.length}
+                          </span>
+                          <div className="ml-auto flex items-center gap-2">
+                            {/* Apply to All dropdown */}
+                            <div className="relative">
                               <button
                                 type="button"
-                                onClick={() => handleEditAddon(addon.index)}
-                                className="text-blue-600 hover:text-blue-700 p-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setApplyToAllOpen(isApplyOpen ? null : grpTitle);
+                                }}
+                                className="text-xs text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-2.5 py-1 flex items-center gap-1 hover:bg-white transition-colors"
                               >
-                                <Edit2 size={16} />
+                                Apply to all
+                                <ChevronDown size={12} className={`transition-transform ${isApplyOpen ? "rotate-180" : ""}`} />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveAddon(addon.index)}
-                                className="text-red-600 hover:text-red-700 p-1"
-                              >
-                                <Trash2 size={16} />
-                              </button>
+                              {isApplyOpen && (
+                                <div className="absolute right-0 top-full mt-1 z-20 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+                                  <div className="px-3 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Selection type</div>
+                                  <button type="button" onClick={() => handleApplySelectionType("single")} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-green-500" /> Pick One
+                                  </button>
+                                  <button type="button" onClick={() => handleApplySelectionType("multiple_no_repeat")} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-blue-500" /> No repeat
+                                  </button>
+                                  <button type="button" onClick={() => handleApplySelectionType("multiple_repeat")} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-purple-500" /> Repeat
+                                  </button>
+                                  <div className="border-t border-gray-100 my-1" />
+                                  <div className="px-3 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Required</div>
+                                  <button type="button" onClick={() => handleApplyRequired(true)} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    Set all required
+                                  </button>
+                                  <button type="button" onClick={() => handleApplyRequired(false)} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    Set all optional
+                                  </button>
+                                </div>
+                              )}
                             </div>
+                            <button
+                              type="button"
+                              onClick={handleDeleteGroup}
+                              className="text-xs text-red-600 hover:text-red-700 border border-red-200 rounded-lg px-2.5 py-1 hover:bg-red-50 transition-colors"
+                            >
+                              Delete Group
+                            </button>
                           </div>
-                        ))}
+                        </div>
+
+                        {/* Column Headers */}
+                        <div
+                          className="grid items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50"
+                          style={{ gridTemplateColumns: "28px 1fr 72px 86px 52px 46px 56px 46px" }}
+                        >
+                          <span />
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Name</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Price</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Selection</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Req&apos;d</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Def.</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Limits</span>
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">Edit</span>
+                        </div>
+
+                        {/* Addon Rows */}
+                        <div>
+                          {groupAddons.map((addon) => {
+                            const addonIdx = addon._idx;
+                            const isExpanded = expandedAddonIndex === addonIdx;
+                            const limitsStr = (groupMin != null || groupMax != null)
+                              ? `${groupMin ?? 0}\u2013${groupMax ?? "\u221e"}`
+                              : null;
+
+                            return (
+                              <div key={addonIdx}>
+                                {/* Row */}
+                                <div
+                                  className="grid items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50"
+                                  style={{ gridTemplateColumns: "28px 1fr 72px 86px 52px 46px 56px 46px" }}
+                                  onClick={() => setExpandedAddonIndex(isExpanded ? null : addonIdx)}
+                                >
+                                  <span className="text-gray-300 select-none">&#x2807;</span>
+                                  <span className="font-medium text-gray-900 text-sm truncate pr-2">{addon.name}</span>
+                                  <span className="text-sm text-gray-700">
+                                    {addon.price > 0 ? `+\u00a3${addon.price.toFixed(2)}` : "\u00a30.00"}
+                                  </span>
+                                  {/* Selection pill */}
+                                  <div className="group relative">
+                                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${getSelectionBadgeClass(addon.selectionType)}`}>
+                                      {getSelectionLabel(addon.selectionType)}
+                                    </span>
+                                    <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg leading-relaxed">
+                                      {getSelectionTooltip(addon.selectionType)}
+                                    </span>
+                                  </div>
+                                  {/* Required toggle */}
+                                  <div className="flex justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setAddons((prev) =>
+                                          (prev || []).map((a, i) =>
+                                            i === addonIdx ? { ...a, isRequired: !a.isRequired } : a
+                                          )
+                                        );
+                                      }}
+                                      className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                                        addon.isRequired
+                                          ? "bg-amber-500 border-amber-500"
+                                          : "bg-gray-200 border-gray-300"
+                                      }`}
+                                      title={addon.isRequired ? "Required (click to make optional)" : "Optional (click to make required)"}
+                                    />
+                                  </div>
+                                  {/* Default toggle */}
+                                  <div className="flex justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setAddons((prev) =>
+                                          (prev || []).map((a, i) =>
+                                            i === addonIdx ? { ...a, isDefault: !a.isDefault } : a
+                                          )
+                                        );
+                                      }}
+                                      className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                                        addon.isDefault
+                                          ? "bg-purple-500 border-purple-500"
+                                          : "bg-gray-200 border-gray-300"
+                                      }`}
+                                      title={addon.isDefault ? "Default (click to remove)" : "Not default (click to set)"}
+                                    />
+                                  </div>
+                                  {/* Limits */}
+                                  <div className="flex justify-center">
+                                    {limitsStr ? (
+                                      <span className="text-xs font-medium text-red-600">{limitsStr}</span>
+                                    ) : (
+                                      <span className="text-xs text-gray-400">&mdash;</span>
+                                    )}
+                                  </div>
+                                  {/* Edit button */}
+                                  <div className="flex justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditAddon(addonIdx);
+                                      }}
+                                      className="text-blue-600 hover:text-blue-700 p-1"
+                                    >
+                                      <Edit2 size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Expandable Detail Card */}
+                                <div
+                                  className="grid transition-all duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                                  style={{
+                                    gridTemplateRows: isExpanded ? "1fr" : "0fr",
+                                  }}
+                                >
+                                  <div className="overflow-hidden">
+                                    <div
+                                      className="px-6 py-4 bg-gray-50 border-b border-gray-100 transition-opacity duration-300"
+                                      style={{ opacity: isExpanded ? 1 : 0 }}
+                                    >
+                                      <div className="grid grid-cols-2 gap-6">
+                                        {/* Left column */}
+                                        <div className="space-y-3">
+                                          <div>
+                                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Selection Type</span>
+                                            <p className="text-sm text-gray-700 mt-0.5">
+                                              <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full mr-1.5 ${getSelectionBadgeClass(addon.selectionType)}`}>
+                                                {getSelectionLabel(addon.selectionType)}
+                                              </span>
+                                              {getSelectionTooltip(addon.selectionType)}
+                                            </p>
+                                          </div>
+                                          <div>
+                                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Required</span>
+                                            <p className="text-sm text-gray-700 mt-0.5">
+                                              {addon.isRequired ? "Yes \u2014 customer must select this" : "No \u2014 optional addon"}
+                                            </p>
+                                          </div>
+                                          {(groupMin != null || groupMax != null) && (
+                                            <div>
+                                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Group Limits</span>
+                                              <p className="text-sm text-gray-700 mt-0.5">
+                                                Min: {groupMin ?? "none"}, Max: {groupMax ?? "none"}
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
+                                        {/* Right column */}
+                                        <div className="space-y-3">
+                                          {addon.allergens && addon.allergens.length > 0 && (
+                                            <div>
+                                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Allergens</span>
+                                              <div className="flex flex-wrap gap-1.5 mt-1">
+                                                {addon.allergens.map((allergenValue) => {
+                                                  const allergen = ALLERGENS.find((a) => a.value === allergenValue);
+                                                  return (
+                                                    <span
+                                                      key={allergenValue}
+                                                      className="inline-flex items-center bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs"
+                                                    >
+                                                      {allergen?.label || allergenValue}
+                                                    </span>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          )}
+                                          {addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0 && (
+                                            <div>
+                                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Dietary</span>
+                                              <div className="flex flex-wrap gap-1.5 mt-1">
+                                                {addon.dietaryRestrictions.map((filterValue) => {
+                                                  const filter = DIETARY_FILTERS.find((f) => f.value === filterValue);
+                                                  return (
+                                                    <span
+                                                      key={filterValue}
+                                                      className="inline-flex items-center bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs"
+                                                    >
+                                                      {filter?.label || filterValue}
+                                                    </span>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          )}
+                                          {(!addon.allergens || addon.allergens.length === 0) &&
+                                            (!addon.dietaryRestrictions || addon.dietaryRestrictions.length === 0) && (
+                                              <p className="text-sm text-gray-400 italic">No allergens or dietary info set</p>
+                                            )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 italic">
-                  No add-ons yet. Click "Add Option" to create one.
+                  No add-ons yet. Click &quot;Add Option&quot; to create one.
                 </p>
               );
             })()}
