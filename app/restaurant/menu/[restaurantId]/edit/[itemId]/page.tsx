@@ -2036,18 +2036,18 @@ const EditMenuItemPage = () => {
               </div>
 
               {/* Step content */}
-              <div className="flex-1 overflow-y-auto px-6 pb-4">
+              <div className="flex-1 overflow-y-auto overflow-x-visible px-6 pb-4">
                 {wizardStep === 1 && (
-                  <div className="space-y-4 pt-2">
+                  <div className="space-y-4 pt-2 overflow-visible">
                     <h3 className="text-lg font-bold text-gray-900">New add-on group</h3>
 
                     {/* Group name */}
                     <div>
                       <div className="flex items-center gap-1.5 mb-1">
                         <label className="text-xs font-medium text-gray-500">Group name</label>
-                        <div className="group/tip relative">
+                        <div className="group/gn relative">
                           <span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span>
-                          <span className="invisible group-hover/tip:visible absolute left-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">This is what the customer sees as the heading above the options.</span>
+                          <span className="invisible group-hover/gn:visible absolute left-0 bottom-full mb-1 z-50 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">This is what the customer sees as the heading above the options.</span>
                         </div>
                       </div>
                       <input
@@ -2064,10 +2064,13 @@ const EditMenuItemPage = () => {
                     <div>
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <label className="text-xs font-medium text-gray-500">Selection type</label>
-                        <div className="group/tip relative">
+                        <div className="group/st relative">
                           <span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span>
-                          <span className="invisible group-hover/tip:visible absolute left-0 top-full mt-1 z-10 w-56 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">
-                            Controls how the customer picks from this group.<br/><strong className="text-green-400">Pick one</strong> = choose one only<br/><strong className="text-blue-400">Pick many</strong> = select several<br/><strong className="text-purple-400">Quantities</strong> = same item more than once
+                          <span className="invisible group-hover/st:visible absolute left-0 bottom-full mb-1 z-50 w-64 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                            <strong className="block mb-1">How does the customer choose?</strong>
+                            <strong className="text-green-400">Pick One</strong> — customer picks one option only. e.g. Choose your protein: Chicken or Tofu.<br/>
+                            <strong className="text-blue-400">No repeat</strong> — customer can pick several different options, but only once each.<br/>
+                            <strong className="text-purple-400">Repeat</strong> — customer can pick the same option more than once. e.g. Extra Cheese x3.
                           </span>
                         </div>
                       </div>
@@ -2101,7 +2104,7 @@ const EditMenuItemPage = () => {
 
                     {/* Required + Limits in a compact row */}
                     <div className="flex items-center gap-4">
-                      <div className="group/tip relative">
+                      <div className="group/rq relative">
                         <button
                           type="button"
                           onClick={() => setWizardGroup(g => ({ ...g, isRequired: !g.isRequired }))}
@@ -2114,11 +2117,15 @@ const EditMenuItemPage = () => {
                           }`}>{wizardGroup.isRequired ? "\u2713" : ""}</span>
                           Required
                         </button>
-                        <span className="invisible group-hover/tip:visible absolute left-0 top-full mt-1 z-10 w-52 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">When enabled, the customer must choose from this group before they can place their order.</span>
+                        <span className="invisible group-hover/rq:visible absolute left-0 bottom-full mb-1 z-50 w-56 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                          <strong className="block mb-1">Must the customer choose?</strong>
+                          When a group is <strong className="text-amber-400">Required</strong>, the customer cannot place their order without selecting from this group.<br/>
+                          When <strong className="text-gray-400">Optional</strong>, the customer can skip it.
+                        </span>
                       </div>
 
                       {wizardGroup.selectionType !== "single" && (
-                        <div className="group/tip2 relative flex items-center gap-2 flex-1">
+                        <div className="flex items-center gap-2 flex-1">
                           <label className="text-xs text-gray-500 whitespace-nowrap">Min</label>
                           <input
                             type="number"
@@ -2137,9 +2144,12 @@ const EditMenuItemPage = () => {
                             className="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="-"
                           />
-                          <div className="group/mintip relative">
+                          <div className="group/mm relative">
                             <span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span>
-                            <span className="invisible group-hover/mintip:visible absolute right-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">Set how many options the customer must pick. e.g. Min 1, Max 3 = pick between 1 and 3. Leave empty for no limit.</span>
+                            <span className="invisible group-hover/mm:visible absolute right-0 bottom-full mb-1 z-50 w-56 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                              <strong className="block mb-1">How many can the customer choose?</strong>
+                              Set a minimum and maximum. e.g. &quot;1–3&quot; means the customer must pick at least 1 but no more than 3 from this group.
+                            </span>
                           </div>
                         </div>
                       )}

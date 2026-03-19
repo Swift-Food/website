@@ -1823,14 +1823,14 @@ const NewMenuItemPage = () => {
                     <div>
                       <div className="flex items-center gap-1.5 mb-1">
                         <label className="text-xs font-medium text-gray-500">Group name</label>
-                        <div className="group/tip relative"><span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span><span className="invisible group-hover/tip:visible absolute left-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">This is what the customer sees as the heading above the options.</span></div>
+                        <div className="group/gn relative"><span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span><span className="invisible group-hover/gn:visible absolute left-0 bottom-full mb-1 z-50 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">This is what the customer sees as the heading above the options.</span></div>
                       </div>
                       <input type="text" value={wizardGroup.groupTitle} onChange={e => setWizardGroup(g => ({ ...g, groupTitle: e.target.value }))} placeholder="e.g. Choose your protein" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm" autoFocus />
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <label className="text-xs font-medium text-gray-500">Selection type</label>
-                        <div className="group/tip relative"><span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span><span className="invisible group-hover/tip:visible absolute left-0 top-full mt-1 z-10 w-56 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">Controls how the customer picks from this group.<br/><strong className="text-green-400">Pick one</strong> = choose one only<br/><strong className="text-blue-400">Pick many</strong> = select several<br/><strong className="text-purple-400">Quantities</strong> = same item more than once</span></div>
+                        <div className="group/st relative"><span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span><span className="invisible group-hover/st:visible absolute left-0 bottom-full mb-1 z-50 w-64 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none"><strong className="block mb-1">How does the customer choose?</strong><strong className="text-green-400">Pick One</strong> — customer picks one option only. e.g. Choose your protein: Chicken or Tofu.<br/><strong className="text-blue-400">No repeat</strong> — customer can pick several different options, but only once each.<br/><strong className="text-purple-400">Repeat</strong> — customer can pick the same option more than once. e.g. Extra Cheese x3.</span></div>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         {([
@@ -1851,12 +1851,12 @@ const NewMenuItemPage = () => {
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="group/tip relative">
+                      <div className="group/rq relative">
                         <button type="button" onClick={() => setWizardGroup(g => ({ ...g, isRequired: !g.isRequired }))} className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all text-sm ${wizardGroup.isRequired ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 text-gray-600 hover:border-blue-200"}`}>
                           <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] ${wizardGroup.isRequired ? "bg-blue-500 border-blue-500 text-white" : "border-gray-300"}`}>{wizardGroup.isRequired ? "\u2713" : ""}</span>
                           Required
                         </button>
-                        <span className="invisible group-hover/tip:visible absolute left-0 top-full mt-1 z-10 w-52 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">When enabled, the customer must choose from this group before they can place their order.</span>
+                        <span className="invisible group-hover/rq:visible absolute left-0 bottom-full mb-1 z-50 w-56 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none"><strong className="block mb-1">Must the customer choose?</strong>When a group is <strong className="text-amber-400">Required</strong>, the customer cannot place their order without selecting from this group.<br/>When <strong className="text-gray-400">Optional</strong>, the customer can skip it.</span>
                       </div>
                       {wizardGroup.selectionType !== "single" && (
                         <div className="flex items-center gap-2 flex-1">
@@ -1864,7 +1864,7 @@ const NewMenuItemPage = () => {
                           <input type="number" min="0" value={wizardGroup.minSelections ?? ""} onChange={e => setWizardGroup(g => ({ ...g, minSelections: e.target.value ? parseInt(e.target.value) : undefined }))} className="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="-" />
                           <label className="text-xs text-gray-500 whitespace-nowrap">Max</label>
                           <input type="number" min="0" value={wizardGroup.maxSelections ?? ""} onChange={e => setWizardGroup(g => ({ ...g, maxSelections: e.target.value ? parseInt(e.target.value) : undefined }))} className="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="-" />
-                          <div className="group/mintip relative"><span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span><span className="invisible group-hover/mintip:visible absolute right-0 top-full mt-1 z-10 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">Set how many options the customer must pick. e.g. Min 1, Max 3 = pick between 1 and 3. Leave empty for no limit.</span></div>
+                          <div className="group/mm relative"><span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span><span className="invisible group-hover/mm:visible absolute right-0 bottom-full mb-1 z-50 w-56 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none"><strong className="block mb-1">How many can the customer choose?</strong>Set a minimum and maximum. e.g. &quot;1–3&quot; means the customer must pick at least 1 but no more than 3 from this group.</span></div>
                         </div>
                       )}
                     </div>
