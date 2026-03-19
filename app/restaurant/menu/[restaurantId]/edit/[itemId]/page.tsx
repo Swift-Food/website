@@ -2047,7 +2047,7 @@ const EditMenuItemPage = () => {
                         <label className="text-xs font-medium text-gray-500">Group name</label>
                         <div className="group/gn relative">
                           <span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span>
-                          <span className="invisible group-hover/gn:visible absolute left-0 bottom-full mb-1 z-50 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">This is what the customer sees as the heading above the options.</span>
+                          <span className="invisible group-hover/gn:visible absolute left-5 top-0 z-50 w-48 p-2 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">This is what the customer sees as the heading above the options.</span>
                         </div>
                       </div>
                       <input
@@ -2066,7 +2066,7 @@ const EditMenuItemPage = () => {
                         <label className="text-xs font-medium text-gray-500">Selection type</label>
                         <div className="group/st relative">
                           <span className="w-3.5 h-3.5 rounded-full bg-gray-200 text-gray-500 text-[9px] font-bold inline-flex items-center justify-center cursor-help">?</span>
-                          <span className="invisible group-hover/st:visible absolute left-0 bottom-full mb-1 z-50 w-64 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">
+                          <span className="invisible group-hover/st:visible absolute left-5 top-0 z-50 w-64 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-lg leading-relaxed pointer-events-none">
                             <strong className="block mb-1">How does the customer choose?</strong>
                             <strong className="text-green-400">Pick One</strong> — customer picks one option only. e.g. Choose your protein: Chicken or Tofu.<br/>
                             <strong className="text-blue-400">No repeat</strong> — customer can pick several different options, but only once each.<br/>
