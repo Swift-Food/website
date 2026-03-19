@@ -871,11 +871,6 @@ const MenuListPage = () => {
                   </p>
                 )}
               </div>
-              {item.groupTitle && (
-                <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full font-medium">
-                  {item.groupTitle}
-                </span>
-              )}
               {item.deliveryPortionSize && (
                 <span className="text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full font-medium">
                   Portion: {item.deliveryPortionSize}
