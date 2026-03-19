@@ -7,6 +7,7 @@ import MenuCatalogue from "./MenuCatalogue";
 import { useCateringFilters } from "@/context/CateringFilterContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
+import { ensureFlatAddons } from "@/lib/utils/addon-helpers";
 
 export interface Restaurant {
   id: string;
@@ -237,20 +238,7 @@ export default function Step2MenuItems() {
           groupTitle: item.groupTitle,
           status: item.status,
           itemDisplayOrder: item.itemDisplayOrder,
-          addons: Array.isArray(item.addons)
-            ? (item.addons.length > 0 && item.addons[0]?.items
-              ? item.addons.flatMap((group: any) =>
-                  (group.items || []).map((addonItem: any) => ({
-                    ...addonItem,
-                    groupTitle: group.groupTitle,
-                    selectionType: group.selectionType,
-                    isRequired: group.isRequired,
-                    minSelections: group.minSelections,
-                    maxSelections: group.maxSelections,
-                  }))
-                )
-              : item.addons)
-            : [],
+          addons: ensureFlatAddons(item.addons || []),
           allergens: Array.isArray(item.allergens) ? item.allergens : [],
           restaurant: {
             id: item.restaurantId,

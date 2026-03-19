@@ -1,6 +1,7 @@
 import { MealSessionState, MenuItemDetails } from "@/types/catering.types";
 import { DayGroup } from "./types";
 import { MenuItem } from "./Step2MenuItems";
+import { ensureFlatAddons } from "@/lib/utils/addon-helpers";
 
 // Hour options for 12-hour time picker
 export const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
@@ -143,35 +144,19 @@ export function mapToMenuItem(item: MenuItemDetails): MenuItem {
     // Include subcategory info from API response
     subcategoryId: (item as any).subcategories?.[0]?.id,
     subcategoryName: (item as any).subcategories?.[0]?.name,
-    addons: (() => {
-      const rawAddons = item.addons || [];
-      // Handle grouped format (AddonGroup[]) — flatten to flat addon list
-      const flat: any[] = rawAddons.length > 0 && (rawAddons[0] as any)?.items
-        ? rawAddons.flatMap((group: any) =>
-            (group.items || []).map((addonItem: any) => ({
-              ...addonItem,
-              groupTitle: group.groupTitle,
-              selectionType: group.selectionType,
-              isRequired: group.isRequired,
-              minSelections: group.minSelections,
-              maxSelections: group.maxSelections,
-            }))
-          )
-        : rawAddons;
-      return flat.map((addon: any) => ({
-        name: addon.name,
-        price: addon.price?.toString() || "0",
-        allergens: addon.allergens?.join?.(", ") || "",
-        dietaryRestrictions: addon.dietaryRestrictions,
-        groupTitle: addon.groupTitle || "",
-        isRequired: addon.isRequired || false,
-        selectionType: addon.selectionType === 'multiple' ? 'multiple_no_repeat' : (addon.selectionType || "single"),
-        minSelections: addon.minSelections,
-        maxSelections: addon.maxSelections,
-        isDefault: addon.isDefault,
-        displayOrder: addon.displayOrder,
-      }));
-    })(),
+    addons: ensureFlatAddons(item.addons || []).map((addon: any) => ({
+      name: addon.name,
+      price: addon.price?.toString() || "0",
+      allergens: addon.allergens?.join?.(", ") || "",
+      dietaryRestrictions: addon.dietaryRestrictions,
+      groupTitle: addon.groupTitle || "",
+      isRequired: addon.isRequired || false,
+      selectionType: addon.selectionType === 'multiple' ? 'multiple_no_repeat' : (addon.selectionType || "single"),
+      minSelections: addon.minSelections,
+      maxSelections: addon.maxSelections,
+      isDefault: addon.isDefault,
+      displayOrder: addon.displayOrder,
+    })),
   };
 }
 

@@ -21,40 +21,10 @@ import {
   MenuItemStatus,
   MenuItemStyle,
   MenuItemAddon,
-  MenuItemAddonGroup,
-  MenuItemAddonItem,
 } from "@/types/catering.types";
 import { ALLERGENS, PREP_TIMES, DIETARY_FILTERS } from "@/lib/constants/allergens";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
-
-/** Group flat MenuItemAddon[] back into AddonGroup[] for API */
-function groupAddonsForApi(addons: MenuItemAddon[]): MenuItemAddonGroup[] {
-  if (!addons || addons.length === 0) return [];
-  const groups: Record<string, MenuItemAddonGroup> = {};
-  for (const addon of addons) {
-    const title = addon.groupTitle || "Other";
-    if (!groups[title]) {
-      const selType = addon.selectionType === "multiple" ? "multiple_no_repeat" : (addon.selectionType || "multiple_no_repeat");
-      groups[title] = {
-        groupTitle: title,
-        selectionType: selType as MenuItemAddonGroup["selectionType"],
-        isRequired: addon.isRequired || false,
-        minSelections: addon.minSelections,
-        maxSelections: addon.maxSelections,
-        items: [],
-      };
-    }
-    groups[title].items.push({
-      name: addon.name,
-      price: addon.price,
-      allergens: addon.allergens || [],
-      dietaryRestrictions: addon.dietaryRestrictions,
-      isDefault: addon.isDefault,
-      displayOrder: addon.displayOrder,
-    });
-  }
-  return Object.values(groups);
-}
+import { groupAddonsForApi } from "@/lib/utils/addon-helpers";
 
 const NewMenuItemPage = () => {
   const params = useParams();
@@ -125,7 +95,6 @@ const NewMenuItemPage = () => {
 
   // Addon table redesign state
   const [expandedAddonIndex, setExpandedAddonIndex] = useState<number | null>(null);
-  const [applyToAllOpen, setApplyToAllOpen] = useState<string | null>(null);
   const [editingGroupTitle, setEditingGroupTitle] = useState<Record<string, string>>({});
 
   useEffect(() => {

@@ -22,55 +22,10 @@ import {
   MenuItemStatus,
   MenuItemStyle,
   MenuItemAddon,
-  MenuItemAddonGroup,
-  MenuItemAddonItem,
 } from "@/types/catering.types";
 import { ALLERGENS, PREP_TIMES, DIETARY_FILTERS } from "@/lib/constants/allergens";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
-
-/** Flatten AddonGroup[] from API into flat MenuItemAddon[] for internal state */
-function flattenAddonGroups(groups: MenuItemAddonGroup[]): MenuItemAddon[] {
-  if (!groups) return [];
-  return groups.flatMap(group =>
-    group.items.map(item => ({
-      ...item,
-      groupTitle: group.groupTitle,
-      selectionType: group.selectionType,
-      isRequired: group.isRequired,
-      minSelections: group.minSelections,
-      maxSelections: group.maxSelections,
-    }))
-  );
-}
-
-/** Group flat MenuItemAddon[] back into AddonGroup[] for API */
-function groupAddonsForApi(addons: MenuItemAddon[]): MenuItemAddonGroup[] {
-  if (!addons || addons.length === 0) return [];
-  const groups: Record<string, MenuItemAddonGroup> = {};
-  for (const addon of addons) {
-    const title = addon.groupTitle || "Other";
-    if (!groups[title]) {
-      const selType = addon.selectionType === "multiple" ? "multiple_no_repeat" : (addon.selectionType || "multiple_no_repeat");
-      groups[title] = {
-        groupTitle: title,
-        selectionType: selType as MenuItemAddonGroup["selectionType"],
-        isRequired: addon.isRequired || false,
-        minSelections: addon.minSelections,
-        maxSelections: addon.maxSelections,
-        items: [],
-      };
-    }
-    groups[title].items.push({
-      name: addon.name,
-      price: addon.price,
-      allergens: addon.allergens || [],
-      dietaryRestrictions: addon.dietaryRestrictions,
-      isDefault: addon.isDefault,
-      displayOrder: addon.displayOrder,
-    });
-  }
-  return Object.values(groups);
-}
+import { flattenAddonGroups, groupAddonsForApi, ensureFlatAddons } from "@/lib/utils/addon-helpers";
 
 const EditMenuItemPage = () => {
   const params = useParams();
@@ -141,7 +96,6 @@ const EditMenuItemPage = () => {
 
   // Addon table redesign state
   const [expandedAddonIndex, setExpandedAddonIndex] = useState<number | null>(null);
-  const [applyToAllOpen, setApplyToAllOpen] = useState<string | null>(null);
   const [editingGroupTitle, setEditingGroupTitle] = useState<Record<string, string>>({});
 
   // Unsaved changes warning
@@ -285,11 +239,7 @@ const EditMenuItemPage = () => {
       console.log("ite", JSON.stringify(item))
       setSelectedAllergens(item.allergens || []);
       setSelectedDietaryFilters(item.dietaryFilters || []);
-      // API returns AddonGroup[] — flatten to flat array for internal state
-      const flatAddons = Array.isArray(item.addons) && item.addons.length > 0 && item.addons[0]?.items
-        ? flattenAddonGroups(item.addons as MenuItemAddonGroup[])
-        : (item.addons || []) as MenuItemAddon[];
-      setAddons(flatAddons);
+      setAddons(ensureFlatAddons(item.addons || []));
       setFeedsPerUnit(item.feedsPerUnit ? String(item.feedsPerUnit) : "");
       setDeliveryPortionSize(item.deliveryPortionSize || "");
       setMinOrderQuantity(item.minOrderQuantity ? String(item.minOrderQuantity) : "1");
