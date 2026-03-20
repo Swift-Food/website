@@ -656,9 +656,21 @@ export default function RestaurantMenuBrowser({
     const nextTop =
       section.getBoundingClientRect().top + window.scrollY - topOffset;
     window.scrollTo({ top: Math.max(nextTop, 0), behavior: "smooth" });
+    // Wait for smooth scroll to fully settle before re-enabling observer
+    let scrollTimer: ReturnType<typeof setTimeout>;
+    const onScrollEnd = () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        isProgrammaticScroll.current = false;
+        window.removeEventListener("scroll", onScrollEnd);
+      }, 100);
+    };
+    window.addEventListener("scroll", onScrollEnd, { passive: true });
+    // Fallback: force-unlock after 1.5s in case scroll events stop firing
     window.setTimeout(() => {
       isProgrammaticScroll.current = false;
-    }, 450);
+      window.removeEventListener("scroll", onScrollEnd);
+    }, 1500);
   };
 
   const renderRestaurantCard = (
