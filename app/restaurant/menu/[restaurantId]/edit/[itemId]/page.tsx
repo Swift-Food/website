@@ -2177,16 +2177,18 @@ const EditMenuItemPage = () => {
                               <span className="text-sm font-medium text-gray-900">{item.name}</span>
                               {item.price > 0 && <span className="text-xs text-gray-500 ml-2">+£{item.price.toFixed(2)}</span>}
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => wizardToggleDefault(idx)}
-                              className={`text-[10px] px-2 py-0.5 rounded-full transition-colors ${
-                                item.isDefault ? "bg-purple-100 text-purple-700" : "bg-gray-200 text-gray-500 hover:bg-purple-50"
-                              }`}
-                              title={item.isDefault ? "This option is pre-selected for the customer" : "Click to make this the default choice"}
-                            >
-                              {item.isDefault ? "Default" : "Set default"}
-                            </button>
+                            {wizardGroup.selectionType === "single" && (
+                              <button
+                                type="button"
+                                onClick={() => wizardToggleDefault(idx)}
+                                className={`text-[10px] px-2 py-0.5 rounded-full transition-colors ${
+                                  item.isDefault ? "bg-purple-100 text-purple-700" : "bg-gray-200 text-gray-500 hover:bg-purple-50"
+                                }`}
+                                title={item.isDefault ? "This option is pre-selected for the customer" : "Click to make this the default choice"}
+                              >
+                                {item.isDefault ? "Default" : "Set default"}
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={() => wizardRemoveItem(idx)}

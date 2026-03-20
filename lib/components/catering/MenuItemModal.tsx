@@ -171,7 +171,6 @@ export default function MenuItemModal({
 
     // console.log("Grouped addons:", grouped);
     setAddonGroups(grouped);
-    console.log("grouped is", item.menuItemName, JSON.stringify(grouped))
 
     // Initialize selected addons state
     const initialSelections: Record<string, Record<string, boolean>> = {};
@@ -568,9 +567,12 @@ export default function MenuItemModal({
       if (group.selectionType === 'single') return; // single validated above
 
       const count = getMultipleSelectionCount(groupTitle);
+      // For multiple_repeat: scale by itemQuantity (quantities accumulate across portions)
+      // For multiple_no_repeat: no scaling (min/max = how many distinct options to pick)
+      const scale = group.selectionType === 'multiple_repeat' ? itemQuantity : 1;
 
       if (group.minSelections != null) {
-        const effectiveMin = group.minSelections * itemQuantity;
+        const effectiveMin = group.minSelections * scale;
         if (count < effectiveMin) {
           multipleSelectionErrors.push(
             `${groupTitle}: Please select at least ${effectiveMin} option${effectiveMin > 1 ? "s" : ""} (currently ${count})`
@@ -578,9 +580,8 @@ export default function MenuItemModal({
         }
       }
 
-      // Validate maxSelections for all non-single groups
       if (group.maxSelections != null) {
-        const effectiveMax = group.maxSelections * itemQuantity;
+        const effectiveMax = group.maxSelections * scale;
         if (count > effectiveMax) {
           multipleSelectionErrors.push(
             `${groupTitle}: Please select at most ${effectiveMax} option${effectiveMax > 1 ? "s" : ""} (currently ${count})`
@@ -669,9 +670,11 @@ export default function MenuItemModal({
 
   // Check if any multiple-selection group has unmet minSelections
   const isMinSelectionsUnmet = Object.entries(addonGroups).some(
-    ([groupTitle, group]) =>
-      group.minSelections != null &&
-      getMultipleSelectionCount(groupTitle) < group.minSelections * itemQuantity
+    ([groupTitle, group]) => {
+      if (group.minSelections == null) return false;
+      const scale = group.selectionType === 'multiple_repeat' ? itemQuantity : 1;
+      return getMultipleSelectionCount(groupTitle) < group.minSelections * scale;
+    }
   );
 
   if (!isOpen) return null;
@@ -923,11 +926,11 @@ export default function MenuItemModal({
                                 ? `Add as many as you like · ${count} of ${effectiveMax} added`
                                 : `Add as many as you like · ${count} added`;
                             }
-                            // multiple_no_repeat
+                            // multiple_no_repeat — no scaling, min/max = distinct options
                             if (group.minSelections != null || group.maxSelections != null) {
                               const count = getMultipleSelectionCount(groupTitle);
-                              const effectiveMin = group.minSelections != null ? group.minSelections * itemQuantity : null;
-                              const effectiveMax = group.maxSelections != null ? group.maxSelections * itemQuantity : null;
+                              const effectiveMin = group.minSelections ?? null;
+                              const effectiveMax = group.maxSelections ?? null;
                               let rule = "Select your choices";
                               if (effectiveMin != null && effectiveMax != null && effectiveMin === effectiveMax) {
                                 rule = `Select ${effectiveMin} option${effectiveMin > 1 ? "s" : ""}`;
