@@ -184,7 +184,7 @@ export default function MenuItemModal({
       initialQuantityInputs[groupTitle] = {};
       const group = grouped[groupTitle];
       let singleDefaultSet = false;
-      let noRepeatDefaultCount = 0;
+
       grouped[groupTitle].items.forEach((addon) => {
         const shouldPreSelect = addon.isDefault === true && !isEditMode;
         if (shouldPreSelect && group.selectionType === 'single') {
@@ -198,21 +198,6 @@ export default function MenuItemModal({
             initialQuantities[groupTitle][addon.name] = 0;
             initialQuantityInputs[groupTitle][addon.name] = "0";
           }
-        } else if (shouldPreSelect && group.selectionType === 'multiple_no_repeat') {
-          // Respect maxSelections when pre-selecting defaults
-          const maxOk = group.maxSelections == null || noRepeatDefaultCount < group.maxSelections;
-          if (maxOk) {
-            initialSelections[groupTitle][addon.name] = true;
-            noRepeatDefaultCount++;
-          } else {
-            initialSelections[groupTitle][addon.name] = false;
-          }
-          initialQuantities[groupTitle][addon.name] = 0;
-          initialQuantityInputs[groupTitle][addon.name] = "0";
-        } else if (shouldPreSelect && group.selectionType === 'multiple_repeat') {
-          initialSelections[groupTitle][addon.name] = true;
-          initialQuantities[groupTitle][addon.name] = 1;
-          initialQuantityInputs[groupTitle][addon.name] = "1";
         } else {
           initialSelections[groupTitle][addon.name] = false;
           initialQuantities[groupTitle][addon.name] = 0;
@@ -482,6 +467,12 @@ export default function MenuItemModal({
     if (!currentValue && group.maxSelections != null) {
       const currentCount = getMultipleSelectionCount(groupTitle);
       if (currentCount >= group.maxSelections) return;
+    }
+
+    // If toggling OFF, check minSelections constraint
+    if (currentValue && group.minSelections != null) {
+      const currentCount = getMultipleSelectionCount(groupTitle);
+      if (currentCount <= group.minSelections) return;
     }
 
     setSelectedAddons((prev) => {

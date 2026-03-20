@@ -1287,6 +1287,7 @@ const NewMenuItemPage = () => {
                                     {addon.price > 0 ? `+\u00a3${addon.price.toFixed(2)}` : "\u00a30.00"}
                                   </span>
                                   {/* Default toggle */}
+                                  {normalizeSelectionType(firstAddon?.selectionType) === "single" ? (
                                   <div className="flex justify-center">
                                     <button
                                       type="button"
@@ -1306,6 +1307,7 @@ const NewMenuItemPage = () => {
                                       title={addon.isDefault ? "Default (click to remove)" : "Not default (click to set)"}
                                     />
                                   </div>
+                                  ) : <span />}
                                   {/* Limits */}
                                   <div className="flex justify-center">
                                     {limitsStr ? (
@@ -1533,7 +1535,8 @@ const NewMenuItemPage = () => {
                   </div>
                 </div>
 
-                {/* ── Section 2: Addon Settings ── */}
+                {/* ── Section 2: Addon Settings (only for single-selection groups) ── */}
+                {currentAddon.selectionType === "single" && (
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <button
                     type="button"
@@ -1595,6 +1598,7 @@ const NewMenuItemPage = () => {
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* ── Section 3: Allergens & Dietary ── */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
