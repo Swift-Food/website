@@ -1094,31 +1094,33 @@ export default function CateringOrderBuilder() {
           </div>
 
           {/* Right Column: Active Session (Desktop only) */}
-          <div className="hidden md:block md:w-[50%] xl:w-[40%] flex-shrink-0">
+          <div className="hidden md:block md:w-[50%] xl:w-[40%] flex-shrink-0 self-start md:sticky md:top-24 h-[calc(100vh-7rem)]">
             {mealSessions[activeSessionIndex] && (
-              <ActiveSessionPanel
-                session={mealSessions[activeSessionIndex]}
-                sessionIndex={activeSessionIndex}
-                sessionTotal={getSessionTotal(activeSessionIndex)}
-                sessionDiscount={getSessionDiscount(activeSessionIndex).discount}
-                sessionPromotion={getSessionDiscount(activeSessionIndex).promotion}
-                validationError={sessionValidationErrors[activeSessionIndex] || null}
-                isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
-                canRemove={mealSessions.length > 1}
-                onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
-                onRemoveSession={(e) => handleRemoveSession(activeSessionIndex, e)}
-                onEditItem={handleEditItem}
-                onRemoveItem={handleRemoveItem}
-                onSwapItem={handleSwapItem}
-                onRemoveBundle={handleRemoveBundle}
-                collapsedCategories={collapsedCategories}
-                onToggleCategory={handleToggleCategory}
-                onViewMenu={handleViewMenu}
-                isCurrentSessionValid={isCurrentSessionValid}
-                totalPrice={getTotalPrice()}
-                onCheckout={handleCheckout}
-                restaurants={restaurants}
-              />
+              <div className="h-full overflow-hidden">
+                <ActiveSessionPanel
+                  session={mealSessions[activeSessionIndex]}
+                  sessionIndex={activeSessionIndex}
+                  sessionTotal={getSessionTotal(activeSessionIndex)}
+                  sessionDiscount={getSessionDiscount(activeSessionIndex).discount}
+                  sessionPromotion={getSessionDiscount(activeSessionIndex).promotion}
+                  validationError={sessionValidationErrors[activeSessionIndex] || null}
+                  isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
+                  canRemove={mealSessions.length > 1}
+                  onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
+                  onRemoveSession={(e) => handleRemoveSession(activeSessionIndex, e)}
+                  onEditItem={handleEditItem}
+                  onRemoveItem={handleRemoveItem}
+                  onSwapItem={handleSwapItem}
+                  onRemoveBundle={handleRemoveBundle}
+                  collapsedCategories={collapsedCategories}
+                  onToggleCategory={handleToggleCategory}
+                  onViewMenu={handleViewMenu}
+                  isCurrentSessionValid={isCurrentSessionValid}
+                  totalPrice={getTotalPrice()}
+                  onCheckout={handleCheckout}
+                  restaurants={restaurants}
+                />
+              </div>
             )}
           </div>
         </div>
