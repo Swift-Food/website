@@ -7,7 +7,6 @@ import MenuCatalogue from "./MenuCatalogue";
 import { useCateringFilters } from "@/context/CateringFilterContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
-import { ensureFlatAddons } from "@/lib/utils/addon-helpers";
 
 export interface Restaurant {
   id: string;
@@ -64,18 +63,24 @@ export interface Restaurant {
   menuGroupSettings?: Record<string, { displayOrder?: number; information?: string }>;
 }
 
+/** Individual addon item — no group-level fields */
 export interface Addon {
   name: string;
   price: string;
   allergens: string;
   dietaryRestrictions?: string[];
-  groupTitle: string;
-  isRequired: boolean;
-  selectionType: "single" | "multiple" | "multiple_no_repeat" | "multiple_repeat";
-  minSelections?: number;
-  maxSelections?: number;
   isDefault?: boolean;
   displayOrder?: number;
+}
+
+/** Addon group with group-level settings and items */
+export interface AddonGroup {
+  groupTitle: string;
+  selectionType: "single" | "multiple" | "multiple_no_repeat" | "multiple_repeat";
+  isRequired: boolean;
+  minSelections?: number;
+  maxSelections?: number;
+  items: Addon[];
 }
 
 export interface MenuItem {
@@ -96,7 +101,7 @@ export interface MenuItem {
   groupTitle?: string;
   status?: string;
   itemDisplayOrder: number;
-  addons: Addon[];
+  addons: AddonGroup[];
   selectedAddons?: {
     name: string;
     price: number;
@@ -238,7 +243,7 @@ export default function Step2MenuItems() {
           groupTitle: item.groupTitle,
           status: item.status,
           itemDisplayOrder: item.itemDisplayOrder,
-          addons: ensureFlatAddons(item.addons || []),
+          addons: item.addons || [],
           allergens: Array.isArray(item.allergens) ? item.allergens : [],
           restaurant: {
             id: item.restaurantId,

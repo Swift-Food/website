@@ -57,7 +57,7 @@ export default function BundleDetailModal({
           ? parseFloat(mi.discountPrice.toString())
           : parseFloat(mi.price?.toString() || "0");
       const addonTotal = (item.selectedAddons || []).reduce((sum, a) => {
-        const addonPrice = mi.addons?.find((ma) => ma.name === a.name);
+        const addonPrice = mi.addons?.flatMap((g) => g.items)?.find((ma) => ma.name === a.name);
         return sum + Number(addonPrice?.price ?? 0) * (a.quantity || 0);
       }, 0);
       const scaledQty = item.quantity * quantity;
@@ -158,7 +158,7 @@ export default function BundleDetailModal({
                 : parseFloat(mi.price?.toString() || "0")
               : 0;
             const addonTotal = (item.selectedAddons || []).reduce((sum, a) => {
-              const addonPrice = mi?.addons?.find((ma) => ma.name === a.name);
+              const addonPrice = mi?.addons?.flatMap((g) => g.items)?.find((ma) => ma.name === a.name);
               return sum + Number(addonPrice?.price ?? 0) * (a.quantity || 0);
             }, 0);
             const lineTotal = unitPrice * scaledQty + addonTotal * quantity;
@@ -198,10 +198,10 @@ export default function BundleDetailModal({
                     {item.selectedAddons && item.selectedAddons.length > 0 && (
                       <div className="mt-1 space-y-0.5">
                         {item.selectedAddons.map((addon, i) => {
-                          const matchedAddon = mi?.addons?.find((ma) => ma.name === addon.name);
+                          const matchedGroup = mi?.addons?.find((g) => g.items.some((a) => a.name === addon.name));
                           return (
                             <p key={i} className="text-xs text-gray-500">
-                              • {matchedAddon?.groupTitle ?? "Options"}: {addon.name}
+                              • {matchedGroup?.groupTitle ?? "Options"}: {addon.name}
                               {addon.quantity > 1 && ` (×${addon.quantity})`}
                             </p>
                           );

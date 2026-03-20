@@ -77,14 +77,13 @@ function enrichBundleItemAddons(
     return [];
   }
   return bundleItem.selectedAddons.map((bundleAddon) => {
-    const matchedAddon = menuItem.addons?.find(
-      (addon) => addon.name === bundleAddon.name,
-    );
+    const matchedGroup = menuItem.addons?.find((g) => g.items.some((a) => a.name === bundleAddon.name));
+    const matchedAddon = matchedGroup?.items.find((a) => a.name === bundleAddon.name);
     return {
       name: bundleAddon.name,
       price: Number(matchedAddon?.price ?? 0),
       quantity: bundleAddon.quantity,
-      groupTitle: matchedAddon?.groupTitle ?? "Options",
+      groupTitle: matchedGroup?.groupTitle ?? "Options",
     };
   });
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { MenuItem, Addon } from "./Step2MenuItems";
+import { MenuItem, Addon, AddonGroup } from "./Step2MenuItems";
 import { ALLERGENS } from "@/lib/constants/allergens";
 
 // Dietary icon mapping
@@ -38,13 +38,6 @@ interface MenuItemModalProps {
   onAddToOrder?: (item: MenuItem) => void; // Callback for viewOnly mode to redirect to order builder
 }
 
-interface AddonGroup {
-  items: Addon[];
-  isRequired: boolean;
-  selectionType: "single" | "multiple_no_repeat" | "multiple_repeat";
-  minSelections?: number;
-  maxSelections?: number;
-}
 
 export default function MenuItemModal({
   item,
@@ -140,52 +133,15 @@ export default function MenuItemModal({
     }
 
 
-    // Handle both grouped format (AddonGroup[]) and flat format (Addon[])
-    let grouped: Record<string, AddonGroup>;
-    const rawAddons = item.addons as any[];
-    if (rawAddons.length > 0 && rawAddons[0]?.items) {
-      // Already grouped format from API — use group-level fields directly
-      grouped = {};
-      for (const group of rawAddons) {
-        const selType = group.selectionType === 'multiple' ? 'multiple_no_repeat' : (group.selectionType || 'multiple_no_repeat');
-        grouped[group.groupTitle || "Default"] = {
-          items: (group.items || []).map((item: any) => ({
-            ...item,
-            groupTitle: group.groupTitle,
-            selectionType: selType,
-            isRequired: group.isRequired,
-          })),
-          isRequired: !!group.isRequired,
-          selectionType: selType,
-          minSelections: group.minSelections,
-          maxSelections: group.maxSelections,
-        };
-      }
-    } else {
-      // Flat format — group by groupTitle
-      grouped = rawAddons.reduce((acc: Record<string, AddonGroup>, addon: any) => {
-        const groupTitle = addon.groupTitle || "Default";
-        const normalizedType = addon.selectionType === 'multiple' ? 'multiple_no_repeat' : (addon.selectionType || 'multiple_no_repeat');
-        if (!acc[groupTitle]) {
-          acc[groupTitle] = {
-            items: [],
-            isRequired: !!addon.isRequired,
-            selectionType: normalizedType,
-            minSelections: addon.minSelections,
-            maxSelections: addon.maxSelections,
-          };
-        } else {
-          if (addon.isRequired) acc[groupTitle].isRequired = true;
-          if (normalizedType !== 'multiple_no_repeat' && acc[groupTitle].selectionType === 'multiple_no_repeat') {
-            acc[groupTitle].selectionType = normalizedType;
-          }
-        }
-        acc[groupTitle].items.push(addon);
-        return acc;
-      }, {});
+    // Convert AddonGroup[] to Record<groupTitle, AddonGroup> for state
+    const grouped: Record<string, AddonGroup> = {};
+    for (const group of item.addons) {
+      const selType = group.selectionType === 'multiple' ? 'multiple_no_repeat' : (group.selectionType || 'multiple_no_repeat');
+      grouped[group.groupTitle || "Default"] = {
+        ...group,
+        selectionType: selType as AddonGroup["selectionType"],
+      };
     }
-
-    // console.log("Grouped addons:", grouped);
     setAddonGroups(grouped);
 
     // Initialize selected addons state
