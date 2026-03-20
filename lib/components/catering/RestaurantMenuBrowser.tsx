@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, RefObject, useCallback } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useRef,
+  RefObject,
+  useCallback,
+} from "react";
 import {
   Search,
   X,
@@ -14,7 +21,10 @@ import {
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 import { DietaryFilter } from "@/types/menuItem";
 import { CategoryWithSubcategories } from "@/types/catering.types";
-import { CateringBundleItem, CateringBundleResponse } from "@/types/api/catering.api.types";
+import {
+  CateringBundleItem,
+  CateringBundleResponse,
+} from "@/types/api/catering.api.types";
 import { categoryService } from "@/services/api/category.api";
 import { cateringService } from "@/services/api/catering.api";
 import { useCatering } from "@/context/CateringContext";
@@ -61,13 +71,15 @@ type RestaurantGroup = MenuItemGroup | BundleGroup;
 
 function enrichBundleItemAddons(
   bundleItem: CateringBundleItem,
-  menuItem: MenuItem
+  menuItem: MenuItem,
 ): MenuItem["selectedAddons"] {
   if (!bundleItem.selectedAddons || bundleItem.selectedAddons.length === 0) {
     return [];
   }
   return bundleItem.selectedAddons.map((bundleAddon) => {
-    const matchedAddon = menuItem.addons?.find((addon) => addon.name === bundleAddon.name);
+    const matchedAddon = menuItem.addons?.find(
+      (addon) => addon.name === bundleAddon.name,
+    );
     return {
       name: bundleAddon.name,
       price: Number(matchedAddon?.price ?? 0),
@@ -117,7 +129,11 @@ function getRestaurantAdvanceNoticeText(restaurant: Restaurant): string | null {
   return null;
 }
 
-function isAdvanceNoticeMet(restaurant: Restaurant, sessionDate?: string, eventTime?: string): boolean {
+function isAdvanceNoticeMet(
+  restaurant: Restaurant,
+  sessionDate?: string,
+  eventTime?: string,
+): boolean {
   if (!sessionDate || !eventTime) return true;
 
   const date = new Date(sessionDate + "T00:00:00");
@@ -127,7 +143,11 @@ function isAdvanceNoticeMet(restaurant: Restaurant, sessionDate?: string, eventT
   const hoursUntilEvent = (date.getTime() - now.getTime()) / (1000 * 60 * 60);
 
   const notice = restaurant.advanceNoticeSettings;
-  if (notice?.type === "hours" && typeof notice.hours === "number" && notice.hours > 0) {
+  if (
+    notice?.type === "hours" &&
+    typeof notice.hours === "number" &&
+    notice.hours > 0
+  ) {
     return hoursUntilEvent >= notice.hours;
   }
   if (notice?.type === "days_before_time" && typeof notice.days === "number") {
@@ -141,7 +161,10 @@ function isAdvanceNoticeMet(restaurant: Restaurant, sessionDate?: string, eventT
     }
     return now <= cutoff;
   }
-  if (typeof restaurant.minimumDeliveryNoticeHours === "number" && restaurant.minimumDeliveryNoticeHours > 0) {
+  if (
+    typeof restaurant.minimumDeliveryNoticeHours === "number" &&
+    restaurant.minimumDeliveryNoticeHours > 0
+  ) {
     return hoursUntilEvent >= restaurant.minimumDeliveryNoticeHours;
   }
   return true;
@@ -155,7 +178,7 @@ function timeToMinutes(time: string): number {
 export default function RestaurantMenuBrowser({
   restaurants,
   restaurantsLoading,
-  onOpenBundles = () => {},
+  onOpenBundles = () => { },
   defaultBundleGuestCount = 1,
   allMenuItems,
   fetchAllMenuItems,
@@ -176,21 +199,30 @@ export default function RestaurantMenuBrowser({
   const activeSession = mealSessions[sessionIndex];
 
   // --- State ---
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<
+    string | null
+  >(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(),
+  );
   const [activeGroupName, setActiveGroupName] = useState<string | null>(null);
   const [stickyTopOffset, setStickyTopOffset] = useState(72);
 
   // Bundle state
-  const [restaurantBundles, setRestaurantBundles] = useState<CateringBundleResponse[]>([]);
+  const [restaurantBundles, setRestaurantBundles] = useState<
+    CateringBundleResponse[]
+  >([]);
   const [bundlesLoading, setBundlesLoading] = useState(false);
   const [bundlesError, setBundlesError] = useState<string | null>(null);
-  const [selectedBundle, setSelectedBundle] = useState<CateringBundleResponse | null>(null);
+  const [selectedBundle, setSelectedBundle] =
+    useState<CateringBundleResponse | null>(null);
   const [addingBundleId, setAddingBundleId] = useState<string | null>(null);
   const [menuItemsCache, setMenuItemsCache] = useState<MenuItem[] | null>(null);
 
@@ -236,7 +268,8 @@ export default function RestaurantMenuBrowser({
       try {
         setBundlesLoading(true);
         setBundlesError(null);
-        const bundles = await cateringService.getBundlesByRestaurant(selectedRestaurantId);
+        const bundles =
+          await cateringService.getBundlesByRestaurant(selectedRestaurantId);
         if (!cancelled) setRestaurantBundles(bundles);
       } catch (error) {
         console.error("Failed to fetch restaurant bundles:", error);
@@ -249,7 +282,9 @@ export default function RestaurantMenuBrowser({
       }
     };
     fetchRestaurantBundles();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRestaurantId]);
 
   const isSearchActive = searchQuery.trim().length > 0;
@@ -266,7 +301,9 @@ export default function RestaurantMenuBrowser({
       // If no date/time set on session, show all restaurants
       if (!sessionDate || !eventTime) return true;
 
-      const date = new Date(sessionDate + (sessionDate.includes("T") ? "" : "T00:00:00"));
+      const date = new Date(
+        sessionDate + (sessionDate.includes("T") ? "" : "T00:00:00"),
+      );
 
       // Check dateOverrides first
       if (r.dateOverrides?.length) {
@@ -276,7 +313,9 @@ export default function RestaurantMenuBrowser({
           if (override.timeSlots?.length) {
             const eventMinutes = timeToMinutes(eventTime);
             return override.timeSlots.some(
-              (slot) => eventMinutes >= timeToMinutes(slot.open) && eventMinutes <= timeToMinutes(slot.close)
+              (slot) =>
+                eventMinutes >= timeToMinutes(slot.open) &&
+                eventMinutes <= timeToMinutes(slot.close),
             );
           }
         }
@@ -291,7 +330,7 @@ export default function RestaurantMenuBrowser({
 
       // Filter all slots for this day (there can be multiple per day)
       const daySlots = r.cateringOperatingHours.filter(
-        (h) => h.day.toLowerCase() === dayName && h.enabled
+        (h) => h.day.toLowerCase() === dayName && h.enabled,
       );
 
       if (daySlots.length === 0) return false;
@@ -300,7 +339,10 @@ export default function RestaurantMenuBrowser({
       const eventMinutes = timeToMinutes(eventTime);
       return daySlots.some((slot) => {
         if (!slot.open || !slot.close) return false;
-        return eventMinutes >= timeToMinutes(slot.open) && eventMinutes <= timeToMinutes(slot.close);
+        return (
+          eventMinutes >= timeToMinutes(slot.open) &&
+          eventMinutes <= timeToMinutes(slot.close)
+        );
       });
     });
   }, [restaurants, activeSession?.sessionDate, activeSession?.eventTime]);
@@ -309,8 +351,11 @@ export default function RestaurantMenuBrowser({
     if (!allMenuItems) return [];
     if (selectedDietaryFilters.length === 0) return allMenuItems;
     return allMenuItems.filter((item) => {
-      if (!item.dietaryFilters || item.dietaryFilters.length === 0) return false;
-      return selectedDietaryFilters.every((filter) => item.dietaryFilters!.includes(filter));
+      if (!item.dietaryFilters || item.dietaryFilters.length === 0)
+        return false;
+      return selectedDietaryFilters.every((filter) =>
+        item.dietaryFilters!.includes(filter),
+      );
     });
   }, [allMenuItems, selectedDietaryFilters]);
 
@@ -321,20 +366,28 @@ export default function RestaurantMenuBrowser({
       (item) =>
         item.menuItemName.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
-        item.groupTitle?.toLowerCase().includes(query)
+        item.groupTitle?.toLowerCase().includes(query),
     );
 
-    const grouped = new Map<string, { restaurant: Restaurant; items: MenuItem[] }>();
+    const grouped = new Map<
+      string,
+      { restaurant: Restaurant; items: MenuItem[] }
+    >();
     matchingItems.forEach((item) => {
-      const restaurant = availableRestaurants.find((r) => r.id === item.restaurantId);
+      const restaurant = availableRestaurants.find(
+        (r) => r.id === item.restaurantId,
+      );
       if (!restaurant) return;
       const existing = grouped.get(restaurant.id);
-      if (existing) { existing.items.push(item); return; }
+      if (existing) {
+        existing.items.push(item);
+        return;
+      }
       grouped.set(restaurant.id, { restaurant, items: [item] });
     });
 
     return Array.from(grouped.values()).sort((a, b) =>
-      a.restaurant.restaurant_name.localeCompare(b.restaurant.restaurant_name)
+      a.restaurant.restaurant_name.localeCompare(b.restaurant.restaurant_name),
     );
   }, [isSearchActive, searchQuery, dietaryFilteredItems, availableRestaurants]);
 
@@ -342,22 +395,29 @@ export default function RestaurantMenuBrowser({
     return availableRestaurants.filter((restaurant) => {
       const matchesCategory =
         !selectedCategoryId ||
-        (restaurant.categories ?? []).some((category) => category.id === selectedCategoryId);
+        (restaurant.categories ?? []).some(
+          (category) => category.id === selectedCategoryId,
+        );
       const matchesDiet =
         selectedDietaryFilters.length === 0 ||
-        selectedDietaryFilters.every((filter) => (restaurant.dietaryFilters ?? []).includes(filter));
+        selectedDietaryFilters.every((filter) =>
+          (restaurant.dietaryFilters ?? []).includes(filter),
+        );
       return matchesCategory && matchesDiet;
     });
   }, [availableRestaurants, selectedCategoryId, selectedDietaryFilters]);
 
   const selectedRestaurant = useMemo(
-    () => availableRestaurants.find((r) => r.id === selectedRestaurantId) || null,
-    [availableRestaurants, selectedRestaurantId]
+    () =>
+      availableRestaurants.find((r) => r.id === selectedRestaurantId) || null,
+    [availableRestaurants, selectedRestaurantId],
   );
 
   const restaurantItems = useMemo(() => {
     if (!selectedRestaurantId) return [];
-    return dietaryFilteredItems.filter((item) => item.restaurantId === selectedRestaurantId);
+    return dietaryFilteredItems.filter(
+      (item) => item.restaurantId === selectedRestaurantId,
+    );
   }, [selectedRestaurantId, dietaryFilteredItems]);
 
   const filteredRestaurantItems = useMemo(() => {
@@ -367,7 +427,7 @@ export default function RestaurantMenuBrowser({
       (item) =>
         item.menuItemName.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
-        item.groupTitle?.toLowerCase().includes(query)
+        item.groupTitle?.toLowerCase().includes(query),
     );
   }, [restaurantItems, isRestaurantSearchActive, restaurantSearchQuery]);
 
@@ -376,8 +436,10 @@ export default function RestaurantMenuBrowser({
 
     const restaurant = restaurants.find((r) => r.id === selectedRestaurantId);
     const menuGroupSettings =
-      restaurant?.menuGroupSettings || filteredRestaurantItems[0]?.restaurant?.menuGroupSettings;
-    const hasSettings = menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
+      restaurant?.menuGroupSettings ||
+      filteredRestaurantItems[0]?.restaurant?.menuGroupSettings;
+    const hasSettings =
+      menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
 
     let groupNames: string[];
     if (hasSettings) {
@@ -388,7 +450,7 @@ export default function RestaurantMenuBrowser({
       });
     } else {
       groupNames = Array.from(
-        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other"))
+        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other")),
       ).sort((a, b) => a.localeCompare(b));
     }
 
@@ -434,16 +496,24 @@ export default function RestaurantMenuBrowser({
       (bundle) =>
         bundle.name.toLowerCase().includes(query) ||
         bundle.description?.toLowerCase().includes(query) ||
-        bundle.items.some((item) => item.menuItemName.toLowerCase().includes(query))
+        bundle.items.some((item) =>
+          item.menuItemName.toLowerCase().includes(query),
+        ),
     );
   }, [restaurantBundles, isRestaurantSearchActive, restaurantSearchQuery]);
 
   const restaurantGroups = useMemo<RestaurantGroup[]>(() => {
     const groups: RestaurantGroup[] = [];
     const shouldShowBundlesSection =
-      bundlesLoading || bundlesError !== null || filteredRestaurantBundles.length > 0;
+      bundlesLoading ||
+      bundlesError !== null ||
+      filteredRestaurantBundles.length > 0;
     if (shouldShowBundlesSection) {
-      groups.push({ type: "bundles", name: "Bundles", bundles: filteredRestaurantBundles });
+      groups.push({
+        type: "bundles",
+        name: "Bundles",
+        bundles: filteredRestaurantBundles,
+      });
     }
     groups.push(...groupedItems);
     return groups;
@@ -470,7 +540,9 @@ export default function RestaurantMenuBrowser({
       try {
         const items = await ensureMenuItems();
         for (const bundleItem of bundle.items) {
-          const menuItem = items.find((item) => item.id === bundleItem.menuItemId);
+          const menuItem = items.find(
+            (item) => item.id === bundleItem.menuItemId,
+          );
           if (!menuItem) continue;
           const enrichedAddons = enrichBundleItemAddons(bundleItem, menuItem);
           const scaledQuantity = bundleItem.quantity * guestQuantity;
@@ -489,7 +561,7 @@ export default function RestaurantMenuBrowser({
         setAddingBundleId(null);
       }
     },
-    [addMenuItem, ensureMenuItems, sessionIndex]
+    [addMenuItem, ensureMenuItems, sessionIndex],
   );
 
   const toggleGroupCollapse = (groupName: string) => {
@@ -517,9 +589,12 @@ export default function RestaurantMenuBrowser({
   };
 
   useEffect(() => {
-    const navElement = document.querySelector<HTMLElement>("[data-catering-session-nav='true']");
+    const navElement = document.querySelector<HTMLElement>(
+      "[data-catering-session-nav='true']",
+    );
     if (!navElement) return;
-    const updateOffset = () => setStickyTopOffset(navElement.getBoundingClientRect().height);
+    const updateOffset = () =>
+      setStickyTopOffset(navElement.getBoundingClientRect().height);
     updateOffset();
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(updateOffset);
@@ -534,7 +609,11 @@ export default function RestaurantMenuBrowser({
   useEffect(() => {
     if (!activeGroupName) return;
     const activeButton = groupButtonRefs.current.get(activeGroupName);
-    activeButton?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    activeButton?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
   }, [activeGroupName]);
 
   useEffect(() => {
@@ -550,7 +629,9 @@ export default function RestaurantMenuBrowser({
         if (top <= activationLine) nextActiveGroup = group.name;
         else break;
       }
-      setActiveGroupName((prev) => (prev === nextActiveGroup ? prev : nextActiveGroup));
+      setActiveGroupName((prev) =>
+        prev === nextActiveGroup ? prev : nextActiveGroup,
+      );
     };
     updateActiveGroup();
     window.addEventListener("scroll", updateActiveGroup, { passive: true });
@@ -573,20 +654,34 @@ export default function RestaurantMenuBrowser({
     if (!section) return;
     isProgrammaticScroll.current = true;
     const topOffset = stickyTopOffset + 80;
-    const nextTop = section.getBoundingClientRect().top + window.scrollY - topOffset;
+    const nextTop =
+      section.getBoundingClientRect().top + window.scrollY - topOffset;
     window.scrollTo({ top: Math.max(nextTop, 0), behavior: "smooth" });
-    window.setTimeout(() => { isProgrammaticScroll.current = false; }, 450);
+    window.setTimeout(() => {
+      isProgrammaticScroll.current = false;
+    }, 450);
   };
 
-  const renderRestaurantCard = (restaurant: Restaurant, onClick?: () => void) => {
+  const renderRestaurantCard = (
+    restaurant: Restaurant,
+    onClick?: () => void,
+  ) => {
     const advanceNoticeText = getRestaurantAdvanceNoticeText(restaurant);
-    const noticeMet = isAdvanceNoticeMet(restaurant, activeSession?.sessionDate, activeSession?.eventTime);
+    const noticeMet = isAdvanceNoticeMet(
+      restaurant,
+      activeSession?.sessionDate,
+      activeSession?.eventTime,
+    );
 
     const cardContent = (
       <>
         {restaurant.images && restaurant.images.length > 0 ? (
           <div className="relative w-full aspect-video bg-gray-100">
-            <img src={restaurant.images[0]} alt={restaurant.restaurant_name} className="w-full h-full object-cover" />
+            <img
+              src={restaurant.images[0]}
+              alt={restaurant.restaurant_name}
+              className="w-full h-full object-cover"
+            />
           </div>
         ) : (
           <div className="w-full aspect-video bg-base-200 flex items-center justify-center">
@@ -599,7 +694,8 @@ export default function RestaurantMenuBrowser({
           <p className="line-clamp-2 text-sm font-semibold leading-tight text-gray-900">
             {restaurant.restaurant_name}
           </p>
-          {restaurant.minCateringOrderQuantity && restaurant.minCateringOrderQuantity > 0 ? (
+          {restaurant.minCateringOrderQuantity &&
+            restaurant.minCateringOrderQuantity > 0 ? (
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">
                 Min {restaurant.minCateringOrderQuantity} items
@@ -607,8 +703,12 @@ export default function RestaurantMenuBrowser({
             </div>
           ) : null}
           {advanceNoticeText ? (
-            <div className={`mt-1.5 flex items-center gap-1.5 text-[11px] leading-4 ${noticeMet ? "text-gray-500" : "text-red-500 font-semibold"}`}>
-              <Clock3 className={`h-3.5 w-3.5 flex-shrink-0 ${noticeMet ? "text-gray-400" : "text-red-500"}`} />
+            <div
+              className={`mt-1.5 flex items-center gap-1.5 text-[11px] leading-4 ${noticeMet ? "text-gray-500" : "text-red-500 font-semibold"}`}
+            >
+              <Clock3
+                className={`h-3.5 w-3.5 flex-shrink-0 ${noticeMet ? "text-gray-400" : "text-red-500"}`}
+              />
               <span className="line-clamp-1">{advanceNoticeText}</span>
             </div>
           ) : null}
@@ -647,15 +747,16 @@ export default function RestaurantMenuBrowser({
         <button
           key={option.value}
           onClick={() => toggleDietaryFilter(option.value)}
-          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-            selectedDietaryFilters.includes(option.value)
-              ? "bg-green-600 text-white border-green-600"
-              : "bg-white text-gray-600 border-gray-300 hover:border-green-500 hover:text-green-600"
-          }`}
+          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${selectedDietaryFilters.includes(option.value)
+            ? "bg-green-600 text-white border-green-600"
+            : "bg-white text-gray-600 border-gray-300 hover:border-green-500 hover:text-green-600"
+            }`}
         >
           {option.label}
           {selectedDietaryFilters.includes(option.value) && (
-            <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">x</span>
+            <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20">
+              x
+            </span>
           )}
         </button>
       ))}
@@ -668,30 +769,39 @@ export default function RestaurantMenuBrowser({
         <div className="flex items-center gap-2 md:gap-3">
           {categoriesLoading
             ? [...Array(6)].map((_, index) => (
-              <div key={index} className="h-10 w-20 md:w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse" />
+              <div
+                key={index}
+                className="h-10 w-20 md:w-24 flex-shrink-0 rounded-xl bg-base-200 animate-pulse"
+              />
             ))
             : categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() =>
-                  setSelectedCategoryId(selectedCategoryId === category.id ? null : category.id)
+                  setSelectedCategoryId(
+                    selectedCategoryId === category.id ? null : category.id,
+                  )
                 }
-                className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border flex flex-col items-center justify-center gap-0.5 leading-none ${
-                  category.images || category.icon ? "min-h-16" : ""
-                } ${
-                  selectedCategoryId === category.id
-                    ? "bg-base-200/30 border-primary text-primary"
-                    : "bg-base-200/30 border-transparent text-gray-700 hover:text-primary"
-                }`}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border flex flex-col items-center justify-center gap-0.5 leading-none ${category.images || category.icon ? "min-h-16" : ""
+                  } ${selectedCategoryId === category.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-gray-700 hover:text-primary"
+                  }`}
               >
                 {category.images ? (
-                  <img src={category.images} alt={category.name} className="h-8 w-8 md:h-9 md:w-9 object-cover rounded-full border border-base-300" />
+                  <img
+                    src={category.images}
+                    alt={category.name}
+                    className="h-8 w-8 md:h-9 md:w-9 object-cover rounded-full border border-base-300"
+                  />
                 ) : category.icon ? (
                   <span className="flex h-6 md:h-7 items-center justify-center text-xl md:text-2xl leading-none">
                     {category.icon}
                   </span>
                 ) : null}
-                <span className="text-center text-xs md:text-sm">{category.name}</span>
+                <span className="text-center text-xs md:text-sm">
+                  {category.name}
+                </span>
               </button>
             ))}
         </div>
@@ -728,7 +838,9 @@ export default function RestaurantMenuBrowser({
             </div>
           )}
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{selectedRestaurant.restaurant_name}</h2>
+            <h2 className="text-lg font-bold text-gray-900">
+              {selectedRestaurant.restaurant_name}
+            </h2>
             {selectedRestaurant.minCateringOrderQuantity &&
               selectedRestaurant.minCateringOrderQuantity > 0 && (
                 <p className="text-xs text-gray-500">
@@ -762,7 +874,9 @@ export default function RestaurantMenuBrowser({
         <div className="mt-3">
           {restaurantGroups.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-gray-500 text-sm">No items match the current filters.</p>
+              <p className="text-gray-500 text-sm">
+                No items match the current filters.
+              </p>
             </div>
           ) : (
             <>
@@ -781,11 +895,10 @@ export default function RestaurantMenuBrowser({
                           else groupButtonRefs.current.delete(group.name);
                         }}
                         onClick={() => handleGroupTabClick(group.name)}
-                        className={`flex-shrink-0 whitespace-nowrap rounded-full px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-semibold transition-colors ${
-                          isActive
-                            ? "bg-primary text-white"
-                            : "text-gray-500 hover:bg-black/5 hover:text-gray-700"
-                        }`}
+                        className={`flex-shrink-0 whitespace-nowrap rounded-full px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-semibold transition-colors ${isActive
+                          ? "bg-primary text-white"
+                          : "text-gray-500 hover:bg-black/5 hover:text-gray-700"
+                          }`}
                       >
                         {group.name}
                       </button>
@@ -797,7 +910,9 @@ export default function RestaurantMenuBrowser({
               {restaurantGroups.map((group) => {
                 const isCollapsed = collapsedGroups.has(group.name);
                 const groupCount =
-                  group.type === "bundles" ? group.bundles.length : group.items.length;
+                  group.type === "bundles"
+                    ? group.bundles.length
+                    : group.items.length;
                 return (
                   <div
                     key={group.name}
@@ -814,8 +929,12 @@ export default function RestaurantMenuBrowser({
                       className="w-full flex items-center justify-between py-2 px-1 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-primary">{group.name}</h3>
-                        <span className="text-xs text-gray-400 font-normal">({groupCount})</span>
+                        <h3 className="text-base font-bold text-primary">
+                          {group.name}
+                        </h3>
+                        <span className="text-xs text-gray-400 font-normal">
+                          ({groupCount})
+                        </span>
                       </div>
                       {isCollapsed ? (
                         <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -824,15 +943,19 @@ export default function RestaurantMenuBrowser({
                       )}
                     </button>
 
-                    {group.type === "items" && group.information && !isCollapsed && (
-                      <div className="flex items-start gap-1.5 px-1 pb-2">
-                        <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-gray-500 whitespace-pre-line">{group.information}</p>
-                      </div>
-                    )}
+                    {group.type === "items" &&
+                      group.information &&
+                      !isCollapsed && (
+                        <div className="flex items-start gap-1.5 px-1 pb-2">
+                          <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-gray-500 whitespace-pre-line">
+                            {group.information}
+                          </p>
+                        </div>
+                      )}
 
-                    {!isCollapsed && (
-                      group.type === "bundles" ? (
+                    {!isCollapsed &&
+                      (group.type === "bundles" ? (
                         bundlesLoading ? (
                           <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
                             <span className="loading loading-spinner loading-sm text-primary" />
@@ -849,7 +972,11 @@ export default function RestaurantMenuBrowser({
                         ) : (
                           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-1">
                             {group.bundles.map((bundle) => (
-                              <BundleCard key={bundle.id} bundle={bundle} onClick={setSelectedBundle} />
+                              <BundleCard
+                                key={bundle.id}
+                                bundle={bundle}
+                                onClick={setSelectedBundle}
+                              />
                             ))}
                           </div>
                         )
@@ -860,8 +987,8 @@ export default function RestaurantMenuBrowser({
                               key={item.id}
                               ref={
                                 expandedSessionIndex === sessionIndex &&
-                                itemIdx === 0 &&
-                                group.name === firstMenuGroupName
+                                  itemIdx === 0 &&
+                                  group.name === firstMenuGroupName
                                   ? firstMenuItemRef
                                   : undefined
                               }
@@ -871,7 +998,9 @@ export default function RestaurantMenuBrowser({
                                 quantity={getItemQuantity(item.id)}
                                 isExpanded={expandedItemId === item.id}
                                 onToggleExpand={() =>
-                                  setExpandedItemId(expandedItemId === item.id ? null : item.id)
+                                  setExpandedItemId(
+                                    expandedItemId === item.id ? null : item.id,
+                                  )
                                 }
                                 onAddItem={onAddItem}
                                 onUpdateQuantity={onUpdateQuantity}
@@ -880,8 +1009,7 @@ export default function RestaurantMenuBrowser({
                             </div>
                           ))}
                         </div>
-                      )
-                    )}
+                      ))}
                   </div>
                 );
               })}
@@ -942,7 +1070,9 @@ export default function RestaurantMenuBrowser({
                 <span className="block text-sm font-semibold text-gray-900">
                   Don&apos;t know what to get?
                 </span>
-                <span className="mt-1 block text-sm text-gray-600">Look at our bundles.</span>
+                <span className="mt-1 block text-sm text-gray-600">
+                  Look at our bundles.
+                </span>
               </span>
             </span>
             <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
@@ -963,7 +1093,9 @@ export default function RestaurantMenuBrowser({
         ) : searchResults && searchResults.length === 0 ? (
           <div className="text-center py-6">
             <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">No items found for &ldquo;{searchQuery}&rdquo;</p>
+            <p className="text-gray-500 text-sm">
+              No items found for &ldquo;{searchQuery}&rdquo;
+            </p>
           </div>
         ) : searchResults ? (
           <div className="mt-3">
@@ -971,14 +1103,16 @@ export default function RestaurantMenuBrowser({
               <div key={result.restaurant.id} className="mb-6">
                 <div className="mb-3 max-w-sm">
                   {renderRestaurantCard(result.restaurant, () =>
-                    handleSelectRestaurant(result.restaurant.id)
+                    handleSelectRestaurant(result.restaurant.id),
                   )}
                 </div>
                 {result.items.length > 0 && (
                   <div>
                     <h3 className="text-sm font-bold text-primary mb-2">
                       Matching items{" "}
-                      <span className="text-gray-400 font-normal">({result.items.length})</span>
+                      <span className="text-gray-400 font-normal">
+                        ({result.items.length})
+                      </span>
                     </h3>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                       {result.items.map((item) => (
@@ -988,7 +1122,9 @@ export default function RestaurantMenuBrowser({
                             quantity={getItemQuantity(item.id)}
                             isExpanded={expandedItemId === item.id}
                             onToggleExpand={() =>
-                              setExpandedItemId(expandedItemId === item.id ? null : item.id)
+                              setExpandedItemId(
+                                expandedItemId === item.id ? null : item.id,
+                              )
                             }
                             onAddItem={onAddItem}
                             onUpdateQuantity={onUpdateQuantity}
@@ -1012,7 +1148,9 @@ export default function RestaurantMenuBrowser({
             <div className="col-span-full py-8">
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="mt-2 text-sm text-gray-500">Loading restaurants...</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Loading restaurants...
+                </p>
               </div>
             </div>
           ) : filteredRestaurants.length === 0 ? (
@@ -1022,7 +1160,9 @@ export default function RestaurantMenuBrowser({
           ) : (
             filteredRestaurants.map((restaurant) => (
               <div key={restaurant.id}>
-                {renderRestaurantCard(restaurant, () => handleSelectRestaurant(restaurant.id))}
+                {renderRestaurantCard(restaurant, () =>
+                  handleSelectRestaurant(restaurant.id),
+                )}
               </div>
             ))
           )}
