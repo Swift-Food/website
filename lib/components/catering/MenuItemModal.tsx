@@ -54,86 +54,44 @@ export default function MenuItemModal({
   viewOnly = false,
   onAddToOrder,
 }: MenuItemModalProps) {
-  // console.log("Item: ", item);
   const [itemQuantity, setItemQuantity] = useState(1);
-  const [itemQuantityInput, setItemQuantityInput] = useState("1"); // String for input field
-  const [selectedAddons, setSelectedAddons] = useState<
-    Record<string, Record<string, boolean>>
-  >({});
-  const [addonQuantities, setAddonQuantities] = useState<
-    Record<string, Record<string, number>>
-  >({}); // For single-selection groups: tracks quantity per addon
-  const [addonQuantityInputs, setAddonQuantityInputs] = useState<
-    Record<string, Record<string, string>>
-  >({}); // String values for input fields
-  const [addonGroups, setAddonGroups] = useState<Record<string, AddonGroup>>(
-    {}
-  );
+  const [itemQuantityInput, setItemQuantityInput] = useState("1");
+  const [selectedAddons, setSelectedAddons] = useState<Record<string, Record<string, boolean>>>({});
+  const [addonQuantities, setAddonQuantities] = useState<Record<string, Record<string, number>>>({});
+  const [addonQuantityInputs, setAddonQuantityInputs] = useState<Record<string, Record<string, string>>>({});
+  const [addonGroups, setAddonGroups] = useState<Record<string, AddonGroup>>({});
   const [totalPrice, setTotalPrice] = useState(0);
   const [isAllergenExpanded, setIsAllergenExpanded] = useState(false);
-
-  const price = parseFloat(item.price?.toString() || "0");
-  const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-  const displayPrice =
-    item.isDiscount && discountPrice > 0 ? discountPrice : price;
-  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 1;
-  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 1;
-
-  // const numUnits = quantity / BACKEND_QUANTITY_UNIT;
-  // const displayQuantity = numUnits * DISPLAY_FEEDS_PER_UNIT;
-
-  // Track if user has modified the quantity for items without addons
   const [hasModifiedQuantity, setHasModifiedQuantity] = useState(false);
   const [initialModalQuantity, setInitialModalQuantity] = useState(0);
 
-  // Reset state when modal opens
+  const price = parseFloat(item.price?.toString() || "0");
+  const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+  const displayPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 1;
+  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 1;
+
+  // Single useEffect: initialize everything when modal opens
   useEffect(() => {
-    if (isOpen) {
-      console.log("[MenuItemModal] Modal opened with data:", {
-        item,
-        addons: item.addons,
-        selectedAddons: item.selectedAddons,
-        isEditMode,
-        quantity,
-      });
-      // Calculate initial quantity in portions
-      const initialPortions =
-        quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 1;
-      setItemQuantity(initialPortions);
-      setItemQuantityInput(initialPortions.toString());
-      setInitialModalQuantity(initialPortions);
-      setHasModifiedQuantity(false);
-      setIsAllergenExpanded(false);
+    if (!isOpen) return;
 
-      // If in edit mode, pre-populate the selected addons
-      if (isEditMode && item.selectedAddons && item.selectedAddons.length > 0) {
-        // We'll set these after addon groups are initialized
-        // This is handled in the next useEffect
-      } else {
-        setSelectedAddons({});
-        setAddonQuantities({});
-        setAddonQuantityInputs({});
-      }
-    }
-  }, [
-    isOpen,
-    quantity,
-    BACKEND_QUANTITY_UNIT,
-    isEditMode,
-    item.selectedAddons,
-  ]);
+    // 1. Calculate portions
+    const portions = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 1;
+    setItemQuantity(portions);
+    setItemQuantityInput(portions.toString());
+    setInitialModalQuantity(portions);
+    setHasModifiedQuantity(false);
+    setIsAllergenExpanded(false);
 
-  // Group addons and initialize selections
-  useEffect(() => {
-
+    // 2. Build addon groups from item data
     if (!item?.addons || item.addons.length === 0) {
       setAddonGroups({});
       setSelectedAddons({});
+      setAddonQuantities({});
+      setAddonQuantityInputs({});
       return;
     }
 
-
-    // Convert AddonGroup[] to Record<groupTitle, AddonGroup> for state
     const grouped: Record<string, AddonGroup> = {};
     for (const group of item.addons) {
       const selType = group.selectionType === 'multiple' ? 'multiple_no_repeat' : (group.selectionType || 'multiple_no_repeat');
@@ -144,65 +102,41 @@ export default function MenuItemModal({
     }
     setAddonGroups(grouped);
 
-    // Initialize selected addons state
-    const initialSelections: Record<string, Record<string, boolean>> = {};
-    const initialQuantities: Record<string, Record<string, number>> = {};
-    const initialQuantityInputs: Record<string, Record<string, string>> = {};
+    // 3. Initialize addon selections
+    const selections: Record<string, Record<string, boolean>> = {};
+    const quantities: Record<string, Record<string, number>> = {};
+    const quantityInputs: Record<string, Record<string, string>> = {};
 
-    Object.keys(grouped).forEach((groupTitle) => {
-      initialSelections[groupTitle] = {};
-      initialQuantities[groupTitle] = {};
-      initialQuantityInputs[groupTitle] = {};
-      const group = grouped[groupTitle];
+    for (const [groupTitle, group] of Object.entries(grouped)) {
+      selections[groupTitle] = {};
+      quantities[groupTitle] = {};
+      quantityInputs[groupTitle] = {};
       let singleDefaultSet = false;
 
-      grouped[groupTitle].items.forEach((addon) => {
-        const shouldPreSelect = !!addon.isDefault && !isEditMode;
-        if (shouldPreSelect && group.selectionType === 'single') {
-          if (!singleDefaultSet) {
-            initialSelections[groupTitle][addon.name] = true;
-            initialQuantities[groupTitle][addon.name] = itemQuantity;
-            initialQuantityInputs[groupTitle][addon.name] = itemQuantity.toString();
-            singleDefaultSet = true;
-          } else {
-            initialSelections[groupTitle][addon.name] = false;
-            initialQuantities[groupTitle][addon.name] = 0;
-            initialQuantityInputs[groupTitle][addon.name] = "0";
-          }
-        } else {
-          initialSelections[groupTitle][addon.name] = false;
-          initialQuantities[groupTitle][addon.name] = 0;
-          initialQuantityInputs[groupTitle][addon.name] = "0";
-        }
-      });
-    });
-
-    // If in edit mode, pre-populate with existing selections
-    if (isEditMode && item.selectedAddons && item.selectedAddons.length > 0) {
-      item.selectedAddons.forEach((selectedAddon) => {
-        const groupTitle = selectedAddon.groupTitle;
-        const addonName = selectedAddon.name;
-
-        if (
-          initialSelections[groupTitle] &&
-          initialSelections[groupTitle][addonName] !== undefined
-        ) {
-          initialSelections[groupTitle][addonName] = true;
-          initialQuantities[groupTitle][addonName] =
-            selectedAddon.quantity || 0;
-          initialQuantityInputs[groupTitle][addonName] = (
-            selectedAddon.quantity || 0
-          ).toString();
-        }
-      });
+      for (const addon of group.items) {
+        const preSelect = !!addon.isDefault && !isEditMode && group.selectionType === 'single' && !singleDefaultSet;
+        selections[groupTitle][addon.name] = preSelect;
+        quantities[groupTitle][addon.name] = preSelect ? portions : 0;
+        quantityInputs[groupTitle][addon.name] = preSelect ? portions.toString() : "0";
+        if (preSelect) singleDefaultSet = true;
+      }
     }
 
-    // console.log("Initial selections:", initialSelections);
-    // console.log("Initial quantities:", initialQuantities);
-    setSelectedAddons(initialSelections);
-    setAddonQuantities(initialQuantities);
-    setAddonQuantityInputs(initialQuantityInputs);
-  }, [item, isEditMode]);
+    // 4. Override with existing selections in edit mode
+    if (isEditMode && item.selectedAddons?.length) {
+      for (const sa of item.selectedAddons) {
+        if (selections[sa.groupTitle]?.[sa.name] !== undefined) {
+          selections[sa.groupTitle][sa.name] = true;
+          quantities[sa.groupTitle][sa.name] = sa.quantity || 0;
+          quantityInputs[sa.groupTitle][sa.name] = (sa.quantity || 0).toString();
+        }
+      }
+    }
+
+    setSelectedAddons(selections);
+    setAddonQuantities(quantities);
+    setAddonQuantityInputs(quantityInputs);
+  }, [isOpen, item, quantity, BACKEND_QUANTITY_UNIT, isEditMode]);
 
   // Calculate total price when quantity or selected addons change
   useEffect(() => {
