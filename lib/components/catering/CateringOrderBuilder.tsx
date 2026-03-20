@@ -1096,7 +1096,7 @@ export default function CateringOrderBuilder() {
           {/* Right Column: Active Session (Desktop only) */}
           <div className="hidden md:block md:w-[50%] xl:w-[40%] flex-shrink-0 self-start md:sticky md:top-24 h-[calc(100vh-7rem)]">
             {mealSessions[activeSessionIndex] && (
-              <div className="h-full overflow-hidden">
+              <div className="flex h-full flex-col gap-3 overflow-hidden">
                 <ActiveSessionPanel
                   session={mealSessions[activeSessionIndex]}
                   sessionIndex={activeSessionIndex}
@@ -1118,8 +1118,25 @@ export default function CateringOrderBuilder() {
                   isCurrentSessionValid={isCurrentSessionValid}
                   totalPrice={getTotalPrice()}
                   onCheckout={handleCheckout}
+                  showCheckoutButton={false}
                   restaurants={restaurants}
                 />
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={handleCheckout}
+                    className={`flex w-full items-center justify-between rounded-xl px-5 py-3 font-semibold text-white transition-colors ${
+                      isCurrentSessionValid
+                        ? "bg-primary hover:bg-primary/90"
+                        : "bg-warning hover:bg-warning/90"
+                    }`}
+                  >
+                    <div>
+                      <span className="text-sm opacity-90">Total</span>
+                      <span className="ml-2 text-lg font-bold">£{getTotalPrice().toFixed(2)}</span>
+                    </div>
+                    <span>{isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -22,10 +22,6 @@ export default function ActiveSessionPanel({
   collapsedCategories,
   onToggleCategory,
   onViewMenu,
-  isCurrentSessionValid,
-  totalPrice,
-  onCheckout,
-  showCheckoutButton = true,
   restaurants,
 }: ActiveSessionPanelProps) {
   const totalItemCount = session.orderItems.reduce(
@@ -219,27 +215,6 @@ export default function ActiveSessionPanel({
         )}
       </div>
 
-      {/* Inline Checkout Button */}
-      {showCheckoutButton && session.orderItems.length > 0 && (
-        <div className="px-4 pb-4 pt-3 md:px-5 md:pb-5 border-t border-base-200 bg-white">
-          <button
-            onClick={onCheckout}
-            className={`w-full flex items-center justify-between px-5 py-3 rounded-xl text-white font-semibold transition-colors ${
-              isCurrentSessionValid
-                ? "bg-primary hover:bg-primary/90"
-                : "bg-warning hover:bg-warning/90"
-            }`}
-          >
-            <div>
-              <span className="text-sm opacity-90">Total</span>
-              <span className="ml-2 text-lg font-bold">£{totalPrice.toFixed(2)}</span>
-            </div>
-            <span>
-              {isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}
-            </span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }
