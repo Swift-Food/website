@@ -1296,7 +1296,7 @@ const EditMenuItemPage = () => {
                     return (
                       <div
                         key={grpTitle}
-                        className="border border-gray-200 rounded-lg overflow-hidden"
+                        className="border border-gray-200 rounded-lg"
                       >
                         {/* Group Header */}
                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
@@ -1390,24 +1390,31 @@ const EditMenuItemPage = () => {
                               (a.groupTitle || "Other") === grpTitle ? { ...a, ...updates } : a
                             ));
                           };
+                          const syncDefaults = (newMin?: number, newMax?: number) => {
+                            setAddons((prev) => (prev || []).map((a) => {
+                              if ((a.groupTitle || "Other") !== grpTitle) return a;
+                              // All defaults ON when min >= items
+                              if (newMin != null && newMin >= itemCount) return { ...a, minSelections: newMin, maxSelections: newMax, isDefault: true };
+                              // Clear all defaults when min < items (they were auto-set)
+                              return { ...a, minSelections: newMin, maxSelections: newMax, isDefault: false };
+                            }));
+                          };
                           const handleMin = (raw: string) => {
-                            if (!raw) { applyGroup({ minSelections: undefined }); return; }
+                            if (!raw) { syncDefaults(undefined, groupMax); setLimitsWarning(null); return; }
                             const val = parseInt(raw);
                             if (val < 0) { warn("min", "Minimum must be 0 or more"); return; }
                             if (val > itemCount) { warn("min", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — minimum can't be higher than that`); return; }
                             if (groupMax != null && groupMax > 0 && val > groupMax) { warn("min", `Minimum can't be higher than your maximum (${groupMax})`); return; }
-                            const updates: Partial<MenuItemAddon> = { minSelections: val };
-                            if (val >= itemCount) updates.isDefault = true;
-                            applyGroup(updates);
+                            syncDefaults(val, groupMax);
                             setLimitsWarning(null);
                           };
                           const handleMax = (raw: string) => {
-                            if (!raw) { applyGroup({ maxSelections: undefined }); return; }
+                            if (!raw) { syncDefaults(groupMin, undefined); setLimitsWarning(null); return; }
                             const val = parseInt(raw);
                             if (val < 0) { warn("max", "Maximum must be 0 or more"); return; }
                             if (val > itemCount) { warn("max", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — maximum can't be higher than that`); return; }
                             if (groupMin != null && val < groupMin) { warn("max", `Maximum can't be lower than your minimum (${groupMin})`); return; }
-                            applyGroup({ maxSelections: val });
+                            syncDefaults(groupMin, val);
                             setLimitsWarning(null);
                           };
                           const showMinWarn = limitsWarning?.group === grpTitle && limitsWarning.field === "min";
@@ -1738,7 +1745,7 @@ const EditMenuItemPage = () => {
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
 
                 {/* ── Section 1: Basic Info ── */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-gray-200 rounded-lg">
                   <button
                     type="button"
                     onClick={() => setAddonSectionOpen(s => ({ ...s, basicInfo: !s.basicInfo }))}
@@ -1832,7 +1839,7 @@ const EditMenuItemPage = () => {
 
                 {/* ── Section 2: Addon Settings (only for single-selection groups) ── */}
                 {currentAddon.selectionType === "single" && (
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-gray-200 rounded-lg">
                   <button
                     type="button"
                     onClick={() => setAddonSectionOpen(s => ({ ...s, selectionRules: !s.selectionRules }))}
@@ -1896,7 +1903,7 @@ const EditMenuItemPage = () => {
                 )}
 
                 {/* ── Section 3: Allergens & Dietary ── */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-gray-200 rounded-lg">
                   <button
                     type="button"
                     onClick={() => setAddonSectionOpen(s => ({ ...s, allergensDietary: !s.allergensDietary }))}

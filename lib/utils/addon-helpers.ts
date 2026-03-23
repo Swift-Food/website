@@ -41,13 +41,16 @@ export function groupAddonsForApi(addons: MenuItemAddon[]): MenuItemAddonGroup[]
       displayOrder: addon.displayOrder,
     });
   }
-  // Auto-mark all items as default when min >= item count (no choice to make)
+  // Enforce default rules for non-single groups
   const result = Object.values(groups);
   for (const group of result) {
+    if (group.selectionType === "single") continue;
     if (group.minSelections != null && group.minSelections >= group.items.length) {
-      for (const item of group.items) {
-        item.isDefault = true;
-      }
+      // All defaults ON — customer has no choice
+      for (const item of group.items) item.isDefault = true;
+    } else {
+      // Clear defaults for non-single groups (defaults only make sense for single or all-required)
+      for (const item of group.items) item.isDefault = false;
     }
   }
   return result;
