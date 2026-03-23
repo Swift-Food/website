@@ -118,6 +118,22 @@ const ContactForm = () => {
                   <p className="text-sm text-gray-500 font-light leading-relaxed">
                     For inquiries to incorporate our catering flow into your website, contact us also. We offer flexible solutions for tech partners.
                   </p>
+                  <div className="mt-4 border border-dashed border-gray-300 rounded-sm p-4 flex flex-col gap-2">
+                    <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-primary">
+                      Coworking Partner
+                    </p>
+                    <p className="text-sm text-gray-500 font-light leading-relaxed">
+                      Planning from a coworking space? We also work with Halkin for space bookings with catering.
+                    </p>
+                    <a
+                      href="https://events.halkin.com/coworking/halkin/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-primary text-primary pb-0.5 w-fit hover:text-black hover:border-black transition-colors"
+                    >
+                      View Halkin Bookings →
+                    </a>
+                  </div>
                 </div>
               </div>
 
