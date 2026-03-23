@@ -1362,38 +1362,69 @@ const EditMenuItemPage = () => {
                           </div>
                           <div className="ml-auto flex items-center gap-2">
                             {/* Min/Max inline editors */}
-                            {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (
-                              <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                <span>Min</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={groupMin ?? ""}
-                                  onChange={(e) => {
-                                    const val = e.target.value ? parseInt(e.target.value) : undefined;
-                                    setAddons((prev) => (prev || []).map((a) =>
-                                      (a.groupTitle || "Other") === grpTitle ? { ...a, minSelections: val } : a
-                                    ));
-                                  }}
-                                  className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder="-"
-                                />
-                                <span>Max</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={groupMax ?? ""}
-                                  onChange={(e) => {
-                                    const val = e.target.value ? parseInt(e.target.value) : undefined;
-                                    setAddons((prev) => (prev || []).map((a) =>
-                                      (a.groupTitle || "Other") === grpTitle ? { ...a, maxSelections: val } : a
-                                    ));
-                                  }}
-                                  className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder="-"
-                                />
-                              </div>
-                            )}
+                            {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (() => {
+                              const itemCount = groupAddons.length;
+                              const updateGroupField = (field: "minSelections" | "maxSelections", raw: string) => {
+                                let val = raw ? parseInt(raw) : undefined;
+                                if (val != null) {
+                                  // Clamp to item count
+                                  val = Math.min(Math.max(0, val), itemCount);
+                                }
+                                setAddons((prev) => {
+                                  const updated = (prev || []).map((a) =>
+                                    (a.groupTitle || "Other") === grpTitle ? { ...a, [field]: val } : a
+                                  );
+                                  // Auto-enforce: if min > max, adjust the other
+                                  if (field === "minSelections" && val != null) {
+                                    const currentMax = updated.find((a) => (a.groupTitle || "Other") === grpTitle)?.maxSelections;
+                                    if (currentMax != null && val > currentMax) {
+                                      return updated.map((a) =>
+                                        (a.groupTitle || "Other") === grpTitle ? { ...a, maxSelections: val } : a
+                                      );
+                                    }
+                                  }
+                                  if (field === "maxSelections" && val != null) {
+                                    const currentMin = updated.find((a) => (a.groupTitle || "Other") === grpTitle)?.minSelections;
+                                    if (currentMin != null && val < currentMin) {
+                                      return updated.map((a) =>
+                                        (a.groupTitle || "Other") === grpTitle ? { ...a, minSelections: val } : a
+                                      );
+                                    }
+                                  }
+                                  // Auto-set isDefault when min >= itemCount
+                                  if (field === "minSelections" && val != null && val >= itemCount) {
+                                    return updated.map((a) =>
+                                      (a.groupTitle || "Other") === grpTitle ? { ...a, isDefault: true } : a
+                                    );
+                                  }
+                                  return updated;
+                                });
+                              };
+                              return (
+                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                  <span>Min</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={itemCount}
+                                    value={groupMin ?? ""}
+                                    onChange={(e) => updateGroupField("minSelections", e.target.value)}
+                                    className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="-"
+                                  />
+                                  <span>Max</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={itemCount}
+                                    value={groupMax ?? ""}
+                                    onChange={(e) => updateGroupField("maxSelections", e.target.value)}
+                                    className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="-"
+                                  />
+                                </div>
+                              );
+                            })()}
                             <button
                               type="button"
                               onClick={handleDeleteGroup}
