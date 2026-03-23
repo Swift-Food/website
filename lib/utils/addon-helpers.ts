@@ -41,7 +41,16 @@ export function groupAddonsForApi(addons: MenuItemAddon[]): MenuItemAddonGroup[]
       displayOrder: addon.displayOrder,
     });
   }
-  return Object.values(groups);
+  // Auto-mark all items as default when min >= item count (no choice to make)
+  const result = Object.values(groups);
+  for (const group of result) {
+    if (group.minSelections != null && group.minSelections >= group.items.length) {
+      for (const item of group.items) {
+        item.isDefault = true;
+      }
+    }
+  }
+  return result;
 }
 
 /**

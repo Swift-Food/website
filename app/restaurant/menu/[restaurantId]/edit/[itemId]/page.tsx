@@ -1361,6 +1361,39 @@ const EditMenuItemPage = () => {
                             </span>
                           </div>
                           <div className="ml-auto flex items-center gap-2">
+                            {/* Min/Max inline editors */}
+                            {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (
+                              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                <span>Min</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={groupMin ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value ? parseInt(e.target.value) : undefined;
+                                    setAddons((prev) => (prev || []).map((a) =>
+                                      (a.groupTitle || "Other") === grpTitle ? { ...a, minSelections: val } : a
+                                    ));
+                                  }}
+                                  className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="-"
+                                />
+                                <span>Max</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={groupMax ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value ? parseInt(e.target.value) : undefined;
+                                    setAddons((prev) => (prev || []).map((a) =>
+                                      (a.groupTitle || "Other") === grpTitle ? { ...a, maxSelections: val } : a
+                                    ));
+                                  }}
+                                  className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="-"
+                                />
+                              </div>
+                            )}
                             <button
                               type="button"
                               onClick={handleDeleteGroup}
