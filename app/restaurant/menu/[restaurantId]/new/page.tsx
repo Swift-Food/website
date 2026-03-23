@@ -1238,37 +1238,35 @@ const NewMenuItemPage = () => {
                           <div className="ml-auto flex items-center gap-2">
                             {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (() => {
                               const itemCount = groupAddons.length;
-                              const updateGroupField = (field: "minSelections" | "maxSelections", raw: string) => {
-                                let val = raw ? parseInt(raw) : undefined;
-                                if (val != null) val = Math.min(Math.max(0, val), itemCount);
-                                setAddons((prev) => {
-                                  const updated = (prev || []).map((a) =>
-                                    (a.groupTitle || "Other") === grpTitle ? { ...a, [field]: val } : a
-                                  );
-                                  if (field === "minSelections" && val != null) {
-                                    const currentMax = updated.find((a) => (a.groupTitle || "Other") === grpTitle)?.maxSelections;
-                                    if (currentMax != null && val > currentMax) {
-                                      return updated.map((a) => (a.groupTitle || "Other") === grpTitle ? { ...a, maxSelections: val } : a);
-                                    }
-                                  }
-                                  if (field === "maxSelections" && val != null) {
-                                    const currentMin = updated.find((a) => (a.groupTitle || "Other") === grpTitle)?.minSelections;
-                                    if (currentMin != null && val < currentMin) {
-                                      return updated.map((a) => (a.groupTitle || "Other") === grpTitle ? { ...a, minSelections: val } : a);
-                                    }
-                                  }
-                                  if (field === "minSelections" && val != null && val >= itemCount) {
-                                    return updated.map((a) => (a.groupTitle || "Other") === grpTitle ? { ...a, isDefault: true } : a);
-                                  }
-                                  return updated;
-                                });
+                              const applyGroup = (updates: Partial<MenuItemAddon>) => {
+                                setAddons((prev) => (prev || []).map((a) =>
+                                  (a.groupTitle || "Other") === grpTitle ? { ...a, ...updates } : a
+                                ));
+                              };
+                              const handleMin = (raw: string) => {
+                                if (!raw) { applyGroup({ minSelections: undefined }); return; }
+                                const val = parseInt(raw);
+                                if (val < 0) { alert("Min can't be negative"); return; }
+                                if (val > itemCount) { alert(`Min can't exceed the number of options (${itemCount})`); return; }
+                                if (groupMax != null && groupMax > 0 && val > groupMax) { alert("Min can't be more than Max"); return; }
+                                const updates: Partial<MenuItemAddon> = { minSelections: val };
+                                if (val >= itemCount) updates.isDefault = true;
+                                applyGroup(updates);
+                              };
+                              const handleMax = (raw: string) => {
+                                if (!raw) { applyGroup({ maxSelections: undefined }); return; }
+                                const val = parseInt(raw);
+                                if (val < 0) { alert("Max can't be negative"); return; }
+                                if (val > itemCount) { alert(`Max can't exceed the number of options (${itemCount})`); return; }
+                                if (groupMin != null && val < groupMin) { alert("Max can't be less than Min"); return; }
+                                applyGroup({ maxSelections: val });
                               };
                               return (
                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                   <span>Min</span>
-                                  <input type="number" min="0" max={itemCount} value={groupMin ?? ""} onChange={(e) => updateGroupField("minSelections", e.target.value)} className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="-" />
+                                  <input type="number" min="0" max={itemCount} value={groupMin ?? ""} onChange={(e) => handleMin(e.target.value)} className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="-" />
                                   <span>Max</span>
-                                  <input type="number" min="0" max={itemCount} value={groupMax ?? ""} onChange={(e) => updateGroupField("maxSelections", e.target.value)} className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="-" />
+                                  <input type="number" min="0" max={itemCount} value={groupMax ?? ""} onChange={(e) => handleMax(e.target.value)} className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="-" />
                                 </div>
                               );
                             })()}
