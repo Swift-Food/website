@@ -742,6 +742,7 @@ export interface UpdateDeliveryTimeDto {
   orderId: string;
   newEventTime: string;
   newCollectionTime?: string;
+  sessionId?: string;
   userId?: string;
   accessToken?: string;
 }
