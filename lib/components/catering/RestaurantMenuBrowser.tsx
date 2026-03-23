@@ -192,7 +192,7 @@ function formatTimeLabel(time: string): string {
 }
 
 function getClosestSlotLabel(
-  slots: Array<{ open?: string; close?: string }>,
+  slots: Array<{ open?: string | null; close?: string | null }>,
   eventTime?: string,
 ): string | null {
   const validSlots = slots.filter(
