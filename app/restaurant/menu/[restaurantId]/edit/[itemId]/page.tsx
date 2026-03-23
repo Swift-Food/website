@@ -111,6 +111,7 @@ const EditMenuItemPage = () => {
   // Addon table redesign state
   const [expandedAddonIndex, setExpandedAddonIndex] = useState<number | null>(null);
   const [editingGroupTitle, setEditingGroupTitle] = useState<Record<string, string>>({});
+  const [limitsWarning, setLimitsWarning] = useState<{ group: string; field: "min" | "max"; message: string } | null>(null);
 
   // Unsaved changes warning
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -1364,6 +1365,10 @@ const EditMenuItemPage = () => {
                             {/* Min/Max inline editors */}
                             {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (() => {
                               const itemCount = groupAddons.length;
+                              const warn = (field: "min" | "max", message: string) => {
+                                setLimitsWarning({ group: grpTitle, field, message });
+                                setTimeout(() => setLimitsWarning(null), 3500);
+                              };
                               const applyGroup = (updates: Partial<MenuItemAddon>) => {
                                 setAddons((prev) => (prev || []).map((a) =>
                                   (a.groupTitle || "Other") === grpTitle ? { ...a, ...updates } : a
@@ -1372,29 +1377,53 @@ const EditMenuItemPage = () => {
                               const handleMin = (raw: string) => {
                                 if (!raw) { applyGroup({ minSelections: undefined }); return; }
                                 const val = parseInt(raw);
-                                if (val < 0) { alert("Min can't be negative"); return; }
-                                if (val > itemCount) { alert(`Min can't exceed the number of options (${itemCount})`); return; }
-                                if (groupMax != null && groupMax > 0 && val > groupMax) { alert("Min can't be more than Max"); return; }
+                                if (val < 0) { warn("min", "Can't be negative"); return; }
+                                if (val > itemCount) { warn("min", `Can't exceed ${itemCount} options`); return; }
+                                if (groupMax != null && groupMax > 0 && val > groupMax) { warn("min", "Can't be more than Max"); return; }
                                 const updates: Partial<MenuItemAddon> = { minSelections: val };
                                 if (val >= itemCount) updates.isDefault = true;
                                 applyGroup(updates);
+                                setLimitsWarning(null);
                               };
                               const handleMax = (raw: string) => {
                                 if (!raw) { applyGroup({ maxSelections: undefined }); return; }
                                 const val = parseInt(raw);
-                                if (val < 0) { alert("Max can't be negative"); return; }
-                                if (val > itemCount) { alert(`Max can't exceed the number of options (${itemCount})`); return; }
-                                if (groupMin != null && val < groupMin) { alert("Max can't be less than Min"); return; }
+                                if (val < 0) { warn("max", "Can't be negative"); return; }
+                                if (val > itemCount) { warn("max", `Can't exceed ${itemCount} options`); return; }
+                                if (groupMin != null && val < groupMin) { warn("max", "Can't be less than Min"); return; }
                                 applyGroup({ maxSelections: val });
+                                setLimitsWarning(null);
                               };
+                              const showMinWarn = limitsWarning?.group === grpTitle && limitsWarning.field === "min";
+                              const showMaxWarn = limitsWarning?.group === grpTitle && limitsWarning.field === "max";
                               return (
                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                  <span>Min</span>
-                                  <input type="number" min="0" max={itemCount} value={groupMin ?? ""} onChange={(e) => handleMin(e.target.value)}
-                                    className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="-" />
-                                  <span>Max</span>
-                                  <input type="number" min="0" max={itemCount} value={groupMax ?? ""} onChange={(e) => handleMax(e.target.value)}
-                                    className="w-10 px-1.5 py-0.5 text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="-" />
+                                  <div className="relative">
+                                    <div className="flex items-center gap-1">
+                                      <span>Min</span>
+                                      <input type="number" min="0" max={itemCount} value={groupMin ?? ""} onChange={(e) => handleMin(e.target.value)}
+                                        className={`w-10 px-1.5 py-0.5 text-xs text-center border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${showMinWarn ? "border-amber-400 bg-amber-50" : "border-gray-300"}`} placeholder="-" />
+                                    </div>
+                                    {showMinWarn && (
+                                      <div className="absolute top-full left-0 mt-1 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                        <span className="text-amber-500 text-sm">⚠</span>
+                                        <span className="text-[11px] text-amber-800 font-medium">{limitsWarning.message}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="relative">
+                                    <div className="flex items-center gap-1">
+                                      <span>Max</span>
+                                      <input type="number" min="0" max={itemCount} value={groupMax ?? ""} onChange={(e) => handleMax(e.target.value)}
+                                        className={`w-10 px-1.5 py-0.5 text-xs text-center border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${showMaxWarn ? "border-amber-400 bg-amber-50" : "border-gray-300"}`} placeholder="-" />
+                                    </div>
+                                    {showMaxWarn && (
+                                      <div className="absolute top-full right-0 mt-1 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                        <span className="text-amber-500 text-sm">⚠</span>
+                                        <span className="text-[11px] text-amber-800 font-medium">{limitsWarning.message}</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               );
                             })()}
