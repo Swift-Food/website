@@ -433,6 +433,7 @@ export default function RestaurantMenuBrowser({
   const [hoursInfoPosition, setHoursInfoPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const groupButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -469,6 +470,10 @@ export default function RestaurantMenuBrowser({
       return;
     }
 
+    if (isMobileViewport) {
+      return;
+    }
+
     const handlePointerDown = (event: MouseEvent) => {
       const button = hoursInfoButtonRefs.current.get(openHoursInfoRestaurantId);
       if (button?.contains(event.target as Node)) {
@@ -488,7 +493,20 @@ export default function RestaurantMenuBrowser({
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
     };
-  }, [openHoursInfoRestaurantId]);
+  }, [openHoursInfoRestaurantId, isMobileViewport]);
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsMobileViewport(window.innerWidth < 768);
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+
+    return () => {
+      window.removeEventListener("resize", updateViewport);
+    };
+  }, []);
 
   const updateHoursInfoPosition = useCallback((restaurantId: string) => {
     const button = hoursInfoButtonRefs.current.get(restaurantId);
@@ -606,7 +624,7 @@ export default function RestaurantMenuBrowser({
     openHoursInfoRestaurantId || hoveredHoursInfoRestaurantId;
 
   useEffect(() => {
-    if (!activeHoursInfoRestaurantId) {
+    if (!activeHoursInfoRestaurantId || isMobileViewport) {
       return;
     }
 
@@ -620,7 +638,7 @@ export default function RestaurantMenuBrowser({
       window.removeEventListener("resize", syncPosition);
       window.removeEventListener("scroll", syncPosition, true);
     };
-  }, [activeHoursInfoRestaurantId, updateHoursInfoPosition]);
+  }, [activeHoursInfoRestaurantId, updateHoursInfoPosition, isMobileViewport]);
 
   const searchResults = useMemo(() => {
     if (!isSearchActive) return null;
@@ -971,48 +989,49 @@ export default function RestaurantMenuBrowser({
 
     const cardContent = (
       <div className="overflow-hidden rounded-xl bg-white">
-        {restaurant.images && restaurant.images.length > 0 ? (
-          <div className="relative w-full aspect-video bg-gray-100">
-            <img
-              src={restaurant.images[0]}
-              alt={restaurant.restaurant_name}
-              className={`w-full h-full object-cover ${
-                isUnavailableForSession ? "grayscale opacity-60" : ""
-              }`}
-            />
-            {isUnavailableForSession ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/35 px-3 text-center">
-                <span
-                  className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-red-500 shadow-sm"
-                  title={hoursTooltipText}
-                >
-                  Unavailable at this time
-                </span>
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          <div
-            className={`relative w-full aspect-video flex items-center justify-center ${
-              isUnavailableForSession ? "bg-gray-200" : "bg-base-200"
-            }`}
-          >
-            <span className="text-3xl font-bold text-gray-300">
-              {restaurant.restaurant_name.charAt(0)}
-            </span>
-            {isUnavailableForSession ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/35 px-3 text-center">
-                <span
-                  className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-red-500 shadow-sm"
-                  title={hoursTooltipText}
-                >
-                  Unavailable at this time
-                </span>
-              </div>
-            ) : null}
-          </div>
-        )}
-        <div className="p-3">
+        <div className="flex md:block">
+          {restaurant.images && restaurant.images.length > 0 ? (
+            <div className="relative aspect-square w-28 flex-shrink-0 bg-gray-100 md:w-full md:aspect-video">
+              <img
+                src={restaurant.images[0]}
+                alt={restaurant.restaurant_name}
+                className={`w-full h-full object-cover ${
+                  isUnavailableForSession ? "grayscale opacity-60" : ""
+                }`}
+              />
+              {isUnavailableForSession ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/35 px-2 text-center">
+                  <span
+                    className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-red-500 shadow-sm md:px-3 md:text-[11px]"
+                    title={hoursTooltipText}
+                  >
+                    Unavailable
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div
+              className={`relative aspect-square w-28 flex-shrink-0 items-center justify-center ${
+                isUnavailableForSession ? "bg-gray-200" : "bg-base-200"
+              } flex md:w-full md:aspect-video`}
+            >
+              <span className="text-2xl font-bold text-gray-300 md:text-3xl">
+                {restaurant.restaurant_name.charAt(0)}
+              </span>
+              {isUnavailableForSession ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/35 px-2 text-center">
+                  <span
+                    className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-red-500 shadow-sm md:px-3 md:text-[11px]"
+                    title={hoursTooltipText}
+                  >
+                    Unavailable
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          )}
+          <div className="min-w-0 flex-1 p-3">
           <p className="line-clamp-2 text-sm font-semibold leading-tight text-gray-900">
             {restaurant.restaurant_name}
           </p>
@@ -1071,19 +1090,25 @@ export default function RestaurantMenuBrowser({
                   aria-label={`View weekly catering hours for ${restaurant.restaurant_name}`}
                   onClick={(event) => {
                     event.stopPropagation();
-                    updateHoursInfoPosition(restaurant.id);
+                    if (!isMobileViewport) {
+                      updateHoursInfoPosition(restaurant.id);
+                    }
                     setOpenHoursInfoRestaurantId((current) =>
                       current === restaurant.id ? null : restaurant.id,
                     );
                   }}
                   onMouseEnter={() => {
-                    updateHoursInfoPosition(restaurant.id);
-                    setHoveredHoursInfoRestaurantId(restaurant.id);
+                    if (!isMobileViewport) {
+                      updateHoursInfoPosition(restaurant.id);
+                      setHoveredHoursInfoRestaurantId(restaurant.id);
+                    }
                   }}
                   onMouseLeave={() => {
-                    setHoveredHoursInfoRestaurantId((current) =>
-                      current === restaurant.id ? null : current
-                    );
+                    if (!isMobileViewport) {
+                      setHoveredHoursInfoRestaurantId((current) =>
+                        current === restaurant.id ? null : current
+                      );
+                    }
                   }}
                   className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-base-300 bg-white text-gray-500 shadow-sm transition-colors hover:text-primary focus:outline-none"
                   title="View weekly catering hours"
@@ -1093,6 +1118,7 @@ export default function RestaurantMenuBrowser({
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     );
@@ -1153,7 +1179,7 @@ export default function RestaurantMenuBrowser({
   );
 
   const hoursInfoTooltip =
-    activeHoursInfoRestaurantId && hoursInfoPosition
+    !isMobileViewport && activeHoursInfoRestaurantId && hoursInfoPosition
       ? createPortal(
           <div
             ref={hoursInfoContainerRef}
@@ -1174,6 +1200,45 @@ export default function RestaurantMenuBrowser({
             }}
           >
             {restaurantHoursTooltipTextById.get(activeHoursInfoRestaurantId)}
+          </div>,
+          document.body,
+        )
+      : null;
+
+  const mobileHoursInfoSheet =
+    isMobileViewport && openHoursInfoRestaurantId
+      ? createPortal(
+          <div className="fixed inset-0 z-[1000] flex items-end bg-black/30">
+            <button
+              type="button"
+              aria-label="Close weekly catering hours"
+              className="absolute inset-0 cursor-default"
+              onClick={() => setOpenHoursInfoRestaurantId(null)}
+            />
+            <div className="relative z-10 w-full rounded-t-2xl bg-white p-4 shadow-2xl">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    Weekly catering hours
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {restaurants.find((restaurant) => restaurant.id === openHoursInfoRestaurantId)
+                      ?.restaurant_name || "Restaurant"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOpenHoursInfoRestaurantId(null)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-base-300 bg-white text-gray-500 shadow-sm"
+                  aria-label="Close weekly catering hours"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="mt-3 whitespace-pre-line rounded-xl bg-base-100 px-3 py-3 text-sm leading-5 text-gray-700">
+                {restaurantHoursTooltipTextById.get(openHoursInfoRestaurantId)}
+              </div>
+            </div>
           </div>,
           document.body,
         )
@@ -1453,6 +1518,7 @@ export default function RestaurantMenuBrowser({
   return (
     <div style={{ contain: "inline-size" }}>
       {hoursInfoTooltip}
+      {mobileHoursInfoSheet}
       <div className="relative mt-2 mb-2">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
@@ -1531,7 +1597,7 @@ export default function RestaurantMenuBrowser({
                         ({result.items.length})
                       </span>
                     </h3>
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       {result.items.map((item) => (
                         <div key={item.id}>
                           <MenuItemCard
@@ -1559,7 +1625,7 @@ export default function RestaurantMenuBrowser({
       ) : (
         <div
           ref={restaurantListRef}
-          className="grid grid-cols-2 xl:grid-cols-3 gap-3 mt-3"
+          className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mt-3"
         >
           {restaurantsLoading ? (
             <div className="col-span-full py-8">
