@@ -641,6 +641,12 @@ const EditMenuItemPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
+      <style>{`
+        @keyframes limitsSlideIn {
+          from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+          to { opacity: 1; max-height: 60px; padding-top: 0.625rem; padding-bottom: 0.625rem; }
+        }
+      `}</style>
       <div className="max-w-4xl mx-auto py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -1362,71 +1368,6 @@ const EditMenuItemPage = () => {
                             </span>
                           </div>
                           <div className="ml-auto flex items-center gap-2">
-                            {/* Min/Max inline editors */}
-                            {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (() => {
-                              const itemCount = groupAddons.length;
-                              const warn = (field: "min" | "max", message: string) => {
-                                setLimitsWarning({ group: grpTitle, field, message });
-                                setTimeout(() => setLimitsWarning(null), 3500);
-                              };
-                              const applyGroup = (updates: Partial<MenuItemAddon>) => {
-                                setAddons((prev) => (prev || []).map((a) =>
-                                  (a.groupTitle || "Other") === grpTitle ? { ...a, ...updates } : a
-                                ));
-                              };
-                              const handleMin = (raw: string) => {
-                                if (!raw) { applyGroup({ minSelections: undefined }); return; }
-                                const val = parseInt(raw);
-                                if (val < 0) { warn("min", "Minimum must be 0 or more"); return; }
-                                if (val > itemCount) { warn("min", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — minimum can't be higher than that`); return; }
-                                if (groupMax != null && groupMax > 0 && val > groupMax) { warn("min", `Minimum can't be higher than your maximum (${groupMax})`); return; }
-                                const updates: Partial<MenuItemAddon> = { minSelections: val };
-                                if (val >= itemCount) updates.isDefault = true;
-                                applyGroup(updates);
-                                setLimitsWarning(null);
-                              };
-                              const handleMax = (raw: string) => {
-                                if (!raw) { applyGroup({ maxSelections: undefined }); return; }
-                                const val = parseInt(raw);
-                                if (val < 0) { warn("max", "Maximum must be 0 or more"); return; }
-                                if (val > itemCount) { warn("max", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — maximum can't be higher than that`); return; }
-                                if (groupMin != null && val < groupMin) { warn("max", `Maximum can't be lower than your minimum (${groupMin})`); return; }
-                                applyGroup({ maxSelections: val });
-                                setLimitsWarning(null);
-                              };
-                              const showMinWarn = limitsWarning?.group === grpTitle && limitsWarning.field === "min";
-                              const showMaxWarn = limitsWarning?.group === grpTitle && limitsWarning.field === "max";
-                              return (
-                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                  <div className="relative">
-                                    <div className="flex items-center gap-1">
-                                      <span>Min</span>
-                                      <input type="number" min="0" max={itemCount} value={groupMin ?? ""} onChange={(e) => handleMin(e.target.value)}
-                                        className={`w-10 px-1.5 py-0.5 text-xs text-center border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${showMinWarn ? "border-amber-400 bg-amber-50" : "border-gray-300"}`} placeholder="-" />
-                                    </div>
-                                    {showMinWarn && (
-                                      <div className="absolute top-full left-0 mt-1 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
-                                        <span className="text-amber-500 text-sm">⚠</span>
-                                        <span className="text-[11px] text-amber-800 font-medium">{limitsWarning.message}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="relative">
-                                    <div className="flex items-center gap-1">
-                                      <span>Max</span>
-                                      <input type="number" min="0" max={itemCount} value={groupMax ?? ""} onChange={(e) => handleMax(e.target.value)}
-                                        className={`w-10 px-1.5 py-0.5 text-xs text-center border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${showMaxWarn ? "border-amber-400 bg-amber-50" : "border-gray-300"}`} placeholder="-" />
-                                    </div>
-                                    {showMaxWarn && (
-                                      <div className="absolute top-full right-0 mt-1 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
-                                        <span className="text-amber-500 text-sm">⚠</span>
-                                        <span className="text-[11px] text-amber-800 font-medium">{limitsWarning.message}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })()}
                             <button
                               type="button"
                               onClick={handleDeleteGroup}
@@ -1436,6 +1377,78 @@ const EditMenuItemPage = () => {
                             </button>
                           </div>
                         </div>
+
+                        {/* Limits row — slides in for non-single groups */}
+                        {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (() => {
+                          const itemCount = groupAddons.length;
+                          const warn = (field: "min" | "max", message: string) => {
+                            setLimitsWarning({ group: grpTitle, field, message });
+                            setTimeout(() => setLimitsWarning(null), 3500);
+                          };
+                          const applyGroup = (updates: Partial<MenuItemAddon>) => {
+                            setAddons((prev) => (prev || []).map((a) =>
+                              (a.groupTitle || "Other") === grpTitle ? { ...a, ...updates } : a
+                            ));
+                          };
+                          const handleMin = (raw: string) => {
+                            if (!raw) { applyGroup({ minSelections: undefined }); return; }
+                            const val = parseInt(raw);
+                            if (val < 0) { warn("min", "Minimum must be 0 or more"); return; }
+                            if (val > itemCount) { warn("min", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — minimum can't be higher than that`); return; }
+                            if (groupMax != null && groupMax > 0 && val > groupMax) { warn("min", `Minimum can't be higher than your maximum (${groupMax})`); return; }
+                            const updates: Partial<MenuItemAddon> = { minSelections: val };
+                            if (val >= itemCount) updates.isDefault = true;
+                            applyGroup(updates);
+                            setLimitsWarning(null);
+                          };
+                          const handleMax = (raw: string) => {
+                            if (!raw) { applyGroup({ maxSelections: undefined }); return; }
+                            const val = parseInt(raw);
+                            if (val < 0) { warn("max", "Maximum must be 0 or more"); return; }
+                            if (val > itemCount) { warn("max", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — maximum can't be higher than that`); return; }
+                            if (groupMin != null && val < groupMin) { warn("max", `Maximum can't be lower than your minimum (${groupMin})`); return; }
+                            applyGroup({ maxSelections: val });
+                            setLimitsWarning(null);
+                          };
+                          const showMinWarn = limitsWarning?.group === grpTitle && limitsWarning.field === "min";
+                          const showMaxWarn = limitsWarning?.group === grpTitle && limitsWarning.field === "max";
+                          return (
+                            <div
+                              className="flex items-center gap-3 px-4 py-2.5 bg-blue-50/50 border-b border-blue-100"
+                              style={{ animation: "limitsSlideIn 0.3s ease-out" }}
+                            >
+                              <span className="text-[11px] font-medium text-blue-700">How many must the customer choose?</span>
+                              <div className="flex items-center gap-2 ml-auto">
+                                <div className="relative">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[11px] text-gray-500">at least</span>
+                                    <input type="number" min="0" max={itemCount} value={groupMin ?? ""} onChange={(e) => handleMin(e.target.value)}
+                                      className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMinWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
+                                  </div>
+                                  {showMinWarn && (
+                                    <div className="absolute top-full left-0 mt-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                      <span className="text-amber-500 text-sm">⚠</span>
+                                      <span className="text-[11px] text-amber-800 font-medium">{limitsWarning!.message}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="relative">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[11px] text-gray-500">at most</span>
+                                    <input type="number" min="0" max={itemCount} value={groupMax ?? ""} onChange={(e) => handleMax(e.target.value)}
+                                      className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMaxWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
+                                  </div>
+                                  {showMaxWarn && (
+                                    <div className="absolute top-full right-0 mt-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                      <span className="text-amber-500 text-sm">⚠</span>
+                                      <span className="text-[11px] text-amber-800 font-medium">{limitsWarning!.message}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Column Headers */}
                         <div
