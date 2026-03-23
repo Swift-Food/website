@@ -1307,7 +1307,7 @@ const NewMenuItemPage = () => {
                                       className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMinWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
                                   </div>
                                   {showMinWarn && (
-                                    <div className="absolute bottom-full left-0 mb-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                    <div className="absolute bottom-full left-0 mb-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg flex items-start gap-1.5 max-w-[280px]">
                                       <span className="text-amber-500 text-sm">⚠</span>
                                       <span className="text-[11px] text-amber-800 font-medium">{limitsWarning!.message}</span>
                                     </div>
@@ -1320,7 +1320,7 @@ const NewMenuItemPage = () => {
                                       className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMaxWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
                                   </div>
                                   {showMaxWarn && (
-                                    <div className="absolute bottom-full right-0 mb-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                    <div className="absolute bottom-full right-0 mb-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg flex items-start gap-1.5 max-w-[280px]">
                                       <span className="text-amber-500 text-sm">⚠</span>
                                       <span className="text-[11px] text-amber-800 font-medium">{limitsWarning!.message}</span>
                                     </div>
