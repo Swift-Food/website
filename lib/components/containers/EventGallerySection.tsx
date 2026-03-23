@@ -104,7 +104,7 @@ export default function EventGallerySection() {
             }`}
           >
             <span className="text-7xl md:text-8xl font-black text-white">
-              75+
+              100+
             </span>
             <span className="text-sm font-bold tracking-[0.3em] uppercase text-white/70 mt-2">
               Events catered
