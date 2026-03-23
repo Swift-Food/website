@@ -1277,7 +1277,11 @@ const EditMenuItemPage = () => {
                       setAddons((prev) =>
                         (prev || []).map((addon) =>
                           (addon.groupTitle || "Other") === grpTitle
-                            ? { ...addon, selectionType: selType }
+                            ? {
+                                ...addon,
+                                selectionType: selType,
+                                ...(selType === "single" ? { minSelections: undefined, maxSelections: undefined, isDefault: false } : {}),
+                              }
                             : addon
                         )
                       );
