@@ -1377,9 +1377,9 @@ const EditMenuItemPage = () => {
                               const handleMin = (raw: string) => {
                                 if (!raw) { applyGroup({ minSelections: undefined }); return; }
                                 const val = parseInt(raw);
-                                if (val < 0) { warn("min", "Can't be negative"); return; }
-                                if (val > itemCount) { warn("min", `Can't exceed ${itemCount} options`); return; }
-                                if (groupMax != null && groupMax > 0 && val > groupMax) { warn("min", "Can't be more than Max"); return; }
+                                if (val < 0) { warn("min", "Minimum must be 0 or more"); return; }
+                                if (val > itemCount) { warn("min", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — minimum can't be higher than that`); return; }
+                                if (groupMax != null && groupMax > 0 && val > groupMax) { warn("min", `Minimum can't be higher than your maximum (${groupMax})`); return; }
                                 const updates: Partial<MenuItemAddon> = { minSelections: val };
                                 if (val >= itemCount) updates.isDefault = true;
                                 applyGroup(updates);
@@ -1388,9 +1388,9 @@ const EditMenuItemPage = () => {
                               const handleMax = (raw: string) => {
                                 if (!raw) { applyGroup({ maxSelections: undefined }); return; }
                                 const val = parseInt(raw);
-                                if (val < 0) { warn("max", "Can't be negative"); return; }
-                                if (val > itemCount) { warn("max", `Can't exceed ${itemCount} options`); return; }
-                                if (groupMin != null && val < groupMin) { warn("max", "Can't be less than Min"); return; }
+                                if (val < 0) { warn("max", "Maximum must be 0 or more"); return; }
+                                if (val > itemCount) { warn("max", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — maximum can't be higher than that`); return; }
+                                if (groupMin != null && val < groupMin) { warn("max", `Maximum can't be lower than your minimum (${groupMin})`); return; }
                                 applyGroup({ maxSelections: val });
                                 setLimitsWarning(null);
                               };
