@@ -8,6 +8,7 @@ import {
   RefObject,
   useCallback,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   Search,
   X,
@@ -128,6 +129,50 @@ function getRestaurantAdvanceNoticeText(restaurant: Restaurant): string | null {
   return null;
 }
 
+function isRestaurantAdvanceNoticeMet(
+  restaurant: Restaurant,
+  sessionDate?: string,
+  eventTime?: string,
+): boolean {
+  if (!sessionDate || !eventTime) return true;
+
+  const date = new Date(sessionDate + "T00:00:00");
+  const [eventHours, eventMinutes] = eventTime.split(":").map(Number);
+  date.setHours(eventHours, eventMinutes || 0, 0, 0);
+  const now = new Date();
+  const hoursUntilEvent = (date.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  const notice = restaurant.advanceNoticeSettings;
+  if (
+    notice?.type === "hours" &&
+    typeof notice.hours === "number" &&
+    notice.hours > 0
+  ) {
+    return hoursUntilEvent >= notice.hours;
+  }
+
+  if (notice?.type === "days_before_time" && typeof notice.days === "number") {
+    const cutoff = new Date(date);
+    cutoff.setDate(cutoff.getDate() - notice.days);
+    if (notice.cutoffTime) {
+      const [cutoffHours, cutoffMinutes] = notice.cutoffTime.split(":").map(Number);
+      cutoff.setHours(cutoffHours, cutoffMinutes || 0, 0, 0);
+    } else {
+      cutoff.setHours(23, 59, 59, 999);
+    }
+    return now <= cutoff;
+  }
+
+  if (
+    typeof restaurant.minimumDeliveryNoticeHours === "number" &&
+    restaurant.minimumDeliveryNoticeHours > 0
+  ) {
+    return hoursUntilEvent >= restaurant.minimumDeliveryNoticeHours;
+  }
+
+  return true;
+}
+
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + (m || 0);
@@ -146,17 +191,98 @@ function formatTimeLabel(time: string): string {
   return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 }
 
+function getClosestSlotLabel(
+  slots: Array<{ open?: string; close?: string }>,
+  eventTime?: string,
+): string | null {
+  const validSlots = slots.filter(
+    (slot): slot is { open: string; close: string } =>
+      Boolean(slot.open) && Boolean(slot.close),
+  );
+
+  if (validSlots.length === 0) {
+    return null;
+  }
+
+  if (!eventTime) {
+    const firstSlot = validSlots[0];
+    return `${formatTimeLabel(firstSlot.open)} - ${formatTimeLabel(firstSlot.close)}`;
+  }
+
+  const eventMinutes = timeToMinutes(eventTime);
+  const closestSlot = validSlots.reduce((closest, slot) => {
+    const openMinutes = timeToMinutes(slot.open);
+    const closeMinutes = timeToMinutes(slot.close);
+    const distance =
+      eventMinutes < openMinutes
+        ? openMinutes - eventMinutes
+        : eventMinutes > closeMinutes
+          ? eventMinutes - closeMinutes
+          : 0;
+
+    if (!closest || distance < closest.distance) {
+      return { slot, distance };
+    }
+
+    return closest;
+  }, null as { slot: { open: string; close: string }; distance: number } | null);
+
+  if (!closestSlot) {
+    return null;
+  }
+
+  return `${formatTimeLabel(closestSlot.slot.open)} - ${formatTimeLabel(
+    closestSlot.slot.close,
+  )}`;
+}
+
+function getWeeklyCateringHoursText(restaurant: Restaurant): string {
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
+  if (!restaurant.cateringOperatingHours?.length) {
+    return "No catering hours set for this week";
+  }
+
+  return days
+    .map((day) => {
+      const daySlots = restaurant.cateringOperatingHours!.filter(
+        (slot) => slot.day.toLowerCase() === day.toLowerCase() && slot.enabled,
+      ).filter((slot) => slot.open && slot.close);
+
+      if (daySlots.length === 0) {
+        return `${day}: No catering`;
+      }
+
+      const label = daySlots
+        .map((slot) => `${formatTimeLabel(slot.open!)} - ${formatTimeLabel(slot.close!)}`)
+        .join(" / ");
+
+      return `${day}: ${label}`;
+    })
+    .join("\n");
+}
+
 function getRestaurantCateringWindowInfo(
   restaurant: Restaurant,
   sessionDate?: string,
   eventTime?: string,
 ): {
   text: string;
+  fullText: string;
   isAvailable: boolean;
 } {
   if (!sessionDate) {
     return {
       text: "Set a session date to view catering times",
+      fullText: getWeeklyCateringHoursText(restaurant),
       isAvailable: true,
     };
   }
@@ -171,16 +297,19 @@ function getRestaurantCateringWindowInfo(
       if (override.isClosed) {
         return {
           text: "No catering on this day",
+          fullText: getWeeklyCateringHoursText(restaurant),
           isAvailable: false,
         };
       }
       if (override.timeSlots?.length) {
-        const text = override.timeSlots
-          .map((slot) => `${formatTimeLabel(slot.open)} - ${formatTimeLabel(slot.close)}`)
-          .join(" / ");
+        const closestSlotLabel = getClosestSlotLabel(override.timeSlots, eventTime);
 
         if (!eventTime) {
-          return { text, isAvailable: true };
+          return {
+            text: closestSlotLabel || "Catering times unavailable",
+            fullText: getWeeklyCateringHoursText(restaurant),
+            isAvailable: true,
+          };
         }
 
         const eventMinutes = timeToMinutes(eventTime);
@@ -190,7 +319,11 @@ function getRestaurantCateringWindowInfo(
             eventMinutes <= timeToMinutes(slot.close),
         );
 
-        return { text, isAvailable };
+        return {
+          text: closestSlotLabel || "Catering times unavailable",
+          fullText: getWeeklyCateringHoursText(restaurant),
+          isAvailable,
+        };
       }
     }
   }
@@ -198,6 +331,7 @@ function getRestaurantCateringWindowInfo(
   if (!restaurant.cateringOperatingHours?.length) {
     return {
       text: "No catering on this day",
+      fullText: getWeeklyCateringHoursText(restaurant),
       isAvailable: false,
     };
   }
@@ -213,17 +347,19 @@ function getRestaurantCateringWindowInfo(
   if (daySlots.length === 0) {
     return {
       text: "No catering on this day",
+      fullText: getWeeklyCateringHoursText(restaurant),
       isAvailable: false,
     };
   }
 
-  const text = daySlots
-    .filter((slot) => slot.open && slot.close)
-    .map((slot) => `${formatTimeLabel(slot.open)} - ${formatTimeLabel(slot.close)}`)
-    .join(" / ");
+  const closestSlotLabel = getClosestSlotLabel(daySlots, eventTime);
 
   if (!eventTime) {
-    return { text, isAvailable: true };
+    return {
+      text: closestSlotLabel || "Catering times unavailable",
+      fullText: getWeeklyCateringHoursText(restaurant),
+      isAvailable: true,
+    };
   }
 
   const eventMinutes = timeToMinutes(eventTime);
@@ -235,7 +371,11 @@ function getRestaurantCateringWindowInfo(
     );
   });
 
-  return { text, isAvailable };
+  return {
+    text: closestSlotLabel || "Catering times unavailable",
+    fullText: getWeeklyCateringHoursText(restaurant),
+    isAvailable,
+  };
 }
 
 export default function RestaurantMenuBrowser({
@@ -288,10 +428,17 @@ export default function RestaurantMenuBrowser({
     useState<CateringBundleResponse | null>(null);
   const [addingBundleId, setAddingBundleId] = useState<string | null>(null);
   const [menuItemsCache, setMenuItemsCache] = useState<MenuItem[] | null>(null);
+  const [openHoursInfoRestaurantId, setOpenHoursInfoRestaurantId] = useState<string | null>(null);
+  const [hoveredHoursInfoRestaurantId, setHoveredHoursInfoRestaurantId] = useState<string | null>(null);
+  const [hoursInfoPosition, setHoursInfoPosition] = useState<{ top: number; left: number } | null>(
+    null,
+  );
 
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const groupButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const isProgrammaticScroll = useRef(false);
+  const hoursInfoContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoursInfoButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   // Eagerly load all menu items on mount
   useEffect(() => {
@@ -315,6 +462,44 @@ export default function RestaurantMenuBrowser({
       }
     };
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (!openHoursInfoRestaurantId) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const button = hoursInfoButtonRefs.current.get(openHoursInfoRestaurantId);
+      if (button?.contains(event.target as Node)) {
+        return;
+      }
+
+      if (
+        hoursInfoContainerRef.current &&
+        !hoursInfoContainerRef.current.contains(event.target as Node)
+      ) {
+        setOpenHoursInfoRestaurantId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [openHoursInfoRestaurantId]);
+
+  const updateHoursInfoPosition = useCallback((restaurantId: string) => {
+    const button = hoursInfoButtonRefs.current.get(restaurantId);
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    setHoursInfoPosition({
+      top: rect.top - 8,
+      left: rect.right,
+    });
   }, []);
 
   // Fetch bundles when restaurant selection changes
@@ -355,16 +540,28 @@ export default function RestaurantMenuBrowser({
 
   const compareRestaurantsByAvailability = useCallback(
     (a: Restaurant, b: Restaurant) => {
-      const aAvailable = getRestaurantCateringWindowInfo(
+      const aAvailableForTime = getRestaurantCateringWindowInfo(
         a,
         activeSession?.sessionDate,
         activeSession?.eventTime,
       ).isAvailable;
-      const bAvailable = getRestaurantCateringWindowInfo(
+      const bAvailableForTime = getRestaurantCateringWindowInfo(
         b,
         activeSession?.sessionDate,
         activeSession?.eventTime,
       ).isAvailable;
+      const aNoticeMet = isRestaurantAdvanceNoticeMet(
+        a,
+        activeSession?.sessionDate,
+        activeSession?.eventTime,
+      );
+      const bNoticeMet = isRestaurantAdvanceNoticeMet(
+        b,
+        activeSession?.sessionDate,
+        activeSession?.eventTime,
+      );
+      const aAvailable = aAvailableForTime && aNoticeMet;
+      const bAvailable = bAvailableForTime && bNoticeMet;
 
       if (aAvailable !== bAvailable) {
         return aAvailable ? -1 : 1;
@@ -393,6 +590,37 @@ export default function RestaurantMenuBrowser({
       );
     });
   }, [allMenuItems, selectedDietaryFilters]);
+
+  const restaurantHoursTooltipTextById = useMemo(
+    () =>
+      new Map(
+        restaurants.map((restaurant) => [
+          restaurant.id,
+          getWeeklyCateringHoursText(restaurant),
+        ]),
+      ),
+    [restaurants],
+  );
+
+  const activeHoursInfoRestaurantId =
+    openHoursInfoRestaurantId || hoveredHoursInfoRestaurantId;
+
+  useEffect(() => {
+    if (!activeHoursInfoRestaurantId) {
+      return;
+    }
+
+    const syncPosition = () => updateHoursInfoPosition(activeHoursInfoRestaurantId);
+
+    syncPosition();
+    window.addEventListener("resize", syncPosition);
+    window.addEventListener("scroll", syncPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", syncPosition);
+      window.removeEventListener("scroll", syncPosition, true);
+    };
+  }, [activeHoursInfoRestaurantId, updateHoursInfoPosition]);
 
   const searchResults = useMemo(() => {
     if (!isSearchActive) return null;
@@ -732,10 +960,17 @@ export default function RestaurantMenuBrowser({
       activeSession?.eventTime,
     );
     const advanceNoticeText = getRestaurantAdvanceNoticeText(restaurant);
-    const isUnavailableForSession = !cateringWindowInfo.isAvailable;
+    const isAdvanceNoticeMet = isRestaurantAdvanceNoticeMet(
+      restaurant,
+      activeSession?.sessionDate,
+      activeSession?.eventTime,
+    );
+    const isUnavailableForSession =
+      !cateringWindowInfo.isAvailable || !isAdvanceNoticeMet;
+    const hoursTooltipText = cateringWindowInfo.fullText;
 
     const cardContent = (
-      <>
+      <div className="overflow-hidden rounded-xl bg-white">
         {restaurant.images && restaurant.images.length > 0 ? (
           <div className="relative w-full aspect-video bg-gray-100">
             <img
@@ -749,7 +984,7 @@ export default function RestaurantMenuBrowser({
               <div className="absolute inset-0 flex items-center justify-center bg-white/35 px-3 text-center">
                 <span
                   className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-red-500 shadow-sm"
-                  title={cateringWindowInfo.text}
+                  title={hoursTooltipText}
                 >
                   Unavailable at this time
                 </span>
@@ -769,7 +1004,7 @@ export default function RestaurantMenuBrowser({
               <div className="absolute inset-0 flex items-center justify-center bg-white/35 px-3 text-center">
                 <span
                   className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-red-500 shadow-sm"
-                  title={cateringWindowInfo.text}
+                  title={hoursTooltipText}
                 >
                   Unavailable at this time
                 </span>
@@ -790,49 +1025,100 @@ export default function RestaurantMenuBrowser({
             </div>
           ) : null}
           <div className="mt-1.5 min-h-8 space-y-0.5">
-            <div className="flex items-center gap-1.5 text-[11px] leading-4 text-gray-500">
-              <Clock3 className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
-              <span className="line-clamp-1">
-                {advanceNoticeText || "No advance notice"}
-              </span>
-            </div>
             <div
               className={`flex items-center gap-1.5 text-[11px] leading-4 ${
-                cateringWindowInfo.isAvailable
-                  ? "text-gray-500"
-                  : "text-red-500 font-semibold"
+                isAdvanceNoticeMet ? "text-gray-500" : "text-red-500 font-semibold"
               }`}
             >
               <Clock3
                 className={`h-3.5 w-3.5 flex-shrink-0 ${
-                  cateringWindowInfo.isAvailable
-                    ? "text-gray-400"
-                    : "text-red-500"
+                  isAdvanceNoticeMet ? "text-gray-400" : "text-red-500"
                 }`}
               />
-              <span className="line-clamp-1" title={cateringWindowInfo.text}>
-                {cateringWindowInfo.text}
+              <span className="line-clamp-1">
+                {advanceNoticeText || "No advance notice"}
               </span>
+            </div>
+            <div className="relative flex items-center justify-between gap-2">
+              <div
+                className={`flex min-w-0 items-center gap-1.5 text-[11px] leading-4 ${
+                  cateringWindowInfo.isAvailable
+                    ? "text-gray-500"
+                    : "text-red-500 font-semibold"
+                }`}
+              >
+                <Clock3
+                  className={`h-3.5 w-3.5 flex-shrink-0 ${
+                    cateringWindowInfo.isAvailable
+                      ? "text-gray-400"
+                      : "text-red-500"
+                  }`}
+                />
+                <span className="line-clamp-1" title={hoursTooltipText}>
+                  {cateringWindowInfo.text}
+                </span>
+              </div>
+              <div className="relative flex-shrink-0">
+                <button
+                  ref={(element) => {
+                    if (element) {
+                      hoursInfoButtonRefs.current.set(restaurant.id, element);
+                    } else {
+                      hoursInfoButtonRefs.current.delete(restaurant.id);
+                    }
+                  }}
+                  type="button"
+                  aria-label={`View weekly catering hours for ${restaurant.restaurant_name}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    updateHoursInfoPosition(restaurant.id);
+                    setOpenHoursInfoRestaurantId((current) =>
+                      current === restaurant.id ? null : restaurant.id,
+                    );
+                  }}
+                  onMouseEnter={() => {
+                    updateHoursInfoPosition(restaurant.id);
+                    setHoveredHoursInfoRestaurantId(restaurant.id);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredHoursInfoRestaurantId((current) =>
+                      current === restaurant.id ? null : current
+                    );
+                  }}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-base-300 bg-white text-gray-500 shadow-sm transition-colors hover:text-primary focus:outline-none"
+                  title="View weekly catering hours"
+                >
+                  <Info className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </>
+      </div>
     );
 
     if (!onClick) {
       return (
-        <div className="w-full overflow-hidden rounded-xl border border-base-300 bg-white shadow-sm">
+        <div className="relative w-full overflow-visible rounded-xl border border-base-300 bg-white shadow-sm">
           {cardContent}
         </div>
       );
     }
     return (
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onClick}
-        className="block w-full overflow-hidden rounded-xl border border-base-300 bg-white text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onClick();
+          }
+        }}
+        className="relative w-full overflow-visible rounded-xl border border-base-300 bg-white text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
       >
         {cardContent}
-      </button>
+      </div>
     );
   };
 
@@ -865,6 +1151,33 @@ export default function RestaurantMenuBrowser({
       ))}
     </div>
   );
+
+  const hoursInfoTooltip =
+    activeHoursInfoRestaurantId && hoursInfoPosition
+      ? createPortal(
+          <div
+            ref={hoursInfoContainerRef}
+            className="fixed z-[1000] w-64 -translate-x-full -translate-y-full whitespace-pre-line rounded-lg border border-base-300 bg-white p-2 text-[11px] leading-4 text-gray-600 shadow-lg"
+            style={{
+              left: hoursInfoPosition.left,
+              top: hoursInfoPosition.top,
+            }}
+            onMouseEnter={() => {
+              if (!openHoursInfoRestaurantId) {
+                setHoveredHoursInfoRestaurantId(activeHoursInfoRestaurantId);
+              }
+            }}
+            onMouseLeave={() => {
+              if (!openHoursInfoRestaurantId) {
+                setHoveredHoursInfoRestaurantId(null);
+              }
+            }}
+          >
+            {restaurantHoursTooltipTextById.get(activeHoursInfoRestaurantId)}
+          </div>,
+          document.body,
+        )
+      : null;
 
   const renderCategoryFilters = () => (
     <div style={{ contain: "inline-size" }}>
@@ -1139,6 +1452,7 @@ export default function RestaurantMenuBrowser({
   // ============================================================
   return (
     <div style={{ contain: "inline-size" }}>
+      {hoursInfoTooltip}
       <div className="relative mt-2 mb-2">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
