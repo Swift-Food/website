@@ -1426,7 +1426,7 @@ const EditMenuItemPage = () => {
                                       className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMinWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
                                   </div>
                                   {showMinWarn && (
-                                    <div className="absolute top-full left-0 mt-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                    <div className="absolute bottom-full left-0 mb-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
                                       <span className="text-amber-500 text-sm">⚠</span>
                                       <span className="text-[11px] text-amber-800 font-medium">{limitsWarning!.message}</span>
                                     </div>
@@ -1439,7 +1439,7 @@ const EditMenuItemPage = () => {
                                       className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMaxWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
                                   </div>
                                   {showMaxWarn && (
-                                    <div className="absolute top-full right-0 mt-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
+                                    <div className="absolute bottom-full right-0 mb-1.5 z-20 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow-lg whitespace-nowrap flex items-center gap-1.5">
                                       <span className="text-amber-500 text-sm">⚠</span>
                                       <span className="text-[11px] text-amber-800 font-medium">{limitsWarning!.message}</span>
                                     </div>
@@ -1490,7 +1490,7 @@ const EditMenuItemPage = () => {
                                   <span className="text-sm text-gray-700">
                                     {addon.price > 0 ? `+\u00a3${addon.price.toFixed(2)}` : "\u00a30.00"}
                                   </span>
-                                  {/* Default toggle */}
+                                  {/* Default toggle (single) or indicator (non-single with auto-default) */}
                                   {normalizeSelectionType(firstAddon?.selectionType) === "single" ? (
                                   <div className="flex justify-center">
                                     <button
@@ -1510,6 +1510,10 @@ const EditMenuItemPage = () => {
                                       }`}
                                       title={addon.isDefault ? "Default (click to remove)" : "Not default (click to set)"}
                                     />
+                                  </div>
+                                  ) : addon.isDefault ? (
+                                  <div className="flex justify-center">
+                                    <div className="w-4 h-4 rounded-full bg-purple-500 border-2 border-purple-500" title="Auto-selected (min equals total options)" />
                                   </div>
                                   ) : <span />}
                                   {/* Limits */}
