@@ -37,11 +37,18 @@ const MenuListPage = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [restaurantData, setRestaurantData] = useState<any>(null);
 
-  // Reorder mode state
+  // Reorder groups state
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [reorderGroups, setReorderGroups] = useState<string[]>([]);
   const [savingOrder, setSavingOrder] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Reorder items state
+  const [isItemReorderMode, setIsItemReorderMode] = useState(false);
+  const [itemReorderGroupName, setItemReorderGroupName] = useState<string | null>(null);
+  const [reorderItems, setReorderItems] = useState<MenuItemDetails[]>([]);
+  const [savingItemOrder, setSavingItemOrder] = useState(false);
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
   // Status change state
   const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(null);
@@ -454,6 +461,82 @@ const MenuListPage = () => {
     setDraggedIndex(null);
   };
 
+  // Item reorder functions
+  const enterItemReorderMode = (groupName: string) => {
+    const groupedItems = getGroupedItems();
+    if (!groupedItems) return;
+    const group = groupedItems.find((g) => g.groupName === groupName);
+    if (!group) return;
+    setReorderItems([...group.items]);
+    setItemReorderGroupName(groupName);
+    setIsItemReorderMode(true);
+  };
+
+  const exitItemReorderMode = () => {
+    setIsItemReorderMode(false);
+    setItemReorderGroupName(null);
+    setReorderItems([]);
+  };
+
+  const moveItemUp = (index: number) => {
+    if (index > 0) {
+      const newItems = [...reorderItems];
+      [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
+      setReorderItems(newItems);
+    }
+  };
+
+  const moveItemDown = (index: number) => {
+    if (index < reorderItems.length - 1) {
+      const newItems = [...reorderItems];
+      [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+      setReorderItems(newItems);
+    }
+  };
+
+  const handleItemDragStart = (index: number) => {
+    setDraggedItemIndex(index);
+  };
+
+  const handleItemDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedItemIndex === null || draggedItemIndex === index) return;
+    const newItems = [...reorderItems];
+    const draggedItem = newItems[draggedItemIndex];
+    newItems.splice(draggedItemIndex, 1);
+    newItems.splice(index, 0, draggedItem);
+    setReorderItems(newItems);
+    setDraggedItemIndex(index);
+  };
+
+  const handleItemDragEnd = () => {
+    setDraggedItemIndex(null);
+  };
+
+  const saveItemOrder = async () => {
+    setSavingItemOrder(true);
+    try {
+      await Promise.all(
+        reorderItems.map((item, index) =>
+          cateringService.updateMenuItem(item.id, { itemDisplayOrder: index + 1 })
+        )
+      );
+      // Update local state
+      setMenuItems((prev) =>
+        prev.map((item) => {
+          const updated = reorderItems.find((r) => r.id === item.id);
+          return updated ? { ...item, itemDisplayOrder: reorderItems.indexOf(updated) + 1 } : item;
+        })
+      );
+      exitItemReorderMode();
+    } catch (err: any) {
+      console.error("Failed to save item order:", err);
+      setError("Failed to save item order");
+    } finally {
+      setSavingItemOrder(false);
+    }
+  };
+
   const saveGroupOrder = async () => {
     setSavingOrder(true);
     try {
@@ -649,13 +732,23 @@ const MenuListPage = () => {
                 <div className="space-y-8">
                   {groupedItems.map(({ groupName, items }) => (
                     <div key={groupName}>
-                      <h2
-                        ref={setGroupRef(groupName)}
-                        data-group-name={groupName}
-                        className="text-2xl font-bold text-gray-900 mb-4"
-                      >
-                        {groupName}
-                      </h2>
+                      <div className="flex items-center gap-3 mb-4">
+                        <h2
+                          ref={setGroupRef(groupName)}
+                          data-group-name={groupName}
+                          className="text-2xl font-bold text-gray-900"
+                        >
+                          {groupName}
+                        </h2>
+                        <button
+                          onClick={() => enterItemReorderMode(groupName)}
+                          className="text-gray-400 hover:text-gray-600 flex items-center gap-1 text-sm font-medium px-2 py-1 rounded transition-colors hover:bg-gray-100"
+                          title="Reorder items in this group"
+                        >
+                          <GripVertical size={16} />
+                          Reorder Items
+                        </button>
+                      </div>
                       <div className="space-y-4">
                         {items.map((item) => (
                           <MenuItemCard key={item.id} item={item} />
@@ -764,6 +857,105 @@ const MenuListPage = () => {
                   className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {savingOrder ? (
+                    <>
+                      <Loader size={20} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={20} />
+                      Save Order
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Reorder Items Modal */}
+        {isItemReorderMode && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Reorder Items in {itemReorderGroupName}
+                  </h2>
+                  <button
+                    onClick={exitItemReorderMode}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Drag items to reorder them or use the arrows. Changes will be saved when you click Save.
+                </p>
+              </div>
+
+              {/* Items List */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-2">
+                  {reorderItems.map((item, index) => (
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={() => handleItemDragStart(index)}
+                      onDragOver={(e) => handleItemDragOver(e, index)}
+                      onDragEnd={handleItemDragEnd}
+                      className={`flex items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-move transition-all ${
+                        draggedItemIndex === index ? "opacity-50 scale-95" : ""
+                      }`}
+                    >
+                      <GripVertical size={20} className="text-gray-400 flex-shrink-0" />
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-10 h-10 rounded object-cover flex-shrink-0"
+                        />
+                      )}
+                      <span className="flex-1 font-medium text-gray-900 truncate">
+                        {item.name}
+                      </span>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => moveItemUp(index)}
+                          disabled={index === 0}
+                          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Move up"
+                        >
+                          <ArrowUp size={18} />
+                        </button>
+                        <button
+                          onClick={() => moveItemDown(index)}
+                          disabled={index === reorderItems.length - 1}
+                          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Move down"
+                        >
+                          <ArrowDown size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-gray-200 flex gap-3">
+                <button
+                  onClick={exitItemReorderMode}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveItemOrder}
+                  disabled={savingItemOrder}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {savingItemOrder ? (
                     <>
                       <Loader size={20} className="animate-spin" />
                       Saving...

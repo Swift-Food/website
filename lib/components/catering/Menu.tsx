@@ -85,7 +85,9 @@ export default function Menu() {
         )
           .toString()
           .toLowerCase();
-      return getName(a).localeCompare(getName(b));
+      const restaurantDiff = getName(a).localeCompare(getName(b));
+      if (restaurantDiff !== 0) return restaurantDiff;
+      return (a.itemDisplayOrder ?? 999) - (b.itemDisplayOrder ?? 999);
     });
   };
 
