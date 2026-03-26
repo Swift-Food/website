@@ -143,7 +143,7 @@ const EditMenuItemPage = () => {
   useEffect(() => {
     if (!initialDataLoaded) return;
     setHasUnsavedChanges(true);
-  }, [name, description, price, addons, image]);
+  }, [name, description, price, addons, image, groupTitle, discountPrice, isDiscount, prepTime, status, style, feedsPerUnit, deliveryPortionSize, minOrderQuantity, vatApplicable]);
 
   useEffect(() => {
     fetchData();
