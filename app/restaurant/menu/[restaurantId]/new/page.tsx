@@ -59,7 +59,7 @@ const NewMenuItemPage = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryFilters, setSelectedDietaryFilters] = useState<string[]>([]);
   const [addons, setAddons] = useState<MenuItemAddon[]>([]);
-  // const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
+  const [feedsPerUnit, setFeedsPerUnit] = useState<string>("");
   const [deliveryPortionSize, setDeliveryPortionSize] = useState<string>("");
   const [minOrderQuantity, setMinOrderQuantity] = useState<string>("1");
   const [vatApplicable, setVatApplicable] = useState(false);
@@ -111,6 +111,33 @@ const NewMenuItemPage = () => {
   const [expandedAddonIndex, setExpandedAddonIndex] = useState<number | null>(null);
   const [editingGroupTitle, setEditingGroupTitle] = useState<Record<string, string>>({});
   const [limitsWarning, setLimitsWarning] = useState<{ group: string; field: "min" | "max"; message: string } | null>(null);
+
+  // Unsaved changes tracking
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!name && !description && !price) return; // Don't trigger on initial empty state
+    setHasUnsavedChanges(true);
+  }, [name, description, price, addons, image, groupTitle, discountPrice, isDiscount, prepTime, status, style, feedsPerUnit, deliveryPortionSize, minOrderQuantity, vatApplicable]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) { e.preventDefault(); e.returnValue = ""; }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  const handleNavigation = (path: string) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(path);
+      setShowLeaveModal(true);
+    } else {
+      router.push(path);
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -488,7 +515,7 @@ const NewMenuItemPage = () => {
         allergens: selectedAllergens || [],
         dietaryFilters: selectedDietaryFilters || [],
         addons: addons && addons.length > 0 ? groupAddonsForApi(addons) : null,
-        // ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
+        ...(feedsPerUnit ? { feedsPerUnit: parseInt(feedsPerUnit) } : {}),
         ...(deliveryPortionSize ? { deliveryPortionSize } : {}),
         minOrderQuantity: parseInt(minOrderQuantity) || 1,
         vatApplicable,
@@ -532,7 +559,7 @@ const NewMenuItemPage = () => {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => router.push(`/restaurant/menu/${restaurantId}`)}
+            onClick={() => handleNavigation(`/restaurant/menu/${restaurantId}`)}
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
@@ -701,7 +728,7 @@ const NewMenuItemPage = () => {
                 </p>
               </div>
 
-              {/* <div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Feeds Per Unit
                 </label>
@@ -713,11 +740,12 @@ const NewMenuItemPage = () => {
                   onChange={(e) => setFeedsPerUnit(e.target.value)}
                   placeholder="Optional"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Number of people this item feeds (optional)
                 </p>
-              </div> */}
+              </div>
             </div>
 
             <div className="flex items-center gap-6">
@@ -1349,14 +1377,14 @@ const NewMenuItemPage = () => {
           <div className="flex gap-4 pt-6 border-t">
             <button
               type="button"
-              onClick={() => router.push(`/restaurant/menu/${restaurantId}`)}
+              onClick={() => handleNavigation(`/restaurant/menu/${restaurantId}`)}
               className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={saving || uploadingImage}
+              disabled={saving || uploadingImage || !name.trim()}
               className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {saving ? (
@@ -1917,6 +1945,20 @@ const NewMenuItemPage = () => {
                   {wizardStep === 1 && <button type="button" onClick={() => setWizardStep(2)} disabled={!wizardGroup.groupTitle.trim()} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Next: Add options</button>}
                   {wizardStep === 2 && <button type="button" onClick={wizardSave} disabled={wizardItems.length === 0} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Save group ({wizardItems.length} option{wizardItems.length !== 1 ? "s" : ""})</button>}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Unsaved Changes Leave Modal */}
+        {showLeaveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setShowLeaveModal(false)} />
+            <div className="relative bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Unsaved Changes</h3>
+              <p className="text-sm text-gray-600 mb-6">You have unsaved changes. Are you sure you want to leave?</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowLeaveModal(false)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg">Stay</button>
+                <button onClick={() => { setShowLeaveModal(false); if (pendingNavigation) router.push(pendingNavigation); }} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg">Leave</button>
               </div>
             </div>
           </div>

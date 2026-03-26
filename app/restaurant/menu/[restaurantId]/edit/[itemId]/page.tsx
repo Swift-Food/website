@@ -97,8 +97,10 @@ const EditMenuItemPage = () => {
     allergens: [],
     dietaryRestrictions: [],
     groupTitle: "",
-    selectionType: "multiple",
+    selectionType: "multiple_no_repeat",
     isRequired: false,
+    isDefault: false,
+    displayOrder: 0,
   });
 
   // Addon modal section collapse state
