@@ -1341,7 +1341,6 @@ export default function Step3ContactInfo() {
                   pricing={pricing}
                   calculatingPricing={calculatingPricing}
                   estimatedTotal={estimatedTotal}
-                  restaurantDiscounts={restaurantDiscounts}
                 />
 
                 {/* Important Notes */}
