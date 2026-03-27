@@ -113,16 +113,22 @@ export default function MenuItemModal({
       quantityInputs[groupTitle] = {};
       let singleDefaultSet = false;
 
-      // Auto-select all when minSelections >= item count (no real choice to make)
-      // Skip for single type — single means "pick one and allocate portions", not "select all"
-      const autoSelectAll = !isEditMode && group.selectionType !== 'single' && group.minSelections != null && group.minSelections >= group.items.length;
+      // Auto-select all only for multiple_no_repeat (pure checkboxes) when min >= item count.
+      // For single/multiple_repeat, quantities are involved — auto-selecting all with
+      // full portions creates invalid totals (e.g., 5 sauces × 1 portion = 5, but only 1 needed).
+      const autoSelectAll = !isEditMode
+        && group.selectionType === 'multiple_no_repeat'
+        && group.minSelections != null
+        && group.minSelections >= group.items.length;
 
       for (const addon of group.items) {
         const preSelectDefault = !!addon.isDefault && !isEditMode && group.selectionType === 'single' && !singleDefaultSet;
         const preSelect = autoSelectAll || preSelectDefault;
         selections[groupTitle][addon.name] = preSelect;
-        quantities[groupTitle][addon.name] = preSelect ? portions : 0;
-        quantityInputs[groupTitle][addon.name] = preSelect ? portions.toString() : "0";
+        // For multiple_no_repeat, quantities aren't used (boolean selections only).
+        // For single defaults, pre-allocate all portions to the default item.
+        quantities[groupTitle][addon.name] = preSelectDefault ? portions : 0;
+        quantityInputs[groupTitle][addon.name] = preSelectDefault ? portions.toString() : "0";
         if (preSelectDefault) singleDefaultSet = true;
       }
     }
