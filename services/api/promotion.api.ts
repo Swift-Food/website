@@ -76,6 +76,17 @@ export interface PromotionValidationResult {
 }
 
 export const promotionsServices = {
+  // Get promotions for multiple restaurants in one request
+  getBulkRestaurantPromotions: async (restaurantIds: string[]): Promise<Record<string, Promotion[]>> => {
+    if (restaurantIds.length === 0) return {};
+    const ids = restaurantIds.slice(0, 50).join(",");
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/promotions/bulk/restaurants?ids=${ids}`
+    );
+    if (!response.ok) return {};
+    return response.json();
+  },
+
   // Get all promotions for a restaurant
   getRestaurantPromotions: async (restaurantId: string, status?: string) => {
     const url = status

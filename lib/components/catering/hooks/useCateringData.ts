@@ -71,15 +71,8 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     const fetchPromotions = async () => {
       if (restaurants.length === 0) return;
       try {
-        const promotionsMap: Record<string, any[]> = {};
-        await Promise.all(
-          restaurants.map(async (r) => {
-            const promos = await promotionsServices.getRestaurantPromotions(r.id);
-            if (promos && promos.length > 0) {
-              promotionsMap[r.id] = promos;
-            }
-          })
-        );
+        const restaurantIds = restaurants.map((r) => r.id);
+        const promotionsMap = await promotionsServices.getBulkRestaurantPromotions(restaurantIds);
         setRestaurantPromotions(promotionsMap);
       } catch (error) {
         console.error("Error fetching promotions:", error);
