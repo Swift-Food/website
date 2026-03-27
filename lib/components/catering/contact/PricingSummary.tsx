@@ -31,27 +31,24 @@ export default function PricingSummary({
       (pricing as any).mealSessions?.[0]?.deliveryFeeBreakdown;
     const distanceInMiles = pricing.distanceInMiles ||
       (pricing as any).mealSessions?.[0]?.distanceInMiles;
-    // Collect active promotions for banner display
-    const activePromotions = restaurantDiscounts
+    // Prefer backend appliedPromotions (source of truth), fall back to frontend estimates
+    const backendPromos = pricing.appliedPromotions?.filter((p) => p.discount > 0) ?? [];
+    const frontendPromos = restaurantDiscounts
       ? Object.values(restaurantDiscounts).filter((d) => d.discount > 0 && d.promotion)
       : [];
 
     return (
       <div className="space-y-2 pt-4 border-t border-base-300">
-        {/* Promotion offer banner — amount from backend, not frontend estimate */}
-        {activePromotions.length > 0 && (
+        {/* Promotion banners from backend (authoritative) */}
+        {backendPromos.length > 0 && (
           <div className="flex flex-col gap-1.5 mb-1">
-            {activePromotions.map((entry, i) => {
-              const promo = entry.promotion;
+            {backendPromos.map((promo, i) => {
               const label =
                 promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
-                  ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                  ? `Up to ${Math.max(...promo.discountTiers.map((t) => Number(t.discountPercentage)))}% OFF`
                   : promo.promotionType === "BOGO"
                   ? "Buy One Get One"
                   : `${Number(promo.discountPercentage)}% OFF`;
-
-              // Use per-restaurant frontend estimate for banner display
-              const discountAmount = entry.discount;
 
               return (
                 <div
@@ -63,7 +60,36 @@ export default function PricingSummary({
                     {promo.name || "Restaurant Promotion"} — {label}
                   </span>
                   <span className="text-xs font-bold text-green-700">
-                    -£{discountAmount.toFixed(2)}
+                    -£{promo.discount.toFixed(2)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {/* Fallback: frontend estimates shown only before backend pricing loads */}
+        {backendPromos.length === 0 && frontendPromos.length > 0 && (
+          <div className="flex flex-col gap-1.5 mb-1">
+            {frontendPromos.map((entry, i) => {
+              const promo = entry.promotion;
+              const label =
+                promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
+                  ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                  : promo.promotionType === "BOGO"
+                  ? "Buy One Get One"
+                  : `${Number(promo.discountPercentage)}% OFF`;
+
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 bg-green-50/70 border border-green-200/70 rounded-lg"
+                >
+                  <Tag className="w-3.5 h-3.5 text-green-600/70 flex-shrink-0" />
+                  <span className="text-xs font-semibold text-green-700/70 flex-1 truncate">
+                    {promo.name || "Restaurant Promotion"} — {label}
+                  </span>
+                  <span className="text-xs font-bold text-green-700/70">
+                    ~-£{entry.discount.toFixed(2)}
                   </span>
                 </div>
               );
@@ -77,10 +103,10 @@ export default function PricingSummary({
           <span>£{pricing.subtotal.toFixed(2)}</span>
         </div>
 
-        {/* Promotion Discount */}
+        {/* Promotion Discount total (from backend) */}
         {((pricing.promotionDiscount ?? 0) > 0) && (
           <div className="flex justify-between text-sm text-green-600 font-semibold">
-            <span>Restaurant Promotion</span>
+            <span>Restaurant Promotion{backendPromos.length > 1 ? "s" : ""}</span>
             <span>-£{pricing.promotionDiscount!.toFixed(2)}</span>
           </div>
         )}

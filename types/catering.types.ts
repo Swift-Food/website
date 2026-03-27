@@ -484,6 +484,17 @@ export interface CateringPricingResult {
     finalDeliveryFee: number;      // Subtotal × multiplier
     requiresCustomQuote: boolean;  // true if >6 miles
   };
+
+  // Backend-calculated per-promotion breakdown (source of truth for display)
+  appliedPromotions?: Array<{
+    restaurantId: string;
+    promotionId: string;
+    name: string;
+    promotionType: string;
+    discountPercentage: number;
+    discountTiers?: Array<{ minQuantity: number; discountPercentage: number }>;
+    discount: number;
+  }>;
 }
 
 export interface PromoCodeValidation {
