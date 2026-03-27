@@ -50,9 +50,8 @@ export default function PricingSummary({
                   ? "Buy One Get One"
                   : `${Number(promo.discountPercentage)}% OFF`;
 
-              // Use backend-calculated discount if available, otherwise frontend estimate
-              const backendDiscount = pricing.promotionDiscount ?? 0;
-              const discountAmount = backendDiscount > 0 ? backendDiscount : entry.discount;
+              // Use per-restaurant frontend estimate for banner display
+              const discountAmount = entry.discount;
 
               return (
                 <div
