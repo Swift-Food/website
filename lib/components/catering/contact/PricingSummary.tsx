@@ -62,7 +62,6 @@ export default function PricingSummary({
             })}
           </div>
         )}
-        {/* Fallback: frontend estimates shown only before backend pricing loads */}
         {/* Subtotal */}
         <div className="flex justify-between text-sm text-base-content/70">
           <span>Subtotal</span>
@@ -74,6 +73,14 @@ export default function PricingSummary({
           <div className="flex justify-between text-sm text-green-600 font-semibold">
             <span>Restaurant Promotion{backendPromos.length > 1 ? "s" : ""}</span>
             <span>-£{pricing.promotionDiscount!.toFixed(2)}</span>
+          </div>
+        )}
+
+        {/* Promo code discount — grouped with promotions above delivery */}
+        {(pricing.promoDiscount ?? 0) > 0 && (
+          <div className="flex justify-between text-sm text-success font-medium">
+            <span>Promo Code Discount</span>
+            <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
           </div>
         )}
 
@@ -133,14 +140,6 @@ export default function PricingSummary({
             </div>
           )}
         </div>
-
-        {/* Promo code discount */}
-        {(pricing.promoDiscount ?? 0) > 0 && (
-          <div className="flex justify-between text-sm text-success font-medium">
-            <span>Promo Code Discount</span>
-            <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
-          </div>
-        )}
 
         {/* Total */}
         <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
