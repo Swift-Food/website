@@ -35,7 +35,7 @@ export default function CateringDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<
-    "viewer" | "editor" | "manager" | null
+    "viewer" | "manager" | null
   >(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);

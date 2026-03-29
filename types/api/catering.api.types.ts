@@ -211,7 +211,7 @@ export interface CateringOrderResponse {
   sharedAccessUsers?: Array<{
     userId?: string;
     email: string;
-    role: 'viewer' | 'editor' | 'manager';
+    role: 'viewer' | 'manager';
     accessToken?: string;
     name?: string;
     addedAt?: string | Date;
