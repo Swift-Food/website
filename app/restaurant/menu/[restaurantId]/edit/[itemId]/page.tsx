@@ -363,19 +363,6 @@ const EditMenuItemPage = () => {
     if (wizardItems.length === 0) return;
 
     try {
-      // Save group to restaurant settings
-      const maxOrder = existingGroups.length;
-      const currentSettings = existingGroups.reduce((acc, group, idx) => {
-        acc[group] = { displayOrder: idx + 1 };
-        return acc;
-      }, {} as Record<string, { displayOrder: number }>);
-      const newGroupSettings = {
-        ...currentSettings,
-        [wizardGroup.groupTitle]: { displayOrder: maxOrder + 1 },
-      };
-      await cateringService.reorderGroups(restaurantId, newGroupSettings);
-      setExistingGroups(prev => [...prev, wizardGroup.groupTitle]);
-
       // Add all wizard items as addons with group settings
       const newAddons: MenuItemAddon[] = wizardItems.map((item, idx) => ({
         name: item.name,

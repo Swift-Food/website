@@ -288,10 +288,6 @@ const NewMenuItemPage = () => {
   const wizardSave = async () => {
     if (wizardItems.length === 0) return;
     try {
-      const maxOrder = existingGroups.length;
-      const currentSettings = existingGroups.reduce((acc, group, idx) => { acc[group] = { displayOrder: idx + 1 }; return acc; }, {} as Record<string, { displayOrder: number }>);
-      await cateringService.reorderGroups(restaurantId, { ...currentSettings, [wizardGroup.groupTitle]: { displayOrder: maxOrder + 1 } });
-      setExistingGroups(prev => [...prev, wizardGroup.groupTitle]);
       const newAddons: MenuItemAddon[] = wizardItems.map((item, idx) => ({
         name: item.name, price: item.price, allergens: [], dietaryRestrictions: [],
         groupTitle: wizardGroup.groupTitle, selectionType: wizardGroup.selectionType,
