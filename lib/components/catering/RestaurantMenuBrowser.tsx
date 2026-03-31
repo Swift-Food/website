@@ -398,7 +398,7 @@ export default function RestaurantMenuBrowser({
   sessionIndex,
   expandedSessionIndex,
 }: RestaurantMenuBrowserProps) {
-  const { addMenuItem, mealSessions } = useCatering();
+  const { addMenuItem, mealSessions, restaurantPromotions } = useCatering();
   const activeSession = mealSessions[sessionIndex];
 
   // --- State ---
@@ -1351,6 +1351,53 @@ export default function RestaurantMenuBrowser({
         </div>
 
         <div className="mt-2">{renderDietaryFilters()}</div>
+
+        {(() => {
+          const promos = selectedRestaurantId ? (restaurantPromotions[selectedRestaurantId] ?? []) : [];
+          if (promos.length === 0) return null;
+          return (
+            <div className="mt-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-semibold text-gray-900">Active Offers</span>
+                <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{promos.length}</span>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+                {promos.map((promo: any) => (
+                  <div
+                    key={promo.id}
+                    className="flex-shrink-0 snap-start bg-gradient-to-br from-green-50 to-emerald-50 border border-green-400 rounded-xl p-3 min-w-[240px] max-w-[300px]"
+                  >
+                    <p className="text-sm font-bold text-green-900 truncate">{promo.name}</p>
+                    <p className="text-green-700 font-bold text-base mt-0.5">
+                      {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
+                        ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                        : `${Number(promo.discountPercentage)}% OFF`}
+                    </p>
+                    {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {[...promo.discountTiers]
+                          .sort((a: any, b: any) => a.minQuantity - b.minQuantity)
+                          .map((tier: any, idx: number) => (
+                            <span key={idx} className="text-green-700 text-xs font-medium bg-green-100 px-1.5 py-0.5 rounded">
+                              {tier.minQuantity}+ items → {Number(tier.discountPercentage)}% off
+                            </span>
+                          ))}
+                      </div>
+                    )}
+                    {promo.description && (
+                      <p className="text-green-700 text-xs mt-1 line-clamp-2">{promo.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-green-800">
+                      {promo.minOrderAmount > 0 && <span>Min. £{promo.minOrderAmount}</span>}
+                      {promo.maxDiscountAmount && <span>Max. £{promo.maxDiscountAmount} off</span>}
+                      <span>Until {new Date(promo.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="mt-3">
           {restaurantGroups.length === 0 ? (
