@@ -44,7 +44,7 @@ export default function ViewOrderModal({
   const activeSession = mealSessions[activeSessionIndex];
   if (!activeSession) return null;
 
-  const { hasPromotion, promotion } = getSessionDiscount(activeSessionIndex);
+  const { promotions: sessionPromotions } = getSessionDiscount(activeSessionIndex);
   const sessionTotal = getSessionTotal(activeSessionIndex);
   const validationError = validationErrors[activeSessionIndex] || null;
   const isUnscheduled = !activeSession.sessionDate;
@@ -185,11 +185,9 @@ export default function ViewOrderModal({
                 £{sessionTotal.toFixed(2)}
               </span>
               <p className="text-[10px] text-gray-500">{totalItemCount} items</p>
-              {hasPromotion && promotion && (
+              {sessionPromotions.length > 0 && (
                 <p className="text-[10px] text-green-600 font-semibold">
-                  {promotion.promotionType === "BUY_MORE_SAVE_MORE"
-                    ? `Up to ${Math.max(...(promotion.discountTiers || []).map((t: any) => Number(t.discountPercentage)))}% off`
-                    : `${Number(promotion.discountPercentage)}% off`}
+                  {sessionPromotions.length === 1 ? "1 offer applied" : `${sessionPromotions.length} offers applied`}
                 </p>
               )}
             </div>
@@ -212,18 +210,22 @@ export default function ViewOrderModal({
           </div>
         </div>
 
-        {/* Promotion banner — exact amount shown at checkout */}
-        {hasPromotion && promotion && (
-          <div className="mx-4 mt-3 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-            <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
-            <span className="text-xs font-semibold text-green-700 flex-1 truncate">
-              {promotion.name || "Restaurant Promotion"} —{" "}
-              {promotion.promotionType === "BUY_MORE_SAVE_MORE" && promotion.discountTiers?.length
-                ? `Up to ${Math.max(...promotion.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
-                : promotion.promotionType === "BOGO"
-                ? "Buy One Get One"
-                : `${Number(promotion.discountPercentage)}% OFF`}
-            </span>
+        {/* Promotion banners */}
+        {sessionPromotions.length > 0 && (
+          <div className="mx-4 mt-3 flex flex-col gap-1.5">
+            {sessionPromotions.map((promo, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <span className="text-xs font-semibold text-green-700 flex-1 truncate">
+                  {promo.name || "Restaurant Promotion"} —{" "}
+                  {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
+                    ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                    : promo.promotionType === "BOGO"
+                    ? "Buy One Get One"
+                    : `${Number(promo.discountPercentage)}% OFF`}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 

@@ -8,8 +8,7 @@ export default function SessionAccordion({
   isExpanded,
   onToggle,
   sessionTotal,
-  hasPromotion,
-  sessionPromotion,
+  sessionPromotions = [],
   accordionRef,
   onEditSession,
   onRemoveSession,
@@ -85,11 +84,9 @@ export default function SessionAccordion({
             <p className="md:hidden text-[10px] text-gray-500">
               {totalItemCount} items
             </p>
-            {hasPromotion && sessionPromotion && (
+            {sessionPromotions.length > 0 && (
               <p className="text-[10px] md:text-xs text-green-600 font-semibold">
-                {sessionPromotion.promotionType === "BUY_MORE_SAVE_MORE"
-                  ? `Up to ${Math.max(...(sessionPromotion.discountTiers || []).map((t: any) => Number(t.discountPercentage)))}% off`
-                  : `${Number(sessionPromotion.discountPercentage)}% off`}
+                {sessionPromotions.length === 1 ? "1 offer applied" : `${sessionPromotions.length} offers applied`}
               </p>
             )}
           </div>
@@ -140,18 +137,22 @@ export default function SessionAccordion({
             )}
           </div>
 
-          {/* Promotion banner — shows promo name/type, exact amount shown at checkout */}
-          {hasPromotion && sessionPromotion && (
-            <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-              <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">
-                {sessionPromotion.name || "Restaurant Promotion"} —{" "}
-                {sessionPromotion.promotionType === "BUY_MORE_SAVE_MORE" && sessionPromotion.discountTiers?.length
-                  ? `Up to ${Math.max(...sessionPromotion.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
-                  : sessionPromotion.promotionType === "BOGO"
-                  ? "Buy One Get One"
-                  : `${Number(sessionPromotion.discountPercentage)}% OFF`}
-              </span>
+          {/* Promotion banners — one per qualifying promotion */}
+          {sessionPromotions.length > 0 && (
+            <div className="mb-3 flex flex-col gap-1.5">
+              {sessionPromotions.map((promo, i) => (
+                <div key={i} className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                  <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">
+                    {promo.name || "Restaurant Promotion"} —{" "}
+                    {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
+                      ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                      : promo.promotionType === "BOGO"
+                      ? "Buy One Get One"
+                      : `${Number(promo.discountPercentage)}% OFF`}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
 

@@ -54,7 +54,7 @@ interface CateringContextType {
 
   // Pricing
   getSessionTotal: (sessionIndex: number) => number;
-  getSessionDiscount: (sessionIndex: number) => { hasPromotion: boolean; promotion: any | null };
+  getSessionDiscount: (sessionIndex: number) => { promotions: any[] };
   getTotalPrice: () => number;
 
   // Helper
@@ -140,14 +140,12 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     return mealSessions.reduce((sum, _, index) => sum + getSessionTotal(index), 0);
   }, [mealSessions, getSessionTotal]);
 
-  // Checks if any promotion actually applies to this session's cart.
-  // Only checks thresholds (quantity/amount) — no discount calculation.
-  // Exact amounts are calculated by the backend at checkout.
-  const getSessionDiscount = useCallback((sessionIndex: number): { hasPromotion: boolean; promotion: any | null } => {
+  // Returns all promotions that apply to this session's cart.
+  // Checks thresholds (quantity/amount) per restaurant — no discount calculation.
+  const getSessionDiscount = useCallback((sessionIndex: number): { promotions: any[] } => {
     const session = mealSessions[sessionIndex];
-    if (!session || session.orderItems.length === 0) return { hasPromotion: false, promotion: null };
+    if (!session || session.orderItems.length === 0) return { promotions: [] };
 
-    // Group items by restaurant
     const byRestaurant: Record<string, { totalQty: number; subtotal: number }> = {};
     session.orderItems.forEach(({ item, quantity }) => {
       const rid = item.restaurantId;
@@ -159,27 +157,25 @@ export function CateringProvider({ children }: { children: ReactNode }) {
       byRestaurant[rid].subtotal += unitPrice * quantity;
     });
 
+    const qualifying: any[] = [];
+
     for (const [rid, cart] of Object.entries(byRestaurant)) {
       const promos = restaurantPromotions[rid];
       if (!promos || promos.length === 0) continue;
 
       for (const promo of promos) {
-        // Check minOrderAmount threshold
         if (promo.minOrderAmount && cart.subtotal < Number(promo.minOrderAmount)) continue;
 
-        // Check BUY_MORE_SAVE_MORE tier thresholds
         if (promo.promotionType === 'BUY_MORE_SAVE_MORE' && promo.discountTiers?.length) {
-          const sortedTiers = [...promo.discountTiers].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
-          const qualifyingTier = sortedTiers.find((t: any) => cart.totalQty >= t.minQuantity);
+          const qualifyingTier = promo.discountTiers.find((t: any) => cart.totalQty >= t.minQuantity);
           if (!qualifyingTier) continue;
         }
 
-        // Promotion applies
-        return { hasPromotion: true, promotion: promo };
+        qualifying.push(promo);
       }
     }
 
-    return { hasPromotion: false, promotion: null };
+    return { promotions: qualifying };
   }, [mealSessions, restaurantPromotions]);
 
   const getAllItems = useCallback((): SelectedMenuItem[] => {
