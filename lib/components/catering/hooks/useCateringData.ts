@@ -66,10 +66,13 @@ export function useCateringData({ expandedSessionIndex }: UseCateringDataOptions
     fetchRestaurants();
   }, []);
 
-  // Fetch promotions when restaurants are loaded
+  // Fetch promotions once when restaurants are loaded
+  const promotionsFetchedRef = useRef(false);
   useEffect(() => {
+    if (restaurants.length === 0 || promotionsFetchedRef.current) return;
+    promotionsFetchedRef.current = true;
+
     const fetchPromotions = async () => {
-      if (restaurants.length === 0) return;
       try {
         const restaurantIds = restaurants.map((r) => r.id);
         const promotionsMap = await promotionsServices.getBulkRestaurantPromotions(restaurantIds);

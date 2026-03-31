@@ -140,11 +140,24 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     return mealSessions.reduce((sum, _, index) => sum + getSessionTotal(index), 0);
   }, [mealSessions, getSessionTotal]);
 
-  // Session discounts are not calculated on the frontend — backend is source of truth.
-  // This stub keeps the interface stable for components that reference it.
-  const getSessionDiscount = useCallback((_sessionIndex: number): { discount: number; promotion: any | null } => {
+  // Show promotion awareness on session cards (name/type only — no amount calculation).
+  // The exact discount amount is calculated by the backend and shown on checkout.
+  const getSessionDiscount = useCallback((sessionIndex: number): { discount: number; promotion: any | null } => {
+    const session = mealSessions[sessionIndex];
+    if (!session || session.orderItems.length === 0) return { discount: 0, promotion: null };
+
+    // Find the first restaurant in this session that has an active promotion
+    const restaurantIds = new Set(session.orderItems.map(({ item }) => item.restaurantId));
+    for (const rid of restaurantIds) {
+      const promos = restaurantPromotions[rid];
+      if (promos && promos.length > 0) {
+        // Return discount: -1 as a signal that a promotion exists but the amount is backend-calculated
+        return { discount: -1, promotion: promos[0] };
+      }
+    }
+
     return { discount: 0, promotion: null };
-  }, []);
+  }, [mealSessions, restaurantPromotions]);
 
   const getAllItems = useCallback((): SelectedMenuItem[] => {
     return mealSessions.flatMap(session => session.orderItems);

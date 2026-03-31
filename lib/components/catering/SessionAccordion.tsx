@@ -85,9 +85,11 @@ export default function SessionAccordion({
             <p className="md:hidden text-[10px] text-gray-500">
               {totalItemCount} items
             </p>
-            {sessionDiscount != null && sessionDiscount > 0 && (
+            {sessionDiscount != null && sessionDiscount !== 0 && sessionPromotion && (
               <p className="text-[10px] md:text-xs text-green-600 font-semibold">
-                -£{sessionDiscount.toFixed(2)} off
+                {sessionPromotion.promotionType === "BUY_MORE_SAVE_MORE"
+                  ? `Up to ${Math.max(...(sessionPromotion.discountTiers || []).map((t: any) => Number(t.discountPercentage)))}% off`
+                  : `${Number(sessionPromotion.discountPercentage)}% off`}
               </p>
             )}
           </div>
@@ -138,29 +140,17 @@ export default function SessionAccordion({
             )}
           </div>
 
-          {/* Promotion discount banner */}
-          {sessionDiscount != null && sessionDiscount > 0 && sessionPromotion && (
+          {/* Promotion banner — shows promo name/type, exact amount shown at checkout */}
+          {sessionDiscount != null && sessionDiscount !== 0 && sessionPromotion && (
             <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
               <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <span className="text-xs md:text-sm font-semibold text-green-700">
-                  {sessionPromotion.name || "Restaurant Promotion"}
-                </span>
-                <span className="text-xs text-green-600 ml-1.5">
-                  {sessionPromotion.promotionType === "BUY_MORE_SAVE_MORE" && sessionPromotion.discountTiers?.length
-                    ? (() => {
-                        const totalQty = session.orderItems.reduce((s, oi) => s + oi.quantity, 0);
-                        const sorted = [...sessionPromotion.discountTiers].sort((a: any, b: any) => b.minQuantity - a.minQuantity);
-                        const tier = sorted.find((t: any) => totalQty >= t.minQuantity);
-                        return tier ? `${Number(tier.discountPercentage)}% off` : "";
-                      })()
-                    : sessionPromotion.promotionType === "BOGO"
-                    ? "Buy One Get One"
-                    : `${Number(sessionPromotion.discountPercentage)}% off`}
-                </span>
-              </div>
-              <span className="text-sm font-bold text-green-700 flex-shrink-0">
-                -£{sessionDiscount.toFixed(2)}
+              <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">
+                {sessionPromotion.name || "Restaurant Promotion"} —{" "}
+                {sessionPromotion.promotionType === "BUY_MORE_SAVE_MORE" && sessionPromotion.discountTiers?.length
+                  ? `Up to ${Math.max(...sessionPromotion.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                  : sessionPromotion.promotionType === "BOGO"
+                  ? "Buy One Get One"
+                  : `${Number(sessionPromotion.discountPercentage)}% OFF`}
               </span>
             </div>
           )}
