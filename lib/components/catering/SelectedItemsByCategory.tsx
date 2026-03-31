@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Package, ArrowLeftRight, Pencil, Trash2, Store } from "lucide-react";
+import { Package, ArrowLeftRight, Pencil, Trash2, Store, Tag } from "lucide-react";
 import { useCatering } from "@/context/CateringContext";
 import { SelectedMenuItem } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
@@ -31,6 +31,7 @@ interface SelectedItemsByCategoryProps {
   onViewMenu?: () => void;
   compactLayout?: boolean;
   restaurants?: { id: string; restaurant_name: string; images: string[] }[];
+  sessionPromotions?: any[];
 }
 
 export default function SelectedItemsByCategory({
@@ -44,6 +45,7 @@ export default function SelectedItemsByCategory({
   showActions = true,
   compactLayout = false,
   restaurants,
+  sessionPromotions = [],
   // onViewMenu,
 }: SelectedItemsByCategoryProps) {
   const { mealSessions, activeSessionIndex } = useCatering();
@@ -114,6 +116,7 @@ export default function SelectedItemsByCategory({
   const restaurantGrouped = useMemo(() => {
     const map = new Map<string, {
       name: string;
+      restaurantId?: string;
       image?: string;
       bundles: Map<string, { name: string; items: GroupedItem[] }>;
       categories: Map<string, CategoryGroup>;
@@ -127,7 +130,7 @@ export default function SelectedItemsByCategory({
       const restImage = matchedRestaurant?.images?.[0];
 
       if (!map.has(restName)) {
-        map.set(restName, { name: restName, image: restImage, bundles: new Map(), categories: new Map() });
+        map.set(restName, { name: restName, restaurantId: restId, image: restImage, bundles: new Map(), categories: new Map() });
       }
       const restaurant = map.get(restName)!;
 
@@ -540,8 +543,30 @@ export default function SelectedItemsByCategory({
           const totalRestaurantItems = Array.from(restaurant.bundles.values()).reduce((sum, b) => sum + b.items.length, 0)
             + Array.from(restaurant.categories.values()).reduce((sum, c) => sum + c.items.length + Array.from(c.subcategories.values()).reduce((s, items) => s + items.length, 0), 0);
 
+          const restPromos = sessionPromotions.filter(
+            (p) => p.restaurantId === restaurant.restaurantId
+          );
+
           return (
           <div key={restName}>
+            {/* Per-restaurant promotion banners */}
+            {restPromos.length > 0 && (
+              <div className="flex flex-col gap-1.5 mb-2">
+                {restPromos.map((promo: any, i: number) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                    <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">
+                      {promo.name || "Restaurant Promotion"} —{" "}
+                      {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
+                        ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                        : promo.promotionType === "BOGO"
+                        ? "Buy One Get One"
+                        : `${Number(promo.discountPercentage)}% OFF`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             {/* Restaurant Header */}
             <button
               onClick={() => setCollapsedRestaurants(prev => {

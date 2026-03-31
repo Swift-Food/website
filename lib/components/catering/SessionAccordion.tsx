@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, ChevronDown, ChevronUp, ShoppingBag, X, Tag } from "lucide-react";
+import { Clock, ChevronDown, ChevronUp, ShoppingBag, X } from "lucide-react";
 import { SessionAccordionProps } from "./types";
 
 export default function SessionAccordion({
@@ -136,25 +136,6 @@ export default function SessionAccordion({
               </button>
             )}
           </div>
-
-          {/* Promotion banners — one per qualifying promotion */}
-          {sessionPromotions.length > 0 && (
-            <div className="mb-3 flex flex-col gap-1.5">
-              {sessionPromotions.map((promo, i) => (
-                <div key={i} className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-                  <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
-                  <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">
-                    {promo.name || "Restaurant Promotion"} —{" "}
-                    {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
-                      ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
-                      : promo.promotionType === "BOGO"
-                      ? "Buy One Get One"
-                      : `${Number(promo.discountPercentage)}% OFF`}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Children content (selected items, categories, menu items) */}
           {children}
