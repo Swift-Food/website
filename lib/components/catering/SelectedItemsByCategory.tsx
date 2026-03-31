@@ -553,7 +553,7 @@ export default function SelectedItemsByCategory({
             {restPromos.length > 0 && (
               <div className="flex flex-col gap-1.5 mb-2">
                 {restPromos.map((promo: any, i: number) => (
-                  <div key={i} className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                  <div key={i} className="group relative flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg cursor-default">
                     <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
                     <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">
                       {promo.name || "Restaurant Promotion"} —{" "}
@@ -563,6 +563,23 @@ export default function SelectedItemsByCategory({
                         ? "Buy One Get One"
                         : `${Number(promo.discountPercentage)}% OFF`}
                     </span>
+                    {/* Hover tooltip with tier breakdown */}
+                    {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length > 0 && (
+                      <div className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block bg-white border border-green-200 rounded-lg shadow-lg px-3 py-2 min-w-[180px]">
+                        {[...promo.discountTiers]
+                          .sort((a: any, b: any) => a.minQuantity - b.minQuantity)
+                          .map((tier: any, ti: number) => (
+                          <p key={ti} className="text-xs text-green-800 py-0.5">
+                            {tier.minQuantity}+ items → <span className="font-semibold">{Number(tier.discountPercentage)}% off</span>
+                          </p>
+                        ))}
+                        {promo.endDate && (
+                          <p className="text-[10px] text-green-600/70 mt-1 pt-1 border-t border-green-100">
+                            Until {new Date(promo.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
