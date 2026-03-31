@@ -8,7 +8,7 @@ export default function ActiveSessionPanel({
   session,
   sessionIndex,
   sessionTotal,
-  sessionDiscount,
+  hasPromotion,
   sessionPromotion,
   validationError,
   isUnscheduled,
@@ -100,7 +100,7 @@ export default function ActiveSessionPanel({
               £{sessionTotal.toFixed(2)}
             </span>
             <p className="text-[10px] text-gray-500">{totalItemCount} items</p>
-            {sessionDiscount != null && sessionDiscount !== 0 && sessionPromotion && (
+            {hasPromotion && sessionPromotion && (
               <p className="text-[10px] text-green-600 font-semibold">
                 {sessionPromotion.promotionType === "BUY_MORE_SAVE_MORE"
                   ? `Up to ${Math.max(...(sessionPromotion.discountTiers || []).map((t: any) => Number(t.discountPercentage)))}% off`
@@ -132,7 +132,7 @@ export default function ActiveSessionPanel({
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         {/* Promotion banner — exact amount shown at checkout */}
-        {sessionDiscount != null && sessionDiscount !== 0 && sessionPromotion && (
+        {hasPromotion && sessionPromotion && (
           <div className="mx-4 mt-3 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
             <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
             <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">

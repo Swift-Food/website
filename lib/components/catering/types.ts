@@ -26,7 +26,7 @@ export interface SessionAccordionProps {
   isExpanded: boolean;
   onToggle: () => void;
   sessionTotal: number;
-  sessionDiscount?: number;
+  hasPromotion?: boolean;
   sessionPromotion?: any;
   accordionRef: (el: HTMLDivElement | null) => void;
   onEditSession: () => void;
@@ -119,7 +119,7 @@ export interface ActiveSessionPanelProps {
   session: MealSessionState;
   sessionIndex: number;
   sessionTotal: number;
-  sessionDiscount?: number;
+  hasPromotion?: boolean;
   sessionPromotion?: any;
   validationError?: string | null;
   isUnscheduled?: boolean;
@@ -148,7 +148,7 @@ export interface ViewOrderModalProps {
   activeSessionIndex: number;
   onSessionChange: (index: number) => void;
   getSessionTotal: (index: number) => number;
-  getSessionDiscount: (index: number) => { discount: number; promotion?: any };
+  getSessionDiscount: (index: number) => { hasPromotion: boolean; promotion?: any };
   validationErrors: Record<number, string>;
   onEditSession: (index: number) => void;
   onRemoveSession: (index: number, e: React.MouseEvent) => void;

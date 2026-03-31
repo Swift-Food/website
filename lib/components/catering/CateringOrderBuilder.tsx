@@ -1101,7 +1101,7 @@ export default function CateringOrderBuilder() {
                   session={mealSessions[activeSessionIndex]}
                   sessionIndex={activeSessionIndex}
                   sessionTotal={getSessionTotal(activeSessionIndex)}
-                  sessionDiscount={getSessionDiscount(activeSessionIndex).discount}
+                  hasPromotion={getSessionDiscount(activeSessionIndex).hasPromotion}
                   sessionPromotion={getSessionDiscount(activeSessionIndex).promotion}
                   validationError={sessionValidationErrors[activeSessionIndex] || null}
                   isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}

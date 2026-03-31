@@ -8,7 +8,7 @@ export default function SessionAccordion({
   isExpanded,
   onToggle,
   sessionTotal,
-  sessionDiscount,
+  hasPromotion,
   sessionPromotion,
   accordionRef,
   onEditSession,
@@ -85,7 +85,7 @@ export default function SessionAccordion({
             <p className="md:hidden text-[10px] text-gray-500">
               {totalItemCount} items
             </p>
-            {sessionDiscount != null && sessionDiscount !== 0 && sessionPromotion && (
+            {hasPromotion && sessionPromotion && (
               <p className="text-[10px] md:text-xs text-green-600 font-semibold">
                 {sessionPromotion.promotionType === "BUY_MORE_SAVE_MORE"
                   ? `Up to ${Math.max(...(sessionPromotion.discountTiers || []).map((t: any) => Number(t.discountPercentage)))}% off`
@@ -141,7 +141,7 @@ export default function SessionAccordion({
           </div>
 
           {/* Promotion banner — shows promo name/type, exact amount shown at checkout */}
-          {sessionDiscount != null && sessionDiscount !== 0 && sessionPromotion && (
+          {hasPromotion && sessionPromotion && (
             <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
               <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
               <span className="text-xs md:text-sm font-semibold text-green-700 flex-1 truncate">

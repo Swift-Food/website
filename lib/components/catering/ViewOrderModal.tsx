@@ -44,7 +44,7 @@ export default function ViewOrderModal({
   const activeSession = mealSessions[activeSessionIndex];
   if (!activeSession) return null;
 
-  const { discount, promotion } = getSessionDiscount(activeSessionIndex);
+  const { hasPromotion, promotion } = getSessionDiscount(activeSessionIndex);
   const sessionTotal = getSessionTotal(activeSessionIndex);
   const validationError = validationErrors[activeSessionIndex] || null;
   const isUnscheduled = !activeSession.sessionDate;
@@ -185,9 +185,11 @@ export default function ViewOrderModal({
                 £{sessionTotal.toFixed(2)}
               </span>
               <p className="text-[10px] text-gray-500">{totalItemCount} items</p>
-              {discount != null && discount > 0 && (
+              {hasPromotion && promotion && (
                 <p className="text-[10px] text-green-600 font-semibold">
-                  -£{discount.toFixed(2)} off
+                  {promotion.promotionType === "BUY_MORE_SAVE_MORE"
+                    ? `Up to ${Math.max(...(promotion.discountTiers || []).map((t: any) => Number(t.discountPercentage)))}% off`
+                    : `${Number(promotion.discountPercentage)}% off`}
                 </p>
               )}
             </div>
@@ -210,29 +212,17 @@ export default function ViewOrderModal({
           </div>
         </div>
 
-        {/* Promotion Discount Banner */}
-        {discount != null && discount > 0 && promotion && (
+        {/* Promotion banner — exact amount shown at checkout */}
+        {hasPromotion && promotion && (
           <div className="mx-4 mt-3 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
             <Tag className="w-4 h-4 text-green-600 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-semibold text-green-700">
-                {promotion.name || "Restaurant Promotion"}
-              </span>
-              <span className="text-xs text-green-600 ml-1.5">
-                {promotion.promotionType === "BUY_MORE_SAVE_MORE" && promotion.discountTiers?.length
-                  ? (() => {
-                      const totalQty = activeSession.orderItems.reduce((s, oi) => s + oi.quantity, 0);
-                      const sorted = [...promotion.discountTiers].sort((a: any, b: any) => b.minQuantity - a.minQuantity);
-                      const tier = sorted.find((t: any) => totalQty >= t.minQuantity);
-                      return tier ? `${Number(tier.discountPercentage)}% off` : "";
-                    })()
-                  : promotion.promotionType === "BOGO"
-                  ? "Buy One Get One"
-                  : `${Number(promotion.discountPercentage)}% off`}
-              </span>
-            </div>
-            <span className="text-sm font-bold text-green-700 flex-shrink-0">
-              -£{discount.toFixed(2)}
+            <span className="text-xs font-semibold text-green-700 flex-1 truncate">
+              {promotion.name || "Restaurant Promotion"} —{" "}
+              {promotion.promotionType === "BUY_MORE_SAVE_MORE" && promotion.discountTiers?.length
+                ? `Up to ${Math.max(...promotion.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+                : promotion.promotionType === "BOGO"
+                ? "Buy One Get One"
+                : `${Number(promotion.discountPercentage)}% OFF`}
             </span>
           </div>
         )}

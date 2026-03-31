@@ -54,7 +54,7 @@ interface CateringContextType {
 
   // Pricing
   getSessionTotal: (sessionIndex: number) => number;
-  getSessionDiscount: (sessionIndex: number) => { discount: number; promotion: any | null };
+  getSessionDiscount: (sessionIndex: number) => { hasPromotion: boolean; promotion: any | null };
   getTotalPrice: () => number;
 
   // Helper
@@ -140,23 +140,21 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     return mealSessions.reduce((sum, _, index) => sum + getSessionTotal(index), 0);
   }, [mealSessions, getSessionTotal]);
 
-  // Show promotion awareness on session cards (name/type only — no amount calculation).
-  // The exact discount amount is calculated by the backend and shown on checkout.
-  const getSessionDiscount = useCallback((sessionIndex: number): { discount: number; promotion: any | null } => {
+  // Returns whether any restaurant in this session has an active promotion.
+  // Exact discount amounts are calculated by the backend at checkout.
+  const getSessionDiscount = useCallback((sessionIndex: number): { hasPromotion: boolean; promotion: any | null } => {
     const session = mealSessions[sessionIndex];
-    if (!session || session.orderItems.length === 0) return { discount: 0, promotion: null };
+    if (!session || session.orderItems.length === 0) return { hasPromotion: false, promotion: null };
 
-    // Find the first restaurant in this session that has an active promotion
     const restaurantIds = new Set(session.orderItems.map(({ item }) => item.restaurantId));
     for (const rid of restaurantIds) {
       const promos = restaurantPromotions[rid];
       if (promos && promos.length > 0) {
-        // Return discount: -1 as a signal that a promotion exists but the amount is backend-calculated
-        return { discount: -1, promotion: promos[0] };
+        return { hasPromotion: true, promotion: promos[0] };
       }
     }
 
-    return { discount: 0, promotion: null };
+    return { hasPromotion: false, promotion: null };
   }, [mealSessions, restaurantPromotions]);
 
   const getAllItems = useCallback((): SelectedMenuItem[] => {
