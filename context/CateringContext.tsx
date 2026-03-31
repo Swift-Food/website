@@ -140,17 +140,42 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     return mealSessions.reduce((sum, _, index) => sum + getSessionTotal(index), 0);
   }, [mealSessions, getSessionTotal]);
 
-  // Returns whether any restaurant in this session has an active promotion.
-  // Exact discount amounts are calculated by the backend at checkout.
+  // Checks if any promotion actually applies to this session's cart.
+  // Only checks thresholds (quantity/amount) — no discount calculation.
+  // Exact amounts are calculated by the backend at checkout.
   const getSessionDiscount = useCallback((sessionIndex: number): { hasPromotion: boolean; promotion: any | null } => {
     const session = mealSessions[sessionIndex];
     if (!session || session.orderItems.length === 0) return { hasPromotion: false, promotion: null };
 
-    const restaurantIds = new Set(session.orderItems.map(({ item }) => item.restaurantId));
-    for (const rid of restaurantIds) {
+    // Group items by restaurant
+    const byRestaurant: Record<string, { totalQty: number; subtotal: number }> = {};
+    session.orderItems.forEach(({ item, quantity }) => {
+      const rid = item.restaurantId;
+      if (!byRestaurant[rid]) byRestaurant[rid] = { totalQty: 0, subtotal: 0 };
+      const price = parseFloat(item.price?.toString() || "0");
+      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+      const unitPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      byRestaurant[rid].totalQty += quantity;
+      byRestaurant[rid].subtotal += unitPrice * quantity;
+    });
+
+    for (const [rid, cart] of Object.entries(byRestaurant)) {
       const promos = restaurantPromotions[rid];
-      if (promos && promos.length > 0) {
-        return { hasPromotion: true, promotion: promos[0] };
+      if (!promos || promos.length === 0) continue;
+
+      for (const promo of promos) {
+        // Check minOrderAmount threshold
+        if (promo.minOrderAmount && cart.subtotal < Number(promo.minOrderAmount)) continue;
+
+        // Check BUY_MORE_SAVE_MORE tier thresholds
+        if (promo.promotionType === 'BUY_MORE_SAVE_MORE' && promo.discountTiers?.length) {
+          const sortedTiers = [...promo.discountTiers].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+          const qualifyingTier = sortedTiers.find((t: any) => cart.totalQty >= t.minQuantity);
+          if (!qualifyingTier) continue;
+        }
+
+        // Promotion applies
+        return { hasPromotion: true, promotion: promo };
       }
     }
 
