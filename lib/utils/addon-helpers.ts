@@ -45,8 +45,8 @@ export function groupAddonsForApi(addons: MenuItemAddon[]): MenuItemAddonGroup[]
   const result = Object.values(groups);
   for (const group of result) {
     if (group.selectionType === "single") continue;
-    if (group.minSelections != null && group.minSelections >= group.items.length) {
-      // All defaults ON — customer has no choice
+    if (group.selectionType !== "multiple_repeat" && group.minSelections != null && group.minSelections >= group.items.length) {
+      // All defaults ON — customer has no choice (only for non-repeat groups)
       for (const item of group.items) item.isDefault = true;
     } else {
       // Clear defaults for non-single groups (defaults only make sense for single or all-required)

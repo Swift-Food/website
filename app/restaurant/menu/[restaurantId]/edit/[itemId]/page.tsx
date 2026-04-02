@@ -1253,6 +1253,8 @@ const EditMenuItemPage = () => {
                         {/* Limits row — slides in for non-single groups */}
                         {normalizeSelectionType(firstAddon?.selectionType) !== "single" && (() => {
                           const itemCount = groupAddons.length;
+                          const isRepeat = normalizeSelectionType(firstAddon?.selectionType) === "multiple_repeat";
+                          const upperLimit = isRepeat ? 99 : itemCount;
                           const warn = (field: "min" | "max", message: string) => {
                             setLimitsWarning({ group: grpTitle, field, message });
                             setTimeout(() => setLimitsWarning(null), 3500);
@@ -1265,9 +1267,7 @@ const EditMenuItemPage = () => {
                           const syncDefaults = (newMin?: number, newMax?: number) => {
                             setAddons((prev) => (prev || []).map((a) => {
                               if ((a.groupTitle || "Other") !== grpTitle) return a;
-                              // All defaults ON when min >= items
-                              if (newMin != null && newMin >= itemCount) return { ...a, minSelections: newMin, maxSelections: newMax, isDefault: true };
-                              // Clear all defaults when min < items (they were auto-set)
+                              if (!isRepeat && newMin != null && newMin >= itemCount) return { ...a, minSelections: newMin, maxSelections: newMax, isDefault: true };
                               return { ...a, minSelections: newMin, maxSelections: newMax, isDefault: false };
                             }));
                           };
@@ -1275,7 +1275,7 @@ const EditMenuItemPage = () => {
                             if (!raw) { syncDefaults(undefined, groupMax); setLimitsWarning(null); return; }
                             const val = parseInt(raw);
                             if (val < 0) { warn("min", "Minimum must be 0 or more"); return; }
-                            if (val > itemCount) { warn("min", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — minimum can't be higher than that`); return; }
+                            if (val > upperLimit) { warn("min", isRepeat ? `Maximum allowed is ${upperLimit}` : `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — minimum can't be higher than that`); return; }
                             if (groupMax != null && groupMax > 0 && val > groupMax) { warn("min", `Minimum can't be higher than your maximum (${groupMax})`); return; }
                             syncDefaults(val, groupMax);
                             setLimitsWarning(null);
@@ -1284,7 +1284,7 @@ const EditMenuItemPage = () => {
                             if (!raw) { syncDefaults(groupMin, undefined); setLimitsWarning(null); return; }
                             const val = parseInt(raw);
                             if (val < 0) { warn("max", "Maximum must be 0 or more"); return; }
-                            if (val > itemCount) { warn("max", `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — maximum can't be higher than that`); return; }
+                            if (val > upperLimit) { warn("max", isRepeat ? `Maximum allowed is ${upperLimit}` : `This group only has ${itemCount} option${itemCount !== 1 ? "s" : ""} — maximum can't be higher than that`); return; }
                             if (groupMin != null && val < groupMin) { warn("max", `Maximum can't be lower than your minimum (${groupMin})`); return; }
                             syncDefaults(groupMin, val);
                             setLimitsWarning(null);
@@ -1301,7 +1301,7 @@ const EditMenuItemPage = () => {
                                 <div className="relative">
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-[11px] text-gray-500">at least</span>
-                                    <input type="number" min="0" max={itemCount} value={groupMin ?? ""} onChange={(e) => handleMin(e.target.value)}
+                                    <input type="number" min="0" max={upperLimit} value={groupMin ?? ""} onChange={(e) => handleMin(e.target.value)}
                                       className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMinWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
                                   </div>
                                   {showMinWarn && (
@@ -1314,7 +1314,7 @@ const EditMenuItemPage = () => {
                                 <div className="relative">
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-[11px] text-gray-500">at most</span>
-                                    <input type="number" min="0" max={itemCount} value={groupMax ?? ""} onChange={(e) => handleMax(e.target.value)}
+                                    <input type="number" min="0" max={upperLimit} value={groupMax ?? ""} onChange={(e) => handleMax(e.target.value)}
                                       className={`w-12 px-2 py-1 text-xs text-center border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${showMaxWarn ? "border-amber-400 bg-amber-50" : "border-gray-300 bg-white"}`} placeholder="-" />
                                   </div>
                                   {showMaxWarn && (
