@@ -13,6 +13,7 @@ export default function SocialProofSection() {
       name: "Iterate",
       link: "https://www.linkedin.com/company/iteratehackathons/",
     },
+    { name: "Cursor", link: "https://cursor.com/" },
     {
       name: "Unicorn Mafia",
       image: "/logos/unicorn-mafia.svg",
