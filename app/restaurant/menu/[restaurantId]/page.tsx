@@ -1063,9 +1063,9 @@ const MenuListPage = () => {
                   </p>
                 )}
               </div>
-              {item.deliveryPortionSize && (
+              {item.feedsPerUnit && (
                 <span className="text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full font-medium">
-                  Portion: {item.deliveryPortionSize}
+                  Portion: {item.feedsPerUnit}
                 </span>
               )}
               {item.vatApplicable && (
