@@ -1292,31 +1292,31 @@ export default function RestaurantMenuBrowser({
           Back to Restaurants
         </button>
 
-        <div className="flex items-center gap-3 mb-3">
+        <div className="relative w-full rounded-xl overflow-hidden mb-2" style={{ height: "175px" }}>
           {selectedRestaurant.images && selectedRestaurant.images.length > 0 ? (
             <img
               src={selectedRestaurant.images[0]}
               alt={selectedRestaurant.restaurant_name}
-              className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+              className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-14 h-14 rounded-lg bg-base-200 flex items-center justify-center flex-shrink-0">
-              <span className="text-lg font-bold text-gray-400">
+            <div className="w-full h-full bg-base-200 flex items-center justify-center">
+              <span className="text-4xl font-bold text-gray-300">
                 {selectedRestaurant.restaurant_name.charAt(0)}
               </span>
             </div>
           )}
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              {selectedRestaurant.restaurant_name}
-            </h2>
-            {selectedRestaurant.minCateringOrderQuantity &&
-              selectedRestaurant.minCateringOrderQuantity > 0 && (
-                <p className="text-xs text-gray-500">
-                  Min order: {selectedRestaurant.minCateringOrderQuantity} items
-                </p>
-              )}
-          </div>
+        </div>
+        <div className="mb-3">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {selectedRestaurant.restaurant_name}
+          </h2>
+          {selectedRestaurant.minCateringOrderQuantity &&
+            selectedRestaurant.minCateringOrderQuantity > 0 && (
+              <p className="text-xs text-gray-500">
+                Min order: {selectedRestaurant.minCateringOrderQuantity} items
+              </p>
+            )}
         </div>
 
         <div className="relative mt-3">
