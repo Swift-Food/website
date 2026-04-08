@@ -229,6 +229,17 @@ export default function CateringOrderBuilder() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const [navbarHeight, setNavbarHeight] = useState(0);
+  useEffect(() => {
+    const navbar = document.querySelector("nav");
+    if (!navbar) return;
+    const update = () => setNavbarHeight(navbar.getBoundingClientRect().height);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(navbar);
+    return () => ro.disconnect();
+  }, []);
+
   // Prefill cart from bundle query parameter
   useEffect(() => {
     const bundleId = searchParams.get("bundleId");
@@ -973,27 +984,6 @@ export default function CateringOrderBuilder() {
 
   return (
     <div className="min-h-screen bg-base-100">
-      {/* Sticky Navigation */}
-      <DateSessionNav
-        navMode={navMode}
-        dayGroups={dayGroups}
-        selectedDayDate={selectedDayDate}
-        currentDayGroup={currentDayGroup}
-        expandedSessionIndex={activeSessionIndex}
-        isNavSticky={isNavSticky}
-        onDateClick={handleDateClick}
-        onBackToDates={handleBackToDates}
-        onSessionPillClick={handleSessionPillClick}
-        onAddDay={handleAddDay}
-        onAddSessionToDay={handleAddSessionToDay}
-        formatTimeDisplay={formatTimeDisplay}
-        addDayNavButtonRef={addDayNavButtonRef}
-        backButtonRef={backButtonRef}
-        firstDayTabRef={firstDayTabRef}
-        firstSessionPillRef={firstSessionPillRef}
-        addSessionNavButtonRef={addSessionNavButtonRef}
-      />
-
       {/* Session Editor Modal */}
       {editingSessionIndex !== null && (
         <SessionEditor
@@ -1005,11 +995,31 @@ export default function CateringOrderBuilder() {
         />
       )}
 
-      <div className="max-w-7xl mx-auto p-2">
-{/* Two-Column Layout */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Column: Menu Browser */}
-          <div className="flex-1 min-w-0">
+      {/* Two-Column Layout */}
+      <div className="flex flex-col md:flex-row">
+        {/* Left Column: Session Nav + Menu Browser — centered in remaining space */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <DateSessionNav
+            navMode={navMode}
+            dayGroups={dayGroups}
+            selectedDayDate={selectedDayDate}
+            currentDayGroup={currentDayGroup}
+            expandedSessionIndex={activeSessionIndex}
+            isNavSticky={isNavSticky}
+            onDateClick={handleDateClick}
+            onBackToDates={handleBackToDates}
+            onSessionPillClick={handleSessionPillClick}
+            onAddDay={handleAddDay}
+            onAddSessionToDay={handleAddSessionToDay}
+            formatTimeDisplay={formatTimeDisplay}
+            addDayNavButtonRef={addDayNavButtonRef}
+            backButtonRef={backButtonRef}
+            firstDayTabRef={firstDayTabRef}
+            firstSessionPillRef={firstSessionPillRef}
+            addSessionNavButtonRef={addSessionNavButtonRef}
+          />
+          <div className="flex justify-center px-2 md:px-6">
+            <div className="w-full max-w-3xl">
             <MenuBrowserColumn
               showBundleBrowser={showBundleBrowser}
               onToggleBundleBrowser={setShowBundleBrowser}
@@ -1031,70 +1041,74 @@ export default function CateringOrderBuilder() {
               firstMenuItemRef={firstMenuItemRef}
               expandedSessionIndex={activeSessionIndex}
             />
+            </div>
           </div>
+        </div>
 
-          {/* Right Column: Active Session (Desktop only) */}
-          <div className="hidden md:block md:w-[50%] xl:w-[40%] flex-shrink-0 self-start md:sticky md:top-24 h-[calc(100vh-7rem)]">
-            {mealSessions[activeSessionIndex] && (
-              <div className="flex h-full flex-col gap-3 overflow-hidden">
-                <ActiveSessionPanel
-                  session={mealSessions[activeSessionIndex]}
-                  sessionIndex={activeSessionIndex}
-                  sessionTotal={getSessionTotal(activeSessionIndex)}
-                  sessionPromotions={getSessionDiscount(activeSessionIndex).promotions}
-                  validationError={sessionValidationErrors[activeSessionIndex] || null}
-                  isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
-                  canRemove={mealSessions.length > 1}
-                  onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
-                  onRemoveSession={(e) => handleRemoveSession(activeSessionIndex, e)}
-                  onEditItem={handleEditItem}
-                  onRemoveItem={handleRemoveItem}
-                  onSwapItem={handleSwapItem}
-                  onRemoveBundle={handleRemoveBundle}
-                  collapsedCategories={collapsedCategories}
-                  onToggleCategory={handleToggleCategory}
-                  onViewMenu={handleViewMenu}
-                  isCurrentSessionValid={isCurrentSessionValid}
-                  totalPrice={getTotalPrice()}
-                  onCheckout={handleCheckout}
-                  showCheckoutButton={false}
-                  restaurants={restaurants}
-                />
-                <div className="flex-shrink-0 flex gap-2">
-                  {totalItems > 0 && (
-                    <button
-                      onClick={handleViewMenu}
-                      disabled={generatingPdf}
-                      className="flex flex-shrink-0 items-center gap-2 rounded-xl border border-primary px-4 py-3 font-semibold text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {generatingPdf ? (
-                        <span className="loading loading-spinner loading-sm" />
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                      )}
-                      <span className="text-sm">Download Menu</span>
-                    </button>
-                  )}
+        {/* Right Column: Basket — full-height sticky sidebar */}
+        <div
+          className="hidden md:flex md:w-72 flex-shrink-0 flex-col sticky top-0 overflow-hidden"
+          style={{ height: isNavSticky ? "100vh" : `calc(100vh - ${navbarHeight}px)` }}
+        >
+          {mealSessions[activeSessionIndex] && (
+            <div className="flex h-full flex-col gap-2 overflow-hidden">
+              <ActiveSessionPanel
+                session={mealSessions[activeSessionIndex]}
+                sessionIndex={activeSessionIndex}
+                sessionTotal={getSessionTotal(activeSessionIndex)}
+                sessionPromotions={getSessionDiscount(activeSessionIndex).promotions}
+                validationError={sessionValidationErrors[activeSessionIndex] || null}
+                isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
+                canRemove={mealSessions.length > 1}
+                onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
+                onRemoveSession={(e) => handleRemoveSession(activeSessionIndex, e)}
+                onEditItem={handleEditItem}
+                onRemoveItem={handleRemoveItem}
+                onSwapItem={handleSwapItem}
+                onRemoveBundle={handleRemoveBundle}
+                collapsedCategories={collapsedCategories}
+                onToggleCategory={handleToggleCategory}
+                onViewMenu={handleViewMenu}
+                isCurrentSessionValid={isCurrentSessionValid}
+                totalPrice={getTotalPrice()}
+                onCheckout={handleCheckout}
+                showCheckoutButton={false}
+                restaurants={restaurants}
+              />
+              <div className="mt-auto flex-shrink-0 flex flex-col gap-1.5 px-2 pb-4">
+                {totalItems > 0 && (
                   <button
-                    onClick={handleCheckout}
-                    className={`flex flex-1 items-center justify-between rounded-xl px-5 py-3 font-semibold text-white transition-colors ${
-                      isCurrentSessionValid
-                        ? "bg-primary hover:bg-primary/90"
-                        : "bg-warning hover:bg-warning/90"
-                    }`}
+                    onClick={handleViewMenu}
+                    disabled={generatingPdf}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <div>
-                      <span className="text-sm opacity-90">Total</span>
-                      <span className="ml-2 text-lg font-bold">£{getTotalPrice().toFixed(2)}</span>
-                    </div>
-                    <span>{isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}</span>
+                    {generatingPdf ? (
+                      <span className="loading loading-spinner loading-xs" />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    )}
+                    Download Menu
                   </button>
-                </div>
+                )}
+                <button
+                  onClick={handleCheckout}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-white transition-colors ${
+                    isCurrentSessionValid
+                      ? "bg-primary hover:bg-primary/90"
+                      : "bg-warning hover:bg-warning/90"
+                  }`}
+                >
+                  <div>
+                    <span className="text-xs opacity-90">Total</span>
+                    <span className="ml-1.5 font-bold">£{getTotalPrice().toFixed(2)}</span>
+                  </div>
+                  <span className="text-xs">{isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}</span>
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
