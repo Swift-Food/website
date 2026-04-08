@@ -2,19 +2,25 @@ import { MealSessionState, MenuItemDetails } from "@/types/catering.types";
 import { DayGroup } from "./types";
 import { MenuItem } from "./Step2MenuItems";
 
-// Hour options for 12-hour time picker
-export const HOUR_12_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
-  label: `${i + 1}`,
-  value: String(i + 1).padStart(2, "0"),
-}));
+// Time slot options: 30-minute ranges from 07:00 to 20:30 in 12h format
+const to12h = (totalMins: number) => {
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  const period = h >= 12 ? "pm" : "am";
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, "0")}${period}`;
+};
 
-// Minute options (15-minute intervals)
-export const MINUTE_OPTIONS = [
-  { label: "00", value: "00" },
-  { label: "15", value: "15" },
-  { label: "30", value: "30" },
-  { label: "45", value: "45" },
-];
+export const TIME_SLOT_OPTIONS = (() => {
+  const slots: { label: string; value: string }[] = [];
+  for (let startMins = 7 * 60; startMins <= 20 * 60; startMins += 30) {
+    const endMins = startMins + 30;
+    const sH = String(Math.floor(startMins / 60)).padStart(2, "0");
+    const sM = String(startMins % 60).padStart(2, "0");
+    slots.push({ label: `${to12h(startMins)} - ${to12h(endMins)}`, value: `${sH}:${sM}` });
+  }
+  return slots;
+})();
 
 /**
  * Groups meal sessions by date for timeline display
