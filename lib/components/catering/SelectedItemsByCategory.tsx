@@ -228,7 +228,7 @@ export default function SelectedItemsByCategory({
               {item.menuItemName}
             </p>
             {item.selectedAddons && item.selectedAddons.length > 0 && (
-              <div className="text-sm text-gray-600 mt-1">
+              <div className={`${compactLayout ? "text-xs" : "text-sm"} text-gray-600 mt-1`}>
                 {(() => {
                   // Group addons by groupTitle
                   const addonsByGroup = item.selectedAddons.reduce(
