@@ -1006,67 +1006,7 @@ export default function CateringOrderBuilder() {
       )}
 
       <div className="max-w-7xl mx-auto p-2">
-        {/* Summary Card */}
-        <div className="flex gap-3 mb-6">
-          <div className="flex-1 bg-white rounded-xl shadow-sm border border-base-200 p-3 md:p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-gray-500">
-                {totalDays > 0
-                  ? `${totalDays} day${totalDays !== 1 ? "s" : ""}`
-                  : "No days scheduled"}{" "}
-                • {totalSessions} session{totalSessions !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xl md:text-2xl font-bold text-primary">
-                £{getTotalPrice().toFixed(2)}
-              </p>
-              <p className="text-xs md:text-sm text-gray-500">
-                {totalItems} items total
-              </p>
-            </div>
-          </div>
-
-          {/* Download Menu Button */}
-          {totalItems > 0 && (
-            <button
-              onClick={handleViewMenu}
-              disabled={generatingPdf}
-              className="flex-shrink-0 bg-white rounded-xl shadow-sm border border-base-200 p-4 flex flex-col items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {generatingPdf ? (
-                <>
-                  <span className="loading loading-spinner loading-sm text-primary"></span>
-                  <span className="hidden md:block text-xs text-gray-500 mt-1">
-                    Generating...
-                  </span>
-                </>
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                  <span className="hidden md:block text-xs text-gray-500 mt-1 group-hover:text-primary transition-colors">
-                    Download Menu
-                  </span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
-
-        {/* Two-Column Layout */}
+{/* Two-Column Layout */}
         <div className="flex flex-col md:flex-row gap-6">
           {/* Left Column: Menu Browser */}
           <div className="flex-1 min-w-0">
@@ -1120,10 +1060,26 @@ export default function CateringOrderBuilder() {
                   showCheckoutButton={false}
                   restaurants={restaurants}
                 />
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 flex gap-2">
+                  {totalItems > 0 && (
+                    <button
+                      onClick={handleViewMenu}
+                      disabled={generatingPdf}
+                      className="flex flex-shrink-0 items-center gap-2 rounded-xl border border-primary px-4 py-3 font-semibold text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {generatingPdf ? (
+                        <span className="loading loading-spinner loading-sm" />
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                      )}
+                      <span className="text-sm">Download Menu</span>
+                    </button>
+                  )}
                   <button
                     onClick={handleCheckout}
-                    className={`flex w-full items-center justify-between rounded-xl px-5 py-3 font-semibold text-white transition-colors ${
+                    className={`flex flex-1 items-center justify-between rounded-xl px-5 py-3 font-semibold text-white transition-colors ${
                       isCurrentSessionValid
                         ? "bg-primary hover:bg-primary/90"
                         : "bg-warning hover:bg-warning/90"
@@ -1198,6 +1154,7 @@ export default function CateringOrderBuilder() {
         collapsedCategories={collapsedCategories}
         onToggleCategory={handleToggleCategory}
         onViewMenu={handleViewMenu}
+        generatingPdf={generatingPdf}
         isCurrentSessionValid={isCurrentSessionValid}
         totalPrice={getTotalPrice()}
         onCheckout={handleCheckout}
