@@ -76,13 +76,13 @@ export default function ActiveSessionPanel({
       )}
 
       {/* Session Header */}
-      <div className="px-4 py-3 md:px-5 md:py-4 flex items-center justify-between border-b border-base-200">
+      <div className="px-3 py-2.5 flex items-center justify-between border-b border-base-200">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
             <Clock className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-sm md:text-base font-semibold text-gray-800">
+            <p className="text-sm font-semibold text-gray-800">
               {session.sessionName}
             </p>
             <p className="text-xs text-gray-500">
@@ -95,7 +95,7 @@ export default function ActiveSessionPanel({
         </div>
         <div className="flex items-center gap-2">
           <div className="text-right mr-2">
-            <span className="text-sm md:text-base font-semibold text-primary">
+            <span className="text-sm font-semibold text-primary">
               £{sessionTotal.toFixed(2)}
             </span>
             <p className="text-[10px] text-gray-500">{totalItemCount} items</p>
@@ -129,7 +129,7 @@ export default function ActiveSessionPanel({
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         {/* Session Content */}
-        <div className="p-4 md:p-5">
+        <div className="p-2.5">
           {session.orderItems.length > 0 ? (
             <div className="min-w-0 overflow-hidden">
               <SelectedItemsByCategory
