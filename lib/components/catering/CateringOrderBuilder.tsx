@@ -1027,7 +1027,7 @@ export default function CateringOrderBuilder() {
 
         {/* Right Column: Basket — full-height sticky sidebar */}
         <div
-          className="hidden md:flex md:w-80 flex-shrink-0 flex-col sticky top-0 overflow-hidden"
+          className="hidden md:flex md:w-96 flex-shrink-0 flex-col sticky top-0 overflow-hidden"
           style={{ height: isNavSticky ? "100vh" : `calc(100vh - ${navbarHeight}px)` }}
         >
           {mealSessions[activeSessionIndex] && (
