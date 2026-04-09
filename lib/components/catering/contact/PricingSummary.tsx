@@ -6,17 +6,19 @@ interface PricingSummaryProps {
   pricing: CateringPricingResult | null;
   calculatingPricing: boolean;
   estimatedTotal?: number;
+  compact?: boolean;
 }
 
 export default function PricingSummary({
   pricing,
   calculatingPricing,
   estimatedTotal,
+  compact = false,
 }: PricingSummaryProps) {
   const [showDeliveryBreakdown, setShowDeliveryBreakdown] = useState(false);
   if (calculatingPricing) {
     return (
-      <div className="text-center py-4 text-base-content/60 text-sm">
+      <div className={`text-center text-base-content/60 ${compact ? "py-2 text-xs" : "py-4 text-sm"}`}>
         Calculating pricing...
       </div>
     );
@@ -33,10 +35,10 @@ export default function PricingSummary({
     const backendPromos = pricing.appliedPromotions?.filter((p) => p.discount > 0) ?? [];
 
     return (
-      <div className="space-y-2 pt-4 border-t border-base-300">
+      <div className={`border-t border-base-300 ${compact ? "space-y-1.5 pt-3" : "space-y-2 pt-4"}`}>
         {/* Promotion banners from backend (authoritative) */}
         {backendPromos.length > 0 && (
-          <div className="flex flex-col gap-1.5 mb-1">
+          <div className="flex flex-col gap-1 mb-0.5">
             {backendPromos.map((promo, i) => {
               const label =
                 promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
@@ -63,14 +65,14 @@ export default function PricingSummary({
           </div>
         )}
         {/* Subtotal */}
-        <div className="flex justify-between text-sm text-base-content/70">
+        <div className={`flex justify-between text-base-content/70 ${compact ? "text-xs" : "text-sm"}`}>
           <span>Subtotal</span>
           <span>£{pricing.subtotal.toFixed(2)}</span>
         </div>
 
         {/* Promotion Discount total (from backend) */}
         {((pricing.promotionDiscount ?? 0) > 0) && (
-          <div className="flex justify-between text-sm text-green-600 font-semibold">
+          <div className={`flex justify-between text-green-600 font-semibold ${compact ? "text-xs" : "text-sm"}`}>
             <span>Restaurant Promotion{backendPromos.length > 1 ? "s" : ""}</span>
             <span>-£{pricing.promotionDiscount!.toFixed(2)}</span>
           </div>
@@ -78,7 +80,7 @@ export default function PricingSummary({
 
         {/* Promo code discount — grouped with promotions above delivery */}
         {(pricing.promoDiscount ?? 0) > 0 && (
-          <div className="flex justify-between text-sm text-success font-medium">
+          <div className={`flex justify-between text-success font-medium ${compact ? "text-xs" : "text-sm"}`}>
             <span>Promo Code Discount</span>
             <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
           </div>
@@ -86,7 +88,7 @@ export default function PricingSummary({
 
         {/* Delivery fee */}
         <div className="space-y-1">
-          <div className="flex justify-between items-start text-sm text-base-content/70 gap-2">
+          <div className={`flex justify-between items-start text-base-content/70 gap-2 ${compact ? "text-xs" : "text-sm"}`}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
               <span className="whitespace-nowrap">Delivery Cost</span>
               
@@ -142,7 +144,7 @@ export default function PricingSummary({
         </div>
 
         {/* Total */}
-        <div className="flex justify-between text-lg font-bold text-base-content pt-3 border-t border-base-300">
+        <div className={`flex justify-between font-bold text-base-content border-t border-base-300 ${compact ? "text-sm pt-2" : "text-lg pt-3"}`}>
           <span>Total</span>
           <div className="text-right">
             {!distanceInMiles ? (
