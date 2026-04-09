@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
-import { CateringPricingResult, MealSessionState } from "@/types/catering.types";
+import { CateringPricingResult, ContactInfo, MealSessionState } from "@/types/catering.types";
 import { cateringService } from "@/services/api/catering.api";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem } from "./Step2MenuItems";
@@ -56,6 +56,8 @@ export default function CateringOrderBuilder() {
     getSessionDiscount,
     getTotalPrice,
     setCurrentStep,
+    contactInfo,
+    setContactInfo,
   } = useCatering();
 
   // Session editing state
@@ -521,6 +523,55 @@ export default function CateringOrderBuilder() {
   const [calculatingPricing, setCalculatingPricing] = useState(false);
   const pricingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Delivery address for pricing — seeded from persisted contactInfo
+  const [deliveryLocation, setDeliveryLocation] = useState<{ latitude: number; longitude: number } | null>(
+    contactInfo?.latitude && contactInfo?.longitude
+      ? { latitude: contactInfo.latitude, longitude: contactInfo.longitude }
+      : null
+  );
+
+  const handleDeliveryPlaceSelect = useCallback((place: google.maps.places.PlaceResult) => {
+    const lat = place.geometry?.location?.lat();
+    const lng = place.geometry?.location?.lng();
+    if (!lat || !lng) return;
+
+    // Extract address components
+    let addressLine1 = "";
+    let city = "";
+    let zipcode = "";
+    place.address_components?.forEach((c) => {
+      if (c.types.includes("street_number")) addressLine1 = c.long_name + " ";
+      if (c.types.includes("route")) addressLine1 += c.long_name;
+      if (c.types.includes("postal_town") || c.types.includes("locality")) city = c.long_name;
+      if (c.types.includes("postal_code")) zipcode = c.long_name;
+    });
+
+    setDeliveryLocation({ latitude: lat, longitude: lng });
+
+    // Persist to CateringContext so Step3 pre-fills the address
+    setContactInfo({
+      ...(contactInfo ?? ({} as ContactInfo)),
+      addressLine1: addressLine1.trim() || place.formatted_address || "",
+      city,
+      zipcode,
+      latitude: lat,
+      longitude: lng,
+    });
+  }, [contactInfo, setContactInfo]);
+
+  const handleClearDeliveryAddress = useCallback(() => {
+    setDeliveryLocation(null);
+    setPricing(null);
+    setContactInfo({
+      ...(contactInfo ?? ({} as ContactInfo)),
+      addressLine1: "",
+      city: "",
+      zipcode: "",
+      latitude: undefined,
+      longitude: undefined,
+    });
+  }, [contactInfo, setContactInfo]);
+
   const fetchPricing = useCallback(async (sessions: MealSessionState[]) => {
     const hasItems = sessions.some((s) => s.orderItems.length > 0);
     if (!hasItems) {
@@ -529,14 +580,18 @@ export default function CateringOrderBuilder() {
     }
     setCalculatingPricing(true);
     try {
-      const result = await cateringService.calculateCateringPricingWithMealSessions(sessions);
+      const result = await cateringService.calculateCateringPricingWithMealSessions(
+        sessions,
+        [],
+        deliveryLocation ?? undefined,
+      );
       if (result.isValid) setPricing(result);
     } catch {
       // silently ignore — pricing is best-effort in the sidebar
     } finally {
       setCalculatingPricing(false);
     }
-  }, []);
+  }, [deliveryLocation]);
 
   useEffect(() => {
     if (pricingDebounceRef.current) clearTimeout(pricingDebounceRef.current);
@@ -1109,10 +1164,16 @@ export default function CateringOrderBuilder() {
               <div className="mt-auto flex-shrink-0 flex flex-col gap-1.5 pb-4">
                 {totalItems > 0 && (
                   <div className="px-2 pb-1">
-                    <PricingSummary pricing={pricing} calculatingPricing={calculatingPricing} compact />
+                    <PricingSummary
+                      pricing={pricing}
+                      calculatingPricing={calculatingPricing}
+                      compact
+                      onPlaceSelect={handleDeliveryPlaceSelect}
+                      onClearAddress={handleClearDeliveryAddress}
+                    />
                   </div>
                 )}
-                <div className="flex w-full items-stretch gap-2">
+                <div className="flex w-full items-stretch gap-2 px-2">
                   {totalItems > 0 && (
                     <div className="relative flex-shrink-0">
                       <button
@@ -1176,17 +1237,13 @@ export default function CateringOrderBuilder() {
                   )}
                   <button
                     onClick={handleCheckout}
-                    className={`flex flex-1 items-center justify-between rounded-lg px-3 py-3 text-sm font-semibold text-white transition-colors ${
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-3 text-sm font-semibold text-white transition-colors ${
                       isCurrentSessionValid
                         ? "bg-primary hover:bg-primary/90"
                         : "bg-warning hover:bg-warning/90"
                     }`}
                   >
-                    <div>
-                      <span className="text-xs opacity-90">Total</span>
-                      <span className="ml-1.5 font-bold">£{getTotalPrice().toFixed(2)}</span>
-                    </div>
-                    <span className="text-xs">{isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}</span>
+                    {isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}
                   </button>
                 </div>
               </div>

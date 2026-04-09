@@ -1,11 +1,52 @@
 import { CateringPricingResult } from "@/types/catering.types";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
+import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
 
 interface PricingSummaryProps {
   pricing: CateringPricingResult | null;
   calculatingPricing: boolean;
   estimatedTotal?: number;
   compact?: boolean;
+  onPlaceSelect?: (place: google.maps.places.PlaceResult) => void;
+  onClearAddress?: () => void;
+}
+
+function InlineAddressInput({
+  onPlaceSelect,
+}: {
+  onPlaceSelect: (place: google.maps.places.PlaceResult) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  useEffect(() => {
+    loadGoogleMapsScript().then(() => {
+      if (!inputRef.current || !window.google?.maps?.places) return;
+      autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+        componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
+        fields: GOOGLE_MAPS_CONFIG.FIELDS,
+      });
+      autocompleteRef.current.addListener("place_changed", () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (place?.geometry) onPlaceSelect(place);
+      });
+    });
+    return () => {
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, [onPlaceSelect]);
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      placeholder="Enter address"
+      className="text-xs text-base-content bg-base-100 border border-base-300 rounded px-2 py-1 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 placeholder:text-base-content/60 w-full"
+    />
+  );
 }
 
 export default function PricingSummary({
@@ -13,8 +54,11 @@ export default function PricingSummary({
   calculatingPricing,
   estimatedTotal,
   compact = false,
+  onPlaceSelect,
+  onClearAddress,
 }: PricingSummaryProps) {
   const [showDeliveryBreakdown, setShowDeliveryBreakdown] = useState(false);
+
   if (calculatingPricing) {
     return (
       <div className={`text-center text-base-content/60 ${compact ? "py-2 text-xs" : "py-4 text-sm"}`}>
@@ -23,14 +67,11 @@ export default function PricingSummary({
     );
   }
 
-
   if (pricing) {
-    // Extract delivery breakdown from meal sessions if available
     const deliveryBreakdown = pricing.deliveryFeeBreakdown ||
       (pricing as any).mealSessions?.[0]?.deliveryFeeBreakdown;
     const distanceInMiles = pricing.distanceInMiles ||
       (pricing as any).mealSessions?.[0]?.distanceInMiles;
-    // Backend appliedPromotions is the single source of truth for discount display
     const backendPromos = pricing.appliedPromotions?.filter((p) => p.discount > 0) ?? [];
 
     return (
@@ -41,7 +82,7 @@ export default function PricingSummary({
           <span>£{pricing.subtotal.toFixed(2)}</span>
         </div>
 
-        {/* Promotion Discount total (from backend) */}
+        {/* Promotion Discount */}
         {((pricing.promotionDiscount ?? 0) > 0) && (
           <div className={`flex justify-between text-green-600 font-semibold ${compact ? "text-xs" : "text-sm"}`}>
             <span>Restaurant Promotion{backendPromos.length > 1 ? "s" : ""}</span>
@@ -49,7 +90,7 @@ export default function PricingSummary({
           </div>
         )}
 
-        {/* Promo code discount — grouped with promotions above delivery */}
+        {/* Promo code discount */}
         {(pricing.promoDiscount ?? 0) > 0 && (
           <div className={`flex justify-between text-success font-medium ${compact ? "text-xs" : "text-sm"}`}>
             <span>Promo Code Discount</span>
@@ -59,41 +100,47 @@ export default function PricingSummary({
 
         {/* Delivery fee */}
         <div className="space-y-1">
-          <div className={`flex justify-between items-start text-base-content/70 gap-2 ${compact ? "text-xs" : "text-sm"}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="whitespace-nowrap">Delivery Cost</span>
-              
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+          <div className={`flex justify-between items-center text-base-content/70 gap-2 ${compact ? "text-xs" : "text-sm"}`}>
+            <span className="whitespace-nowrap flex-shrink-0">Delivery Cost</span>
+            <div className="flex items-center gap-1.5 min-w-0">
               {!distanceInMiles ? (
-                <span className="text-base-content/50 text-xs italic">Enter address for quote</span>
+                onPlaceSelect ? (
+                  <InlineAddressInput onPlaceSelect={onPlaceSelect} />
+                ) : (
+                  <span className="text-base-content/50 text-xs italic">Enter address for quote</span>
+                )
               ) : (
                 <>
-                  {deliveryBreakdown && (
+                  {deliveryBreakdown && !compact && (
                     <button
                       onClick={() => setShowDeliveryBreakdown(!showDeliveryBreakdown)}
                       className="text-base-content/40 hover:text-base-content/70"
                       type="button"
-                      aria-label={showDeliveryBreakdown ? "Hide breakdown" : "Show breakdown"}
                     >
                       <svg
                         className={`w-4 h-4 transition-transform ${showDeliveryBreakdown ? "rotate-180" : ""}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                   )}
                   <span>£{pricing.deliveryFee.toFixed(2)}</span>
-                  
+                  {onClearAddress && (
+                    <button
+                      type="button"
+                      onClick={onClearAddress}
+                      className="text-base-content/40 hover:text-base-content/70 leading-none"
+                      title="Change address"
+                    >
+                      ×
+                    </button>
+                  )}
                 </>
               )}
             </div>
           </div>
 
-          {/* Delivery fee breakdown - Show per session */}
           {showDeliveryBreakdown && (pricing as any).mealSessions && (
             <div className="pl-4 space-y-1 text-xs text-base-content/60">
               {(pricing as any).mealSessions.map((session: any, index: number) => (
@@ -102,14 +149,11 @@ export default function PricingSummary({
                   <span>£{session.deliveryFee.toFixed(2)}</span>
                 </div>
               ))}
-              
             </div>
           )}
           {deliveryBreakdown?.requiresCustomQuote && (
             <div className="mt-2 p-2 bg-warning/10 border border-warning/30 rounded text-warning-content">
-              <p className="text-xs">
-                ⚠️ Delivery exceeds 6 miles. Final fee subject to review.
-              </p>
+              <p className="text-xs">⚠️ Delivery exceeds 6 miles. Final fee subject to review.</p>
             </div>
           )}
         </div>
@@ -142,12 +186,8 @@ export default function PricingSummary({
   if (estimatedTotal !== undefined) {
     return (
       <div className="flex justify-between pt-4 border-t border-base-300">
-        <span className="font-semibold text-base-content">
-          Estimated Total:
-        </span>
-        <span className="font-bold text-xl text-base-content">
-          £{estimatedTotal.toFixed(2)}
-        </span>
+        <span className="font-semibold text-base-content">Estimated Total:</span>
+        <span className="font-bold text-xl text-base-content">£{estimatedTotal.toFixed(2)}</span>
       </div>
     );
   }
