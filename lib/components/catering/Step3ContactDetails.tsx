@@ -18,6 +18,7 @@ import { pdf } from "@react-pdf/renderer";
 import { ArrowDown, FileText } from "lucide-react";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
+import HalkinVenueModal from "./modals/HalkinVenueModal";
 import DeliveryAddressForm from "./contact/DeliveryAddressForm";
 import ContactInfoForm from "./contact/ContactInfoForm";
 import PromoCodeSection from "./contact/PromoCodeSection";
@@ -110,6 +111,7 @@ export default function Step3ContactInfo() {
 
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showHalkinModal, setShowHalkinModal] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
 
   // Calculate estimated total without triggering state updates
@@ -841,6 +843,11 @@ export default function Step3ContactInfo() {
       latitude,
       longitude,
     }));
+
+    const placeText = `${place.name || ""} ${place.formatted_address || ""}`.toLowerCase();
+    if (placeText.includes("halkin")) {
+      setShowHalkinModal(true);
+    }
   };
 
   const handleClearAddress = () => {
@@ -1451,6 +1458,10 @@ export default function Step3ContactInfo() {
             </div>
           </div>
         </div>
+        {showHalkinModal && (
+          <HalkinVenueModal onClose={() => setShowHalkinModal(false)} />
+        )}
+
         {/* PDF Download Modal */}
         {showPdfModal && (
           <PdfDownloadModal

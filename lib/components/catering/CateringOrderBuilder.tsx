@@ -26,6 +26,7 @@ import EmptySessionWarningModal from "./modals/EmptySessionWarningModal";
 import RemoveSessionConfirmModal from "./modals/RemoveSessionConfirmModal";
 import MinOrderModal from "./modals/MinOrderModal";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
+import HalkinVenueModal from "./modals/HalkinVenueModal";
 import SwapItemModal from "./modals/SwapItemModal";
 import PricingSummary from "./contact/PricingSummary";
 
@@ -89,6 +90,7 @@ export default function CateringOrderBuilder() {
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showHalkinModal, setShowHalkinModal] = useState(false);
 
   // Empty session warning modal state
   const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(null);
@@ -571,6 +573,11 @@ export default function CateringOrderBuilder() {
       latitude: lat,
       longitude: lng,
     });
+
+    const placeText = `${place.name || ""} ${place.formatted_address || ""}`.toLowerCase();
+    if (placeText.includes("halkin")) {
+      setShowHalkinModal(true);
+    }
   }, [contactInfo, setContactInfo]);
 
   const handleClearDeliveryAddress = useCallback(() => {
@@ -1549,6 +1556,10 @@ export default function CateringOrderBuilder() {
           onClose={() => setMinOrderModalSession(null)}
           onNavigateToSection={handleMinOrderNavigate}
         />
+      )}
+
+      {showHalkinModal && (
+        <HalkinVenueModal onClose={() => setShowHalkinModal(false)} />
       )}
 
       {/* PDF Download Modal */}
