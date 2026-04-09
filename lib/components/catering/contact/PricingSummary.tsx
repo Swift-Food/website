@@ -147,7 +147,7 @@ export default function PricingSummary({
 }: PricingSummaryProps) {
   const [showDeliveryBreakdown, setShowDeliveryBreakdown] = useState(false);
 
-  if (calculatingPricing) {
+  if (calculatingPricing && !pricing) {
     return (
       <div className={`text-center text-base-content/60 ${compact ? "py-2 text-xs" : "py-4 text-sm"}`}>
         Calculating pricing...
@@ -163,7 +163,7 @@ export default function PricingSummary({
     const backendPromos = pricing.appliedPromotions?.filter((p) => p.discount > 0) ?? [];
 
     return (
-      <div className={`border-t border-base-300 ${compact ? "space-y-1.5 pt-3" : "space-y-2 pt-4"}`}>
+      <div className={`border-t border-base-300 transition-opacity duration-200 ${calculatingPricing ? "opacity-50" : "opacity-100"} ${compact ? "space-y-1.5 pt-3" : "space-y-2 pt-4"}`}>
         {/* Subtotal */}
         <div className={`flex justify-between text-base-content/70 ${compact ? "text-xs" : "text-sm"}`}>
           <span>Subtotal</span>
