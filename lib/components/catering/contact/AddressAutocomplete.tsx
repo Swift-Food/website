@@ -20,6 +20,7 @@ export default function AddressAutocomplete({
   const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justSelectedRef = useRef(false);
 
   const [query, setQuery] = useState("");
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -36,6 +37,10 @@ export default function AddressAutocomplete({
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
     if (!query.trim() || !autocompleteServiceRef.current) {
       setPredictions([]);
       setOpen(false);
@@ -59,6 +64,7 @@ export default function AddressAutocomplete({
   }, [query]);
 
   const handleSelect = (prediction: google.maps.places.AutocompletePrediction) => {
+    justSelectedRef.current = true;
     setOpen(false);
     setPredictions([]);
     setQuery(prediction.description);
@@ -97,11 +103,12 @@ export default function AddressAutocomplete({
       <div className="relative">
         <input
           ref={inputRef}
-          type="text"
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Start typing an address..."
-          className={`w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all ${
+          autoComplete="new-password"
+          className={`address-search-input w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all ${
             error
               ? "border-error"
               : hasValidAddress

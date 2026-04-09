@@ -22,6 +22,7 @@ function InlineAddressInput({
   const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justSelectedRef = useRef(false);
 
   const [query, setQuery] = useState("");
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -40,6 +41,10 @@ function InlineAddressInput({
   // Fetch predictions with debounce
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
     if (!query.trim() || !autocompleteServiceRef.current) {
       setPredictions([]);
       setOpen(false);
@@ -63,6 +68,7 @@ function InlineAddressInput({
   }, [query]);
 
   const handleSelect = (prediction: google.maps.places.AutocompletePrediction) => {
+    justSelectedRef.current = true;
     setOpen(false);
     setPredictions([]);
     setQuery(prediction.description);
@@ -95,10 +101,11 @@ function InlineAddressInput({
         </svg>
         <input
           ref={inputRef}
-          type="text"
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Enter address for accurate cost"
+          autoComplete="new-password"
           className="flex-1 text-xs bg-transparent outline-none placeholder:text-base-content/40 text-base-content min-w-0"
         />
       </div>
