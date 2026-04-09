@@ -18,6 +18,7 @@ export interface TutorialStep {
   highlightExtendBottom?: number; // Extra height to extend highlight downward
   highlightExtendBottomToViewport?: boolean; // Extend highlight to bottom of viewport
   highlightMinTop?: number; // Clamp the highlight so it doesn't extend into sticky UI
+  autoScroll?: boolean; // Scroll element into view inside updatePosition before positioning
   onBeforeShow?: (onComplete: () => void) => void; // Called before showing this step; call onComplete when ready to position
 }
 
@@ -61,6 +62,16 @@ export default function TutorialTooltip({
 
     const targetEl = step.targetRef.current;
     const tooltipEl = tooltipRef.current;
+
+    // If autoScroll: scroll element to roughly the middle of the viewport, then re-measure
+    if (step.autoScroll) {
+      const preRect = targetEl.getBoundingClientRect();
+      const targetTop = Math.round(window.innerHeight * 0.35);
+      if (preRect.top < (step.highlightMinTop ?? 0) || preRect.top > window.innerHeight * 0.65) {
+        window.scrollTo({ top: window.scrollY + preRect.top - targetTop, behavior: "instant" });
+      }
+    }
+
     const targetRect = targetEl.getBoundingClientRect();
     const tooltipRect = tooltipEl.getBoundingClientRect();
     const highlightTop = Math.max(targetRect.top, step.highlightMinTop ?? 0);
@@ -176,6 +187,14 @@ export default function TutorialTooltip({
         }
       };
       setTimeout(tryUpdate, 30);
+      // For autoScroll steps, re-check after layout shifts (image loads pushing content down)
+      if (step.autoScroll) {
+        [200, 500, 900].forEach((delay) => {
+          setTimeout(() => {
+            if (!cancelled && step.targetRef?.current) updatePosition();
+          }, delay);
+        });
+      }
     };
 
     // Only run onBeforeShow when step id actually changes (not on every re-render).
