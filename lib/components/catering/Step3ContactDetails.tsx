@@ -844,8 +844,8 @@ export default function Step3ContactInfo() {
       longitude,
     }));
 
-    const placeText = `${place.name || ""} ${place.formatted_address || ""}`.toLowerCase();
-    if (placeText.includes("halkin")) {
+    const placeText = `${place.name || ""} ${place.formatted_address || ""}`;
+    if (/halkin\s*-/i.test(placeText)) {
       setShowHalkinModal(true);
     }
   };
