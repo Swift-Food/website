@@ -18,34 +18,115 @@ function InlineAddressInput({
   onPlaceSelect: (place: google.maps.places.PlaceResult) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [query, setQuery] = useState("");
+  const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     loadGoogleMapsScript().then(() => {
-      if (!inputRef.current || !window.google?.maps?.places) return;
-      autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
-        componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION },
-        fields: GOOGLE_MAPS_CONFIG.FIELDS,
-      });
-      autocompleteRef.current.addListener("place_changed", () => {
-        const place = autocompleteRef.current?.getPlace();
-        if (place?.geometry) onPlaceSelect(place);
-      });
+      if (!window.google?.maps?.places) return;
+      autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
+      // PlacesService needs a DOM node
+      const div = document.createElement("div");
+      placesServiceRef.current = new google.maps.places.PlacesService(div);
     });
-    return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+  }, []);
+
+  // Fetch predictions with debounce
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query.trim() || !autocompleteServiceRef.current) {
+      setPredictions([]);
+      setOpen(false);
+      return;
+    }
+    debounceRef.current = setTimeout(() => {
+      autocompleteServiceRef.current!.getPlacePredictions(
+        { input: query, componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION } },
+        (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            setPredictions(results);
+            setOpen(true);
+          } else {
+            setPredictions([]);
+            setOpen(false);
+          }
+        }
+      );
+    }, 250);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query]);
+
+  const handleSelect = (prediction: google.maps.places.AutocompletePrediction) => {
+    setOpen(false);
+    setPredictions([]);
+    setQuery(prediction.description);
+    placesServiceRef.current?.getDetails(
+      { placeId: prediction.place_id, fields: GOOGLE_MAPS_CONFIG.FIELDS },
+      (place, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry) {
+          onPlaceSelect(place);
+        }
+      }
+    );
+  };
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
       }
     };
-  }, [onPlaceSelect]);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
-    <input
-      ref={inputRef}
-      type="text"
-      placeholder="Enter address"
-      className="text-xs text-base-content bg-base-100 border border-base-300 rounded px-2 py-1 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 placeholder:text-base-content/60 w-full"
-    />
+    <div ref={containerRef} className="relative mt-1.5 pt-1.5 border-t border-base-200">
+      <div className="flex items-center gap-1.5">
+        <svg className="h-3 w-3 flex-shrink-0 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Enter address for accurate cost"
+          className="flex-1 text-xs bg-transparent outline-none placeholder:text-base-content/40 text-base-content min-w-0"
+        />
+      </div>
+      {open && predictions.length > 0 && (
+        <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg border border-base-200 bg-white shadow-lg overflow-hidden z-50">
+          {predictions.map((p) => (
+            <button
+              key={p.place_id}
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); handleSelect(p); }}
+              className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-base-100 transition-colors"
+            >
+              <svg className="h-3 w-3 flex-shrink-0 text-base-content/40 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-base-content truncate">
+                  {p.structured_formatting.main_text}
+                </p>
+                <p className="text-[10px] text-base-content/50 truncate">
+                  {p.structured_formatting.secondary_text}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -103,44 +184,40 @@ export default function PricingSummary({
           <div className={`flex justify-between items-center text-base-content/70 gap-2 ${compact ? "text-xs" : "text-sm"}`}>
             <span className="whitespace-nowrap flex-shrink-0">Delivery Cost</span>
             <div className="flex items-center gap-1.5 min-w-0">
-              {!distanceInMiles ? (
-                onPlaceSelect ? (
-                  <InlineAddressInput onPlaceSelect={onPlaceSelect} />
-                ) : (
-                  <span className="text-base-content/50 text-xs italic">Enter address for quote</span>
-                )
-              ) : (
-                <>
-                  {deliveryBreakdown && !compact && (
-                    <button
-                      onClick={() => setShowDeliveryBreakdown(!showDeliveryBreakdown)}
-                      className="text-base-content/40 hover:text-base-content/70"
-                      type="button"
-                    >
-                      <svg
-                        className={`w-4 h-4 transition-transform ${showDeliveryBreakdown ? "rotate-180" : ""}`}
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  )}
-                  <span>£{pricing.deliveryFee.toFixed(2)}</span>
-                  {onClearAddress && (
-                    <button
-                      type="button"
-                      onClick={onClearAddress}
-                      className="text-base-content/40 hover:text-base-content/70 leading-none"
-                      title="Change address"
-                    >
-                      ×
-                    </button>
-                  )}
-                </>
+              {deliveryBreakdown && !compact && (
+                <button
+                  onClick={() => setShowDeliveryBreakdown(!showDeliveryBreakdown)}
+                  className="text-base-content/40 hover:text-base-content/70"
+                  type="button"
+                >
+                  <svg
+                    className={`w-4 h-4 transition-transform ${showDeliveryBreakdown ? "rotate-180" : ""}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              )}
+              <span>£{pricing.deliveryFee.toFixed(2)}</span>
+              {!distanceInMiles && onPlaceSelect && (
+                <span className="text-base-content/40 text-xs italic">(min)</span>
+              )}
+              {distanceInMiles && onClearAddress && (
+                <button
+                  type="button"
+                  onClick={onClearAddress}
+                  className="text-base-content/40 hover:text-base-content/70 leading-none"
+                  title="Change address"
+                >
+                  ×
+                </button>
               )}
             </div>
           </div>
 
+          {!distanceInMiles && onPlaceSelect && (
+            <InlineAddressInput onPlaceSelect={onPlaceSelect} />
+          )}
           {showDeliveryBreakdown && (pricing as any).mealSessions && (
             <div className="pl-4 space-y-1 text-xs text-base-content/60">
               {(pricing as any).mealSessions.map((session: any, index: number) => (
@@ -162,20 +239,11 @@ export default function PricingSummary({
         <div className={`flex justify-between font-bold text-base-content border-t border-base-300 ${compact ? "text-sm pt-2" : "text-lg pt-3"}`}>
           <span>Total</span>
           <div className="text-right">
-            {!distanceInMiles ? (
-              <div>
-                <p>£{pricing.subtotal.toFixed(2)}</p>
-                <p className="text-xs font-normal text-base-content/50">+ delivery (address required)</p>
-              </div>
-            ) : (
-              <>
-                <p>£{pricing.total.toFixed(2)}</p>
-                {(pricing.totalDiscount ?? 0) > 0 && (
-                  <p className="text-xs line-through text-base-content/50">
-                    £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
-                  </p>
-                )}
-              </>
+            <p>£{pricing.total.toFixed(2)}</p>
+            {(pricing.totalDiscount ?? 0) > 0 && (
+              <p className="text-xs line-through font-normal text-base-content/50">
+                £{(pricing.subtotal + pricing.deliveryFee).toFixed(2)}
+              </p>
             )}
           </div>
         </div>
