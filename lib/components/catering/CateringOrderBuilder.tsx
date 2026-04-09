@@ -34,7 +34,9 @@ import { useCateringTutorial } from "./hooks/useCateringTutorial";
 import { useCateringData } from "./hooks/useCateringData";
 
 // Helpers
-import { groupSessionsByDay, formatTimeDisplay } from "./catering-order-helpers";
+import { groupSessionsByDay, formatTimeDisplay, mapToMenuItem } from "./catering-order-helpers";
+import { API_BASE_URL } from "@/lib/constants/api";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 // Icons
 import { MoreHorizontal, ShoppingBag, Trash2, X } from "lucide-react";
@@ -713,8 +715,8 @@ export default function CateringOrderBuilder() {
     indices.forEach((idx) => removeMenuItemByIndex(activeSessionIndex, idx));
   };
 
-  // Handle swap item (for bundle items)
-  const handleSwapItem = (itemIndex: number) => {
+  // Handle swap item (for bundle items) — fetches from restaurant on demand
+  const handleSwapItem = async (itemIndex: number) => {
     const session = mealSessions[activeSessionIndex];
     if (!session) return;
     const orderItem = session.orderItems[itemIndex];
@@ -722,17 +724,24 @@ export default function CateringOrderBuilder() {
 
     const item = orderItem.item as MenuItem;
     const restaurantId = item.restaurantId;
-    const groupTitle = item.groupTitle;
 
-    let alternatives: MenuItem[] = [];
-    if (allMenuItems && restaurantId && groupTitle) {
-      alternatives = allMenuItems.filter(
-        (mi) => mi.restaurantId === restaurantId && mi.groupTitle === groupTitle
-      );
-    }
-
-    setSwapAlternatives(alternatives);
     setSwapItemIndex(itemIndex);
+    setSwapAlternatives([]);
+
+    if (!restaurantId) return;
+
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/restaurant/${restaurantId}`);
+      const data = await response.json();
+      const items: MenuItem[] = (data.menuItems || []).map(mapToMenuItem);
+      const groupTitle = item.groupTitle;
+      const alternatives = groupTitle
+        ? items.filter((mi) => mi.groupTitle === groupTitle)
+        : items;
+      setSwapAlternatives(alternatives);
+    } catch (error) {
+      console.error("Failed to fetch swap alternatives:", error);
+    }
   };
 
   const handleConfirmSwap = (newItem: MenuItem) => {
