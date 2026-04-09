@@ -1172,7 +1172,7 @@ export default function CateringOrderBuilder() {
               />
               <div className="mt-auto flex-shrink-0 flex flex-col gap-1.5 pb-4">
                 {totalItems > 0 && (
-                  <div className="px-2 pb-1">
+                  <div className="px-2 pb-1 border-t border-base-300 pt-3">
                     <PricingSummary
                       pricing={pricing}
                       calculatingPricing={calculatingPricing}
@@ -1374,6 +1374,8 @@ export default function CateringOrderBuilder() {
         onAddDay={handleAddDay}
         onAddSessionToDay={handleAddSessionToDay}
         restaurants={restaurants}
+        pricing={pricing}
+        calculatingPricing={calculatingPricing}
       />
 
       {/* Edit Item Modal */}

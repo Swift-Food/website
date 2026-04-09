@@ -1,4 +1,4 @@
-import { MealSessionState } from "@/types/catering.types";
+import { MealSessionState, CateringPricingResult } from "@/types/catering.types";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 
 // Day grouping interface for timeline view
@@ -174,6 +174,8 @@ export interface ViewOrderModalProps {
   onAddDay: () => void;
   onAddSessionToDay: (dayDate: string) => void;
   restaurants?: { id: string; restaurant_name: string; images: string[] }[];
+  pricing?: CateringPricingResult | null;
+  calculatingPricing?: boolean;
 }
 
 // Catering data hook return type

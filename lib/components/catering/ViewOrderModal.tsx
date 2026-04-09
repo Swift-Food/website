@@ -1,10 +1,11 @@
 "use client";
 
-import { createRef, useEffect } from "react";
-import { X, Clock, Pencil, ShoppingBag, AlertTriangle } from "lucide-react";
+import { createRef, useEffect, useState } from "react";
+import { X, Clock, Pencil, ShoppingBag, AlertTriangle, ChevronUp } from "lucide-react";
 import { ViewOrderModalProps } from "./types";
 import SelectedItemsByCategory from "./SelectedItemsByCategory";
 import DateSessionNav from "./DateSessionNav";
+import PricingSummary from "./contact/PricingSummary";
 
 export default function ViewOrderModal({
   isOpen,
@@ -39,7 +40,11 @@ export default function ViewOrderModal({
   onAddDay,
   onAddSessionToDay,
   restaurants,
+  pricing,
+  calculatingPricing = false,
 }: ViewOrderModalProps) {
+  const [showPricing, setShowPricing] = useState(false);
+
   // Lock body scroll while the modal is open so the page behind doesn't scroll
   useEffect(() => {
     if (!isOpen) return;
@@ -265,8 +270,8 @@ export default function ViewOrderModal({
 
       {/* Fixed Bottom – identical to main page View Order bar */}
       <div className="relative flex-shrink-0">
-        {/* Floating session detail pill */}
-        <div className="absolute -top-14 left-0 right-0 flex justify-center pointer-events-none z-10">
+        {/* Floating session detail pill + chevron button */}
+        <div className="absolute -top-14 left-0 right-0 flex justify-center items-center gap-2 z-10">
           <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200">
             <span className="text-xs font-semibold text-gray-800">{activeSession.sessionName}</span>
             <span className="text-[10px] text-gray-500">
@@ -276,7 +281,27 @@ export default function ViewOrderModal({
               {activeSession.eventTime && ` · ${formatTimeDisplay(activeSession.eventTime)}`}
             </span>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowPricing((v) => !v)}
+            className="w-8 h-8 rounded-full bg-white/50 backdrop-blur-sm shadow-sm border border-base-200 flex items-center justify-center hover:bg-white/80 transition-colors"
+            aria-label={showPricing ? "Hide pricing" : "Show pricing"}
+          >
+            <ChevronUp className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${showPricing ? "rotate-180" : ""}`} />
+          </button>
         </div>
+
+        {/* Expandable pricing summary */}
+        {showPricing && (
+          <div className="px-4 pt-2 pb-3 bg-white border-t border-base-200">
+            <PricingSummary
+              pricing={pricing ?? null}
+              calculatingPricing={calculatingPricing}
+              compact
+            />
+          </div>
+        )}
+
         <div className="p-4 bg-primary">
           <button
             onClick={onCheckout}
