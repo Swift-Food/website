@@ -1198,7 +1198,7 @@ export default function CateringOrderBuilder() {
                   </div>
                 )}
                 <div className="flex w-full items-stretch gap-2 px-2">
-                  {totalItems > 0 && (
+                  {mealSessions.length > 0 && (
                     <div className="relative flex-shrink-0">
                       <button
                         ref={desktopMenuBtnRef}
@@ -1232,7 +1232,7 @@ export default function CateringOrderBuilder() {
                                 setIsDesktopCartMenuOpen(false);
                                 handleViewMenu();
                               }}
-                              disabled={generatingPdf}
+                              disabled={generatingPdf || totalItems === 0}
                               className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-base-100 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {generatingPdf ? (
@@ -1310,7 +1310,7 @@ export default function CateringOrderBuilder() {
                         setIsMobileCartMenuOpen(false);
                         handleViewMenu();
                       }}
-                      disabled={generatingPdf}
+                      disabled={generatingPdf || totalItems === 0}
                       className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-base-100 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
