@@ -124,12 +124,18 @@ export interface PdfSession {
   deliveryFee?: number;
 }
 
+export interface PdfAppliedPromotion {
+  name: string;
+  discountAmount: number;
+}
+
 export interface CateringMenuPdfProps {
   sessions: PdfSession[];
   showPrices: boolean;
   deliveryCharge?: number;
   totalPrice?: number;
   promoDiscount?: number;
+  appliedPromotions?: PdfAppliedPromotion[];
   logoUrl?: string;
 }
 
@@ -693,7 +699,8 @@ const SessionPage: React.FC<{
   deliveryCharge?: number;
   totalPrice?: number;
   promoDiscount?: number;
-}> = ({ session, dayDate, dayNumber, showPrices, allSessions, isLastSession, deliveryCharge, totalPrice, promoDiscount }) => {
+  appliedPromotions?: PdfAppliedPromotion[];
+}> = ({ session, dayDate, dayNumber, showPrices, allSessions, isLastSession, deliveryCharge, totalPrice, promoDiscount, appliedPromotions }) => {
   const totalCatering = allSessions.reduce((sum, s) => sum + (s.subtotal || 0), 0);
 
   return (
@@ -744,16 +751,22 @@ const SessionPage: React.FC<{
             <Text style={styles.totalsBreakdownLabel}>Catering Total</Text>
             <Text style={styles.totalsBreakdownValue}>£{totalCatering.toFixed(2)}</Text>
           </View>
-          {promoDiscount !== undefined && promoDiscount > 0 && (
+          {(appliedPromotions || []).map((promo, i) => (
+            <View key={i} style={styles.totalsBreakdownRow}>
+              <Text style={[styles.totalsBreakdownLabel, { color: "#16a34a" }]}>{promo.name}</Text>
+              <Text style={[styles.totalsBreakdownValue, { color: "#16a34a" }]}>-£{promo.discountAmount.toFixed(2)}</Text>
+            </View>
+          ))}
+          {(promoDiscount ?? 0) > 0 && (
             <View style={styles.totalsBreakdownRow}>
-              <Text style={styles.totalsBreakdownLabel}>Promo Discount</Text>
-              <Text style={[styles.totalsBreakdownValue, { color: "#16a34a" }]}>-£{promoDiscount.toFixed(2)}</Text>
+              <Text style={[styles.totalsBreakdownLabel, { color: "#16a34a" }]}>Promo Code</Text>
+              <Text style={[styles.totalsBreakdownValue, { color: "#16a34a" }]}>-£{promoDiscount!.toFixed(2)}</Text>
             </View>
           )}
           <View style={styles.totalsBreakdownRow}>
             <Text style={styles.totalsBreakdownLabel}>Logistics / Delivery</Text>
             <Text style={styles.totalsBreakdownValueItalic}>
-              {deliveryCharge !== undefined ? `£${deliveryCharge.toFixed(2)}` : "TBC"}
+              {deliveryCharge !== undefined ? `£${deliveryCharge.toFixed(2)}` : "Estimated"}
             </Text>
           </View>
         </View>
@@ -766,7 +779,7 @@ const SessionPage: React.FC<{
             {deliveryCharge !== undefined && totalPrice !== undefined
               ? `£${totalPrice.toFixed(2)}`
               : deliveryCharge !== undefined
-                ? `£${(totalCatering + deliveryCharge - (promoDiscount || 0)).toFixed(2)}`
+                ? `£${(totalCatering + deliveryCharge - (promoDiscount || 0) - (appliedPromotions || []).reduce((s, p) => s + p.discountAmount, 0)).toFixed(2)}`
                 : `£${totalCatering.toFixed(2)} + TBC`}
           </Text>
         </View>
@@ -807,6 +820,7 @@ export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
   deliveryCharge,
   totalPrice,
   promoDiscount,
+  appliedPromotions,
 }) => {
   const groupedByDay = groupSessionsByDate(sessions);
 
@@ -836,6 +850,7 @@ export const CateringMenuPdf: React.FC<CateringMenuPdfProps> = ({
           deliveryCharge={deliveryCharge}
           totalPrice={totalPrice}
           promoDiscount={promoDiscount}
+          appliedPromotions={appliedPromotions}
         />
       ))}
     </Document>
