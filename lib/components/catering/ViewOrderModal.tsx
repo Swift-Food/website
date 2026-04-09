@@ -42,6 +42,8 @@ export default function ViewOrderModal({
   restaurants,
   pricing,
   calculatingPricing = false,
+  onPlaceSelect,
+  onClearAddress,
 }: ViewOrderModalProps) {
   const [showPricing, setShowPricing] = useState(false);
 
@@ -298,6 +300,8 @@ export default function ViewOrderModal({
               pricing={pricing ?? null}
               calculatingPricing={calculatingPricing}
               compact
+              onPlaceSelect={onPlaceSelect}
+              onClearAddress={onClearAddress}
             />
           </div>
         )}

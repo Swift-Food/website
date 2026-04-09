@@ -177,6 +177,8 @@ export interface ViewOrderModalProps {
   restaurants?: { id: string; restaurant_name: string; images: string[] }[];
   pricing?: CateringPricingResult | null;
   calculatingPricing?: boolean;
+  onPlaceSelect?: (place: google.maps.places.PlaceResult) => void;
+  onClearAddress?: () => void;
 }
 
 // Catering data hook return type

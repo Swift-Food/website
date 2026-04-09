@@ -1391,6 +1391,8 @@ export default function CateringOrderBuilder() {
         restaurants={restaurants}
         pricing={pricing}
         calculatingPricing={calculatingPricing}
+        onPlaceSelect={handleDeliveryPlaceSelect}
+        onClearAddress={handleClearDeliveryAddress}
       />
 
       {/* Edit Item Modal */}
