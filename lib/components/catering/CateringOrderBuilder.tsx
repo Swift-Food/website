@@ -236,15 +236,22 @@ export default function CateringOrderBuilder() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const [navbarHeight, setNavbarHeight] = useState(0);
+  const basketColumnRef = useRef<HTMLDivElement>(null);
+  const [basketHeight, setBasketHeight] = useState("100vh");
   useEffect(() => {
-    const navbar = document.querySelector("nav");
-    if (!navbar) return;
-    const update = () => setNavbarHeight(navbar.getBoundingClientRect().height);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(navbar);
-    return () => ro.disconnect();
+    const updateHeight = () => {
+      if (basketColumnRef.current) {
+        const top = Math.max(0, basketColumnRef.current.getBoundingClientRect().top);
+        setBasketHeight(`calc(100vh - ${top}px)`);
+      }
+    };
+    updateHeight();
+    window.addEventListener("scroll", updateHeight, { passive: true });
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      window.removeEventListener("scroll", updateHeight);
+      window.removeEventListener("resize", updateHeight);
+    };
   }, []);
 
   // Prefill cart from bundle query parameter
@@ -1142,8 +1149,9 @@ export default function CateringOrderBuilder() {
 
         {/* Right Column: Basket — full-height sticky sidebar */}
         <div
+          ref={basketColumnRef}
           className="hidden md:flex md:w-96 flex-shrink-0 flex-col sticky top-0 overflow-hidden"
-          style={{ height: isNavSticky ? "100vh" : `calc(100vh - ${navbarHeight}px)` }}
+          style={{ height: basketHeight }}
         >
           {mealSessions[activeSessionIndex] && (
             <div className="flex h-full flex-col gap-2 overflow-hidden">
