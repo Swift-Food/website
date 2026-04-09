@@ -22,7 +22,6 @@ import DateSessionNav from "./DateSessionNav";
 import ActiveSessionPanel from "./ActiveSessionPanel";
 import ViewOrderModal from "./ViewOrderModal";
 import MenuBrowserColumn from "./MenuBrowserColumn";
-import AddDayModal from "./modals/AddDayModal";
 import EmptySessionWarningModal from "./modals/EmptySessionWarningModal";
 import RemoveSessionConfirmModal from "./modals/RemoveSessionConfirmModal";
 import MinOrderModal from "./modals/MinOrderModal";
@@ -65,10 +64,6 @@ export default function CateringOrderBuilder() {
   // Navigation state
   const [navMode, setNavMode] = useState<"dates" | "sessions">("dates");
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
-
-  // Add day modal state
-  const [isAddDayModalOpen, setIsAddDayModalOpen] = useState(false);
-  const [newDayDate, setNewDayDate] = useState("");
 
   // Sticky nav detection
   const [isNavSticky, setIsNavSticky] = useState(false);
@@ -121,7 +116,7 @@ export default function CateringOrderBuilder() {
   // Tutorial refs
   const addDayNavButtonRef = useRef<HTMLButtonElement>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
-  const firstDayTabRef = useRef<HTMLButtonElement>(null);
+  const firstDayTabRef = useRef<HTMLDivElement>(null);
   const firstSessionPillRef = useRef<HTMLButtonElement>(null);
   const addSessionNavButtonRef = useRef<HTMLButtonElement>(null);
   const restaurantListRef = useRef<HTMLDivElement>(null);
@@ -437,12 +432,6 @@ export default function CateringOrderBuilder() {
     }
   };
 
-  // Handle adding a new day
-  const handleAddDay = () => {
-    setNewDayDate("");
-    setIsAddDayModalOpen(true);
-  };
-
   const isUnconfiguredDefaultSession = (session: MealSessionState | undefined) => {
     if (!session) return false;
 
@@ -456,22 +445,11 @@ export default function CateringOrderBuilder() {
     );
   };
 
-  // Handle confirm add day
-  const handleConfirmAddDay = () => {
-    if (!newDayDate) {
-      alert("Please select a date.");
-      return;
-    }
-
-    const existingDay = dayGroups.find((g) => g.date === newDayDate);
-    if (existingDay) {
-      alert("This date already has sessions. Please select a different date.");
-      return;
-    }
-
+  // Handle adding a new day — opens the SessionEditor directly
+  const handleAddDay = () => {
     const newSession: MealSessionState = {
-      sessionName: "New Session",
-      sessionDate: newDayDate,
+      sessionName: `Session ${mealSessions.length + 1}`,
+      sessionDate: "",
       eventTime: "",
       orderItems: [],
     };
@@ -486,14 +464,11 @@ export default function CateringOrderBuilder() {
       addMealSession(newSession);
     }
 
-    setIsAddDayModalOpen(false);
-    setSelectedDayDate(newDayDate);
-    setNavMode("sessions");
+    setActiveSessionIndex(newIndex);
     selectMainsCategory();
 
     setTimeout(() => {
       setEditingSessionIndex(newIndex);
-      setActiveSessionIndex(newIndex);
       setIsNewSession(true);
     }, 100);
   };
@@ -992,6 +967,13 @@ export default function CateringOrderBuilder() {
           onUpdate={updateMealSession}
           onClose={handleEditorClose}
           restaurants={restaurants}
+          existingDates={dayGroups
+            .filter((d) => d.date !== "unscheduled")
+            .map((d) => ({
+              date: d.date,
+              dayName: d.dayName,
+              displayDate: d.displayDate,
+            }))}
         />
       )}
 
@@ -1223,15 +1205,6 @@ export default function CateringOrderBuilder() {
           }}
         />
       )}
-
-      {/* Add Day Modal */}
-      <AddDayModal
-        isOpen={isAddDayModalOpen}
-        newDayDate={newDayDate}
-        onDateChange={setNewDayDate}
-        onConfirm={handleConfirmAddDay}
-        onClose={() => setIsAddDayModalOpen(false)}
-      />
 
       {/* Empty Session Warning Modal */}
       {emptySessionIndex !== null && (
