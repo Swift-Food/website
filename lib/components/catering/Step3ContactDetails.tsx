@@ -844,6 +844,15 @@ export default function Step3ContactInfo() {
       longitude,
     }));
 
+    setContactInfo({
+      ...formData,
+      addressLine1: addressLine1.trim(),
+      city,
+      zipcode,
+      latitude,
+      longitude,
+    });
+
     const placeText = `${place.name || ""} ${place.formatted_address || ""}`;
     if (/halkin\s*-/i.test(placeText)) {
       setShowHalkinModal(true);
