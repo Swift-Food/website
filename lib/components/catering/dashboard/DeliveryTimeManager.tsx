@@ -140,7 +140,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
       {hasMultipleSessions ? (
         <div className="space-y-4 divide-y divide-gray-100">
           {sessions.map((session: any) => (
-            <div key={session.id} className="pt-3 first:pt-0">
+            <div key={session.id} className="pt-3 pb-3 first:pt-0 last:pb-0">
               <SessionTimeEditor
                 sessionId={session.id}
                 sessionName={session.sessionName || `Session`}
