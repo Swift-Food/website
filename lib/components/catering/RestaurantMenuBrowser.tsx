@@ -1888,7 +1888,6 @@ export default function RestaurantMenuBrowser({
             isAdding={addingBundleId === selectedBundle.id}
             onAdd={handleAddBundle}
             onClose={() => setSelectedBundle(null)}
-            allMenuItems={menuItemsCache || allMenuItems}
           />
         )}
       </div>

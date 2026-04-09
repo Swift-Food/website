@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "swifts3images.s3.eu-north-1.amazonaws.com",
+      },
     ],
   },
   async headers() {
