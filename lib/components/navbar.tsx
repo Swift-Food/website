@@ -40,7 +40,7 @@ export default function Navbar() {
               : "relative bg-white border-gray-200"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
+        <div className="mx-auto px-4 md:px-6 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="shrink-0 group">
             <div
@@ -54,12 +54,16 @@ export default function Navbar() {
                   </span>
                 </span>
               </span>
-              <span className="sr-only">Swift Food — Simple, Local, Reliable</span>
+              <span className="sr-only">
+                Swift Food — Simple, Local, Reliable
+              </span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className={`hidden md:flex items-center space-x-10 text-sm font-medium tracking-wide transition-colors duration-300 ${navbarDark ? "text-white" : "text-black"}`}>
+          <div
+            className={`hidden md:flex items-center space-x-10 text-sm font-medium tracking-wide transition-colors duration-300 ${navbarDark ? "text-white" : "text-black"}`}
+          >
             <Link
               href="/menu"
               className="hover:text-[#fa43ad] transition-colors uppercase"
@@ -116,13 +120,14 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-
       </nav>
 
       {/* Mobile Menu Slide-out Panel */}
       <div
         className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
-          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          isMobileMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
       >
         {/* Backdrop */}
