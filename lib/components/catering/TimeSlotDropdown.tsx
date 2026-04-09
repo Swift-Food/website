@@ -22,16 +22,27 @@ export default function TimeSlotDropdown({
   const selectedLabel =
     TIME_SLOT_OPTIONS.find((o) => o.value === value)?.label ?? "Select a time";
 
+  // Recompute the menu's fixed position / height based on the button's
+  // current rect and the available space below within the viewport.
+  const updatePosition = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const VIEWPORT_MARGIN = 8;
+    const GAP = 4;
+    const availableBelow =
+      window.innerHeight - rect.bottom - GAP - VIEWPORT_MARGIN;
+    const maxHeight = Math.max(80, availableBelow);
+    setMenuStyle({
+      position: "fixed",
+      top: rect.bottom + GAP,
+      left: rect.left,
+      width: rect.width,
+      maxHeight,
+    });
+  };
+
   const openMenu = () => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setMenuStyle({
-        position: "fixed",
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-      });
-    }
+    updatePosition();
     setOpen(true);
   };
 
@@ -45,8 +56,16 @@ export default function TimeSlotDropdown({
         setOpen(false);
       }
     };
+    const handleReposition = () => updatePosition();
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("resize", handleReposition);
+    // Capture phase so we catch scrolls on any ancestor (modal body, page, etc.)
+    window.addEventListener("scroll", handleReposition, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
   }, [open]);
 
   const select = (val: string) => {
@@ -58,7 +77,7 @@ export default function TimeSlotDropdown({
     <ul
       ref={menuRef}
       style={menuStyle}
-      className="z-[200] bg-white border border-base-300 rounded-xl shadow-lg max-h-56 overflow-y-auto py-1"
+      className="z-[200] bg-white border border-base-300 rounded-xl shadow-lg overflow-y-auto py-1"
     >
       <li>
         <button
