@@ -446,6 +446,9 @@ export default function RestaurantMenuBrowser({
   const [isDesktopSearch, setIsDesktopSearch] = useState(false);
   const restaurantSearchInputRef = useRef<HTMLInputElement>(null);
   const [pillRowEl, setPillRowEl] = useState<HTMLDivElement | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
 
   // Track viewport size so the open-state search column can fill width on mobile
   useEffect(() => {
@@ -469,6 +472,33 @@ export default function RestaurantMenuBrowser({
     observer.observe(pillRowEl);
     return () => observer.disconnect();
   }, [pillRowEl]);
+
+  // Reset description expansion state when the selected restaurant changes,
+  // and measure whether the clamped description overflows 2 lines so the
+  // "Read more" toggle only shows when it's actually needed.
+  useEffect(() => {
+    setIsDescriptionExpanded(false);
+  }, [selectedRestaurantId]);
+
+  useEffect(() => {
+    // Only measure while collapsed — scrollHeight > clientHeight relies on
+    // line-clamp-2 being active. Skipping the measurement while expanded
+    // keeps isDescriptionOverflowing latched on so the "Show less" button
+    // remains visible.
+    if (isDescriptionExpanded) return;
+    const el = descriptionRef.current;
+    if (!el) {
+      setIsDescriptionOverflowing(false);
+      return;
+    }
+    const check = () => {
+      setIsDescriptionOverflowing(el.scrollHeight > el.clientHeight + 1);
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [selectedRestaurantId, isDescriptionExpanded]);
 
   // Open: render input immediately, then expand grid track
   const openRestaurantSearch = () => {
@@ -1458,6 +1488,25 @@ export default function RestaurantMenuBrowser({
           <h2 className="text-2xl font-bold text-gray-900">
             {selectedRestaurant.restaurant_name}
           </h2>
+          {selectedRestaurant.restaurant_description && (
+            <>
+              <p
+                ref={descriptionRef}
+                className={`text-sm text-gray-600 mt-1 ${isDescriptionExpanded ? "" : "line-clamp-2"}`}
+              >
+                {selectedRestaurant.restaurant_description}
+              </p>
+              {(isDescriptionOverflowing || isDescriptionExpanded) && (
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded((v) => !v)}
+                  className="text-xs text-primary font-medium mt-0.5 hover:underline"
+                >
+                  {isDescriptionExpanded ? "Show less" : "Read more"}
+                </button>
+              )}
+            </>
+          )}
           {selectedRestaurant.minCateringOrderQuantity &&
             selectedRestaurant.minCateringOrderQuantity > 0 && (
               <p className="text-xs text-gray-500">
