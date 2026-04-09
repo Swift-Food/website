@@ -449,6 +449,9 @@ export default function RestaurantMenuBrowser({
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [restaurantMenuItems, setRestaurantMenuItems] = useState<MenuItem[]>([]);
+  const [restaurantMenuItemsLoading, setRestaurantMenuItemsLoading] = useState(false);
+  const restaurantItemsCache = useRef<Map<string, MenuItem[]>>(new Map());
 
   // Track viewport size so the open-state search column can fill width on mobile
   useEffect(() => {
@@ -558,14 +561,34 @@ export default function RestaurantMenuBrowser({
   const hoursInfoContainerRef = useRef<HTMLDivElement | null>(null);
   const hoursInfoButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  // Eagerly load all menu items on mount
-  useEffect(() => {
-    fetchAllMenuItems();
-  }, [fetchAllMenuItems]);
-
   useEffect(() => {
     if (allMenuItems) setMenuItemsCache(allMenuItems);
   }, [allMenuItems]);
+
+  // Fetch menu items for the selected restaurant, using a per-restaurant cache
+  useEffect(() => {
+    if (!selectedRestaurantId) {
+      setRestaurantMenuItems([]);
+      return;
+    }
+    const cached = restaurantItemsCache.current.get(selectedRestaurantId);
+    if (cached) {
+      setRestaurantMenuItems(cached);
+      return;
+    }
+    setRestaurantMenuItemsLoading(true);
+    cateringService.getMenuItemsByRestaurant(selectedRestaurantId)
+      .then((raw) => {
+        const items = (raw || []).map(mapToMenuItem);
+        restaurantItemsCache.current.set(selectedRestaurantId, items);
+        setRestaurantMenuItems(items);
+      })
+      .catch((err) => {
+        console.error("Failed to load restaurant menu items:", err);
+        setRestaurantMenuItems([]);
+      })
+      .finally(() => setRestaurantMenuItemsLoading(false));
+  }, [selectedRestaurantId]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -715,16 +738,15 @@ export default function RestaurantMenuBrowser({
   }, [restaurants, compareRestaurantsByAvailability]);
 
   const dietaryFilteredItems = useMemo(() => {
-    if (!allMenuItems) return [];
-    if (selectedDietaryFilters.length === 0) return allMenuItems;
-    return allMenuItems.filter((item) => {
+    if (selectedDietaryFilters.length === 0) return restaurantMenuItems;
+    return restaurantMenuItems.filter((item) => {
       if (!item.dietaryFilters || item.dietaryFilters.length === 0)
         return false;
       return selectedDietaryFilters.every((filter) =>
         item.dietaryFilters!.includes(filter),
       );
     });
-  }, [allMenuItems, selectedDietaryFilters]);
+  }, [restaurantMenuItems, selectedDietaryFilters]);
 
   const restaurantHoursTooltipTextById = useMemo(
     () =>
@@ -813,12 +835,7 @@ export default function RestaurantMenuBrowser({
     [availableRestaurants, selectedRestaurantId],
   );
 
-  const restaurantItems = useMemo(() => {
-    if (!selectedRestaurantId) return [];
-    return dietaryFilteredItems.filter(
-      (item) => item.restaurantId === selectedRestaurantId,
-    );
-  }, [selectedRestaurantId, dietaryFilteredItems]);
+  const restaurantItems = useMemo(() => dietaryFilteredItems, [dietaryFilteredItems]);
 
   const filteredRestaurantItems = useMemo(() => {
     if (!isRestaurantSearchActive) return restaurantItems;
@@ -1678,7 +1695,11 @@ export default function RestaurantMenuBrowser({
                 </div>
               </div>
 
-              {restaurantGroups.length === 0 && (
+              {restaurantMenuItemsLoading ? (
+                <div className="flex justify-center py-10">
+                  <span className="loading loading-spinner loading-md text-primary" />
+                </div>
+              ) : restaurantGroups.length === 0 && (
                 <div className="text-center py-6">
                   <p className="text-gray-500 text-sm">
                     No items match the current filters.
@@ -1686,7 +1707,7 @@ export default function RestaurantMenuBrowser({
                 </div>
               )}
 
-              {restaurantGroups.map((group) => {
+              {!restaurantMenuItemsLoading && restaurantGroups.map((group) => {
                 const isCollapsed = collapsedGroups.has(group.name);
                 const groupCount =
                   group.type === "bundles"
