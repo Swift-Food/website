@@ -1,6 +1,5 @@
 import { CateringPricingResult } from "@/types/catering.types";
 import { useState } from "react";
-import { Tag } from "lucide-react";
 
 interface PricingSummaryProps {
   pricing: CateringPricingResult | null;
@@ -36,34 +35,6 @@ export default function PricingSummary({
 
     return (
       <div className={`border-t border-base-300 ${compact ? "space-y-1.5 pt-3" : "space-y-2 pt-4"}`}>
-        {/* Promotion banners from backend (authoritative) */}
-        {backendPromos.length > 0 && (
-          <div className="flex flex-col gap-1 mb-0.5">
-            {backendPromos.map((promo, i) => {
-              const label =
-                promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
-                  ? `Up to ${Math.max(...promo.discountTiers.map((t) => Number(t.discountPercentage)))}% OFF`
-                  : promo.promotionType === "BOGO"
-                  ? "Buy One Get One"
-                  : `${Number(promo.discountPercentage)}% OFF`;
-
-              return (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg"
-                >
-                  <Tag className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs font-semibold text-green-700 flex-1 truncate">
-                    {promo.name || "Restaurant Promotion"} — {label}
-                  </span>
-                  <span className="text-xs font-bold text-green-700">
-                    -£{promo.discount.toFixed(2)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
         {/* Subtotal */}
         <div className={`flex justify-between text-base-content/70 ${compact ? "text-xs" : "text-sm"}`}>
           <span>Subtotal</span>
