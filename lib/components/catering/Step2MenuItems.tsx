@@ -5,6 +5,7 @@ import { promotionsServices } from "@/services/api/promotion.api";
 import RestaurantCatalogue from "./RestaurantCatalogue";
 import MenuCatalogue from "./MenuCatalogue";
 import { useCateringFilters } from "@/context/CateringFilterContext";
+import { useCatering } from "@/context/CateringContext";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
@@ -62,6 +63,7 @@ export interface Restaurant {
       }[]
     | null;
   menuGroupSettings?: Record<string, { displayOrder?: number; information?: string }>;
+  pickupAddresses?: { location: { latitude: number; longitude: number } }[];
 }
 
 /** Individual addon item — no group-level fields */
@@ -130,6 +132,7 @@ export interface MenuItem {
 export default function Step2MenuItems() {
   const searchParams = useSearchParams();
   const { filters } = useCateringFilters();
+  const { contactInfo } = useCatering();
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
@@ -437,6 +440,11 @@ export default function Step2MenuItems() {
               }
               onFilterClick={() => setFilterModalOpen(!filterModalOpen)}
               filterModalOpen={filterModalOpen}
+              userLocation={
+                contactInfo?.latitude && contactInfo?.longitude
+                  ? { latitude: contactInfo.latitude, longitude: contactInfo.longitude }
+                  : undefined
+              }
             />
           )}
         </div>
