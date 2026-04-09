@@ -734,6 +734,18 @@ class CateringService {
     return response.json();
   }
 
+  async cancelOrder(orderId: string): Promise<void> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDERS}/${orderId}`,
+      { method: 'DELETE' }
+    );
+
+    if (!response.ok) {
+      const msg = await this.readErrorMessage(response);
+      throw new Error(msg || 'Failed to cancel order');
+    }
+  }
+
   async getOrdersByUserId(userId: string): Promise<CateringOrderResponse[]> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/user/${userId}`
