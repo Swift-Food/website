@@ -189,7 +189,21 @@ export default function PricingSummary({
         {/* Delivery fee */}
         <div className="space-y-1">
           <div className={`flex justify-between items-center text-base-content/70 gap-2 ${compact ? "text-xs" : "text-sm"}`}>
-            <span className="whitespace-nowrap flex-shrink-0">Delivery Cost</span>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="whitespace-nowrap">Delivery Cost</span>
+              <div className="relative group">
+                <button type="button" className="text-base-content/30 hover:text-base-content/60 leading-none">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+                <div className="absolute bottom-full left-0 mb-1.5 w-52 hidden group-hover:block z-50">
+                  <div className="bg-base-content text-base-100 text-[10px] leading-relaxed rounded-lg px-2.5 py-2 shadow-lg">
+                    Based on number of restaurants, distance to your delivery address, and catering order size.
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="flex items-center gap-1.5 min-w-0">
               {deliveryBreakdown && !compact && (
                 <button
