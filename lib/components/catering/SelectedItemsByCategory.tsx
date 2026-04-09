@@ -549,8 +549,36 @@ export default function SelectedItemsByCategory({
 
           return (
           <div key={restName}>
+            {/* Restaurant Header */}
+            <button
+              onClick={() => setCollapsedRestaurants(prev => {
+                const next = new Set(prev);
+                if (next.has(restName)) next.delete(restName);
+                else next.add(restName);
+                return next;
+              })}
+              className="w-full flex items-center gap-3 mb-2 px-1 hover:bg-base-100 rounded-lg py-1 transition-colors"
+            >
+              {restaurant.image ? (
+                <img src={restaurant.image} alt={restName} className={`${compactLayout ? "w-7 h-7" : "w-9 h-9"} rounded-lg object-cover flex-shrink-0`} />
+              ) : (
+                <Store className={`${compactLayout ? "w-4 h-4" : "w-5 h-5"} text-gray-500 flex-shrink-0`} />
+              )}
+              <span className={`${compactLayout ? "text-sm" : "text-base"} font-bold text-gray-800`}>{restName}</span>
+              <span className={`${compactLayout ? "text-xs" : "text-sm"} text-gray-400`}>({totalRestaurantItems})</span>
+              <div className="flex-1" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-5 w-5 text-gray-400 transition-transform ${isRestaurantCollapsed ? "" : "rotate-180"}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
             {/* Per-restaurant promotion banners */}
-            {restPromos.length > 0 && (
+            {!isRestaurantCollapsed && restPromos.length > 0 && (
               <div className="flex flex-col gap-1.5 mb-2">
                 {restPromos.map((promo: any, i: number) => (
                   <div key={i} className="group relative flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg cursor-default">
@@ -584,34 +612,6 @@ export default function SelectedItemsByCategory({
                 ))}
               </div>
             )}
-            {/* Restaurant Header */}
-            <button
-              onClick={() => setCollapsedRestaurants(prev => {
-                const next = new Set(prev);
-                if (next.has(restName)) next.delete(restName);
-                else next.add(restName);
-                return next;
-              })}
-              className="w-full flex items-center gap-3 mb-2 px-1 hover:bg-base-100 rounded-lg py-1 transition-colors"
-            >
-              {restaurant.image ? (
-                <img src={restaurant.image} alt={restName} className={`${compactLayout ? "w-7 h-7" : "w-9 h-9"} rounded-lg object-cover flex-shrink-0`} />
-              ) : (
-                <Store className={`${compactLayout ? "w-4 h-4" : "w-5 h-5"} text-gray-500 flex-shrink-0`} />
-              )}
-              <span className={`${compactLayout ? "text-sm" : "text-base"} font-bold text-gray-800`}>{restName}</span>
-              <span className={`${compactLayout ? "text-xs" : "text-sm"} text-gray-400`}>({totalRestaurantItems})</span>
-              <div className="flex-1" />
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className={`h-5 w-5 text-gray-400 transition-transform ${isRestaurantCollapsed ? "" : "rotate-180"}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
 
             {!isRestaurantCollapsed && (
             <div className={compactLayout ? "space-y-2" : "space-y-4"}>
