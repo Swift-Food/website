@@ -219,19 +219,21 @@ export default function PricingSummary({
                   </svg>
                 </button>
               )}
-              <span>£{pricing.deliveryFee.toFixed(2)}</span>
-              {!distanceInMiles && onPlaceSelect && (
-                <span className="text-base-content/40 text-xs italic">(min)</span>
-              )}
               {distanceInMiles && onClearAddress && (
                 <button
                   type="button"
                   onClick={onClearAddress}
-                  className="text-base-content/40 hover:text-base-content/70 leading-none"
+                  className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
                   title="Change address"
                 >
-                  ×
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
+              )}
+              <span>£{pricing.deliveryFee.toFixed(2)}</span>
+              {!distanceInMiles && onPlaceSelect && (
+                <span className="text-base-content/40 text-xs italic">(min)</span>
               )}
             </div>
           </div>
