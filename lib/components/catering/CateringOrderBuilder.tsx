@@ -133,6 +133,8 @@ export default function CateringOrderBuilder() {
   const addSessionNavButtonRef = useRef<HTMLButtonElement>(null);
   const restaurantListRef = useRef<HTMLDivElement>(null);
   const firstMenuItemRef = useRef<HTMLDivElement>(null);
+  const categoriesRowRef = useRef<HTMLDivElement>(null);
+  const resetRestaurantListRef = useRef<(() => void) | null>(null);
 
   // Use custom hooks
   const {
@@ -156,6 +158,7 @@ export default function CateringOrderBuilder() {
     handleTutorialNext,
     handleSkipTutorial,
     triggerNavigationTutorial,
+    triggerSessionCreated,
     resetTutorial,
     getTutorialSteps,
   } = useCateringTutorial({
@@ -166,8 +169,10 @@ export default function CateringOrderBuilder() {
       firstDayTabRef,
       firstSessionPillRef,
       addSessionNavButtonRef,
+      categoriesRowRef,
       restaurantListRef,
       firstMenuItemRef,
+      resetRestaurantListRef,
     },
   });
 
@@ -640,8 +645,8 @@ export default function CateringOrderBuilder() {
       }
       setActiveSessionIndex(sessionIndex);
 
-      if (wasNewSession && tutorialPhase === "initial") {
-        triggerNavigationTutorial();
+      if (wasNewSession && tutorialPhase === "navigation") {
+        triggerSessionCreated();
       }
     }
   };
@@ -1142,7 +1147,9 @@ export default function CateringOrderBuilder() {
               toggleDietaryFilter={toggleDietaryFilter}
               restaurantListRef={restaurantListRef}
               firstMenuItemRef={firstMenuItemRef}
+              categoriesRowRef={categoriesRowRef}
               expandedSessionIndex={activeSessionIndex}
+              onRegisterResetToList={(fn) => { resetRestaurantListRef.current = fn; }}
             />
           </div>
         </div>

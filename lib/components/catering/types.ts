@@ -96,8 +96,8 @@ export interface PdfDownloadModalProps {
 
 // Tutorial phases
 export type TutorialPhase =
-  | "initial"
   | "navigation"
+  | "categories"
   | "restaurants"
   | "menu_items"
   | "completed";
@@ -110,6 +110,7 @@ export interface UseCateringTutorialReturn {
   handleTutorialNext: () => void;
   handleSkipTutorial: () => void;
   triggerNavigationTutorial: () => void;
+  triggerSessionCreated: () => void;
   resetTutorial: () => void;
   getTutorialSteps: () => import("./TutorialTooltip").TutorialStep[];
 }

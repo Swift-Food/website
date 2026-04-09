@@ -25,7 +25,9 @@ interface MenuBrowserColumnProps {
   toggleDietaryFilter: (filter: DietaryFilter) => void;
   restaurantListRef: RefObject<HTMLDivElement | null>;
   firstMenuItemRef: RefObject<HTMLDivElement | null>;
+  categoriesRowRef?: RefObject<HTMLDivElement | null>;
   expandedSessionIndex: number | null;
+  onRegisterResetToList?: (fn: () => void) => void;
 }
 
 export default function MenuBrowserColumn({
@@ -47,7 +49,9 @@ export default function MenuBrowserColumn({
   toggleDietaryFilter,
   restaurantListRef,
   firstMenuItemRef,
+  categoriesRowRef,
   expandedSessionIndex,
+  onRegisterResetToList,
 }: MenuBrowserColumnProps) {
   if (showBundleBrowser) {
     return (
@@ -79,8 +83,10 @@ export default function MenuBrowserColumn({
       toggleDietaryFilter={toggleDietaryFilter}
       restaurantListRef={restaurantListRef}
       firstMenuItemRef={firstMenuItemRef}
+      categoriesRowRef={categoriesRowRef}
       sessionIndex={sessionIndex}
       expandedSessionIndex={expandedSessionIndex}
+      onRegisterResetToList={onRegisterResetToList}
     />
   );
 }

@@ -60,8 +60,10 @@ interface RestaurantMenuBrowserProps {
   toggleDietaryFilter: (filter: DietaryFilter) => void;
   restaurantListRef: RefObject<HTMLDivElement | null>;
   firstMenuItemRef: RefObject<HTMLDivElement | null>;
+  categoriesRowRef?: RefObject<HTMLDivElement | null>;
   sessionIndex: number;
   expandedSessionIndex: number | null;
+  onRegisterResetToList?: (fn: () => void) => void;
 }
 
 interface MenuItemGroup {
@@ -424,8 +426,10 @@ export default function RestaurantMenuBrowser({
   toggleDietaryFilter,
   restaurantListRef,
   firstMenuItemRef,
+  categoriesRowRef,
   sessionIndex,
   expandedSessionIndex,
+  onRegisterResetToList,
 }: RestaurantMenuBrowserProps) {
   const { addMenuItem, mealSessions, restaurantPromotions, contactInfo } = useCatering();
   const activeSession = mealSessions[sessionIndex];
@@ -434,6 +438,11 @@ export default function RestaurantMenuBrowser({
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<
     string | null
   >(null);
+
+  // Register reset function so the tutorial can bring user back to restaurant list
+  useEffect(() => {
+    onRegisterResetToList?.(() => setSelectedRestaurantId(null));
+  }, [onRegisterResetToList]);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
@@ -1468,7 +1477,7 @@ export default function RestaurantMenuBrowser({
       : null;
 
   const renderCategoryFilters = () => (
-    <div style={{ contain: "inline-size" }}>
+    <div ref={expandedSessionIndex === sessionIndex ? categoriesRowRef : undefined} style={{ contain: "inline-size" }}>
       <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide">
         <div className="flex items-center gap-2 md:gap-3">
           {categoriesLoading
