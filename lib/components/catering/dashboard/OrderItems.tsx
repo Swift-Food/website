@@ -3,13 +3,15 @@
 
 import React, { useState, useMemo } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock } from "lucide-react";
+import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2 } from "lucide-react";
 
 interface OrderItemsProps {
   order: CateringOrderResponse;
+  onDownloadPdf?: () => void;
+  generatingPdf?: boolean;
 }
 
-export default function OrderItems({ order }: OrderItemsProps) {
+export default function OrderItems({ order, onDownloadPdf, generatingPdf }: OrderItemsProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
   // Sort meal sessions by date and time
@@ -319,10 +321,26 @@ export default function OrderItems({ order }: OrderItemsProps) {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-        <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
-        Order Items
-      </h2>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
+          Order Items
+        </h2>
+        {onDownloadPdf && (
+          <button
+            onClick={onDownloadPdf}
+            disabled={generatingPdf}
+            className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-3 py-1.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {generatingPdf ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            {generatingPdf ? "Preparing..." : "Menu PDF"}
+          </button>
+        )}
+      </div>
 
       <div className="space-y-4 sm:space-y-6">
         {/* Meal Sessions View */}
