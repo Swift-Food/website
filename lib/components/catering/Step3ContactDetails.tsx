@@ -892,20 +892,30 @@ export default function Step3ContactInfo() {
         typeof formData.latitude === "number" &&
         typeof formData.longitude === "number";
       const pricingMealSessions = (pricing as any)?.mealSessions as
-        | Array<{ sessionName: string; deliveryFee?: number }>
+        | Array<{ deliveryFee?: number }>
         | undefined;
-      const deliveryFeeBySession = new Map(
-        (pricingMealSessions || []).map((s) => [s.sessionName, s.deliveryFee]),
-      );
+      // The API only sends non-empty sessions, so pricingMealSessions[i] corresponds
+      // to the i-th non-empty local session. Build a local-index → deliveryFee map.
+      const deliveryFeeByLocalIndex = new Map<number, number | undefined>();
+      let pricingSessionIndex = 0;
+      mealSessions.forEach((session, localIndex) => {
+        if (session.orderItems.length > 0) {
+          deliveryFeeByLocalIndex.set(
+            localIndex,
+            pricingMealSessions?.[pricingSessionIndex]?.deliveryFee,
+          );
+          pricingSessionIndex++;
+        }
+      });
 
       // Convert mealSessions to LocalMealSession format
       const sessionsForPreview: LocalMealSession[] = mealSessions.map(
-        (session) => ({
+        (session, index) => ({
           sessionName: session.sessionName,
           sessionDate: session.sessionDate,
           eventTime: session.eventTime,
           deliveryFee: hasDeliveryQuote
-            ? deliveryFeeBySession.get(session.sessionName)
+            ? deliveryFeeByLocalIndex.get(index)
             : undefined,
           orderItems: session.orderItems.map((orderItem) => ({
             item: {
