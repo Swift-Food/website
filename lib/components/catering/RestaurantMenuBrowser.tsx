@@ -1569,11 +1569,13 @@ export default function RestaurantMenuBrowser({
             const rating = selectedRestaurant.averageRating && parseFloat(selectedRestaurant.averageRating) > 0
               ? parseFloat(selectedRestaurant.averageRating)
               : null;
-            if (!rating && !distance) return null;
+            const advanceNoticeText = getRestaurantAdvanceNoticeText(selectedRestaurant);
+            const noticeMet = isRestaurantAdvanceNoticeMet(selectedRestaurant, activeSession?.sessionDate, activeSession?.eventTime);
+            if (!rating && !distance && !advanceNoticeText) return null;
             return (
-              <div className="flex items-center gap-3 mt-1 mb-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 mb-1">
                 {rating !== null && (
-                  <span className="flex items-center gap-1 text-sm text-gray-500">
+                  <span className="flex items-center gap-1 text-sm text-gray-500 whitespace-nowrap">
                     <span className="text-yellow-400">★</span>
                     {rating.toFixed(1)}
                   </span>
@@ -1582,7 +1584,16 @@ export default function RestaurantMenuBrowser({
                   <span className="text-gray-300">·</span>
                 )}
                 {distance !== null && (
-                  <span className="text-sm text-gray-500">{distance.toFixed(1)} mi away</span>
+                  <span className="text-sm text-gray-500 whitespace-nowrap">{distance.toFixed(1)} mi away</span>
+                )}
+                {advanceNoticeText && (
+                  <>
+                    {(rating !== null || distance !== null) && <span className="text-gray-300">·</span>}
+                    <span className={`flex items-center gap-1 text-sm whitespace-nowrap ${noticeMet ? "text-gray-500" : "text-gray-500"}`}>
+                      <Clock3 className={`h-3.5 w-3.5 flex-shrink-0 ${noticeMet ? "text-gray-400" : "text-red-500"}`} />
+                      {advanceNoticeText}
+                    </span>
+                  </>
                 )}
               </div>
             );
