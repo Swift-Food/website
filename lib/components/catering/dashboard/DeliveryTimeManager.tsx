@@ -20,21 +20,13 @@ interface SessionTimeEditorProps {
   formattedDate?: string;
   eventTime: string;
   eventDate: string | Date;
-  collectionTime?: string;
   deliveryTimeChangedAt?: string | Date;
   orderId: string;
   accessToken: string;
   onUpdate: () => void;
 }
 
-function formatTime12h(time: string) {
-  const [h, m] = time.split(':').map(Number);
-  const period = h >= 12 ? 'PM' : 'AM';
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2, '0')} ${period}`;
-}
-
-function SessionTimeEditor({ sessionId, sessionName, formattedDate, eventTime, eventDate, collectionTime, deliveryTimeChangedAt, orderId, accessToken, onUpdate }: SessionTimeEditorProps) {
+function SessionTimeEditor({ sessionId, sessionName, formattedDate, eventTime, eventDate, deliveryTimeChangedAt, orderId, accessToken, onUpdate }: SessionTimeEditorProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newTime, setNewTime] = useState(eventTime);
   const [loading, setLoading] = useState(false);
@@ -138,18 +130,11 @@ function SessionTimeEditor({ sessionId, sessionName, formattedDate, eventTime, e
       ) : (
         <div>
           <p className="text-xl font-bold text-gray-900 tracking-tight">{formatTimeDisplay(eventTime)}</p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-            {collectionTime && (
-              <span className="text-xs text-gray-500">
-                Collection: <span className="font-medium text-gray-700">{formatTime12h(collectionTime)}</span>
-              </span>
-            )}
-            {deliveryTimeChangedAt && (
-              <span className="text-xs text-gray-400">
-                Updated {new Date(deliveryTimeChangedAt).toLocaleString('en-GB')}
-              </span>
-            )}
-          </div>
+          {deliveryTimeChangedAt && (
+            <p className="text-xs text-gray-400 mt-1">
+              Updated {new Date(deliveryTimeChangedAt).toLocaleString('en-GB')}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -186,7 +171,6 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
                 formattedDate={formattedDate}
                 eventTime={session.eventTime || order.eventTime}
                 eventDate={session.sessionDate || order.eventDate}
-                collectionTime={session.collectionTime}
                 deliveryTimeChangedAt={session.deliveryTimeChangedAt}
                 orderId={order.id}
                 accessToken={accessToken}
@@ -200,7 +184,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
           sessionName=""
           eventTime={order.eventTime}
           eventDate={order.eventDate}
-          collectionTime={order.collectionTime}
+
           deliveryTimeChangedAt={order.deliveryTimeChangedAt}
           orderId={order.id}
           accessToken={accessToken}
