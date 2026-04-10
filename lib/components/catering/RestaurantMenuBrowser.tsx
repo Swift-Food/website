@@ -1614,8 +1614,6 @@ export default function RestaurantMenuBrowser({
             )}
         </div>
 
-        <div className="mt-2">{renderDietaryFilters()}</div>
-
         {(() => {
           const promos = selectedRestaurantId
             ? (restaurantPromotions[selectedRestaurantId] ?? [])
@@ -1674,6 +1672,8 @@ export default function RestaurantMenuBrowser({
             </div>
           );
         })()}
+
+        <div className="mt-2">{renderDietaryFilters()}</div>
 
         <div className="mt-3">
               <div
