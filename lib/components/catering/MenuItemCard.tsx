@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { MenuItem } from "./Step2MenuItems";
 import MenuItemModal from "./MenuItemModal";
@@ -38,35 +38,8 @@ export default function MenuItemCard({
   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 1;
   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 1;
 
-  // Convert backend quantity to portions for display
-  const portionQuantity = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 0;
-
-  // Use simple quantity state
-  const [quantityInput, setQuantityInput] = useState(
-    portionQuantity.toString()
-  );
   // Tooltip state for dietary icons
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-
-  // Sync input with external quantity changes
-  useEffect(() => {
-    setQuantityInput(portionQuantity.toString());
-  }, [portionQuantity]);
-
-  const hasAddons = item.addons && item.addons.length > 0;
-
-  const handleAddToOrder = () => {
-    // Check if mobile (width < 768px which is md breakpoint)
-    const isMobile = window.innerWidth < 768;
-
-    if (isMobile || hasAddons) {
-      // On mobile or if item has addons, open modal
-      onAddOrderPress?.(item);
-    } else {
-      // On md and larger with no addons, directly add to cart with default quantity
-      onAddItem?.({ ...item, portionQuantity: item.minOrderQuantity || 1 });
-    }
-  };
 
   return (
     <>
@@ -116,34 +89,26 @@ export default function MenuItemCard({
               </p>
             )} */}
 
-              {/* Price and Add to Order / Quantity */}
-              <div className="flex items-end justify-between gap-2">
-                {/* Left: total price + £/pp on top row, dietary icons below */}
-                <div className="flex flex-col min-w-0">
-                  <div className="flex flex-row items-center gap-2">
-                    {item.isDiscount && discountPrice > 0 ? (
-                      <div className="flex flex-row items-center justify-start gap-2">
-                        <p className="text-gray-500 text-[10px] line-through">
-                          £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
-                        </p>
-                        <p className="text-primary font-bold text-sm">
-                          £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-primary font-bold text-sm">
+              {/* Price / dietary / feeds */}
+              <div className="flex flex-col gap-0.5">
+                {/* Row 1: price + dietary icons */}
+                <div className="flex items-center gap-2">
+                  {item.isDiscount && discountPrice > 0 ? (
+                    <>
+                      <p className="text-gray-500 text-[10px] line-through">
                         £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
                       </p>
-                    )}
-                    {DISPLAY_FEEDS_PER_UNIT > 1 && (
-                      <p className="text-[9px] text-gray-500 leading-none">
-                        £{((item.isDiscount && discountPrice > 0 ? discountPrice : price) * BACKEND_QUANTITY_UNIT / DISPLAY_FEEDS_PER_UNIT).toFixed(2)}/pp
+                      <p className="text-primary font-bold text-sm">
+                        £{(discountPrice * BACKEND_QUANTITY_UNIT).toFixed(2)}
                       </p>
-                    )}
-                  </div>
-                  {/* Dietary Filters */}
+                    </>
+                  ) : (
+                    <p className="text-primary font-bold text-sm">
+                      £{(price * BACKEND_QUANTITY_UNIT).toFixed(2)}
+                    </p>
+                  )}
                   {item.dietaryFilters && item.dietaryFilters.length > 0 && (
-                    <div className="flex flex-wrap gap-0.5 items-center mt-1">
+                    <div className="flex gap-0.5 items-center">
                       {item.dietaryFilters.slice(0, 4).map((filter) => {
                         const iconMap: Record<string, string> = {
                           vegetarian: "vegetarian.png",
@@ -165,9 +130,7 @@ export default function MenuItemCard({
                         const label = labelMap[filter.toLowerCase()] || filter;
                         const tooltipKey = `${item.id}-${filter}`;
                         const isTooltipActive = activeTooltip === tooltipKey;
-
                         if (!iconFile) return null;
-
                         return (
                           <div
                             key={filter}
@@ -183,7 +146,6 @@ export default function MenuItemCard({
                               fill
                               className="object-contain"
                             />
-                            {/* Tooltip */}
                             <div
                               className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 bg-gray-900 text-white text-[9px] rounded whitespace-nowrap transition-opacity z-10 ${
                                 isTooltipActive
@@ -198,19 +160,18 @@ export default function MenuItemCard({
                         );
                       })}
                       {item.dietaryFilters.length > 4 && (
-                        <span className="text-[9px] text-gray-500">
-                          +{item.dietaryFilters.length - 4}
-                        </span>
+                        <span className="text-[9px] text-gray-500">+{item.dietaryFilters.length - 4}</span>
                       )}
                     </div>
                   )}
                 </div>
-
-                {/* Right: feeds up to */}
+                {/* Row 2: £/pp · Feeds up to X */}
                 {DISPLAY_FEEDS_PER_UNIT > 1 && (
-                  <span className="text-[10px] text-gray-600 leading-none">
-                    Feeds up to {DISPLAY_FEEDS_PER_UNIT}
-                  </span>
+                  <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                    <span>£{((item.isDiscount && discountPrice > 0 ? discountPrice : price) * BACKEND_QUANTITY_UNIT / DISPLAY_FEEDS_PER_UNIT).toFixed(2)}/pp</span>
+                    <span>·</span>
+                    <span>Feeds up to {DISPLAY_FEEDS_PER_UNIT}</span>
+                  </div>
                 )}
 
                 {/* Add to order button / quantity controls - Hidden in viewOnly mode */}
