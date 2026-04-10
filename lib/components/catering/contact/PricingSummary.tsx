@@ -1,7 +1,6 @@
 import { CateringPricingResult } from "@/types/catering.types";
-import { useState, useRef, useEffect } from "react";
-import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
-import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
+import { useState } from "react";
+import { useAddressAutocomplete } from "@/lib/hooks/useAddressAutocomplete";
 
 interface PricingSummaryProps {
   pricing: CateringPricingResult | null;
@@ -17,81 +16,18 @@ function InlineAddressInput({
 }: {
   onPlaceSelect: (place: google.maps.places.PlaceResult) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
-  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const justSelectedRef = useRef(false);
-
-  const [query, setQuery] = useState("");
-  const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    loadGoogleMapsScript().then(() => {
-      if (!window.google?.maps?.places) return;
-      autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
-      // PlacesService needs a DOM node
-      const div = document.createElement("div");
-      placesServiceRef.current = new google.maps.places.PlacesService(div);
-    });
-  }, []);
-
-  // Fetch predictions with debounce
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (justSelectedRef.current) {
-      justSelectedRef.current = false;
-      return;
-    }
-    if (!query.trim() || !autocompleteServiceRef.current) {
-      setPredictions([]);
-      setOpen(false);
-      return;
-    }
-    debounceRef.current = setTimeout(() => {
-      autocompleteServiceRef.current!.getPlacePredictions(
-        { input: query, componentRestrictions: { country: GOOGLE_MAPS_CONFIG.COUNTRY_RESTRICTION } },
-        (results, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-            setPredictions(results);
-            setOpen(true);
-          } else {
-            setPredictions([]);
-            setOpen(false);
-          }
-        }
-      );
-    }, 250);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query]);
-
-  const handleSelect = (prediction: google.maps.places.AutocompletePrediction) => {
-    justSelectedRef.current = true;
-    setOpen(false);
-    setPredictions([]);
-    setQuery(prediction.description);
-    placesServiceRef.current?.getDetails(
-      { placeId: prediction.place_id, fields: GOOGLE_MAPS_CONFIG.FIELDS },
-      (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry) {
-          onPlaceSelect(place);
-        }
-      }
-    );
-  };
-
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const {
+    inputRef,
+    containerRef,
+    query,
+    setQuery,
+    predictions,
+    open,
+    activeIndex,
+    setActiveIndex,
+    handleSelect,
+    handleKeyDown,
+  } = useAddressAutocomplete(onPlaceSelect);
 
   return (
     <div ref={containerRef} className="relative mt-1.5 pt-1.5 border-t border-base-200">
@@ -104,6 +40,7 @@ function InlineAddressInput({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Enter address for accurate cost"
           autoComplete="new-password"
           className="flex-1 text-xs bg-transparent outline-none placeholder:text-base-content/40 text-base-content min-w-0"
@@ -111,12 +48,13 @@ function InlineAddressInput({
       </div>
       {open && predictions.length > 0 && (
         <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg border border-base-200 bg-white shadow-lg overflow-hidden z-50">
-          {predictions.map((p) => (
+          {predictions.map((p, idx) => (
             <button
               key={p.place_id}
               type="button"
               onMouseDown={(e) => { e.preventDefault(); handleSelect(p); }}
-              className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-base-100 transition-colors"
+              onMouseEnter={() => setActiveIndex(idx)}
+              className={`flex w-full items-start gap-2 px-3 py-2 text-left transition-colors ${idx === activeIndex ? "bg-base-100" : "hover:bg-base-100"}`}
             >
               <svg className="h-3 w-3 flex-shrink-0 text-base-content/40 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
