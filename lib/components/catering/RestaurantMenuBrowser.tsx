@@ -1621,68 +1621,52 @@ export default function RestaurantMenuBrowser({
             ? (restaurantPromotions[selectedRestaurantId] ?? [])
             : [];
           if (promos.length === 0) return null;
+
+          const discountLabel = (promo: any) =>
+            promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
+              ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+              : `${Number(promo.discountPercentage)}% OFF`;
+
+          const endDateLabel = (promo: any) =>
+            new Date(promo.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+          const sortedTiers = (promo: any) =>
+            [...(promo.discountTiers ?? [])].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+
           return (
             <div className="mt-3">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-semibold text-gray-900">
-                  Active Offers
-                </span>
-                <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                <span className="text-sm font-semibold text-gray-900">Active Offers</span>
+                <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
                   {promos.length}
                 </span>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide snap-x snap-mandatory">
                 {promos.map((promo: any) => (
-                  <div
-                    key={promo.id}
-                    className="flex-shrink-0 snap-start bg-gradient-to-br from-green-50 to-emerald-50 border border-green-400 rounded-xl p-3 min-w-[240px] max-w-[300px]"
-                  >
-                    <p className="text-sm font-bold text-green-900 truncate">
-                      {promo.name}
-                    </p>
-                    <p className="text-green-700 font-bold text-base mt-0.5">
-                      {promo.promotionType === "BUY_MORE_SAVE_MORE" &&
-                        promo.discountTiers?.length
-                        ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
-                        : `${Number(promo.discountPercentage)}% OFF`}
-                    </p>
-                    {promo.promotionType === "BUY_MORE_SAVE_MORE" &&
-                      promo.discountTiers?.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {[...promo.discountTiers]
-                            .sort(
-                              (a: any, b: any) => a.minQuantity - b.minQuantity,
-                            )
-                            .map((tier: any, idx: number) => (
-                              <span
-                                key={idx}
-                                className="text-green-700 text-xs font-medium bg-green-100 px-1.5 py-0.5 rounded"
-                              >
-                                {tier.minQuantity}+ items →{" "}
-                                {Number(tier.discountPercentage)}% off
-                              </span>
-                            ))}
-                        </div>
-                      )}
-                    {promo.description && (
-                      <p className="text-green-700 text-xs mt-1 line-clamp-2">
-                        {promo.description}
-                      </p>
+                  <div key={promo.id} className="flex-shrink-0 snap-start bg-white border border-base-200 rounded-2xl p-4 min-w-[220px] max-w-[280px] shadow-sm">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide truncate">{promo.name}</p>
+                      <svg className="w-4 h-4 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                    </div>
+                    <p className="text-lg font-black text-gray-900 leading-none">{discountLabel(promo)}</p>
+                    {promo.promotionType === "BUY_MORE_SAVE_MORE" && sortedTiers(promo).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2.5">
+                        {sortedTiers(promo).map((tier: any, idx: number) => (
+                          <span key={idx} className="text-[11px] font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {tier.minQuantity}+ → {Number(tier.discountPercentage)}%
+                          </span>
+                        ))}
+                      </div>
                     )}
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-green-800">
-                      {promo.minOrderAmount > 0 && (
-                        <span>Min. £{promo.minOrderAmount}</span>
-                      )}
-                      {promo.maxDiscountAmount && (
-                        <span>Max. £{promo.maxDiscountAmount} off</span>
-                      )}
-                      <span>
-                        Until{" "}
-                        {new Date(promo.endDate).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </span>
+                    {promo.description && (
+                      <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">{promo.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-2.5 text-xs text-gray-400">
+                      {promo.minOrderAmount > 0 && <span>Min. £{promo.minOrderAmount}</span>}
+                      {promo.maxDiscountAmount && <span>· Max. £{promo.maxDiscountAmount} off</span>}
+                      <span>· Until {endDateLabel(promo)}</span>
                     </div>
                   </div>
                 ))}
