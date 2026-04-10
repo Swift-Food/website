@@ -891,18 +891,21 @@ export default function Step3ContactInfo() {
       const hasDeliveryQuote =
         typeof formData.latitude === "number" &&
         typeof formData.longitude === "number";
-      const pricingSessions = (pricing as any)?.mealSessions as
-        | Array<{ deliveryFee?: number }>
+      const pricingMealSessions = (pricing as any)?.mealSessions as
+        | Array<{ sessionName: string; deliveryFee?: number }>
         | undefined;
+      const deliveryFeeBySession = new Map(
+        (pricingMealSessions || []).map((s) => [s.sessionName, s.deliveryFee]),
+      );
 
       // Convert mealSessions to LocalMealSession format
       const sessionsForPreview: LocalMealSession[] = mealSessions.map(
-        (session, index) => ({
+        (session) => ({
           sessionName: session.sessionName,
           sessionDate: session.sessionDate,
           eventTime: session.eventTime,
           deliveryFee: hasDeliveryQuote
-            ? pricingSessions?.[index]?.deliveryFee
+            ? deliveryFeeBySession.get(session.sessionName)
             : undefined,
           orderItems: session.orderItems.map((orderItem) => ({
             item: {

@@ -1087,11 +1087,22 @@ export default function CateringOrderBuilder() {
     if (generatingPdf) return;
     setGeneratingPdf(true);
     try {
+      const hasDeliveryQuote = deliveryLocation !== null;
+      const pricingMealSessions = (pricing as any)?.mealSessions as
+        | Array<{ sessionName: string; deliveryFee?: number }>
+        | undefined;
+      const deliveryFeeBySession = new Map(
+        (pricingMealSessions || []).map((s) => [s.sessionName, s.deliveryFee]),
+      );
+
       const sessionsForPreview: LocalMealSession[] = mealSessions.map(
         (session) => ({
           sessionName: session.sessionName,
           sessionDate: session.sessionDate,
           eventTime: session.eventTime,
+          deliveryFee: hasDeliveryQuote
+            ? deliveryFeeBySession.get(session.sessionName)
+            : undefined,
           orderItems: session.orderItems.map((orderItem) => ({
             item: {
               id: orderItem.item.id,
