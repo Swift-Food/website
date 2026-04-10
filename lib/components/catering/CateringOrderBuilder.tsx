@@ -3,7 +3,11 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
-import { CateringPricingResult, ContactInfo, MealSessionState } from "@/types/catering.types";
+import {
+  CateringPricingResult,
+  ContactInfo,
+  MealSessionState,
+} from "@/types/catering.types";
 import { cateringService } from "@/services/api/catering.api";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem } from "./Step2MenuItems";
@@ -35,7 +39,11 @@ import { useCateringTutorial } from "./hooks/useCateringTutorial";
 import { useCateringData } from "./hooks/useCateringData";
 
 // Helpers
-import { groupSessionsByDay, formatTimeDisplay, mapToMenuItem } from "./catering-order-helpers";
+import {
+  groupSessionsByDay,
+  formatTimeDisplay,
+  mapToMenuItem,
+} from "./catering-order-helpers";
 import { API_BASE_URL } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
@@ -64,7 +72,9 @@ export default function CateringOrderBuilder() {
   } = useCatering();
 
   // Session editing state
-  const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(null);
+  const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(
+    null,
+  );
   const [isNewSession, setIsNewSession] = useState(false);
 
   // Navigation state
@@ -85,7 +95,9 @@ export default function CateringOrderBuilder() {
   const [pendingItem, setPendingItem] = useState<MenuItem | null>(null);
 
   // Collapsed categories state
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -93,7 +105,9 @@ export default function CateringOrderBuilder() {
   const [showHalkinModal, setShowHalkinModal] = useState(false);
 
   // Empty session warning modal state
-  const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(null);
+  const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(
+    null,
+  );
 
   // Remove session confirmation modal state
   const [sessionToRemove, setSessionToRemove] = useState<number | null>(null);
@@ -105,7 +119,9 @@ export default function CateringOrderBuilder() {
   } | null>(null);
 
   // Catering hours validation errors
-  const [sessionValidationErrors, setSessionValidationErrors] = useState<Record<number, string>>({});
+  const [sessionValidationErrors, setSessionValidationErrors] = useState<
+    Record<number, string>
+  >({});
 
   // Bundle browser state
   const [showBundleBrowser, setShowBundleBrowser] = useState(false);
@@ -248,7 +264,10 @@ export default function CateringOrderBuilder() {
   useEffect(() => {
     const updateHeight = () => {
       if (basketColumnRef.current) {
-        const top = Math.max(0, basketColumnRef.current.getBoundingClientRect().top);
+        const top = Math.max(
+          0,
+          basketColumnRef.current.getBoundingClientRect().top,
+        );
         setBasketHeight(`calc(100vh - ${top}px)`);
       }
     };
@@ -301,7 +320,7 @@ export default function CateringOrderBuilder() {
 
         bundle.items.forEach((bundleItem) => {
           const menuItem = allMenuItems.find(
-            (item: MenuItem) => item.id === bundleItem.menuItemId
+            (item: MenuItem) => item.id === bundleItem.menuItemId,
           );
 
           if (menuItem) {
@@ -316,7 +335,7 @@ export default function CateringOrderBuilder() {
             });
           } else {
             console.warn(
-              `Menu item ${bundleItem.menuItemId} not found in loaded menu items`
+              `Menu item ${bundleItem.menuItemId} not found in loaded menu items`,
             );
           }
         });
@@ -408,7 +427,10 @@ export default function CateringOrderBuilder() {
   const handleBackToDates = () => {
     if (selectedDayDate && currentDayGroup) {
       const sessionsToRemove = currentDayGroup.sessions
-        .filter(({ session }) => session.orderItems.length === 0 && !session.eventTime)
+        .filter(
+          ({ session }) =>
+            session.orderItems.length === 0 && !session.eventTime,
+        )
         .map(({ index }) => index)
         .sort((a, b) => b - a);
 
@@ -451,14 +473,16 @@ export default function CateringOrderBuilder() {
 
     // Try to find and select a category that matches the section name
     const matchingCategory = categories.find(
-      (cat) => cat.name.toLowerCase() === section.toLowerCase()
+      (cat) => cat.name.toLowerCase() === section.toLowerCase(),
     );
     if (matchingCategory) {
       handleCategoryClick(matchingCategory);
     }
   };
 
-  const isUnconfiguredDefaultSession = (session: MealSessionState | undefined) => {
+  const isUnconfiguredDefaultSession = (
+    session: MealSessionState | undefined,
+  ) => {
     if (!session) return false;
 
     return (
@@ -481,7 +505,8 @@ export default function CateringOrderBuilder() {
     };
 
     const shouldReuseDefaultSession =
-      mealSessions.length === 1 && isUnconfiguredDefaultSession(mealSessions[0]);
+      mealSessions.length === 1 &&
+      isUnconfiguredDefaultSession(mealSessions[0]);
     const newIndex = shouldReuseDefaultSession ? 0 : mealSessions.length;
 
     if (shouldReuseDefaultSession) {
@@ -509,7 +534,8 @@ export default function CateringOrderBuilder() {
     };
 
     const shouldReuseDefaultSession =
-      mealSessions.length === 1 && isUnconfiguredDefaultSession(mealSessions[0]);
+      mealSessions.length === 1 &&
+      isUnconfiguredDefaultSession(mealSessions[0]);
     const newIndex = shouldReuseDefaultSession ? 0 : mealSessions.length;
 
     if (shouldReuseDefaultSession) {
@@ -532,7 +558,10 @@ export default function CateringOrderBuilder() {
   // Calculate totals
   const totalDays = dayGroups.filter((g) => g.date !== "unscheduled").length;
   const totalSessions = mealSessions.length;
-  const totalItems = mealSessions.reduce((acc, s) => acc + s.orderItems.reduce((sum, oi) => sum + oi.quantity, 0), 0);
+  const totalItems = mealSessions.reduce(
+    (acc, s) => acc + s.orderItems.reduce((sum, oi) => sum + oi.quantity, 0),
+    0,
+  );
 
   // Pricing summary
   const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
@@ -540,45 +569,52 @@ export default function CateringOrderBuilder() {
   const pricingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Delivery address for pricing — seeded from persisted contactInfo
-  const [deliveryLocation, setDeliveryLocation] = useState<{ latitude: number; longitude: number } | null>(
+  const [deliveryLocation, setDeliveryLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(
     contactInfo?.latitude && contactInfo?.longitude
       ? { latitude: contactInfo.latitude, longitude: contactInfo.longitude }
-      : null
+      : null,
   );
 
-  const handleDeliveryPlaceSelect = useCallback((place: google.maps.places.PlaceResult) => {
-    const lat = place.geometry?.location?.lat();
-    const lng = place.geometry?.location?.lng();
-    if (!lat || !lng) return;
+  const handleDeliveryPlaceSelect = useCallback(
+    (place: google.maps.places.PlaceResult) => {
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
+      if (!lat || !lng) return;
 
-    // Extract address components
-    let addressLine1 = "";
-    let city = "";
-    let zipcode = "";
-    place.address_components?.forEach((c) => {
-      if (c.types.includes("street_number")) addressLine1 = c.long_name + " ";
-      if (c.types.includes("route")) addressLine1 += c.long_name;
-      if (c.types.includes("postal_town") || c.types.includes("locality")) city = c.long_name;
-      if (c.types.includes("postal_code")) zipcode = c.long_name;
-    });
+      // Extract address components
+      let addressLine1 = "";
+      let city = "";
+      let zipcode = "";
+      place.address_components?.forEach((c) => {
+        if (c.types.includes("street_number")) addressLine1 = c.long_name + " ";
+        if (c.types.includes("route")) addressLine1 += c.long_name;
+        if (c.types.includes("postal_town") || c.types.includes("locality"))
+          city = c.long_name;
+        if (c.types.includes("postal_code")) zipcode = c.long_name;
+      });
 
-    setDeliveryLocation({ latitude: lat, longitude: lng });
+      setDeliveryLocation({ latitude: lat, longitude: lng });
 
-    // Persist to CateringContext so Step3 pre-fills the address
-    setContactInfo({
-      ...(contactInfo ?? ({} as ContactInfo)),
-      addressLine1: addressLine1.trim() || place.formatted_address || "",
-      city,
-      zipcode,
-      latitude: lat,
-      longitude: lng,
-    });
+      // Persist to CateringContext so Step3 pre-fills the address
+      setContactInfo({
+        ...(contactInfo ?? ({} as ContactInfo)),
+        addressLine1: addressLine1.trim() || place.formatted_address || "",
+        city,
+        zipcode,
+        latitude: lat,
+        longitude: lng,
+      });
 
-    const placeText = `${place.name || ""} ${place.formatted_address || ""}`;
-    if (/halkin\s*-/i.test(placeText)) {
-      setShowHalkinModal(true);
-    }
-  }, [contactInfo, setContactInfo]);
+      const placeText = `${place.name || ""} ${place.formatted_address || ""}`;
+      if (/halkin\s*-/i.test(placeText)) {
+        setShowHalkinModal(true);
+      }
+    },
+    [contactInfo, setContactInfo],
+  );
 
   const handleClearDeliveryAddress = useCallback(() => {
     setDeliveryLocation(null);
@@ -593,26 +629,30 @@ export default function CateringOrderBuilder() {
     });
   }, [contactInfo, setContactInfo]);
 
-  const fetchPricing = useCallback(async (sessions: MealSessionState[]) => {
-    const hasItems = sessions.some((s) => s.orderItems.length > 0);
-    if (!hasItems) {
-      setPricing(null);
-      return;
-    }
-    setCalculatingPricing(true);
-    try {
-      const result = await cateringService.calculateCateringPricingWithMealSessions(
-        sessions,
-        [],
-        deliveryLocation ?? undefined,
-      );
-      if (result.isValid) setPricing(result);
-    } catch {
-      // silently ignore — pricing is best-effort in the sidebar
-    } finally {
-      setCalculatingPricing(false);
-    }
-  }, [deliveryLocation]);
+  const fetchPricing = useCallback(
+    async (sessions: MealSessionState[]) => {
+      const hasItems = sessions.some((s) => s.orderItems.length > 0);
+      if (!hasItems) {
+        setPricing(null);
+        return;
+      }
+      setCalculatingPricing(true);
+      try {
+        const result =
+          await cateringService.calculateCateringPricingWithMealSessions(
+            sessions,
+            [],
+            deliveryLocation ?? undefined,
+          );
+        if (result.isValid) setPricing(result);
+      } catch {
+        // silently ignore — pricing is best-effort in the sidebar
+      } finally {
+        setCalculatingPricing(false);
+      }
+    },
+    [deliveryLocation],
+  );
 
   useEffect(() => {
     if (pricingDebounceRef.current) clearTimeout(pricingDebounceRef.current);
@@ -667,7 +707,7 @@ export default function CateringOrderBuilder() {
   const confirmRemoveSession = () => {
     if (sessionToRemove !== null) {
       const remainingSessions = mealSessions.filter(
-        (_, index) => index !== sessionToRemove
+        (_, index) => index !== sessionToRemove,
       );
 
       removeMealSession(sessionToRemove);
@@ -679,7 +719,7 @@ export default function CateringOrderBuilder() {
       } else {
         const nextSessionIndex = Math.min(
           sessionToRemove,
-          remainingSessions.length - 1
+          remainingSessions.length - 1,
         );
         const nextSession = remainingSessions[nextSessionIndex];
 
@@ -750,7 +790,9 @@ export default function CateringOrderBuilder() {
     if (!restaurantId) return;
 
     try {
-      const response = await fetchWithAuth(`${API_BASE_URL}/menu-item/restaurant/${restaurantId}`);
+      const response = await fetchWithAuth(
+        `${API_BASE_URL}/menu-item/restaurant/${restaurantId}`,
+      );
       const data = await response.json();
       const items: MenuItem[] = (data.menuItems || []).map(mapToMenuItem);
       const groupTitle = item.groupTitle;
@@ -829,7 +871,7 @@ export default function CateringOrderBuilder() {
     // Check for empty sessions
     if (mealSessions.length > 1) {
       const emptyIndex = mealSessions.findIndex(
-        (session) => session.orderItems.length === 0
+        (session) => session.orderItems.length === 0,
       );
       if (emptyIndex !== -1) {
         setEmptySessionIndex(emptyIndex);
@@ -844,7 +886,7 @@ export default function CateringOrderBuilder() {
 
       const sessionValidation = validateSessionMinOrders(session, restaurants);
       const hasUnmetRequirements = sessionValidation.some(
-        (status) => !status.isValid
+        (status) => !status.isValid,
       );
 
       if (hasUnmetRequirements) {
@@ -878,7 +920,7 @@ export default function CateringOrderBuilder() {
       if (session.orderItems.length === 0) continue;
 
       const restaurantIds = new Set(
-        session.orderItems.map((oi) => oi.item.restaurantId)
+        session.orderItems.map((oi) => oi.item.restaurantId),
       );
 
       for (const restaurantId of restaurantIds) {
@@ -902,21 +944,30 @@ export default function CateringOrderBuilder() {
         // Check date overrides first
         const dateString = session.sessionDate;
         const dateOverride = restaurant.dateOverrides?.find(
-          (o) => o.date === dateString
+          (o) => o.date === dateString,
         );
 
         if (dateOverride) {
           if (dateOverride.isClosed) {
-            errors[i] = `${restaurant.restaurant_name} is closed on ${dateString}${dateOverride.reason ? ` (${dateOverride.reason})` : ""}. Please select a different date.`;
+            errors[i] =
+              `${restaurant.restaurant_name} is closed on ${dateString}${dateOverride.reason ? ` (${dateOverride.reason})` : ""}. Please select a different date.`;
             break;
           }
-          if (dateOverride.timeSlots && dateOverride.timeSlots.length > 0 && session.eventTime) {
-            const [eventHour, eventMinute] = session.eventTime.split(":").map(Number);
+          if (
+            dateOverride.timeSlots &&
+            dateOverride.timeSlots.length > 0 &&
+            session.eventTime
+          ) {
+            const [eventHour, eventMinute] = session.eventTime
+              .split(":")
+              .map(Number);
             const eventMinutes = eventHour * 60 + eventMinute;
             const inAnySlot = dateOverride.timeSlots.some((slot) => {
               const [oh, om] = slot.open.split(":").map(Number);
               const [ch, cm] = slot.close.split(":").map(Number);
-              return eventMinutes >= oh * 60 + om && eventMinutes <= ch * 60 + cm;
+              return (
+                eventMinutes >= oh * 60 + om && eventMinutes <= ch * 60 + cm
+              );
             });
             if (!inAnySlot) {
               const slotDescs = dateOverride.timeSlots
@@ -926,7 +977,8 @@ export default function CateringOrderBuilder() {
                   return `${formatTimeRange(oh, om)} - ${formatTimeRange(ch, cm)}`;
                 })
                 .join(", ");
-              errors[i] = `${restaurant.restaurant_name} only accepts orders between ${slotDescs} on ${dateString}.`;
+              errors[i] =
+                `${restaurant.restaurant_name} only accepts orders between ${slotDescs} on ${dateString}.`;
               break;
             }
           }
@@ -934,11 +986,12 @@ export default function CateringOrderBuilder() {
           // Regular weekly schedule
           const daySlots = cateringHours.filter(
             (schedule) =>
-              schedule.day.toLowerCase() === dayOfWeek && schedule.enabled
+              schedule.day.toLowerCase() === dayOfWeek && schedule.enabled,
           );
 
           if (daySlots.length === 0) {
-            errors[i] = `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date for this session.`;
+            errors[i] =
+              `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date for this session.`;
             break;
           }
 
@@ -951,7 +1004,9 @@ export default function CateringOrderBuilder() {
 
             const inAnySlot = enabledSlots.some((slot) => {
               const [openHour, openMinute] = slot.open!.split(":").map(Number);
-              const [closeHour, closeMinute] = slot.close!.split(":").map(Number);
+              const [closeHour, closeMinute] = slot
+                .close!.split(":")
+                .map(Number);
               return (
                 eventMinutes >= openHour * 60 + openMinute &&
                 eventMinutes <= closeHour * 60 + closeMinute
@@ -966,7 +1021,8 @@ export default function CateringOrderBuilder() {
                   return `${formatTimeRange(oh, om)} - ${formatTimeRange(ch, cm)}`;
                 })
                 .join(", ");
-              errors[i] = `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${slotDescs}. Please select a time within these hours for this session.`;
+              errors[i] =
+                `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${slotDescs}. Please select a time within these hours for this session.`;
               break;
             }
           }
@@ -1056,23 +1112,27 @@ export default function CateringOrderBuilder() {
             },
             quantity: orderItem.quantity,
           })),
-        })
+        }),
       );
 
       const restaurantNameById = Object.fromEntries(
-        restaurants.map((r) => [r.id, r.restaurant_name])
+        restaurants.map((r) => [r.id, r.restaurant_name]),
       );
-      const pdfAppliedPromotions = (pricing?.appliedPromotions || []).map((p) => {
-        const restaurantName = restaurantNameById[p.restaurantId];
-        const label = restaurantName ? `${p.name} (${restaurantName})` : p.name;
-        return { name: label, discountAmount: p.discount };
-      }).filter((p) => p.discountAmount > 0);
+      const pdfAppliedPromotions = (pricing?.appliedPromotions || [])
+        .map((p) => {
+          const restaurantName = restaurantNameById[p.restaurantId];
+          const label = restaurantName
+            ? `${p.name} (${restaurantName})`
+            : p.name;
+          return { name: label, discountAmount: p.discount };
+        })
+        .filter((p) => p.discountAmount > 0);
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
         withPrices,
         pricing?.deliveryFee || undefined,
         pricing?.promoDiscount || undefined,
-        pdfAppliedPromotions.length > 0 ? pdfAppliedPromotions : undefined
+        pdfAppliedPromotions.length > 0 ? pdfAppliedPromotions : undefined,
       );
 
       const blob = await pdf(
@@ -1084,13 +1144,15 @@ export default function CateringOrderBuilder() {
           promoDiscount={pdfData.promoDiscount}
           appliedPromotions={pdfData.appliedPromotions}
           logoUrl={pdfData.logoUrl}
-        />
+        />,
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = withPrices ? "catering-menu-with-prices.pdf" : "catering-menu.pdf";
+      link.download = withPrices
+        ? "catering-menu-with-prices.pdf"
+        : "catering-menu.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1125,7 +1187,7 @@ export default function CateringOrderBuilder() {
       )}
 
       {/* Two-Column Layout */}
-      <div className="flex flex-col md:flex-row">
+      <div className="flex flex-col md:flex-row px-2">
         {/* Left Column: Session Nav + Menu Browser — centered in remaining space */}
         <div className="flex-1 min-w-0 flex flex-col">
           <DateSessionNav
@@ -1154,7 +1216,9 @@ export default function CateringOrderBuilder() {
               sessionIndex={activeSessionIndex}
               allMenuItems={allMenuItems}
               fetchAllMenuItems={fetchAllMenuItems}
-              defaultGuestCount={mealSessions[activeSessionIndex]?.guestCount ?? 1}
+              defaultGuestCount={
+                mealSessions[activeSessionIndex]?.guestCount ?? 1
+              }
               restaurants={restaurants}
               restaurantsLoading={restaurantsLoading}
               onAddItem={handleAddItem}
@@ -1169,7 +1233,9 @@ export default function CateringOrderBuilder() {
               firstMenuItemRef={firstMenuItemRef}
               categoriesRowRef={categoriesRowRef}
               expandedSessionIndex={activeSessionIndex}
-              onRegisterResetToList={(fn) => { resetRestaurantListRef.current = fn; }}
+              onRegisterResetToList={(fn) => {
+                resetRestaurantListRef.current = fn;
+              }}
             />
           </div>
         </div>
@@ -1186,12 +1252,18 @@ export default function CateringOrderBuilder() {
                 session={mealSessions[activeSessionIndex]}
                 sessionIndex={activeSessionIndex}
                 sessionTotal={getSessionTotal(activeSessionIndex)}
-                sessionPromotions={getSessionDiscount(activeSessionIndex).promotions}
-                validationError={sessionValidationErrors[activeSessionIndex] || null}
+                sessionPromotions={
+                  getSessionDiscount(activeSessionIndex).promotions
+                }
+                validationError={
+                  sessionValidationErrors[activeSessionIndex] || null
+                }
                 isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
                 canRemove={mealSessions.length > 1}
                 onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
-                onRemoveSession={(e) => handleRemoveSession(activeSessionIndex, e)}
+                onRemoveSession={(e) =>
+                  handleRemoveSession(activeSessionIndex, e)
+                }
                 onEditItem={handleEditItem}
                 onRemoveItem={handleRemoveItem}
                 onSwapItem={handleSwapItem}
@@ -1223,8 +1295,12 @@ export default function CateringOrderBuilder() {
                       <button
                         ref={desktopMenuBtnRef}
                         onClick={() => {
-                          if (!isDesktopCartMenuOpen && desktopMenuBtnRef.current) {
-                            const rect = desktopMenuBtnRef.current.getBoundingClientRect();
+                          if (
+                            !isDesktopCartMenuOpen &&
+                            desktopMenuBtnRef.current
+                          ) {
+                            const rect =
+                              desktopMenuBtnRef.current.getBoundingClientRect();
                             setDesktopMenuPos({
                               bottom: window.innerHeight - rect.top + 8,
                               left: rect.left,
@@ -1245,7 +1321,10 @@ export default function CateringOrderBuilder() {
                           />
                           <div
                             className="fixed z-50 w-44 overflow-hidden rounded-xl border border-base-200 bg-white shadow-lg"
-                            style={{ bottom: desktopMenuPos.bottom, left: desktopMenuPos.left }}
+                            style={{
+                              bottom: desktopMenuPos.bottom,
+                              left: desktopMenuPos.left,
+                            }}
                           >
                             <button
                               onClick={() => {
@@ -1258,8 +1337,19 @@ export default function CateringOrderBuilder() {
                               {generatingPdf ? (
                                 <span className="loading loading-spinner loading-xs" />
                               ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                  />
                                 </svg>
                               )}
                               Download Menu
@@ -1302,12 +1392,21 @@ export default function CateringOrderBuilder() {
           {/* Session detail pill */}
           <div className="flex justify-center items-center gap-2 pb-2 px-4">
             <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200">
-              <span className="text-xs font-semibold text-gray-800">{mealSessions[activeSessionIndex]?.sessionName}</span>
+              <span className="text-xs font-semibold text-gray-800">
+                {mealSessions[activeSessionIndex]?.sessionName}
+              </span>
               <span className="text-[10px] text-gray-500">
                 {mealSessions[activeSessionIndex]?.sessionDate
-                  ? new Date(mealSessions[activeSessionIndex].sessionDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+                  ? new Date(
+                      mealSessions[activeSessionIndex].sessionDate,
+                    ).toLocaleDateString("en-GB", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    })
                   : "Date not set"}
-                {mealSessions[activeSessionIndex]?.eventTime && ` · ${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
+                {mealSessions[activeSessionIndex]?.eventTime &&
+                  ` · ${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
               </span>
             </div>
             <div className="relative">
@@ -1333,8 +1432,19 @@ export default function CateringOrderBuilder() {
                       disabled={generatingPdf || totalItems === 0}
                       className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-base-100 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
                       </svg>
                       Download Menu
                     </button>
@@ -1364,7 +1474,9 @@ export default function CateringOrderBuilder() {
                 <span className="font-semibold">View Order</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">£{getTotalPrice().toFixed(2)}</span>
+                <span className="text-lg font-bold">
+                  £{getTotalPrice().toFixed(2)}
+                </span>
                 <span className="text-sm opacity-80">{totalItems} items</span>
               </div>
             </button>
@@ -1459,7 +1571,9 @@ export default function CateringOrderBuilder() {
       {/* Empty Session Warning Modal */}
       {emptySessionIndex !== null && (
         <EmptySessionWarningModal
-          sessionName={mealSessions[emptySessionIndex]?.sessionName || "Session"}
+          sessionName={
+            mealSessions[emptySessionIndex]?.sessionName || "Session"
+          }
           onRemove={handleRemoveEmptySession}
           onAddItems={handleAddItemsToEmptySession}
         />
@@ -1476,7 +1590,8 @@ export default function CateringOrderBuilder() {
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Remove Item</h3>
                 <p className="text-sm text-gray-500">
-                  {mealSessions[activeSessionIndex]?.orderItems[removeItemIndex]?.item.menuItemName || "Item"}
+                  {mealSessions[activeSessionIndex]?.orderItems[removeItemIndex]
+                    ?.item.menuItemName || "Item"}
                 </p>
               </div>
             </div>
@@ -1527,8 +1642,8 @@ export default function CateringOrderBuilder() {
             </div>
             <p className="mb-6 text-gray-600">
               This will delete every session and remove all items you&apos;ve
-              added, returning your order to a single empty session. This
-              action cannot be undone.
+              added, returning your order to a single empty session. This action
+              cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
@@ -1551,7 +1666,9 @@ export default function CateringOrderBuilder() {
       {/* Min Order Modal */}
       {minOrderModalSession !== null && (
         <MinOrderModal
-          sessionName={mealSessions[minOrderModalSession.index]?.sessionName || "Session"}
+          sessionName={
+            mealSessions[minOrderModalSession.index]?.sessionName || "Session"
+          }
           validationStatus={minOrderModalSession.validation}
           onClose={() => setMinOrderModalSession(null)}
           onNavigateToSection={handleMinOrderNavigate}
@@ -1574,11 +1691,20 @@ export default function CateringOrderBuilder() {
       {/* Swap Item Modal */}
       {swapItemIndex !== null && (
         <SwapItemModal
-          currentItem={mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]?.item as MenuItem}
-          currentQuantity={mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]?.quantity ?? 0}
+          currentItem={
+            mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]
+              ?.item as MenuItem
+          }
+          currentQuantity={
+            mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]
+              ?.quantity ?? 0
+          }
           alternatives={swapAlternatives}
           isOpen={true}
-          onClose={() => { setSwapItemIndex(null); setSwapAlternatives([]); }}
+          onClose={() => {
+            setSwapItemIndex(null);
+            setSwapAlternatives([]);
+          }}
           onSwap={handleConfirmSwap}
         />
       )}
