@@ -79,7 +79,7 @@ export default function PromoCodeSection({
                 }
               }}
               placeholder="Add discount code or voucher"
-              className="flex-1 px-3 py-2 text-sm bg-gray-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
+              className="flex-1 px-3 py-2 text-base bg-gray-100 border border-base-300 rounded-lg focus:ring-2 focus:ring-dark-pink focus:border-transparent transition-all"
             />
             <button
               type="button"

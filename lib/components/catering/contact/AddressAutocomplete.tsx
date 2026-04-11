@@ -46,7 +46,7 @@ export default function AddressAutocomplete({
           onKeyDown={handleKeyDown}
           placeholder="Start typing an address..."
           autoComplete="new-password"
-          className={`address-search-input w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all ${
+          className={`address-search-input w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-base text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-dark-pink/20 focus:border-dark-pink transition-all ${
             error
               ? "border-error"
               : hasValidAddress
