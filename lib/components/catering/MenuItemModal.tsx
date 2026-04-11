@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { X } from "lucide-react";
 import Image from "next/image";
 import { MenuItem, Addon, AddonGroup } from "./Step2MenuItems";
 import { ALLERGENS } from "@/lib/constants/allergens";
@@ -616,10 +617,10 @@ export default function MenuItemModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-secondary hover:bg-primary transition-colors z-30"
+          className="absolute top-3 right-3 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors z-30"
           aria-label="Close modal"
         >
-          ✕
+          <X className="w-5 h-5 text-white" />
         </button>
 
         {/* Scrollable Modal Body */}
