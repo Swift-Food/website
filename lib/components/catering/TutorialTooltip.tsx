@@ -51,6 +51,7 @@ export default function TutorialTooltip({
   const [highlightRect, setHighlightRect] = useState<HighlightRect | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const prevStepIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -170,12 +171,20 @@ export default function TutorialTooltip({
   }, [step]);
 
   useEffect(() => {
-    if (!step) return;
+    if (!step) {
+      setIsReady(false);
+      return;
+    }
 
     let cancelled = false;
 
-    // schedulePosition: retry until targetRef is populated, then position
+    // schedulePosition: called by onBeforeShow when ready — marks the step as ready to display,
+    // then retries until targetRef is populated and positions the tooltip.
     const schedulePosition = () => {
+      // Always mark ready — safe to call even if this effect invocation was superseded.
+      // The cancelled flag guards positioning side-effects, not state updates.
+      setIsReady(true);
+      if (cancelled) return;
       let attempts = 0;
       const tryUpdate = () => {
         if (cancelled) return;
@@ -201,6 +210,7 @@ export default function TutorialTooltip({
     // onBeforeShow is responsible for scrolling; it calls onComplete when ready to position.
     if (step.id !== prevStepIdRef.current) {
       prevStepIdRef.current = step.id;
+      setIsReady(false);
       if (step.onBeforeShow) {
         step.onBeforeShow(schedulePosition);
       } else {
@@ -219,6 +229,17 @@ export default function TutorialTooltip({
     };
   }, [step, updatePosition]);
 
+  // Once isReady flips true, trigger positioning immediately.
+  // The main effect's tryUpdate may have been cancelled by a re-render before it ran,
+  // so we need this separate trigger to ensure the tooltip is positioned on first show.
+  useEffect(() => {
+    if (isReady && step?.targetRef?.current) {
+      updatePosition();
+    }
+    // Intentionally omit step and updatePosition — this should only fire on isReady changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReady]);
+
   // Handle click on target element for requiresClick steps (not manualAdvance)
   useEffect(() => {
     if (!step?.requiresClick || step.manualAdvance || !step.targetRef?.current) return;
@@ -233,7 +254,7 @@ export default function TutorialTooltip({
     return () => targetEl.removeEventListener("click", handleClick);
   }, [step, onNext]);
 
-  if (!mounted || !step) return null;
+  if (!mounted || !step || !isReady) return null;
 
   const highlightPadding = step.highlightPadding ?? 8;
   const highlightExtendBottom = step.highlightExtendBottom ?? 0;
