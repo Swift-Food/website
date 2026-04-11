@@ -602,7 +602,7 @@ export default function MenuItemModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-end md:items-center justify-center md:p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -610,7 +610,7 @@ export default function MenuItemModal({
 
       {/* Modal Content */}
       <div
-        className="relative bg-base-100 rounded-xl max-w-lg w-full max-h-[90vh] flex flex-col"
+        className="relative bg-base-100 md:rounded-xl max-w-lg w-full h-dvh md:h-auto md:max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
