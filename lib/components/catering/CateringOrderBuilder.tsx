@@ -1404,11 +1404,13 @@ export default function CateringOrderBuilder() {
       </div>
 
       {/* Mobile: View Order Bar */}
-      {mealSessions.some((s) => s.orderItems.length > 0) && (
-        <div className="fixed bottom-0 left-0 right-0 md:hidden z-50">
+      <div className="fixed bottom-0 left-0 right-0 md:hidden z-50">
           {/* Session detail pill */}
           <div className="flex justify-center items-center gap-2 pb-2 px-4">
-            <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200">
+            <button
+              onClick={() => setEditingSessionIndex(activeSessionIndex)}
+              className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200 text-left"
+            >
               <span className="text-xs font-semibold text-gray-800">
                 {mealSessions[activeSessionIndex]?.sessionName}
               </span>
@@ -1425,7 +1427,7 @@ export default function CateringOrderBuilder() {
                 {mealSessions[activeSessionIndex]?.eventTime &&
                   ` · ${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
               </span>
-            </div>
+            </button>
             <div className="relative">
               <button
                 onClick={() => setIsMobileCartMenuOpen((v) => !v)}
@@ -1496,25 +1498,26 @@ export default function CateringOrderBuilder() {
             </div>
           </div>
           {/* View Order bar */}
-          <div className="p-4 bg-primary">
-            <button
-              onClick={() => setIsViewOrderOpen(true)}
-              className="w-full flex items-center justify-between text-white"
-            >
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5" />
-                <span className="font-semibold">View Order</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">
-                  £{getTotalPrice().toFixed(2)}
-                </span>
-                <span className="text-sm opacity-80">{totalItems} items</span>
-              </div>
-            </button>
-          </div>
+          {mealSessions.some((s) => s.orderItems.length > 0) && (
+            <div className="p-4 bg-primary">
+              <button
+                onClick={() => setIsViewOrderOpen(true)}
+                className="w-full flex items-center justify-between text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5" />
+                  <span className="font-semibold">View Order</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold">
+                    £{getTotalPrice().toFixed(2)}
+                  </span>
+                  <span className="text-sm opacity-80">{totalItems} items</span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
-      )}
 
       {/* Mobile: View Order Modal */}
       <ViewOrderModal
