@@ -1760,7 +1760,7 @@ export default function CateringOrderBuilder() {
           setNavMode("dates");
           setSelectedDayDate(null);
         }}
-        className="fixed bottom-4 left-4 md:bottom-8 md:left-8 w-10 h-10 md:w-12 md:h-12 bg-white border border-base-300 rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition-colors z-40"
+        className="hidden md:flex fixed bottom-4 left-4 md:bottom-8 md:left-8 w-10 h-10 md:w-12 md:h-12 bg-white border border-base-300 rounded-full shadow-lg items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition-colors z-40"
         title="Restart Tutorial"
       >
         <svg
