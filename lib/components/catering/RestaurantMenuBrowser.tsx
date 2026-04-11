@@ -458,6 +458,7 @@ export default function RestaurantMenuBrowser({
   const [closedSearchColWidth, setClosedSearchColWidth] = useState<string>("2.25rem");
   const [isDesktopSearch, setIsDesktopSearch] = useState(false);
   const restaurantSearchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const [pillRowEl, setPillRowEl] = useState<HTMLDivElement | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
@@ -488,6 +489,46 @@ export default function RestaurantMenuBrowser({
     observer.observe(pillRowEl);
     return () => observer.disconnect();
   }, [pillRowEl]);
+
+  // Close restaurant search on outside click or scroll
+  const suppressScrollCloseRef = useRef(false);
+  useEffect(() => {
+    if (!isRestaurantSearchOpen) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (restaurantSearchQuery) return;
+      const target = e.target as Element;
+      if (searchContainerRef.current?.contains(target as Node)) return;
+      if (target.closest?.("[data-pill-row]")) {
+        // Pill tap will trigger a programmatic scrollIntoView — suppress the
+        // resulting scroll event so it doesn't immediately close the search.
+        suppressScrollCloseRef.current = true;
+        setTimeout(() => { suppressScrollCloseRef.current = false; }, 600);
+        return;
+      }
+      closeRestaurantSearch();
+    };
+
+    const handleScroll = () => {
+      if (restaurantSearchQuery) return;
+      if (suppressScrollCloseRef.current) return;
+      closeRestaurantSearch();
+    };
+
+    // Slight delay on scroll listener so opening the search (which may
+    // trigger a micro-scroll) doesn't immediately close it.
+    const scrollTimer = setTimeout(() => {
+      document.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    }, 100);
+
+    document.addEventListener("pointerdown", handlePointerDown, { capture: true });
+
+    return () => {
+      clearTimeout(scrollTimer);
+      document.removeEventListener("pointerdown", handlePointerDown, { capture: true });
+      document.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, [isRestaurantSearchOpen, restaurantSearchQuery]);
 
   // Reset description expansion state when the selected restaurant changes,
   // and measure whether the clamped description overflows 2 lines so the
@@ -1687,6 +1728,7 @@ export default function RestaurantMenuBrowser({
                 {/* Pill row — takes remaining flex space, can shrink to 0 */}
                 <div
                   ref={setPillRowEl}
+                  data-pill-row
                   className={`flex-1 min-w-0 overflow-x-auto scrollbar-hide rounded-full border border-base-300 bg-white/50 px-2 shadow-sm backdrop-blur-md flex items-center h-11 ${isRestaurantSearchOpen ? "hidden md:flex" : ""}`}
                 >
                   <div className="flex items-center gap-2 md:gap-5">
@@ -1715,6 +1757,7 @@ export default function RestaurantMenuBrowser({
 
                 {/* Search — explicit square (width=height) when closed, expands width when open */}
                 <div
+                  ref={searchContainerRef}
                   className="relative flex-shrink-0"
                   style={{
                     width: isRestaurantSearchOpen
