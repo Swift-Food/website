@@ -48,8 +48,6 @@ interface RestaurantMenuBrowserProps {
   restaurantsLoading: boolean;
   onOpenBundles?: () => void;
   defaultBundleGuestCount?: number;
-  allMenuItems: MenuItem[] | null;
-  fetchAllMenuItems: () => void;
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   onAddOrderPress: (item: MenuItem) => void;
@@ -414,8 +412,6 @@ export default function RestaurantMenuBrowser({
   restaurantsLoading,
   onOpenBundles = () => { },
   defaultBundleGuestCount = 1,
-  allMenuItems,
-  fetchAllMenuItems,
   onAddItem,
   onUpdateQuantity,
   onAddOrderPress,
@@ -578,9 +574,6 @@ export default function RestaurantMenuBrowser({
   const hoursInfoContainerRef = useRef<HTMLDivElement | null>(null);
   const hoursInfoButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  useEffect(() => {
-    if (allMenuItems) setMenuItemsCache(allMenuItems);
-  }, [allMenuItems]);
 
   // Fetch menu items for the selected restaurant, using a per-restaurant cache
   useEffect(() => {
@@ -1011,16 +1004,11 @@ export default function RestaurantMenuBrowser({
 
   const ensureMenuItems = useCallback(async (): Promise<MenuItem[]> => {
     if (menuItemsCache) return menuItemsCache;
-    if (allMenuItems) {
-      setMenuItemsCache(allMenuItems);
-      return allMenuItems;
-    }
-    fetchAllMenuItems();
     const response = await cateringService.getMenuItems();
     const items = (response || []).map(mapToMenuItem);
     setMenuItemsCache(items);
     return items;
-  }, [menuItemsCache, allMenuItems, fetchAllMenuItems]);
+  }, [menuItemsCache]);
 
   const handleAddBundle = useCallback(
     async (bundle: CateringBundleResponse, guestQuantity: number) => {

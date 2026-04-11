@@ -165,8 +165,6 @@ export default function CateringOrderBuilder() {
     restaurantsLoading,
     selectedDietaryFilters,
     toggleDietaryFilter,
-    allMenuItems,
-    fetchAllMenuItems,
   } = useCateringData({ expandedSessionIndex: activeSessionIndex });
 
   const {
@@ -1235,8 +1233,6 @@ export default function CateringOrderBuilder() {
               showBundleBrowser={showBundleBrowser}
               onToggleBundleBrowser={setShowBundleBrowser}
               sessionIndex={activeSessionIndex}
-              allMenuItems={allMenuItems}
-              fetchAllMenuItems={fetchAllMenuItems}
               defaultGuestCount={
                 mealSessions[activeSessionIndex]?.guestCount ?? 1
               }

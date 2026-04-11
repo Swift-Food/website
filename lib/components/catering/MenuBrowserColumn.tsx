@@ -10,8 +10,6 @@ interface MenuBrowserColumnProps {
   showBundleBrowser: boolean;
   onToggleBundleBrowser: (show: boolean) => void;
   sessionIndex: number;
-  allMenuItems: MenuItem[] | null;
-  fetchAllMenuItems: () => void;
   defaultGuestCount: number;
   restaurants: Restaurant[];
   restaurantsLoading: boolean;
@@ -34,8 +32,6 @@ export default function MenuBrowserColumn({
   showBundleBrowser,
   onToggleBundleBrowser,
   sessionIndex,
-  allMenuItems,
-  fetchAllMenuItems,
   defaultGuestCount,
   restaurants,
   restaurantsLoading,
@@ -57,8 +53,6 @@ export default function MenuBrowserColumn({
     return (
       <BundleBrowser
         sessionIndex={sessionIndex}
-        allMenuItems={allMenuItems}
-        fetchAllMenuItems={fetchAllMenuItems}
         onBack={() => onToggleBundleBrowser(false)}
         defaultGuestCount={defaultGuestCount}
       />
@@ -71,8 +65,6 @@ export default function MenuBrowserColumn({
       restaurantsLoading={restaurantsLoading}
       onOpenBundles={() => onToggleBundleBrowser(true)}
       defaultBundleGuestCount={defaultGuestCount}
-      allMenuItems={allMenuItems}
-      fetchAllMenuItems={fetchAllMenuItems}
       onAddItem={onAddItem}
       onUpdateQuantity={onUpdateQuantity}
       onAddOrderPress={onAddOrderPress}

@@ -12,8 +12,6 @@ import { ArrowLeft, Package } from "lucide-react";
 
 interface BundleBrowserProps {
   sessionIndex: number;
-  allMenuItems: MenuItem[] | null;
-  fetchAllMenuItems: () => void;
   onBack: () => void;
   defaultGuestCount?: number;
 }
@@ -40,8 +38,6 @@ function enrichBundleItemAddons(
 
 export default function BundleBrowser({
   sessionIndex,
-  allMenuItems,
-  fetchAllMenuItems,
   onBack,
   defaultGuestCount = 1,
 }: BundleBrowserProps) {
@@ -69,25 +65,13 @@ export default function BundleBrowser({
     fetchBundles();
   }, []);
 
-  useEffect(() => {
-    if (allMenuItems) {
-      setMenuItemsCache(allMenuItems);
-    }
-  }, [allMenuItems]);
-
   const ensureMenuItems = useCallback(async (): Promise<MenuItem[]> => {
     if (menuItemsCache) return menuItemsCache;
-    if (allMenuItems) {
-      setMenuItemsCache(allMenuItems);
-      return allMenuItems;
-    }
-
-    fetchAllMenuItems();
     const response = await cateringService.getMenuItems();
     const items = (response || []).map(mapToMenuItem);
     setMenuItemsCache(items);
     return items;
-  }, [menuItemsCache, allMenuItems, fetchAllMenuItems]);
+  }, [menuItemsCache]);
 
   const handleAddBundle = async (bundle: CateringBundleResponse, guestQuantity: number) => {
     setAddingBundleId(bundle.id);
@@ -196,7 +180,6 @@ export default function BundleBrowser({
           isAdding={addingBundleId === selectedBundle.id}
           onAdd={handleAddBundle}
           onClose={() => setSelectedBundle(null)}
-          allMenuItems={menuItemsCache || allMenuItems}
         />
       )}
     </div>
