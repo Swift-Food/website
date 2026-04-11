@@ -81,8 +81,6 @@ export default function CateringOrderBuilder() {
   const [navMode, setNavMode] = useState<"dates" | "sessions">("dates");
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
 
-  // Sticky nav detection
-  const [isNavSticky, setIsNavSticky] = useState(false);
 
   // Menu items state
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
@@ -245,17 +243,6 @@ export default function CateringOrderBuilder() {
     setExpandedItemId(item.id);
   };
 
-  // Detect when sticky nav becomes stuck
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsNavSticky(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const basketColumnRef = useRef<HTMLDivElement>(null);
   const [basketHeight, setBasketHeight] = useState("100vh");
@@ -1215,7 +1202,7 @@ export default function CateringOrderBuilder() {
             selectedDayDate={selectedDayDate}
             currentDayGroup={currentDayGroup}
             expandedSessionIndex={activeSessionIndex}
-            isNavSticky={isNavSticky}
+
             onDateClick={handleDateClick}
             onBackToDates={handleBackToDates}
             onSessionPillClick={handleSessionPillClick}
