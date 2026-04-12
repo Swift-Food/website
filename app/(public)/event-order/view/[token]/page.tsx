@@ -12,7 +12,7 @@ import DeliveryInfo from "@/lib/components/catering/dashboard/DeliveryInfo";
 import SharedAccessManager from "@/lib/components/catering/dashboard/SharedAccessManager";
 import PickupContactManager from "@/lib/components/catering/dashboard/PickupContactManager";
 import DeliveryTimeManager from "@/lib/components/catering/dashboard/DeliveryTimeManager";
-import { Loader2, Eye, FileText } from "lucide-react";
+import { Loader2, Eye, XCircle } from "lucide-react";
 import RefundRequestButton from "@/lib/components/catering/dashboard/RefundRequestButton";
 import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
 import { pdf } from "@react-pdf/renderer";
@@ -39,6 +39,8 @@ export default function CateringDashboardPage() {
   >(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [deliveryTracking, setDeliveryTracking] = useState<Record<string, DeliveryTrackingDto>>({});
 
   useEffect(() => {
@@ -123,6 +125,23 @@ export default function CateringDashboardPage() {
     }
   };
 
+  const PRE_PAYMENT_STATUSES = ['pending_review', 'admin_reviewed', 'restaurant_reviewed', 'payment_link_sent'];
+  const canCancel = order && PRE_PAYMENT_STATUSES.includes(order.status);
+
+  const handleCancelOrder = async () => {
+    if (!order) return;
+    setCancelling(true);
+    try {
+      await cateringService.cancelOrder(order.id);
+      setShowCancelConfirm(false);
+      await loadOrder();
+    } catch (err: any) {
+      alert(err.message || 'Failed to cancel order. Please try again.');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   // Handle PDF download - opens modal to choose with/without prices
   const handleDownloadPdf = () => {
     if (!order) return;
@@ -201,6 +220,38 @@ export default function CateringDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <XCircle className="h-6 w-6 text-red-500 shrink-0" />
+              <h2 className="text-lg font-bold text-gray-900">Cancel Order?</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to cancel this order? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={cancelling}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={handleCancelOrder}
+                disabled={cancelling}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {cancelling && <Loader2 className="h-4 w-4 animate-spin" />}
+                {cancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PDF Download Modal */}
       {showPdfModal && (
         <PdfDownloadModal
@@ -249,29 +300,29 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <div className="space-y-3">
-              <div className="flex justify-end">
-                <button
-                  onClick={handleDownloadPdf}
-                  disabled={generatingPdf}
-                  className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-4 py-2 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {generatingPdf ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4" />
-                  )}
-                  {generatingPdf ? "Preparing PDF..." : "View Menu PDF"}
-                </button>
-              </div>
-              <OrderItems order={order} />
-            </div>
+            <OrderItems order={order} onDownloadPdf={handleDownloadPdf} generatingPdf={generatingPdf} />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-4 sm:space-y-6">
             <DeliveryInfo order={order} />
             <OrderSummary order={order} />
+
+            {canCancel && (
+              <div className="bg-white rounded-xl p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Cancel Order</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  You can cancel this order before payment is made.
+                </p>
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  className="inline-flex items-center gap-2 w-full justify-center rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel Order
+                </button>
+              </div>
+            )}
 
             {refunds.length > 0 && <RefundsList refunds={refunds} />}
             {order.status === "completed" && (

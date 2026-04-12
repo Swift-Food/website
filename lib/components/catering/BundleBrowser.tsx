@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cateringService } from "@/services/api/catering.api";
 import { CateringBundleResponse, CateringBundleItem } from "@/types/api/catering.api.types";
 import { MenuItem } from "@/lib/components/catering/Step2MenuItems";
@@ -12,8 +12,6 @@ import { ArrowLeft, Package } from "lucide-react";
 
 interface BundleBrowserProps {
   sessionIndex: number;
-  allMenuItems: MenuItem[] | null;
-  fetchAllMenuItems: () => void;
   onBack: () => void;
   defaultGuestCount?: number;
 }
@@ -40,8 +38,6 @@ function enrichBundleItemAddons(
 
 export default function BundleBrowser({
   sessionIndex,
-  allMenuItems,
-  fetchAllMenuItems,
   onBack,
   defaultGuestCount = 1,
 }: BundleBrowserProps) {
@@ -50,7 +46,7 @@ export default function BundleBrowser({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingBundleId, setAddingBundleId] = useState<string | null>(null);
-  const [menuItemsCache, setMenuItemsCache] = useState<MenuItem[] | null>(null);
+  const menuItemsByRestaurant = useRef<Map<string, MenuItem[]>>(new Map());
   const [selectedBundle, setSelectedBundle] = useState<CateringBundleResponse | null>(null);
 
   useEffect(() => {
@@ -69,30 +65,22 @@ export default function BundleBrowser({
     fetchBundles();
   }, []);
 
-  useEffect(() => {
-    if (allMenuItems) {
-      setMenuItemsCache(allMenuItems);
+  const ensureMenuItemsForBundle = useCallback(async (bundle: CateringBundleResponse): Promise<MenuItem[]> => {
+    const restaurantIds = [...new Set(bundle.items.map((i) => i.restaurantId).filter(Boolean))];
+    const missing = restaurantIds.filter((id) => !menuItemsByRestaurant.current.has(id));
+    if (missing.length > 0) {
+      const fetched = await Promise.all(missing.map((id) => cateringService.getMenuItemsByRestaurant(id)));
+      missing.forEach((id, idx) => {
+        menuItemsByRestaurant.current.set(id, (fetched[idx] || []).map(mapToMenuItem));
+      });
     }
-  }, [allMenuItems]);
-
-  const ensureMenuItems = useCallback(async (): Promise<MenuItem[]> => {
-    if (menuItemsCache) return menuItemsCache;
-    if (allMenuItems) {
-      setMenuItemsCache(allMenuItems);
-      return allMenuItems;
-    }
-
-    fetchAllMenuItems();
-    const response = await cateringService.getMenuItems();
-    const items = (response || []).map(mapToMenuItem);
-    setMenuItemsCache(items);
-    return items;
-  }, [menuItemsCache, allMenuItems, fetchAllMenuItems]);
+    return restaurantIds.flatMap((id) => menuItemsByRestaurant.current.get(id) ?? []);
+  }, []);
 
   const handleAddBundle = async (bundle: CateringBundleResponse, guestQuantity: number) => {
     setAddingBundleId(bundle.id);
     try {
-      const items = await ensureMenuItems();
+      const items = await ensureMenuItemsForBundle(bundle);
 
       for (const bundleItem of bundle.items) {
         const menuItem = items.find((mi) => mi.id === bundleItem.menuItemId);
@@ -196,7 +184,6 @@ export default function BundleBrowser({
           isAdding={addingBundleId === selectedBundle.id}
           onAdd={handleAddBundle}
           onClose={() => setSelectedBundle(null)}
-          allMenuItems={menuItemsCache || allMenuItems}
         />
       )}
     </div>

@@ -26,6 +26,7 @@ import {
   CateringBundleItem,
   CateringBundleResponse,
 } from "@/types/api/catering.api.types";
+import { SearchResponse, SearchResult } from "@/types/catering.types";
 import { categoryService } from "@/services/api/category.api";
 import { cateringService } from "@/services/api/catering.api";
 import { useCatering } from "@/context/CateringContext";
@@ -34,13 +35,19 @@ import BundleCard from "./BundleCard";
 import BundleDetailModal from "./modals/BundleDetailModal";
 import { mapToMenuItem } from "./catering-order-helpers";
 
+function haversineDistanceMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3958.8;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 interface RestaurantMenuBrowserProps {
   restaurants: Restaurant[];
   restaurantsLoading: boolean;
   onOpenBundles?: () => void;
   defaultBundleGuestCount?: number;
-  allMenuItems: MenuItem[] | null;
-  fetchAllMenuItems: () => void;
   onAddItem: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   onAddOrderPress: (item: MenuItem) => void;
@@ -51,8 +58,15 @@ interface RestaurantMenuBrowserProps {
   toggleDietaryFilter: (filter: DietaryFilter) => void;
   restaurantListRef: RefObject<HTMLDivElement | null>;
   firstMenuItemRef: RefObject<HTMLDivElement | null>;
+  categoriesRowRef?: RefObject<HTMLDivElement | null>;
   sessionIndex: number;
   expandedSessionIndex: number | null;
+  onRegisterResetToList?: (fn: () => void) => void;
+  onMobileSearchStateChange?: (state: {
+    mode: "list" | "restaurant";
+    query: string;
+  }) => void;
+  onRegisterMobileSearchSetter?: (setter: (query: string) => void) => void;
 }
 
 interface MenuItemGroup {
@@ -78,8 +92,12 @@ function enrichBundleItemAddons(
     return [];
   }
   return bundleItem.selectedAddons.map((bundleAddon) => {
-    const matchedGroup = menuItem.addons?.find((g) => g.items.some((a) => a.name === bundleAddon.name));
-    const matchedAddon = matchedGroup?.items.find((a) => a.name === bundleAddon.name);
+    const matchedGroup = menuItem.addons?.find((g) =>
+      g.items.some((a) => a.name === bundleAddon.name),
+    );
+    const matchedAddon = matchedGroup?.items.find(
+      (a) => a.name === bundleAddon.name,
+    );
     return {
       name: bundleAddon.name,
       price: Number(matchedAddon?.price ?? 0),
@@ -155,7 +173,9 @@ function isRestaurantAdvanceNoticeMet(
     const cutoff = new Date(date);
     cutoff.setDate(cutoff.getDate() - notice.days);
     if (notice.cutoffTime) {
-      const [cutoffHours, cutoffMinutes] = notice.cutoffTime.split(":").map(Number);
+      const [cutoffHours, cutoffMinutes] = notice.cutoffTime
+        .split(":")
+        .map(Number);
       cutoff.setHours(cutoffHours, cutoffMinutes || 0, 0, 0);
     } else {
       cutoff.setHours(23, 59, 59, 999);
@@ -210,22 +230,25 @@ function getClosestSlotLabel(
   }
 
   const eventMinutes = timeToMinutes(eventTime);
-  const closestSlot = validSlots.reduce((closest, slot) => {
-    const openMinutes = timeToMinutes(slot.open);
-    const closeMinutes = timeToMinutes(slot.close);
-    const distance =
-      eventMinutes < openMinutes
-        ? openMinutes - eventMinutes
-        : eventMinutes > closeMinutes
-          ? eventMinutes - closeMinutes
-          : 0;
+  const closestSlot = validSlots.reduce(
+    (closest, slot) => {
+      const openMinutes = timeToMinutes(slot.open);
+      const closeMinutes = timeToMinutes(slot.close);
+      const distance =
+        eventMinutes < openMinutes
+          ? openMinutes - eventMinutes
+          : eventMinutes > closeMinutes
+            ? eventMinutes - closeMinutes
+            : 0;
 
-    if (!closest || distance < closest.distance) {
-      return { slot, distance };
-    }
+      if (!closest || distance < closest.distance) {
+        return { slot, distance };
+      }
 
-    return closest;
-  }, null as { slot: { open: string; close: string }; distance: number } | null);
+      return closest;
+    },
+    null as { slot: { open: string; close: string }; distance: number } | null,
+  );
 
   if (!closestSlot) {
     return null;
@@ -253,16 +276,22 @@ function getWeeklyCateringHoursText(restaurant: Restaurant): string {
 
   return days
     .map((day) => {
-      const daySlots = restaurant.cateringOperatingHours!.filter(
-        (slot) => slot.day.toLowerCase() === day.toLowerCase() && slot.enabled,
-      ).filter((slot) => slot.open && slot.close);
+      const daySlots = restaurant
+        .cateringOperatingHours!.filter(
+          (slot) =>
+            slot.day.toLowerCase() === day.toLowerCase() && slot.enabled,
+        )
+        .filter((slot) => slot.open && slot.close);
 
       if (daySlots.length === 0) {
         return `${day}: No catering`;
       }
 
       const label = daySlots
-        .map((slot) => `${formatTimeLabel(slot.open!)} - ${formatTimeLabel(slot.close!)}`)
+        .map(
+          (slot) =>
+            `${formatTimeLabel(slot.open!)} - ${formatTimeLabel(slot.close!)}`,
+        )
         .join(" / ");
 
       return `${day}: ${label}`;
@@ -292,7 +321,9 @@ function getRestaurantCateringWindowInfo(
   );
 
   if (restaurant.dateOverrides?.length) {
-    const override = restaurant.dateOverrides.find((o) => o.date === sessionDate);
+    const override = restaurant.dateOverrides.find(
+      (o) => o.date === sessionDate,
+    );
     if (override) {
       if (override.isClosed) {
         return {
@@ -302,7 +333,10 @@ function getRestaurantCateringWindowInfo(
         };
       }
       if (override.timeSlots?.length) {
-        const closestSlotLabel = getClosestSlotLabel(override.timeSlots, eventTime);
+        const closestSlotLabel = getClosestSlotLabel(
+          override.timeSlots,
+          eventTime,
+        );
 
         if (!eventTime) {
           return {
@@ -383,8 +417,6 @@ export default function RestaurantMenuBrowser({
   restaurantsLoading,
   onOpenBundles = () => { },
   defaultBundleGuestCount = 1,
-  allMenuItems,
-  fetchAllMenuItems,
   onAddItem,
   onUpdateQuantity,
   onAddOrderPress,
@@ -395,18 +427,92 @@ export default function RestaurantMenuBrowser({
   toggleDietaryFilter,
   restaurantListRef,
   firstMenuItemRef,
+  categoriesRowRef,
   sessionIndex,
   expandedSessionIndex,
+  onRegisterResetToList,
+  onMobileSearchStateChange,
+  onRegisterMobileSearchSetter,
 }: RestaurantMenuBrowserProps) {
-  const { addMenuItem, mealSessions, restaurantPromotions } = useCatering();
+  const { addMenuItem, mealSessions, restaurantPromotions, contactInfo } = useCatering();
   const activeSession = mealSessions[sessionIndex];
 
   // --- State ---
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<
+  // Selected restaurant is synced to the ?restaurant= URL param so that
+  // browser back/forward and direct links work.
+  const [selectedRestaurantId, setSelectedRestaurantIdState] = useState<
     string | null
-  >(null);
+  >(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("restaurant");
+  });
+
+  const updateRestaurantUrl = useCallback(
+    (id: string | null, replace = false) => {
+      if (typeof window === "undefined") return;
+      const params = new URLSearchParams(window.location.search);
+      if (id) params.set("restaurant", id);
+      else params.delete("restaurant");
+      const url = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      window.history[replace ? "replaceState" : "pushState"](null, "", url);
+    },
+    [],
+  );
+
+  const setSelectedRestaurantId = useCallback(
+    (id: string | null, replace = false) => {
+      setSelectedRestaurantIdState(id);
+      updateRestaurantUrl(id, replace);
+    },
+    [updateRestaurantUrl],
+  );
+
+  // Browser back/forward: sync URL → state and reset related UI.
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSelectedRestaurantIdState(params.get("restaurant"));
+      setRestaurantSearchQuery("");
+      setSelectedCategoryId(null);
+      setCollapsedGroups(new Set());
+      setActiveGroupName(null);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Register reset function so the tutorial can bring user back to restaurant list
+  useEffect(() => {
+    onRegisterResetToList?.(() => setSelectedRestaurantId(null, true));
+  }, [onRegisterResetToList, setSelectedRestaurantId]);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
+
+  // Publish current search state to parent (mobile bottom-bar search)
+  useEffect(() => {
+    onMobileSearchStateChange?.({
+      mode: selectedRestaurantId ? "restaurant" : "list",
+      query: selectedRestaurantId ? restaurantSearchQuery : searchQuery,
+    });
+  }, [
+    selectedRestaurantId,
+    searchQuery,
+    restaurantSearchQuery,
+    onMobileSearchStateChange,
+  ]);
+
+  // Register a setter so the parent mobile search input can write into the
+  // appropriate query state based on the current view mode.
+  useEffect(() => {
+    const setter = (query: string) => {
+      if (selectedRestaurantId) {
+        setRestaurantSearchQuery(query);
+      } else {
+        setSearchQuery(query);
+      }
+    };
+    onRegisterMobileSearchSetter?.(setter);
+  }, [selectedRestaurantId, onRegisterMobileSearchSetter]);
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
@@ -417,6 +523,139 @@ export default function RestaurantMenuBrowser({
   );
   const [activeGroupName, setActiveGroupName] = useState<string | null>(null);
   const [stickyTopOffset, setStickyTopOffset] = useState(72);
+  const [isRestaurantSearchOpen, setIsRestaurantSearchOpen] = useState(false);
+  const [showSearchInput, setShowSearchInput] = useState(false);
+  const [showSearchLeftIcon, setShowSearchLeftIcon] = useState(false);
+  const [showSearchRightIcon, setShowSearchRightIcon] = useState(false);
+  const [closedSearchColWidth, setClosedSearchColWidth] = useState<string>("2.25rem");
+  const [isDesktopSearch, setIsDesktopSearch] = useState(false);
+  const restaurantSearchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [pillRowEl, setPillRowEl] = useState<HTMLDivElement | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [restaurantMenuItems, setRestaurantMenuItems] = useState<MenuItem[]>([]);
+  const [restaurantMenuItemsLoading, setRestaurantMenuItemsLoading] = useState(false);
+  const restaurantItemsCache = useRef<Map<string, MenuItem[]>>(new Map());
+
+  // Track viewport size so the open-state search column can fill width on mobile
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia("(min-width: 768px)");
+    setIsDesktopSearch(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktopSearch(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+
+  // Measure pill row outer height so the closed-state search column matches it (square button)
+  useEffect(() => {
+    if (!pillRowEl) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = (entry.target as HTMLElement).offsetHeight;
+        if (h > 0) setClosedSearchColWidth(`${h}px`);
+      }
+    });
+    observer.observe(pillRowEl);
+    return () => observer.disconnect();
+  }, [pillRowEl]);
+
+  // Close restaurant search on outside click or scroll
+  const suppressScrollCloseRef = useRef(false);
+  useEffect(() => {
+    if (!isRestaurantSearchOpen) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (restaurantSearchQuery) return;
+      const target = e.target as Element;
+      if (searchContainerRef.current?.contains(target as Node)) return;
+      if (target.closest?.("[data-pill-row]")) {
+        // Pill tap will trigger a programmatic scrollIntoView — suppress the
+        // resulting scroll event so it doesn't immediately close the search.
+        suppressScrollCloseRef.current = true;
+        setTimeout(() => { suppressScrollCloseRef.current = false; }, 600);
+        return;
+      }
+      closeRestaurantSearch();
+    };
+
+    const handleScroll = () => {
+      if (restaurantSearchQuery) return;
+      if (suppressScrollCloseRef.current) return;
+      closeRestaurantSearch();
+    };
+
+    // Slight delay on scroll listener so opening the search (which may
+    // trigger a micro-scroll) doesn't immediately close it.
+    const scrollTimer = setTimeout(() => {
+      document.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    }, 100);
+
+    document.addEventListener("pointerdown", handlePointerDown, { capture: true });
+
+    return () => {
+      clearTimeout(scrollTimer);
+      document.removeEventListener("pointerdown", handlePointerDown, { capture: true });
+      document.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, [isRestaurantSearchOpen, restaurantSearchQuery]);
+
+  // Reset description expansion state when the selected restaurant changes,
+  // and measure whether the clamped description overflows 2 lines so the
+  // "Read more" toggle only shows when it's actually needed.
+  useEffect(() => {
+    setIsDescriptionExpanded(false);
+  }, [selectedRestaurantId]);
+
+  useEffect(() => {
+    // Only measure while collapsed — scrollHeight > clientHeight relies on
+    // line-clamp-2 being active. Skipping the measurement while expanded
+    // keeps isDescriptionOverflowing latched on so the "Show less" button
+    // remains visible.
+    if (isDescriptionExpanded) return;
+    const el = descriptionRef.current;
+    if (!el) {
+      setIsDescriptionOverflowing(false);
+      return;
+    }
+    const check = () => {
+      setIsDescriptionOverflowing(el.scrollHeight > el.clientHeight + 1);
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [selectedRestaurantId, isDescriptionExpanded]);
+
+  // Open: render input immediately, then expand grid track
+  const openRestaurantSearch = () => {
+    setShowSearchInput(true);
+    setShowSearchLeftIcon(true);
+    setIsRestaurantSearchOpen(true);
+    // preventScroll: keep the parent flex container from auto-scrolling the
+    // newly-mounted input into view, which would push the pill row off-screen.
+    setTimeout(
+      () => restaurantSearchInputRef.current?.focus({ preventScroll: true }),
+      50,
+    );
+    // Render the X (close) button only after the width animation completes,
+    // so it doesn't appear inside the still-tiny search column.
+    setTimeout(() => setShowSearchRightIcon(true), 300);
+  };
+
+  // Close: shrink grid track first, then swap input → button after the animation
+  const closeRestaurantSearch = () => {
+    setRestaurantSearchQuery("");
+    setIsRestaurantSearchOpen(false);
+    // Hide the X icon immediately so it doesn't get pushed out as we shrink.
+    setShowSearchRightIcon(false);
+    // Hide the left search icon near the end of the shrink animation so it
+    // doesn't get pushed out of the right edge as the column collapses.
+    setTimeout(() => setShowSearchLeftIcon(false), 200);
+    setTimeout(() => setShowSearchInput(false), 300);
+  };
 
   // Bundle state
   const [restaurantBundles, setRestaurantBundles] = useState<
@@ -427,13 +666,19 @@ export default function RestaurantMenuBrowser({
   const [selectedBundle, setSelectedBundle] =
     useState<CateringBundleResponse | null>(null);
   const [addingBundleId, setAddingBundleId] = useState<string | null>(null);
-  const [menuItemsCache, setMenuItemsCache] = useState<MenuItem[] | null>(null);
-  const [openHoursInfoRestaurantId, setOpenHoursInfoRestaurantId] = useState<string | null>(null);
-  const [hoveredHoursInfoRestaurantId, setHoveredHoursInfoRestaurantId] = useState<string | null>(null);
-  const [hoursInfoPosition, setHoursInfoPosition] = useState<{ top: number; left: number } | null>(
-    null,
-  );
+  const [openHoursInfoRestaurantId, setOpenHoursInfoRestaurantId] = useState<
+    string | null
+  >(null);
+  const [hoveredHoursInfoRestaurantId, setHoveredHoursInfoRestaurantId] =
+    useState<string | null>(null);
+  const [hoursInfoPosition, setHoursInfoPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [apiSearchResults, setApiSearchResults] =
+    useState<SearchResponse | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const groupButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -441,14 +686,31 @@ export default function RestaurantMenuBrowser({
   const hoursInfoContainerRef = useRef<HTMLDivElement | null>(null);
   const hoursInfoButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  // Eagerly load all menu items on mount
-  useEffect(() => {
-    fetchAllMenuItems();
-  }, [fetchAllMenuItems]);
 
+  // Fetch menu items for the selected restaurant, using a per-restaurant cache
   useEffect(() => {
-    if (allMenuItems) setMenuItemsCache(allMenuItems);
-  }, [allMenuItems]);
+    if (!selectedRestaurantId) {
+      setRestaurantMenuItems([]);
+      return;
+    }
+    const cached = restaurantItemsCache.current.get(selectedRestaurantId);
+    if (cached) {
+      setRestaurantMenuItems(cached);
+      return;
+    }
+    setRestaurantMenuItemsLoading(true);
+    cateringService.getMenuItemsByRestaurant(selectedRestaurantId)
+      .then((raw) => {
+        const items = (raw || []).map(mapToMenuItem);
+        restaurantItemsCache.current.set(selectedRestaurantId, items);
+        setRestaurantMenuItems(items);
+      })
+      .catch((err) => {
+        console.error("Failed to load restaurant menu items:", err);
+        setRestaurantMenuItems([]);
+      })
+      .finally(() => setRestaurantMenuItemsLoading(false));
+  }, [selectedRestaurantId]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -598,16 +860,15 @@ export default function RestaurantMenuBrowser({
   }, [restaurants, compareRestaurantsByAvailability]);
 
   const dietaryFilteredItems = useMemo(() => {
-    if (!allMenuItems) return [];
-    if (selectedDietaryFilters.length === 0) return allMenuItems;
-    return allMenuItems.filter((item) => {
+    if (selectedDietaryFilters.length === 0) return restaurantMenuItems;
+    return restaurantMenuItems.filter((item) => {
       if (!item.dietaryFilters || item.dietaryFilters.length === 0)
         return false;
       return selectedDietaryFilters.every((filter) =>
         item.dietaryFilters!.includes(filter),
       );
     });
-  }, [allMenuItems, selectedDietaryFilters]);
+  }, [restaurantMenuItems, selectedDietaryFilters]);
 
   const restaurantHoursTooltipTextById = useMemo(
     () =>
@@ -628,7 +889,8 @@ export default function RestaurantMenuBrowser({
       return;
     }
 
-    const syncPosition = () => updateHoursInfoPosition(activeHoursInfoRestaurantId);
+    const syncPosition = () =>
+      updateHoursInfoPosition(activeHoursInfoRestaurantId);
 
     syncPosition();
     window.addEventListener("resize", syncPosition);
@@ -640,43 +902,31 @@ export default function RestaurantMenuBrowser({
     };
   }, [activeHoursInfoRestaurantId, updateHoursInfoPosition, isMobileViewport]);
 
-  const searchResults = useMemo(() => {
-    if (!isSearchActive) return null;
-    const query = searchQuery.toLowerCase();
-    const matchingItems = dietaryFilteredItems.filter(
-      (item) =>
-        item.menuItemName.toLowerCase().includes(query) ||
-        item.description?.toLowerCase().includes(query) ||
-        item.groupTitle?.toLowerCase().includes(query),
-    );
-
-    const grouped = new Map<
-      string,
-      { restaurant: Restaurant; items: MenuItem[] }
-    >();
-    matchingItems.forEach((item) => {
-      const restaurant = availableRestaurants.find(
-        (r) => r.id === item.restaurantId,
-      );
-      if (!restaurant) return;
-      const existing = grouped.get(restaurant.id);
-      if (existing) {
-        existing.items.push(item);
-        return;
+  useEffect(() => {
+    if (!isSearchActive) {
+      setApiSearchResults(null);
+      setSearchLoading(false);
+      return;
+    }
+    setSearchLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results = await cateringService.searchMenuItems(searchQuery, {
+          dietaryFilters:
+            selectedDietaryFilters.length > 0
+              ? selectedDietaryFilters
+              : undefined,
+        });
+        setApiSearchResults(results);
+      } catch (e) {
+        console.error("Search failed:", e);
+        setApiSearchResults(null);
+      } finally {
+        setSearchLoading(false);
       }
-      grouped.set(restaurant.id, { restaurant, items: [item] });
-    });
-
-    return Array.from(grouped.values()).sort((a, b) =>
-      compareRestaurantsByAvailability(a.restaurant, b.restaurant),
-    );
-  }, [
-    isSearchActive,
-    searchQuery,
-    dietaryFilteredItems,
-    availableRestaurants,
-    compareRestaurantsByAvailability,
-  ]);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [isSearchActive, searchQuery, selectedDietaryFilters]);
 
   const filteredRestaurants = useMemo(() => {
     return availableRestaurants
@@ -707,12 +957,7 @@ export default function RestaurantMenuBrowser({
     [availableRestaurants, selectedRestaurantId],
   );
 
-  const restaurantItems = useMemo(() => {
-    if (!selectedRestaurantId) return [];
-    return dietaryFilteredItems.filter(
-      (item) => item.restaurantId === selectedRestaurantId,
-    );
-  }, [selectedRestaurantId, dietaryFilteredItems]);
+  const restaurantItems = useMemo(() => dietaryFilteredItems, [dietaryFilteredItems]);
 
   const filteredRestaurantItems = useMemo(() => {
     if (!isRestaurantSearchActive) return restaurantItems;
@@ -813,26 +1058,79 @@ export default function RestaurantMenuBrowser({
     return groups;
   }, [bundlesLoading, bundlesError, filteredRestaurantBundles, groupedItems]);
 
+  // Pill row reflects only the groups that have matching items for the
+  // current search. When search is inactive, the filtered* lists equal the
+  // unfiltered ones, so behaviour is unchanged.
+  const pillRowGroupNames = useMemo<string[]>(() => {
+    const names: string[] = [];
+    const showBundles =
+      !isRestaurantSearchActive &&
+      (bundlesLoading ||
+        bundlesError !== null ||
+        restaurantBundles.length > 0);
+    const showFilteredBundles =
+      isRestaurantSearchActive && filteredRestaurantBundles.length > 0;
+    if (showBundles || showFilteredBundles) names.push("Bundles");
+
+    if (filteredRestaurantItems.length === 0) return names;
+
+    const restaurant = restaurants.find((r) => r.id === selectedRestaurantId);
+    const menuGroupSettings =
+      restaurant?.menuGroupSettings ||
+      filteredRestaurantItems[0]?.restaurant?.menuGroupSettings;
+    const hasSettings =
+      menuGroupSettings && Object.keys(menuGroupSettings).length > 0;
+
+    let groupNames: string[];
+    if (hasSettings) {
+      groupNames = Object.keys(menuGroupSettings!).sort((a, b) => {
+        const orderA = menuGroupSettings![a]?.displayOrder ?? 999;
+        const orderB = menuGroupSettings![b]?.displayOrder ?? 999;
+        return orderA - orderB;
+      });
+    } else {
+      groupNames = Array.from(
+        new Set(filteredRestaurantItems.map((i) => i.groupTitle || "Other")),
+      ).sort((a, b) => a.localeCompare(b));
+    }
+
+    const groupsWithItems = new Set(
+      filteredRestaurantItems.map((i) => i.groupTitle || "Other"),
+    );
+    for (const name of groupNames) {
+      if (groupsWithItems.has(name)) names.push(name);
+    }
+    return names;
+  }, [
+    filteredRestaurantItems,
+    filteredRestaurantBundles,
+    restaurantBundles,
+    bundlesLoading,
+    bundlesError,
+    restaurants,
+    selectedRestaurantId,
+    isRestaurantSearchActive,
+  ]);
+
   const firstMenuGroupName = groupedItems[0]?.name ?? null;
 
-  const ensureMenuItems = useCallback(async (): Promise<MenuItem[]> => {
-    if (menuItemsCache) return menuItemsCache;
-    if (allMenuItems) {
-      setMenuItemsCache(allMenuItems);
-      return allMenuItems;
+  const ensureMenuItemsForBundle = useCallback(async (bundle: CateringBundleResponse): Promise<MenuItem[]> => {
+    const restaurantIds = [...new Set(bundle.items.map((i) => i.restaurantId).filter(Boolean))];
+    const missing = restaurantIds.filter((id) => !restaurantItemsCache.current.has(id));
+    if (missing.length > 0) {
+      const fetched = await Promise.all(missing.map((id) => cateringService.getMenuItemsByRestaurant(id)));
+      missing.forEach((id, idx) => {
+        restaurantItemsCache.current.set(id, (fetched[idx] || []).map(mapToMenuItem));
+      });
     }
-    fetchAllMenuItems();
-    const response = await cateringService.getMenuItems();
-    const items = (response || []).map(mapToMenuItem);
-    setMenuItemsCache(items);
-    return items;
-  }, [menuItemsCache, allMenuItems, fetchAllMenuItems]);
+    return restaurantIds.flatMap((id) => restaurantItemsCache.current.get(id) ?? []);
+  }, []);
 
   const handleAddBundle = useCallback(
     async (bundle: CateringBundleResponse, guestQuantity: number) => {
       setAddingBundleId(bundle.id);
       try {
-        const items = await ensureMenuItems();
+        const items = await ensureMenuItemsForBundle(bundle);
         for (const bundleItem of bundle.items) {
           const menuItem = items.find(
             (item) => item.id === bundleItem.menuItemId,
@@ -855,7 +1153,7 @@ export default function RestaurantMenuBrowser({
         setAddingBundleId(null);
       }
     },
-    [addMenuItem, ensureMenuItems, sessionIndex],
+    [addMenuItem, ensureMenuItemsForBundle, sessionIndex],
   );
 
   const toggleGroupCollapse = (groupName: string) => {
@@ -873,6 +1171,9 @@ export default function RestaurantMenuBrowser({
     setSelectedCategoryId(null);
     setCollapsedGroups(new Set());
     setActiveGroupName(null);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleBackToRestaurants = () => {
@@ -968,6 +1269,10 @@ export default function RestaurantMenuBrowser({
     }, 1500);
   };
 
+  const handlePillClick = (groupName: string) => {
+    handleGroupTabClick(groupName);
+  };
+
   const renderRestaurantCard = (
     restaurant: Restaurant,
     onClick?: () => void,
@@ -988,16 +1293,15 @@ export default function RestaurantMenuBrowser({
     const hoursTooltipText = cateringWindowInfo.fullText;
 
     const cardContent = (
-      <div className="overflow-hidden rounded-xl bg-white">
+      <div className="overflow-hidden rounded-xl bg-white h-full flex flex-col">
         <div className="flex md:block">
           {restaurant.images && restaurant.images.length > 0 ? (
             <div className="relative aspect-square w-28 flex-shrink-0 bg-gray-100 md:w-full md:aspect-video">
               <img
                 src={restaurant.images[0]}
                 alt={restaurant.restaurant_name}
-                className={`w-full h-full object-cover ${
-                  isUnavailableForSession ? "grayscale opacity-60" : ""
-                }`}
+                className={`w-full h-full object-cover ${isUnavailableForSession ? "grayscale opacity-60" : ""
+                  }`}
               />
               {isUnavailableForSession ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/35 px-2 text-center">
@@ -1012,9 +1316,8 @@ export default function RestaurantMenuBrowser({
             </div>
           ) : (
             <div
-              className={`relative aspect-square w-28 flex-shrink-0 items-center justify-center ${
-                isUnavailableForSession ? "bg-gray-200" : "bg-base-200"
-              } flex md:w-full md:aspect-video`}
+              className={`relative aspect-square w-28 flex-shrink-0 items-center justify-center ${isUnavailableForSession ? "bg-gray-200" : "bg-base-200"
+                } flex md:w-full md:aspect-video`}
             >
               <span className="text-2xl font-bold text-gray-300 md:text-3xl">
                 {restaurant.restaurant_name.charAt(0)}
@@ -1031,94 +1334,125 @@ export default function RestaurantMenuBrowser({
               ) : null}
             </div>
           )}
-          <div className="min-w-0 flex-1 p-3">
-          <p className="line-clamp-2 text-sm font-semibold leading-tight text-gray-900">
-            {restaurant.restaurant_name}
-          </p>
-          {restaurant.minCateringOrderQuantity &&
-            restaurant.minCateringOrderQuantity > 0 ? (
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">
-                Min {restaurant.minCateringOrderQuantity} items
-              </span>
-            </div>
-          ) : null}
-          <div className="mt-1.5 min-h-8 space-y-0.5">
-            <div
-              className={`flex items-center gap-1.5 text-[11px] leading-4 ${
-                isAdvanceNoticeMet ? "text-gray-500" : "text-red-500 font-semibold"
-              }`}
-            >
-              <Clock3
-                className={`h-3.5 w-3.5 flex-shrink-0 ${
-                  isAdvanceNoticeMet ? "text-gray-400" : "text-red-500"
-                }`}
-              />
-              <span className="line-clamp-1">
-                {advanceNoticeText || "No advance notice"}
-              </span>
-            </div>
-            <div className="relative flex items-center justify-between gap-2">
-              <div
-                className={`flex min-w-0 items-center gap-1.5 text-[11px] leading-4 ${
-                  cateringWindowInfo.isAvailable
-                    ? "text-gray-500"
-                    : "text-red-500 font-semibold"
-                }`}
-              >
-                <Clock3
-                  className={`h-3.5 w-3.5 flex-shrink-0 ${
-                    cateringWindowInfo.isAvailable
-                      ? "text-gray-400"
-                      : "text-red-500"
-                  }`}
-                />
-                <span className="line-clamp-1" title={hoursTooltipText}>
-                  {cateringWindowInfo.text}
+          <div className="min-w-0 flex-1 p-3 flex flex-col">
+            <p className="line-clamp-2 text-sm font-semibold leading-tight text-gray-900">
+              {restaurant.restaurant_name}
+            </p>
+            {restaurant.minCateringOrderQuantity &&
+              restaurant.minCateringOrderQuantity > 0 ? (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">
+                  Min {restaurant.minCateringOrderQuantity} items
                 </span>
               </div>
-              <div className="relative flex-shrink-0">
-                <button
-                  ref={(element) => {
-                    if (element) {
-                      hoursInfoButtonRefs.current.set(restaurant.id, element);
-                    } else {
-                      hoursInfoButtonRefs.current.delete(restaurant.id);
-                    }
-                  }}
-                  type="button"
-                  aria-label={`View weekly catering hours for ${restaurant.restaurant_name}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (!isMobileViewport) {
-                      updateHoursInfoPosition(restaurant.id);
-                    }
-                    setOpenHoursInfoRestaurantId((current) =>
-                      current === restaurant.id ? null : restaurant.id,
-                    );
-                  }}
-                  onMouseEnter={() => {
-                    if (!isMobileViewport) {
-                      updateHoursInfoPosition(restaurant.id);
-                      setHoveredHoursInfoRestaurantId(restaurant.id);
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    if (!isMobileViewport) {
-                      setHoveredHoursInfoRestaurantId((current) =>
-                        current === restaurant.id ? null : current
-                      );
-                    }
-                  }}
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-base-300 bg-white text-gray-500 shadow-sm transition-colors hover:text-primary focus:outline-none"
-                  title="View weekly catering hours"
+            ) : null}
+            {isUnavailableForSession && (
+              <div className="mt-1.5 min-h-8 space-y-0.5">
+                <div
+                  className={`flex items-center gap-1.5 text-[11px] leading-4 ${isAdvanceNoticeMet
+                    ? "text-gray-500"
+                    : "text-red-500 font-semibold"
+                    }`}
                 >
-                  <Info className="h-4 w-4" />
-                </button>
+                  <Clock3
+                    className={`h-3.5 w-3.5 flex-shrink-0 ${isAdvanceNoticeMet ? "text-gray-400" : "text-red-500"
+                      }`}
+                  />
+                  <span className="line-clamp-1">
+                    {advanceNoticeText || "No advance notice"}
+                  </span>
+                </div>
+                <div className="relative flex items-center justify-between gap-2">
+                  <div
+                    className={`flex min-w-0 items-center gap-1.5 text-[11px] leading-4 ${cateringWindowInfo.isAvailable
+                      ? "text-gray-500"
+                      : "text-red-500 font-semibold"
+                      }`}
+                  >
+                    <Clock3
+                      className={`h-3.5 w-3.5 flex-shrink-0 ${cateringWindowInfo.isAvailable
+                        ? "text-gray-400"
+                        : "text-red-500"
+                        }`}
+                    />
+                    <span className="line-clamp-1" title={hoursTooltipText}>
+                      {cateringWindowInfo.text}
+                    </span>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <button
+                      ref={(element) => {
+                        if (element) {
+                          hoursInfoButtonRefs.current.set(restaurant.id, element);
+                        } else {
+                          hoursInfoButtonRefs.current.delete(restaurant.id);
+                        }
+                      }}
+                      type="button"
+                      aria-label={`View weekly catering hours for ${restaurant.restaurant_name}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (!isMobileViewport) {
+                          updateHoursInfoPosition(restaurant.id);
+                        }
+                        setOpenHoursInfoRestaurantId((current) =>
+                          current === restaurant.id ? null : restaurant.id,
+                        );
+                      }}
+                      onMouseEnter={() => {
+                        if (!isMobileViewport) {
+                          updateHoursInfoPosition(restaurant.id);
+                          setHoveredHoursInfoRestaurantId(restaurant.id);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        if (!isMobileViewport) {
+                          setHoveredHoursInfoRestaurantId((current) =>
+                            current === restaurant.id ? null : current,
+                          );
+                        }
+                      }}
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-base-300 bg-white text-gray-500 shadow-sm transition-colors hover:text-primary focus:outline-none"
+                      title="View weekly catering hours"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+            {(() => {
+              if (isUnavailableForSession) return null;
+              const restaurantLoc = (restaurant as any).pickupAddresses?.[0]?.location;
+              const userLoc = contactInfo?.latitude && contactInfo?.longitude
+                ? { latitude: contactInfo.latitude, longitude: contactInfo.longitude }
+                : null;
+              const distance = userLoc && restaurantLoc
+                ? haversineDistanceMiles(userLoc.latitude, userLoc.longitude, restaurantLoc.latitude, restaurantLoc.longitude)
+                : null;
+              const rating = restaurant.averageRating && parseFloat(restaurant.averageRating) > 0
+                ? parseFloat(restaurant.averageRating)
+                : null;
+              return (
+                <div className="mt-auto pt-2 min-h-[22px] flex items-center gap-2">
+                  {rating !== null && (
+                    <span className="flex items-center gap-0.5 text-[11px] text-gray-500">
+                      <span className="text-yellow-400">★</span>
+                      {rating.toFixed(1)}
+                    </span>
+                  )}
+                  {rating !== null && distance !== null && (
+                    <span className="text-gray-300 text-[11px]">·</span>
+                  )}
+                  {distance !== null && (
+                    <span className="text-[11px] text-gray-500">
+                      {distance.toFixed(1)} mi
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
-        </div>
         </div>
       </div>
     );
@@ -1181,71 +1515,73 @@ export default function RestaurantMenuBrowser({
   const hoursInfoTooltip =
     !isMobileViewport && activeHoursInfoRestaurantId && hoursInfoPosition
       ? createPortal(
-          <div
-            ref={hoursInfoContainerRef}
-            className="fixed z-[1000] w-64 -translate-x-full -translate-y-full whitespace-pre-line rounded-lg border border-base-300 bg-white p-2 text-[11px] leading-4 text-gray-600 shadow-lg"
-            style={{
-              left: hoursInfoPosition.left,
-              top: hoursInfoPosition.top,
-            }}
-            onMouseEnter={() => {
-              if (!openHoursInfoRestaurantId) {
-                setHoveredHoursInfoRestaurantId(activeHoursInfoRestaurantId);
-              }
-            }}
-            onMouseLeave={() => {
-              if (!openHoursInfoRestaurantId) {
-                setHoveredHoursInfoRestaurantId(null);
-              }
-            }}
-          >
-            {restaurantHoursTooltipTextById.get(activeHoursInfoRestaurantId)}
-          </div>,
-          document.body,
-        )
+        <div
+          ref={hoursInfoContainerRef}
+          className="fixed z-[1000] w-64 -translate-x-full -translate-y-full whitespace-pre-line rounded-lg border border-base-300 bg-white p-2 text-[11px] leading-4 text-gray-600 shadow-lg"
+          style={{
+            left: hoursInfoPosition.left,
+            top: hoursInfoPosition.top,
+          }}
+          onMouseEnter={() => {
+            if (!openHoursInfoRestaurantId) {
+              setHoveredHoursInfoRestaurantId(activeHoursInfoRestaurantId);
+            }
+          }}
+          onMouseLeave={() => {
+            if (!openHoursInfoRestaurantId) {
+              setHoveredHoursInfoRestaurantId(null);
+            }
+          }}
+        >
+          {restaurantHoursTooltipTextById.get(activeHoursInfoRestaurantId)}
+        </div>,
+        document.body,
+      )
       : null;
 
   const mobileHoursInfoSheet =
     isMobileViewport && openHoursInfoRestaurantId
       ? createPortal(
-          <div className="fixed inset-0 z-[1000] flex items-end bg-black/30">
-            <button
-              type="button"
-              aria-label="Close weekly catering hours"
-              className="absolute inset-0 cursor-default"
-              onClick={() => setOpenHoursInfoRestaurantId(null)}
-            />
-            <div className="relative z-10 w-full rounded-t-2xl bg-white p-4 shadow-2xl">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    Weekly catering hours
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    {restaurants.find((restaurant) => restaurant.id === openHoursInfoRestaurantId)
-                      ?.restaurant_name || "Restaurant"}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOpenHoursInfoRestaurantId(null)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-base-300 bg-white text-gray-500 shadow-sm"
-                  aria-label="Close weekly catering hours"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+        <div className="fixed inset-0 z-[1000] flex items-end bg-black/30">
+          <button
+            type="button"
+            aria-label="Close weekly catering hours"
+            className="absolute inset-0 cursor-default"
+            onClick={() => setOpenHoursInfoRestaurantId(null)}
+          />
+          <div className="relative z-10 w-full rounded-t-2xl bg-white p-4 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">
+                  Weekly catering hours
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {restaurants.find(
+                    (restaurant) =>
+                      restaurant.id === openHoursInfoRestaurantId,
+                  )?.restaurant_name || "Restaurant"}
+                </p>
               </div>
-              <div className="mt-3 whitespace-pre-line rounded-xl bg-base-100 px-3 py-3 text-sm leading-5 text-gray-700">
-                {restaurantHoursTooltipTextById.get(openHoursInfoRestaurantId)}
-              </div>
+              <button
+                type="button"
+                onClick={() => setOpenHoursInfoRestaurantId(null)}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-base-300 bg-white text-gray-500 shadow-sm"
+                aria-label="Close weekly catering hours"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-          </div>,
-          document.body,
-        )
+            <div className="mt-3 whitespace-pre-line rounded-xl bg-base-100 px-3 py-3 text-sm leading-5 text-gray-700">
+              {restaurantHoursTooltipTextById.get(openHoursInfoRestaurantId)}
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )
       : null;
 
   const renderCategoryFilters = () => (
-    <div style={{ contain: "inline-size" }}>
+    <div ref={expandedSessionIndex === sessionIndex ? categoriesRowRef : undefined} style={{ contain: "inline-size" }}>
       <div className="overflow-x-auto pb-2 pt-1 scrollbar-hide">
         <div className="flex items-center gap-2 md:gap-3">
           {categoriesLoading
@@ -1304,93 +1640,146 @@ export default function RestaurantMenuBrowser({
           Back to Restaurants
         </button>
 
-        <div className="flex items-center gap-3 mb-3">
+        <div
+          className="relative w-full rounded-xl overflow-hidden mb-2"
+          style={{ height: "175px" }}
+        >
           {selectedRestaurant.images && selectedRestaurant.images.length > 0 ? (
             <img
               src={selectedRestaurant.images[0]}
               alt={selectedRestaurant.restaurant_name}
-              className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+              className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-14 h-14 rounded-lg bg-base-200 flex items-center justify-center flex-shrink-0">
-              <span className="text-lg font-bold text-gray-400">
+            <div className="w-full h-full bg-base-200 flex items-center justify-center">
+              <span className="text-4xl font-bold text-gray-300">
                 {selectedRestaurant.restaurant_name.charAt(0)}
               </span>
             </div>
           )}
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              {selectedRestaurant.restaurant_name}
-            </h2>
-            {selectedRestaurant.minCateringOrderQuantity &&
-              selectedRestaurant.minCateringOrderQuantity > 0 && (
-                <p className="text-xs text-gray-500">
-                  Min order: {selectedRestaurant.minCateringOrderQuantity} items
-                </p>
+        </div>
+        <div className="mb-3">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {selectedRestaurant.restaurant_name}
+          </h2>
+          {(() => {
+            const restaurantLoc = (selectedRestaurant as any).pickupAddresses?.[0]?.location;
+            const userLoc = contactInfo?.latitude && contactInfo?.longitude
+              ? { latitude: contactInfo.latitude, longitude: contactInfo.longitude }
+              : null;
+            const distance = userLoc && restaurantLoc
+              ? haversineDistanceMiles(userLoc.latitude, userLoc.longitude, restaurantLoc.latitude, restaurantLoc.longitude)
+              : null;
+            const rating = selectedRestaurant.averageRating && parseFloat(selectedRestaurant.averageRating) > 0
+              ? parseFloat(selectedRestaurant.averageRating)
+              : null;
+            const advanceNoticeText = getRestaurantAdvanceNoticeText(selectedRestaurant);
+            const noticeMet = isRestaurantAdvanceNoticeMet(selectedRestaurant, activeSession?.sessionDate, activeSession?.eventTime);
+            if (!rating && !distance && !advanceNoticeText) return null;
+            return (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 mb-1">
+                {rating !== null && (
+                  <span className="flex items-center gap-1 text-sm text-gray-500 whitespace-nowrap">
+                    <span className="text-yellow-400">★</span>
+                    {rating.toFixed(1)}
+                  </span>
+                )}
+                {rating !== null && distance !== null && (
+                  <span className="text-gray-300">·</span>
+                )}
+                {distance !== null && (
+                  <span className="text-sm text-gray-500 whitespace-nowrap">{distance.toFixed(1)} mi away</span>
+                )}
+                {advanceNoticeText && (
+                  <>
+                    {(rating !== null || distance !== null) && <span className="text-gray-300">·</span>}
+                    <span className={`flex items-center gap-1 text-sm whitespace-nowrap ${noticeMet ? "text-gray-500" : "text-gray-500"}`}>
+                      <Clock3 className={`h-3.5 w-3.5 flex-shrink-0 ${noticeMet ? "text-gray-400" : "text-red-500"}`} />
+                      {advanceNoticeText}
+                    </span>
+                  </>
+                )}
+              </div>
+            );
+          })()}
+          {selectedRestaurant.restaurant_description && (
+            <>
+              <p
+                ref={descriptionRef}
+                className={`text-sm text-gray-600 mt-1 ${isDescriptionExpanded ? "" : "line-clamp-2"}`}
+              >
+                {selectedRestaurant.restaurant_description}
+              </p>
+              {(isDescriptionOverflowing || isDescriptionExpanded) && (
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded((v) => !v)}
+                  className="text-xs text-primary font-medium mt-0.5 hover:underline"
+                >
+                  {isDescriptionExpanded ? "Show less" : "Read more"}
+                </button>
               )}
-          </div>
-        </div>
-
-        <div className="relative mt-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            value={restaurantSearchQuery}
-            onChange={(e) => setRestaurantSearchQuery(e.target.value)}
-            placeholder={`Search ${selectedRestaurant.restaurant_name} items...`}
-            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-base-300 bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-          />
-          {restaurantSearchQuery && (
-            <button
-              onClick={() => setRestaurantSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            </>
           )}
+          {selectedRestaurant.minCateringOrderQuantity &&
+            selectedRestaurant.minCateringOrderQuantity > 0 && (
+              <p className="text-xs text-gray-500">
+                Min order: {selectedRestaurant.minCateringOrderQuantity} items
+              </p>
+            )}
         </div>
-
-        <div className="mt-2">{renderDietaryFilters()}</div>
 
         {(() => {
-          const promos = selectedRestaurantId ? (restaurantPromotions[selectedRestaurantId] ?? []) : [];
+          const promos = selectedRestaurantId
+            ? (restaurantPromotions[selectedRestaurantId] ?? [])
+            : [];
           if (promos.length === 0) return null;
+
+          const discountLabel = (promo: any) =>
+            promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
+              ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
+              : `${Number(promo.discountPercentage)}% OFF`;
+
+          const endDateLabel = (promo: any) =>
+            new Date(promo.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+          const sortedTiers = (promo: any) =>
+            [...(promo.discountTiers ?? [])].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+
           return (
             <div className="mt-3">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-semibold text-gray-900">Active Offers</span>
-                <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{promos.length}</span>
+                <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {promos.length}
+                </span>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide snap-x snap-mandatory">
                 {promos.map((promo: any) => (
-                  <div
-                    key={promo.id}
-                    className="flex-shrink-0 snap-start bg-gradient-to-br from-green-50 to-emerald-50 border border-green-400 rounded-xl p-3 min-w-[240px] max-w-[300px]"
-                  >
-                    <p className="text-sm font-bold text-green-900 truncate">{promo.name}</p>
-                    <p className="text-green-700 font-bold text-base mt-0.5">
-                      {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length
-                        ? `Up to ${Math.max(...promo.discountTiers.map((t: any) => Number(t.discountPercentage)))}% OFF`
-                        : `${Number(promo.discountPercentage)}% OFF`}
-                    </p>
-                    {promo.promotionType === "BUY_MORE_SAVE_MORE" && promo.discountTiers?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {[...promo.discountTiers]
-                          .sort((a: any, b: any) => a.minQuantity - b.minQuantity)
-                          .map((tier: any, idx: number) => (
-                            <span key={idx} className="text-green-700 text-xs font-medium bg-green-100 px-1.5 py-0.5 rounded">
-                              {tier.minQuantity}+ items → {Number(tier.discountPercentage)}% off
-                            </span>
-                          ))}
+                  <div key={promo.id} className="flex-shrink-0 snap-start bg-white border border-base-200 rounded-2xl p-4 min-w-[220px] max-w-[280px] shadow-sm">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide truncate">{promo.name}</p>
+                      <svg className="w-4 h-4 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                    </div>
+                    <p className="text-lg font-black text-gray-900 leading-none">{discountLabel(promo)}</p>
+                    {promo.promotionType === "BUY_MORE_SAVE_MORE" && sortedTiers(promo).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2.5">
+                        {sortedTiers(promo).map((tier: any, idx: number) => (
+                          <span key={idx} className="text-[11px] font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {tier.minQuantity}+ → {Number(tier.discountPercentage)}%
+                          </span>
+                        ))}
                       </div>
                     )}
                     {promo.description && (
-                      <p className="text-green-700 text-xs mt-1 line-clamp-2">{promo.description}</p>
+                      <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">{promo.description}</p>
                     )}
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-green-800">
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-2.5 text-xs text-gray-400">
                       {promo.minOrderAmount > 0 && <span>Min. £{promo.minOrderAmount}</span>}
-                      {promo.maxDiscountAmount && <span>Max. £{promo.maxDiscountAmount} off</span>}
-                      <span>Until {new Date(promo.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                      {promo.maxDiscountAmount && <span>· Max. £{promo.maxDiscountAmount} off</span>}
+                      <span>· Until {endDateLabel(promo)}</span>
                     </div>
                   </div>
                 ))}
@@ -1399,43 +1788,105 @@ export default function RestaurantMenuBrowser({
           );
         })()}
 
+        <div className="mt-2">{renderDietaryFilters()}</div>
+
         <div className="mt-3">
-          {restaurantGroups.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-gray-500 text-sm">
-                No items match the current filters.
-              </p>
-            </div>
-          ) : (
-            <>
               <div
-                className="sticky z-30 mt-2 mb-3 w-full overflow-x-auto scrollbar-hide rounded-full border border-base-300 bg-white/50 px-2 py-1.5 md:px-4 md:py-2 shadow-sm backdrop-blur-md"
-                style={{ top: stickyTopOffset + 8 }}
+                className="sticky z-30 mt-2 mb-3 flex items-center justify-end gap-2 w-full max-w-full box-border overflow-hidden px-1 py-1"
+                style={{
+                  top: stickyTopOffset + 8,
+                }}
               >
-                <div className="flex gap-2 md:gap-5">
-                  {restaurantGroups.map((group) => {
-                    const isActive = activeGroupName === group.name;
-                    return (
-                      <button
-                        key={group.name}
-                        ref={(el) => {
-                          if (el) groupButtonRefs.current.set(group.name, el);
-                          else groupButtonRefs.current.delete(group.name);
-                        }}
-                        onClick={() => handleGroupTabClick(group.name)}
-                        className={`flex-shrink-0 whitespace-nowrap rounded-full px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-semibold transition-colors ${isActive
-                          ? "bg-primary text-white"
-                          : "text-gray-500 hover:bg-black/5 hover:text-gray-700"
-                          }`}
-                      >
-                        {group.name}
-                      </button>
-                    );
-                  })}
+                {/* Pill row — takes remaining flex space, can shrink to 0 */}
+                <div
+                  ref={setPillRowEl}
+                  data-pill-row
+                  className={`flex-1 min-w-0 overflow-x-auto scrollbar-hide rounded-full border border-base-300 bg-white/50 px-2 shadow-sm backdrop-blur-md flex items-center h-11 ${isRestaurantSearchOpen ? "hidden md:flex" : ""}`}
+                >
+                  <div className="flex items-center gap-2 md:gap-5">
+                    {pillRowGroupNames.map((name) => {
+                      const isActive = activeGroupName === name;
+                      return (
+                        <button
+                          key={name}
+                          ref={(el) => {
+                            if (el) groupButtonRefs.current.set(name, el);
+                            else groupButtonRefs.current.delete(name);
+                          }}
+                          onClick={() => handlePillClick(name)}
+                          className={`flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${isActive
+                            ? "bg-primary text-white"
+                            : "text-gray-500 hover:bg-black/5 hover:text-gray-700"
+                            }`}
+                        >
+                          {name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Search — explicit square (width=height) when closed, expands width when open. Desktop only; mobile uses the bottom-bar search. */}
+                <div
+                  ref={searchContainerRef}
+                  className="relative hidden flex-shrink-0 md:block"
+                  style={{
+                    width: isRestaurantSearchOpen
+                      ? (isDesktopSearch ? "min(100%, 14rem)" : "100%")
+                      : closedSearchColWidth,
+                    height: closedSearchColWidth,
+                    transition: "width 300ms ease-in-out",
+                  }}
+                >
+                  {showSearchInput ? (
+                    <>
+                      {showSearchLeftIcon && (
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none z-10" />
+                      )}
+                      <input
+                        ref={restaurantSearchInputRef}
+                        type="text"
+                        value={restaurantSearchQuery}
+                        onChange={(e) =>
+                          setRestaurantSearchQuery(e.target.value)
+                        }
+                        placeholder="Search items..."
+                        style={{ minWidth: 0 }}
+                        className={`h-full w-full min-w-0 rounded-full border border-primary bg-white text-base focus:outline-none focus:ring-1 focus:ring-primary shadow-sm ${showSearchLeftIcon ? "pl-9" : "pl-2"} ${showSearchRightIcon ? "pr-9" : "pr-2"}`}
+                      />
+                      {showSearchRightIcon && (
+                        <button
+                          onClick={closeRestaurantSearch}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      onClick={openRestaurantSearch}
+                      className="h-full w-full rounded-full border border-base-300 bg-white/50 backdrop-blur-md shadow-sm flex items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition-colors"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {restaurantGroups.map((group) => {
+              {restaurantMenuItemsLoading ? (
+                <div className="flex justify-center py-10">
+                  <span className="loading loading-spinner loading-md text-primary" />
+                </div>
+              ) : restaurantGroups.length === 0 && (
+                <div className="text-center py-6">
+                  <p className="text-gray-500 text-sm">
+                    No items match the current filters.
+                  </p>
+                </div>
+              )}
+
+              {!restaurantMenuItemsLoading && restaurantGroups.map((group) => {
                 const isCollapsed = collapsedGroups.has(group.name);
                 const groupCount =
                   group.type === "bundles"
@@ -1452,97 +1903,82 @@ export default function RestaurantMenuBrowser({
                     style={{ scrollMarginTop: stickyTopOffset + 80 }}
                     className="mb-4"
                   >
-                    <button
-                      onClick={() => toggleGroupCollapse(group.name)}
-                      className="w-full flex items-center justify-between py-2 px-1 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-primary">
-                          {group.name}
-                        </h3>
-                        <span className="text-xs text-gray-400 font-normal">
-                          ({groupCount})
-                        </span>
+                    <div className="w-full flex items-center gap-2 py-2 px-1">
+                      <h3 className="text-base font-bold text-primary">
+                        {group.name}
+                      </h3>
+                      <span className="text-xs text-gray-400 font-normal">
+                        ({groupCount})
+                      </span>
+                    </div>
+
+                    {group.type === "items" && group.information && (
+                      <div className="flex items-start gap-1.5 px-1 pb-2">
+                        <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-gray-500 whitespace-pre-line">
+                          {group.information}
+                        </p>
                       </div>
-                      {isCollapsed ? (
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                      ) : (
-                        <ChevronUp className="w-4 h-4 text-gray-400" />
-                      )}
-                    </button>
+                    )}
 
-                    {group.type === "items" &&
-                      group.information &&
-                      !isCollapsed && (
-                        <div className="flex items-start gap-1.5 px-1 pb-2">
-                          <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
-                          <p className="text-xs text-gray-500 whitespace-pre-line">
-                            {group.information}
-                          </p>
+                    {group.type === "bundles" ? (
+                      bundlesLoading ? (
+                        <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+                          <span className="loading loading-spinner loading-sm text-primary" />
+                          Loading bundles...
                         </div>
-                      )}
-
-                    {!isCollapsed &&
-                      (group.type === "bundles" ? (
-                        bundlesLoading ? (
-                          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-                            <span className="loading loading-spinner loading-sm text-primary" />
-                            Loading bundles...
-                          </div>
-                        ) : bundlesError ? (
-                          <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            {bundlesError}
-                          </div>
-                        ) : group.bundles.length === 0 ? (
-                          <div className="mt-2 rounded-xl border border-dashed border-base-300 bg-base-100/60 px-4 py-5 text-sm text-gray-500">
-                            No bundles match the current filters.
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-1">
-                            {group.bundles.map((bundle) => (
-                              <BundleCard
-                                key={bundle.id}
-                                bundle={bundle}
-                                onClick={setSelectedBundle}
-                              />
-                            ))}
-                          </div>
-                        )
+                      ) : bundlesError ? (
+                        <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                          {bundlesError}
+                        </div>
+                      ) : group.bundles.length === 0 ? (
+                        <div className="mt-2 rounded-xl border border-dashed border-base-300 bg-base-100/60 px-4 py-5 text-sm text-gray-500">
+                          No bundles match the current filters.
+                        </div>
                       ) : (
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-1">
-                          {group.items.map((item, itemIdx) => (
-                            <div
-                              key={item.id}
-                              ref={
-                                expandedSessionIndex === sessionIndex &&
-                                  itemIdx === 0 &&
-                                  group.name === firstMenuGroupName
-                                  ? firstMenuItemRef
-                                  : undefined
-                              }
-                            >
-                              <MenuItemCard
-                                item={item}
-                                quantity={getItemQuantity(item.id)}
-                                isExpanded={expandedItemId === item.id}
-                                onToggleExpand={() =>
-                                  setExpandedItemId(
-                                    expandedItemId === item.id ? null : item.id,
-                                  )
-                                }
-                                onAddItem={onAddItem}
-                                onUpdateQuantity={onUpdateQuantity}
-                                onAddOrderPress={onAddOrderPress}
-                              />
-                            </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1">
+                          {group.bundles.map((bundle) => (
+                            <BundleCard
+                              key={bundle.id}
+                              bundle={bundle}
+                              onClick={setSelectedBundle}
+                            />
                           ))}
                         </div>
-                      ))}
+                      )
+                    ) : (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1">
+                        {group.items.map((item, itemIdx) => (
+                          <div
+                            key={item.id}
+                            ref={
+                              expandedSessionIndex === sessionIndex &&
+                                itemIdx === 0 &&
+                                group.name === firstMenuGroupName
+                                ? firstMenuItemRef
+                                : undefined
+                            }
+                          >
+                            <MenuItemCard
+                              item={item}
+                              quantity={getItemQuantity(item.id)}
+                              isExpanded={expandedItemId === item.id}
+                              onToggleExpand={() =>
+                                setExpandedItemId(
+                                  expandedItemId === item.id ? null : item.id,
+                                )
+                              }
+                              onAddItem={onAddItem}
+                              onUpdateQuantity={onUpdateQuantity}
+                              onAddOrderPress={onAddOrderPress}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
-            </>
-          )}
         </div>
 
         {selectedBundle && (
@@ -1552,7 +1988,6 @@ export default function RestaurantMenuBrowser({
             isAdding={addingBundleId === selectedBundle.id}
             onAdd={handleAddBundle}
             onClose={() => setSelectedBundle(null)}
-            allMenuItems={menuItemsCache || allMenuItems}
           />
         )}
       </div>
@@ -1566,14 +2001,15 @@ export default function RestaurantMenuBrowser({
     <div style={{ contain: "inline-size" }}>
       {hoursInfoTooltip}
       {mobileHoursInfoSheet}
-      <div className="relative mt-2 mb-2">
+      {/* Desktop-only top search; mobile uses the bottom-bar search */}
+      <div className="relative mt-2 mb-2 hidden md:block">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search across all restaurants..."
-          className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-base-300 bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+          placeholder="Search restaurants and menu items..."
+          className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-base-300 bg-white text-base focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
         />
         {searchQuery && (
           <button
@@ -1615,88 +2051,169 @@ export default function RestaurantMenuBrowser({
       </div>
 
       {isSearchActive ? (
-        !allMenuItems ? (
+        searchLoading ? (
           <div className="text-center py-6">
             <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="mt-2 text-sm text-gray-500">Loading menu items...</p>
+            <p className="mt-2 text-sm text-gray-500">Searching...</p>
           </div>
-        ) : searchResults && searchResults.length === 0 ? (
+        ) : apiSearchResults &&
+          apiSearchResults.restaurants.length === 0 &&
+          apiSearchResults.menuItems.length === 0 ? (
           <div className="text-center py-6">
             <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
             <p className="text-gray-500 text-sm">
-              No items found for &ldquo;{searchQuery}&rdquo;
+              No results found for &ldquo;{searchQuery}&rdquo;
             </p>
           </div>
-        ) : searchResults ? (
-          <div className="mt-3">
-            {searchResults.map((result) => (
-              <div key={result.restaurant.id} className="mb-6">
-                <div className="mb-3 max-w-sm">
-                  {renderRestaurantCard(result.restaurant, () =>
-                    handleSelectRestaurant(result.restaurant.id),
-                  )}
-                </div>
-                {result.items.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-bold text-primary mb-2">
-                      Matching items{" "}
-                      <span className="text-gray-400 font-normal">
-                        ({result.items.length})
-                      </span>
-                    </h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                      {result.items.map((item) => (
-                        <div key={item.id}>
-                          <MenuItemCard
-                            item={item}
-                            quantity={getItemQuantity(item.id)}
-                            isExpanded={expandedItemId === item.id}
-                            onToggleExpand={() =>
-                              setExpandedItemId(
-                                expandedItemId === item.id ? null : item.id,
-                              )
-                            }
-                            onAddItem={onAddItem}
-                            onUpdateQuantity={onUpdateQuantity}
-                            onAddOrderPress={onAddOrderPress}
-                          />
+        ) : apiSearchResults ? (
+          <div className="mt-3 space-y-6">
+            {apiSearchResults.restaurants.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-primary mb-2">
+                  Restaurants{" "}
+                  <span className="text-gray-400 font-normal">
+                    ({apiSearchResults.restaurants.length})
+                  </span>
+                </h3>
+                {(() => {
+                  const matched = apiSearchResults.restaurants
+                    .map((r: any) => availableRestaurants.find((ar) => ar.id === r.id))
+                    .filter((r): r is Restaurant => r !== undefined);
+                  const available = matched.filter((r) => {
+                    const windowInfo = getRestaurantCateringWindowInfo(r, activeSession?.sessionDate, activeSession?.eventTime);
+                    const noticeMet = isRestaurantAdvanceNoticeMet(r, activeSession?.sessionDate, activeSession?.eventTime);
+                    return windowInfo.isAvailable && noticeMet;
+                  });
+                  const unavailable = matched.filter((r) => {
+                    const windowInfo = getRestaurantCateringWindowInfo(r, activeSession?.sessionDate, activeSession?.eventTime);
+                    const noticeMet = isRestaurantAdvanceNoticeMet(r, activeSession?.sessionDate, activeSession?.eventTime);
+                    return !windowInfo.isAvailable || !noticeMet;
+                  });
+                  return (
+                    <div className="space-y-4">
+                      {available.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {available.map((restaurant) => (
+                            <div key={restaurant.id} className="h-full">
+                              {renderRestaurantCard(restaurant, () =>
+                                handleSelectRestaurant(restaurant.id),
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
+                      {unavailable.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+                            Unavailable today
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                            {unavailable.map((restaurant) => (
+                              <div key={restaurant.id} className="h-full">
+                                {renderRestaurantCard(restaurant, () =>
+                                  handleSelectRestaurant(restaurant.id),
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
-            ))}
+            )}
+            {apiSearchResults.menuItems.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-primary mb-2">
+                  Menu Items{" "}
+                  <span className="text-gray-400 font-normal">
+                    ({apiSearchResults.menuItems.length})
+                  </span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {apiSearchResults.menuItems.map((sr: SearchResult) => {
+                    const item: MenuItem = {
+                      ...(sr as any),
+                      restaurantName: sr.restaurant?.name,
+                      addons: (sr as any).addons || [],
+                      itemDisplayOrder: (sr as any).itemDisplayOrder || 0,
+                    };
+                    return (
+                      <div key={item.id}>
+                        <MenuItemCard
+                          item={item}
+                          quantity={getItemQuantity(item.id)}
+                          isExpanded={expandedItemId === item.id}
+                          onToggleExpand={() =>
+                            setExpandedItemId(
+                              expandedItemId === item.id ? null : item.id,
+                            )
+                          }
+                          onAddItem={onAddItem}
+                          onUpdateQuantity={onUpdateQuantity}
+                          onAddOrderPress={onAddOrderPress}
+                          showRestaurantName={true}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ) : null
       ) : (
-        <div
-          ref={restaurantListRef}
-          className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mt-3"
-        >
-          {restaurantsLoading ? (
-            <div className="col-span-full py-8">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="mt-2 text-sm text-gray-500">
-                  Loading restaurants...
-                </p>
-              </div>
+        <>{restaurantsLoading ? (
+          <div className="py-8 mt-3">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="inline-block w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="mt-2 text-sm text-gray-500">Loading restaurants...</p>
             </div>
-          ) : filteredRestaurants.length === 0 ? (
-            <div className="col-span-full text-center py-6">
-              <p className="text-gray-500 text-sm">No restaurants found.</p>
+          </div>
+        ) : filteredRestaurants.length === 0 ? (
+          <div className="text-center py-6 mt-3">
+            <p className="text-gray-500 text-sm">No restaurants found.</p>
+          </div>
+        ) : (() => {
+          const available = filteredRestaurants.filter((r) => {
+            const windowInfo = getRestaurantCateringWindowInfo(r, activeSession?.sessionDate, activeSession?.eventTime);
+            const noticeMet = isRestaurantAdvanceNoticeMet(r, activeSession?.sessionDate, activeSession?.eventTime);
+            return windowInfo.isAvailable && noticeMet;
+          });
+          const unavailable = filteredRestaurants.filter((r) => {
+            const windowInfo = getRestaurantCateringWindowInfo(r, activeSession?.sessionDate, activeSession?.eventTime);
+            const noticeMet = isRestaurantAdvanceNoticeMet(r, activeSession?.sessionDate, activeSession?.eventTime);
+            return !windowInfo.isAvailable || !noticeMet;
+          });
+          return (
+            <div ref={restaurantListRef} className="mt-3 space-y-6">
+              {available.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {available.map((restaurant) => (
+                    <div key={restaurant.id} className="h-full">
+                      {renderRestaurantCard(restaurant, () => handleSelectRestaurant(restaurant.id))}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {unavailable.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+                    Unavailable today
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {unavailable.map((restaurant) => (
+                      <div key={restaurant.id} className="h-full">
+                        {renderRestaurantCard(restaurant, () => handleSelectRestaurant(restaurant.id))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            filteredRestaurants.map((restaurant) => (
-              <div key={restaurant.id}>
-                {renderRestaurantCard(restaurant, () =>
-                  handleSelectRestaurant(restaurant.id),
-                )}
-              </div>
-            ))
-          )}
-        </div>
+          );
+        })()}</>
       )}
     </div>
   );

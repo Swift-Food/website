@@ -204,7 +204,7 @@ export default function SelectedItemsByCategory({
     const showDesktop = compactLayout ? " hidden" : " hidden sm:flex";
     const showDesktopBlock = compactLayout ? " hidden" : " hidden sm:block";
     const rootLayout = compactLayout
-      ? "flex flex-col gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden"
+      ? "flex flex-col gap-1.5 p-2 bg-base-100 rounded-xl min-w-0 overflow-hidden"
       : "flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-base-100 rounded-xl min-w-0 overflow-hidden";
 
     return (
@@ -224,11 +224,11 @@ export default function SelectedItemsByCategory({
           )}
           {/* Name + Addons */}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-800 italic">
+            <p className="text-sm font-semibold text-gray-800 italic">
               {item.menuItemName}
             </p>
             {item.selectedAddons && item.selectedAddons.length > 0 && (
-              <div className="text-sm text-gray-600 mt-1">
+              <div className={`${compactLayout ? "text-xs" : "text-sm"} text-gray-600 mt-1`}>
                 {(() => {
                   // Group addons by groupTitle
                   const addonsByGroup = item.selectedAddons.reduce(
@@ -325,10 +325,10 @@ export default function SelectedItemsByCategory({
         {/* Mobile Price & Portions + Actions */}
         <div className={`flex items-center justify-between${showMobile}`}>
           <div>
-            <p className="font-bold text-primary text-lg">
+            <p className={`font-bold text-primary ${compactLayout ? "text-sm" : "text-lg"}`}>
               £{subtotal.toFixed(2)}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className={`text-gray-600 ${compactLayout ? "text-xs" : "text-sm"}`}>
               {portions} portion{portions !== 1 ? "s" : ""}
             </p>
           </div>
@@ -537,7 +537,7 @@ export default function SelectedItemsByCategory({
         )}
       </div> */}
 
-      <div className="space-y-5">
+      <div className={compactLayout ? "space-y-3" : "space-y-5"}>
         {Array.from(restaurantGrouped.entries()).map(([restName, restaurant]) => {
           const isRestaurantCollapsed = collapsedRestaurants.has(restName);
           const totalRestaurantItems = Array.from(restaurant.bundles.values()).reduce((sum, b) => sum + b.items.length, 0)
@@ -549,8 +549,36 @@ export default function SelectedItemsByCategory({
 
           return (
           <div key={restName}>
+            {/* Restaurant Header */}
+            <button
+              onClick={() => setCollapsedRestaurants(prev => {
+                const next = new Set(prev);
+                if (next.has(restName)) next.delete(restName);
+                else next.add(restName);
+                return next;
+              })}
+              className="w-full flex items-center gap-3 mb-2 px-1 hover:bg-base-100 rounded-lg py-1 transition-colors"
+            >
+              {restaurant.image ? (
+                <img src={restaurant.image} alt={restName} className={`${compactLayout ? "w-7 h-7" : "w-9 h-9"} rounded-lg object-cover flex-shrink-0`} />
+              ) : (
+                <Store className={`${compactLayout ? "w-4 h-4" : "w-5 h-5"} text-gray-500 flex-shrink-0`} />
+              )}
+              <span className={`${compactLayout ? "text-sm" : "text-base"} font-bold text-gray-800`}>{restName}</span>
+              <span className={`${compactLayout ? "text-xs" : "text-sm"} text-gray-400`}>({totalRestaurantItems})</span>
+              <div className="flex-1" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-5 w-5 text-gray-400 transition-transform ${isRestaurantCollapsed ? "" : "rotate-180"}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
             {/* Per-restaurant promotion banners */}
-            {restPromos.length > 0 && (
+            {!isRestaurantCollapsed && restPromos.length > 0 && (
               <div className="flex flex-col gap-1.5 mb-2">
                 {restPromos.map((promo: any, i: number) => (
                   <div key={i} className="group relative flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg cursor-default">
@@ -584,47 +612,19 @@ export default function SelectedItemsByCategory({
                 ))}
               </div>
             )}
-            {/* Restaurant Header */}
-            <button
-              onClick={() => setCollapsedRestaurants(prev => {
-                const next = new Set(prev);
-                if (next.has(restName)) next.delete(restName);
-                else next.add(restName);
-                return next;
-              })}
-              className="w-full flex items-center gap-3 mb-2 px-1 hover:bg-base-100 rounded-lg py-1 transition-colors"
-            >
-              {restaurant.image ? (
-                <img src={restaurant.image} alt={restName} className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
-              ) : (
-                <Store className="w-5 h-5 text-gray-500 flex-shrink-0" />
-              )}
-              <span className="font-bold text-base text-gray-800">{restName}</span>
-              <span className="text-sm text-gray-400">({totalRestaurantItems})</span>
-              <div className="flex-1" />
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className={`h-5 w-5 text-gray-400 transition-transform ${isRestaurantCollapsed ? "" : "rotate-180"}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
 
             {!isRestaurantCollapsed && (
-            <div className="space-y-4">
+            <div className={compactLayout ? "space-y-2" : "space-y-4"}>
               {/* Bundle Groups */}
               {Array.from(restaurant.bundles.entries()).map(([bundleId, { name, items }]) => (
                 <div
                   key={bundleId}
                   className="border-2 border-dashed border-primary/30 rounded-2xl overflow-hidden bg-primary/[0.02]"
                 >
-                  <div className="flex items-center gap-2 px-4 py-3 bg-primary/10 border-b border-primary/20">
-                    <Package className="w-4 h-4 text-primary flex-shrink-0" />
+                  <div className={`flex items-center gap-2 ${compactLayout ? "px-3 py-2" : "px-4 py-3"} bg-primary/10 border-b border-primary/20`}>
+                    <Package className={`${compactLayout ? "w-3 h-3" : "w-4 h-4"} text-primary flex-shrink-0`} />
                     <div className="min-w-0">
-                      <span className="font-semibold text-primary text-sm">{name}</span>
+                      <span className={`font-semibold text-primary ${compactLayout ? "text-xs" : "text-sm"}`}>{name}</span>
                       <span className="block sm:inline sm:ml-1 text-xs text-primary/60">
                         ({items.length} item{items.length !== 1 ? "s" : ""})
                       </span>
@@ -652,7 +652,7 @@ export default function SelectedItemsByCategory({
                       </>
                     )}
                   </div>
-                  <div className="p-2 space-y-3">
+                  <div className={`${compactLayout ? "p-1.5 space-y-1.5" : "p-2 space-y-3"}`}>
                     {items.map(renderItemRow)}
                   </div>
                 </div>
@@ -676,13 +676,13 @@ export default function SelectedItemsByCategory({
                     {/* Category Header */}
                     <button
                       onClick={() => handleToggleCategory(categoryName)}
-                      className="w-full flex items-center justify-between px-4 py-3 bg-base-200 hover:bg-base-200 transition-colors"
+                      className={`w-full flex items-center justify-between ${compactLayout ? "px-3 py-2" : "px-4 py-3"} bg-base-200 hover:bg-base-200 transition-colors`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-800">
+                        <span className={`${compactLayout ? "text-xs" : ""} font-semibold text-gray-800`}>
                           {categoryName}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className={`${compactLayout ? "text-xs" : "text-sm"} text-gray-500`}>
                           ({totalItems} item{totalItems !== 1 ? "s" : ""})
                         </span>
                       </div>
@@ -706,7 +706,7 @@ export default function SelectedItemsByCategory({
 
                     {/* Category Content */}
                     {!isCollapsed && (
-                      <div className="p-2 space-y-3 min-w-0 overflow-hidden">
+                      <div className={`${compactLayout ? "p-1.5 space-y-1.5" : "p-2 space-y-3"} min-w-0 overflow-hidden`}>
                         {/* Items without subcategory */}
                         {categoryGroup.items.map(renderItemRow)}
 

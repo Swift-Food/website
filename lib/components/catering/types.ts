@@ -1,4 +1,4 @@
-import { MealSessionState } from "@/types/catering.types";
+import { MealSessionState, CateringPricingResult } from "@/types/catering.types";
 import { MenuItem, Restaurant } from "./Step2MenuItems";
 
 // Day grouping interface for timeline view
@@ -18,6 +18,7 @@ export interface SessionEditorProps {
   onUpdate: (index: number, updates: Partial<MealSessionState>) => void;
   onClose: (cancelled: boolean) => void;
   restaurants: Restaurant[];
+  existingDates?: { date: string; dayName: string; displayDate: string }[];
 }
 
 // SessionAccordion component props
@@ -41,7 +42,7 @@ export interface DateSessionNavProps {
   selectedDayDate: string | null;
   currentDayGroup: DayGroup | null;
   expandedSessionIndex: number | null;
-  isNavSticky: boolean;
+  isNavSticky?: boolean;
   onDateClick: (dayDate: string) => void;
   onBackToDates: () => void;
   onSessionPillClick: (sessionIndex: number) => void;
@@ -51,7 +52,7 @@ export interface DateSessionNavProps {
   // Tutorial refs
   addDayNavButtonRef: React.RefObject<HTMLButtonElement | null>;
   backButtonRef: React.RefObject<HTMLButtonElement | null>;
-  firstDayTabRef: React.RefObject<HTMLButtonElement | null>;
+  firstDayTabRef: React.RefObject<HTMLDivElement | null>;
   firstSessionPillRef: React.RefObject<HTMLButtonElement | null>;
   addSessionNavButtonRef: React.RefObject<HTMLButtonElement | null>;
 }
@@ -95,8 +96,8 @@ export interface PdfDownloadModalProps {
 
 // Tutorial phases
 export type TutorialPhase =
-  | "initial"
   | "navigation"
+  | "categories"
   | "restaurants"
   | "menu_items"
   | "completed";
@@ -109,6 +110,7 @@ export interface UseCateringTutorialReturn {
   handleTutorialNext: () => void;
   handleSkipTutorial: () => void;
   triggerNavigationTutorial: () => void;
+  triggerSessionCreated: () => void;
   resetTutorial: () => void;
   getTutorialSteps: () => import("./TutorialTooltip").TutorialStep[];
 }
@@ -157,6 +159,7 @@ export interface ViewOrderModalProps {
   collapsedCategories: Set<string>;
   onToggleCategory: (categoryName: string) => void;
   onViewMenu: () => void;
+  generatingPdf?: boolean;
   isCurrentSessionValid: boolean;
   totalPrice: number;
   onCheckout: () => void;
@@ -172,6 +175,10 @@ export interface ViewOrderModalProps {
   onAddDay: () => void;
   onAddSessionToDay: (dayDate: string) => void;
   restaurants?: { id: string; restaurant_name: string; images: string[] }[];
+  pricing?: CateringPricingResult | null;
+  calculatingPricing?: boolean;
+  onPlaceSelect?: (place: google.maps.places.PlaceResult) => void;
+  onClearAddress?: () => void;
 }
 
 // Catering data hook return type
@@ -194,7 +201,4 @@ export interface UseCateringDataReturn {
   // Restaurants
   restaurants: Restaurant[];
 
-  // All menu items
-  allMenuItems: MenuItem[] | null;
-  fetchAllMenuItems: () => void;
 }

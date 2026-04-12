@@ -18,6 +18,7 @@ import { pdf } from "@react-pdf/renderer";
 import { ArrowDown, FileText } from "lucide-react";
 import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
+import HalkinVenueModal from "./modals/HalkinVenueModal";
 import DeliveryAddressForm from "./contact/DeliveryAddressForm";
 import ContactInfoForm from "./contact/ContactInfoForm";
 import PromoCodeSection from "./contact/PromoCodeSection";
@@ -110,6 +111,7 @@ export default function Step3ContactInfo() {
 
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showHalkinModal, setShowHalkinModal] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
 
   // Calculate estimated total without triggering state updates
@@ -841,6 +843,20 @@ export default function Step3ContactInfo() {
       latitude,
       longitude,
     }));
+
+    setContactInfo({
+      ...formData,
+      addressLine1: addressLine1.trim(),
+      city,
+      zipcode,
+      latitude,
+      longitude,
+    });
+
+    const placeText = `${place.name || ""} ${place.formatted_address || ""}`;
+    if (/halkin\s*-/i.test(placeText)) {
+      setShowHalkinModal(true);
+    }
   };
 
   const handleClearAddress = () => {
@@ -875,9 +891,22 @@ export default function Step3ContactInfo() {
       const hasDeliveryQuote =
         typeof formData.latitude === "number" &&
         typeof formData.longitude === "number";
-      const pricingSessions = (pricing as any)?.mealSessions as
+      const pricingMealSessions = (pricing as any)?.mealSessions as
         | Array<{ deliveryFee?: number }>
         | undefined;
+      // The API only sends non-empty sessions, so pricingMealSessions[i] corresponds
+      // to the i-th non-empty local session. Build a local-index → deliveryFee map.
+      const deliveryFeeByLocalIndex = new Map<number, number | undefined>();
+      let pricingSessionIndex = 0;
+      mealSessions.forEach((session, localIndex) => {
+        if (session.orderItems.length > 0) {
+          deliveryFeeByLocalIndex.set(
+            localIndex,
+            pricingMealSessions?.[pricingSessionIndex]?.deliveryFee,
+          );
+          pricingSessionIndex++;
+        }
+      });
 
       // Convert mealSessions to LocalMealSession format
       const sessionsForPreview: LocalMealSession[] = mealSessions.map(
@@ -886,7 +915,7 @@ export default function Step3ContactInfo() {
           sessionDate: session.sessionDate,
           eventTime: session.eventTime,
           deliveryFee: hasDeliveryQuote
-            ? pricingSessions?.[index]?.deliveryFee
+            ? deliveryFeeByLocalIndex.get(index)
             : undefined,
           orderItems: session.orderItems.map((orderItem) => ({
             item: {
@@ -911,12 +940,30 @@ export default function Step3ContactInfo() {
         }),
       );
 
+      const restaurantNameById: Record<string, string> = {};
+      for (const session of mealSessions) {
+        for (const orderItem of session.orderItems) {
+          const item = orderItem.item as any;
+          if (item.restaurantId) {
+            const name = item.restaurant?.restaurant_name || item.restaurantName;
+            if (name) restaurantNameById[item.restaurantId] = name;
+          }
+        }
+      }
+      const pdfAppliedPromotions = (pricing?.appliedPromotions || []).map((p) => {
+        const restaurantName = restaurantNameById[p.restaurantId];
+        const label = restaurantName ? `${p.name} (${restaurantName})` : p.name;
+        return { name: label, discountAmount: p.discount };
+      }).filter((p) => p.discountAmount > 0);
+
       // Transform to PDF data format (now async to fetch images)
-      // Include delivery fee when pricing has been calculated, otherwise keep it as TBC.
+      // Use pricing deliveryFee when available, otherwise show as estimated.
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
         withPrices,
-        hasDeliveryQuote ? pricing?.deliveryFee : undefined,
+        pricing?.deliveryFee || undefined,
+        pricing?.promoDiscount || undefined,
+        pdfAppliedPromotions.length > 0 ? pdfAppliedPromotions : undefined,
       );
       // Generate and download PDF
       const blob = await pdf(
@@ -924,7 +971,8 @@ export default function Step3ContactInfo() {
           sessions={pdfData.sessions}
           showPrices={pdfData.showPrices}
           deliveryCharge={pdfData.deliveryCharge}
-          promoDiscount={pricing?.promoDiscount}
+          promoDiscount={pdfData.promoDiscount}
+          appliedPromotions={pdfData.appliedPromotions}
           totalPrice={pricing?.total ?? pdfData.totalPrice}
           logoUrl={pdfData.logoUrl}
         />,
@@ -1432,6 +1480,10 @@ export default function Step3ContactInfo() {
             </div>
           </div>
         </div>
+        {showHalkinModal && (
+          <HalkinVenueModal onClose={() => setShowHalkinModal(false)} />
+        )}
+
         {/* PDF Download Modal */}
         {showPdfModal && (
           <PdfDownloadModal

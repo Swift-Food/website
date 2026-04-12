@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, RefObject } from "react";
+import React, { useState, useEffect, useCallback, useMemo, RefObject } from "react";
 import { TutorialStep } from "../TutorialTooltip";
 import { TutorialPhase } from "../types";
 import { MealSessionState } from "@/types/catering.types";
@@ -8,13 +8,16 @@ import { MealSessionState } from "@/types/catering.types";
 const TUTORIAL_STORAGE_KEY = "catering_tutorial_completed";
 
 interface TutorialRefs {
-  addDayNavButtonRef: RefObject<HTMLButtonElement | null>;
-  backButtonRef: RefObject<HTMLButtonElement | null>;
-  firstDayTabRef: RefObject<HTMLButtonElement | null>;
-  firstSessionPillRef: RefObject<HTMLButtonElement | null>;
   addSessionNavButtonRef: RefObject<HTMLButtonElement | null>;
+  firstSessionPillRef: RefObject<HTMLButtonElement | null>;
+  categoriesRowRef: RefObject<HTMLDivElement | null>;
   restaurantListRef: RefObject<HTMLDivElement | null>;
   firstMenuItemRef: RefObject<HTMLDivElement | null>;
+  resetRestaurantListRef: React.MutableRefObject<(() => void) | null>;
+  // kept for DateSessionNav prop compatibility
+  addDayNavButtonRef: RefObject<HTMLButtonElement | null>;
+  backButtonRef: RefObject<HTMLButtonElement | null>;
+  firstDayTabRef: RefObject<HTMLDivElement | null>;
 }
 
 interface UseCateringTutorialOptions {
@@ -27,74 +30,36 @@ export function useCateringTutorial({
   refs,
 }: UseCateringTutorialOptions) {
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
-  const [tutorialPhase, setTutorialPhase] = useState<TutorialPhase>("initial");
+  const [tutorialPhase, setTutorialPhase] = useState<TutorialPhase>("navigation");
 
-  // Tutorial initialization - check if tutorial has been completed
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem(TUTORIAL_STORAGE_KEY);
     if (tutorialCompleted) {
-      // Tutorial was completed before, mark as completed
       setTutorialPhase("completed");
       setTutorialStep(null);
     } else if (
       mealSessions.length === 1 &&
       mealSessions[0].orderItems.length === 0
     ) {
-      // Start tutorial if not completed and cart is empty
-      setTutorialPhase("initial");
+      setTutorialPhase("navigation");
       setTutorialStep(0);
     } else {
-      // Has items but never completed tutorial - mark as completed so help button shows
       setTutorialPhase("completed");
       setTutorialStep(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Tutorial step definitions for each phase
   const getTutorialSteps = useCallback((): TutorialStep[] => {
     switch (tutorialPhase) {
-      case "initial":
-        return [
-          {
-            id: "add-day",
-            targetRef: refs.addDayNavButtonRef,
-            title: "Add a Day",
-            description:
-              "To add meal sessions to your catering order, first add which day you would like your delivery.",
-            position: "bottom",
-            requiresClick: true,
-            showSkip: true,
-          },
-        ];
-
       case "navigation":
         return [
           {
-            id: "back-button",
-            targetRef: refs.backButtonRef,
-            title: "View Your Days",
+            id: "add-session-nav",
+            targetRef: refs.addSessionNavButtonRef,
+            title: "Add a Session",
             description:
-              "Click the back button to see all the days in your order.",
-            position: "bottom",
-            requiresClick: true,
-            showSkip: true,
-          },
-          {
-            id: "add-day-nav",
-            targetRef: refs.addDayNavButtonRef,
-            title: "Add More Days",
-            description: "You can add more days to your order by clicking here.",
-            position: "bottom",
-            showNext: true,
-            showSkip: true,
-          },
-          {
-            id: "day-tab",
-            targetRef: refs.firstDayTabRef,
-            title: "Select a Day",
-            description:
-              "Click on a day to view the sessions scheduled for that day.",
+              "Start by adding a meal session — set the date, time, and name for your catering delivery.",
             position: "bottom",
             requiresClick: true,
             showSkip: true,
@@ -102,22 +67,41 @@ export function useCateringTutorial({
           {
             id: "session-pill",
             targetRef: refs.firstSessionPillRef,
-            title: "Go to Session",
+            title: "Your Meal Session",
             description:
-              "Click on a session to jump directly to that session's menu order.",
-            position: "bottom",
-            requiresClick: true,
-            showSkip: true,
-          },
-          {
-            id: "add-session-nav",
-            targetRef: refs.addSessionNavButtonRef,
-            title: "Add More Sessions",
-            description:
-              "You can add more meal sessions to this day by clicking here.",
+              "Click on a session pill to switch between sessions and view or build each meal's order.",
             position: "bottom",
             showNext: true,
             showSkip: true,
+          },
+        ];
+
+      case "categories":
+        return [
+          {
+            id: "categories",
+            targetRef: refs.categoriesRowRef,
+            title: "Browse Categories",
+            description:
+              "Browse food items by category. Click on a category to see the available options.",
+            position: "bottom",
+            showNext: true,
+            showSkip: true,
+            highlightPadding: 12,
+            highlightExtendBottom: 50,
+            onBeforeShow: (onComplete) => {
+              refs.resetRestaurantListRef.current?.();
+              setTimeout(() => {
+                const el = refs.categoriesRowRef.current;
+                if (el) {
+                  const rect = el.getBoundingClientRect();
+                  if (rect.top < 72 || rect.top > window.innerHeight / 2) {
+                    window.scrollTo({ top: window.scrollY + rect.top - 72, behavior: "instant" });
+                  }
+                }
+                onComplete();
+              }, 50);
+            },
           },
         ];
 
@@ -128,12 +112,25 @@ export function useCateringTutorial({
             targetRef: refs.restaurantListRef,
             title: "Choose a Restaurant",
             description:
-              "Browse the restaurants available for this session, then click into any restaurant to view its menu.",
+              "Browse available restaurants for this session, then click into one to view its menu.",
             position: "bottom",
             requiresClick: true,
             showSkip: true,
             highlightPadding: 12,
             highlightMinTop: 72,
+            onBeforeShow: (onComplete) => {
+              refs.resetRestaurantListRef.current?.();
+              setTimeout(() => {
+                const el = refs.restaurantListRef.current;
+                if (el) {
+                  const rect = el.getBoundingClientRect();
+                  if (Math.abs(rect.top - 72) > 4) {
+                    window.scrollTo({ top: window.scrollY + rect.top - 72, behavior: "instant" });
+                  }
+                }
+                onComplete();
+              }, 50);
+            },
           },
         ];
 
@@ -142,7 +139,7 @@ export function useCateringTutorial({
           {
             id: "menu-item",
             targetRef: refs.firstMenuItemRef,
-            title: "View and Add an Item",
+            title: "Add Items to Your Order",
             description:
               "Click a menu item card to view more details and add it to your order.",
             position: "top",
@@ -150,6 +147,18 @@ export function useCateringTutorial({
             nextLabel: "Finish Tutorial",
             showSkip: false,
             highlightPadding: 8,
+            highlightMinTop: 72,
+            autoScroll: true,
+            onBeforeShow: (onComplete) => {
+              // Poll until menu items have loaded, then signal ready — updatePosition handles scrolling
+              let attempts = 0;
+              const waitForRef = () => {
+                if (refs.firstMenuItemRef.current) { onComplete(); return; }
+                if (attempts < 20) { attempts++; setTimeout(waitForRef, 150); }
+                else onComplete();
+              };
+              waitForRef();
+            },
           },
         ];
 
@@ -158,38 +167,37 @@ export function useCateringTutorial({
     }
   }, [tutorialPhase, refs]);
 
-  // Get current tutorial step
   const currentTutorialStep = useMemo(() => {
     if (tutorialStep === null || tutorialPhase === "completed") return null;
     const steps = getTutorialSteps();
     return steps[tutorialStep] || null;
   }, [tutorialStep, tutorialPhase, getTutorialSteps]);
 
-  // Handle tutorial next step
   const handleTutorialNext = useCallback(() => {
+    // When user clicks "Add Session", hide tutorial completely until session is saved
+    if (currentTutorialStep?.id === "add-session-nav") {
+      setTutorialStep(null);
+      return;
+    }
+
     const steps = getTutorialSteps();
     const nextStep = (tutorialStep ?? 0) + 1;
 
     if (nextStep >= steps.length) {
-      // Move to next phase or complete
       switch (tutorialPhase) {
-        case "initial":
-          // After adding a day, wait for the session to be created
-          // The navigation phase will be triggered by handleConfirmAddDay
-          setTutorialStep(null);
-          break;
         case "navigation":
-          // Move to restaurant selection phase
+          setTutorialPhase("categories");
+          setTutorialStep(0);
+          break;
+        case "categories":
           setTutorialPhase("restaurants");
           setTutorialStep(0);
           break;
         case "restaurants":
-          // Move to menu items phase
           setTutorialPhase("menu_items");
           setTutorialStep(0);
           break;
         case "menu_items":
-          // Tutorial complete
           setTutorialPhase("completed");
           setTutorialStep(null);
           localStorage.setItem(TUTORIAL_STORAGE_KEY, "true");
@@ -200,28 +208,33 @@ export function useCateringTutorial({
     } else {
       setTutorialStep(nextStep);
     }
-  }, [tutorialStep, tutorialPhase, getTutorialSteps]);
+  }, [currentTutorialStep, tutorialStep, tutorialPhase, getTutorialSteps]);
 
-  // Handle skip tutorial
   const handleSkipTutorial = useCallback(() => {
     setTutorialPhase("completed");
     setTutorialStep(null);
     localStorage.setItem(TUTORIAL_STORAGE_KEY, "true");
   }, []);
 
-  // Trigger navigation tutorial after day is created
   const triggerNavigationTutorial = useCallback(() => {
-    // Small delay to allow UI to update
     setTimeout(() => {
       setTutorialPhase("navigation");
       setTutorialStep(0);
     }, 500);
   }, []);
 
-  // Reset tutorial
+  // Advance past the "add session" step once a session is actually saved
+  const triggerSessionCreated = useCallback(() => {
+    setTimeout(() => {
+      if (tutorialPhase === "navigation") {
+        setTutorialStep(1);
+      }
+    }, 300);
+  }, [tutorialPhase]);
+
   const resetTutorial = useCallback(() => {
     localStorage.removeItem(TUTORIAL_STORAGE_KEY);
-    setTutorialPhase("initial");
+    setTutorialPhase("navigation");
     setTutorialStep(0);
   }, []);
 
@@ -232,6 +245,7 @@ export function useCateringTutorial({
     handleTutorialNext,
     handleSkipTutorial,
     triggerNavigationTutorial,
+    triggerSessionCreated,
     resetTutorial,
     getTutorialSteps,
   };

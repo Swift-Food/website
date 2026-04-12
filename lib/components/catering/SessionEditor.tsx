@@ -4,14 +4,11 @@ import { useState } from "react";
 import { Clock } from "lucide-react";
 import { SessionEditorProps } from "./types";
 import {
-  HOUR_12_OPTIONS,
-  MINUTE_OPTIONS,
   getMinDate,
   getMaxDate,
   formatTime,
-  parseEventTime,
-  formatTo24Hour,
 } from "./catering-order-helpers";
+import TimeSlotDropdown from "./TimeSlotDropdown";
 
 export default function SessionEditor({
   session,
@@ -19,26 +16,20 @@ export default function SessionEditor({
   onUpdate,
   onClose,
   restaurants,
+  existingDates = [],
 }: SessionEditorProps) {
   const [sessionName, setSessionName] = useState(session.sessionName);
   const [sessionDate, setSessionDate] = useState(session.sessionDate);
-  const [selectedHour, setSelectedHour] = useState(() => {
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(() => {
     if (session.eventTime) {
-      return parseEventTime(session.eventTime).hour;
+      const [h, m] = session.eventTime.split(":").map(Number);
+      const totalMins = h * 60 + m;
+      const slotMins = Math.floor(totalMins / 30) * 30;
+      const sH = String(Math.floor(slotMins / 60)).padStart(2, "0");
+      const sM = String(slotMins % 60).padStart(2, "0");
+      return `${sH}:${sM}`;
     }
     return "";
-  });
-  const [selectedMinute, setSelectedMinute] = useState(() => {
-    if (session.eventTime) {
-      return parseEventTime(session.eventTime).minute;
-    }
-    return "00";
-  });
-  const [selectedPeriod, setSelectedPeriod] = useState<"AM" | "PM">(() => {
-    if (session.eventTime) {
-      return parseEventTime(session.eventTime).period;
-    }
-    return "AM";
   });
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -50,11 +41,8 @@ export default function SessionEditor({
     // Clear any previous errors
     setValidationError(null);
 
-    // Calculate event time if hour and minute are set
-    let eventTime = "";
-    if (selectedHour && selectedMinute) {
-      eventTime = formatTo24Hour(selectedHour, selectedMinute, selectedPeriod);
-    }
+    // Use selected time slot directly (already 24h format)
+    const eventTime = selectedTimeSlot;
 
     // Validate that date and time are set before saving
     if (!sessionDate) {
@@ -220,6 +208,35 @@ export default function SessionEditor({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Date
             </label>
+            {existingDates.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-2">
+                {existingDates.map((d) => {
+                  const isActive = sessionDate === d.date;
+                  return (
+                    <button
+                      key={d.date}
+                      type="button"
+                      onClick={() => {
+                        setSessionDate(d.date);
+                        setValidationError(null);
+                      }}
+                      className={`flex-shrink-0 px-3 py-2 rounded-lg border transition-colors ${
+                        isActive
+                          ? "bg-primary text-white border-primary"
+                          : "bg-base-100 text-gray-700 border-base-300 hover:border-primary"
+                      }`}
+                    >
+                      <div className="text-[10px] font-medium opacity-80 text-center">
+                        {d.dayName}
+                      </div>
+                      <div className="text-sm font-bold whitespace-nowrap">
+                        {d.displayDate}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <input
               type="date"
               value={sessionDate}
@@ -237,51 +254,15 @@ export default function SessionEditor({
           {/* Time */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Time
+              Delivery Time
             </label>
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedHour}
-                onChange={(e) => {
-                  setSelectedHour(e.target.value);
-                  setValidationError(null);
-                }}
-                className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              >
-                <option value="">HH</option>
-                {HOUR_12_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <span className="text-gray-400">:</span>
-              <select
-                value={selectedMinute}
-                onChange={(e) => {
-                  setSelectedMinute(e.target.value);
-                  setValidationError(null);
-                }}
-                className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              >
-                {MINUTE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedPeriod}
-                onChange={(e) => {
-                  setSelectedPeriod(e.target.value as "AM" | "PM");
-                  setValidationError(null);
-                }}
-                className="flex-1 px-4 py-3 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              >
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
-            </div>
+            <TimeSlotDropdown
+              value={selectedTimeSlot}
+              onChange={(v) => {
+                setSelectedTimeSlot(v);
+                setValidationError(null);
+              }}
+            />
           </div>
         </div>
 

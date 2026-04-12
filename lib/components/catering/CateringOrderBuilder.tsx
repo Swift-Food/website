@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCatering } from "@/context/CateringContext";
-import { MealSessionState } from "@/types/catering.types";
+import {
+  CateringPricingResult,
+  ContactInfo,
+  MealSessionState,
+} from "@/types/catering.types";
 import { cateringService } from "@/services/api/catering.api";
 import MenuItemModal from "./MenuItemModal";
 import { MenuItem } from "./Step2MenuItems";
@@ -22,22 +26,29 @@ import DateSessionNav from "./DateSessionNav";
 import ActiveSessionPanel from "./ActiveSessionPanel";
 import ViewOrderModal from "./ViewOrderModal";
 import MenuBrowserColumn from "./MenuBrowserColumn";
-import AddDayModal from "./modals/AddDayModal";
 import EmptySessionWarningModal from "./modals/EmptySessionWarningModal";
 import RemoveSessionConfirmModal from "./modals/RemoveSessionConfirmModal";
 import MinOrderModal from "./modals/MinOrderModal";
 import PdfDownloadModal from "./modals/PdfDownloadModal";
+import HalkinVenueModal from "./modals/HalkinVenueModal";
 import SwapItemModal from "./modals/SwapItemModal";
+import PricingSummary from "./contact/PricingSummary";
 
 // Hooks
 import { useCateringTutorial } from "./hooks/useCateringTutorial";
 import { useCateringData } from "./hooks/useCateringData";
 
 // Helpers
-import { groupSessionsByDay, formatTimeDisplay } from "./catering-order-helpers";
+import {
+  groupSessionsByDay,
+  formatTimeDisplay,
+  mapToMenuItem,
+} from "./catering-order-helpers";
+import { API_BASE_URL } from "@/lib/constants/api";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 // Icons
-import { ShoppingBag, X } from "lucide-react";
+import { MoreHorizontal, Search, ShoppingBag, Trash2, X } from "lucide-react";
 
 export default function CateringOrderBuilder() {
   const searchParams = useSearchParams();
@@ -56,22 +67,20 @@ export default function CateringOrderBuilder() {
     getSessionDiscount,
     getTotalPrice,
     setCurrentStep,
+    contactInfo,
+    setContactInfo,
   } = useCatering();
 
   // Session editing state
-  const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(null);
+  const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(
+    null,
+  );
   const [isNewSession, setIsNewSession] = useState(false);
 
   // Navigation state
   const [navMode, setNavMode] = useState<"dates" | "sessions">("dates");
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
 
-  // Add day modal state
-  const [isAddDayModalOpen, setIsAddDayModalOpen] = useState(false);
-  const [newDayDate, setNewDayDate] = useState("");
-
-  // Sticky nav detection
-  const [isNavSticky, setIsNavSticky] = useState(false);
 
   // Menu items state
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
@@ -84,14 +93,19 @@ export default function CateringOrderBuilder() {
   const [pendingItem, setPendingItem] = useState<MenuItem | null>(null);
 
   // Collapsed categories state
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   // PDF generation state
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showHalkinModal, setShowHalkinModal] = useState(false);
 
   // Empty session warning modal state
-  const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(null);
+  const [emptySessionIndex, setEmptySessionIndex] = useState<number | null>(
+    null,
+  );
 
   // Remove session confirmation modal state
   const [sessionToRemove, setSessionToRemove] = useState<number | null>(null);
@@ -103,7 +117,9 @@ export default function CateringOrderBuilder() {
   } | null>(null);
 
   // Catering hours validation errors
-  const [sessionValidationErrors, setSessionValidationErrors] = useState<Record<number, string>>({});
+  const [sessionValidationErrors, setSessionValidationErrors] = useState<
+    Record<number, string>
+  >({});
 
   // Bundle browser state
   const [showBundleBrowser, setShowBundleBrowser] = useState(false);
@@ -118,14 +134,162 @@ export default function CateringOrderBuilder() {
   // Remove item confirmation
   const [removeItemIndex, setRemoveItemIndex] = useState<number | null>(null);
 
+  // Clear all items confirmation + cart actions popovers
+  const [isClearAllConfirmOpen, setIsClearAllConfirmOpen] = useState(false);
+  const [isMobileCartMenuOpen, setIsMobileCartMenuOpen] = useState(false);
+  const [isDesktopCartMenuOpen, setIsDesktopCartMenuOpen] = useState(false);
+
+  // Mobile bottom-bar search (proxies into RestaurantMenuBrowser's internal
+  // search state via register/publish callbacks)
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [mobileSearchState, setMobileSearchState] = useState<{
+    mode: "list" | "restaurant";
+    query: string;
+  }>({ mode: "list", query: "" });
+  const mobileSearchSetterRef = useRef<((query: string) => void) | null>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const mobileBarRowRef = useRef<HTMLDivElement>(null);
+  const suppressMobileSearchScrollCloseRef = useRef(false);
+  // Caret is hidden during the slide animation so the blinking cursor
+  // doesn't distract from the pill -> input transition.
+  const [mobileSearchCaretVisible, setMobileSearchCaretVisible] = useState(false);
+
+  // Lift the mobile bottom bar above the on-screen keyboard using the
+  // Visual Viewport API (supported on iOS Safari 15.4+ and Android Chrome).
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => {
+      const offset = Math.max(
+        0,
+        window.innerHeight - vv.height - vv.offsetTop,
+      );
+      setKeyboardOffset(offset);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  // Reveal the input caret only after the slide animation completes, so
+  // the blinking cursor doesn't appear mid-animation.
+  useEffect(() => {
+    if (!isMobileSearchOpen) {
+      setMobileSearchCaretVisible(false);
+      return;
+    }
+    const timer = setTimeout(() => setMobileSearchCaretVisible(true), 300);
+    return () => clearTimeout(timer);
+  }, [isMobileSearchOpen]);
+
+  // Close mobile search on outside tap or scroll when the query is empty.
+  // Mirrors the logic in RestaurantMenuBrowser so tapping the group-title
+  // pill row (which triggers a programmatic scroll) doesn't inadvertently
+  // close the search.
+  useEffect(() => {
+    if (!isMobileSearchOpen) return;
+    if (mobileSearchState.query) return;
+
+    const triggerDelayedClose = () => {
+      mobileSearchInputRef.current?.blur();
+      setTimeout(() => {
+        setIsMobileSearchOpen(false);
+      }, 250);
+    };
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (!target) return;
+      if (mobileBarRowRef.current?.contains(target)) return;
+      if (target.closest?.("[data-pill-row]")) {
+        suppressMobileSearchScrollCloseRef.current = true;
+        setTimeout(() => {
+          suppressMobileSearchScrollCloseRef.current = false;
+        }, 600);
+        return;
+      }
+      triggerDelayedClose();
+    };
+
+    const handleScroll = () => {
+      if (suppressMobileSearchScrollCloseRef.current) return;
+      triggerDelayedClose();
+    };
+
+    // Delay scroll listener attachment so the focus-triggered micro-scroll
+    // from opening the search doesn't close it immediately.
+    const scrollTimer = setTimeout(() => {
+      document.addEventListener("scroll", handleScroll, {
+        capture: true,
+        passive: true,
+      });
+    }, 100);
+
+    document.addEventListener("pointerdown", handlePointerDown, {
+      capture: true,
+    });
+
+    return () => {
+      clearTimeout(scrollTimer);
+      document.removeEventListener("pointerdown", handlePointerDown, {
+        capture: true,
+      });
+      document.removeEventListener("scroll", handleScroll, {
+        capture: true,
+      });
+    };
+  }, [isMobileSearchOpen, mobileSearchState.query]);
+  const handleRegisterMobileSearchSetter = useCallback(
+    (setter: (query: string) => void) => {
+      mobileSearchSetterRef.current = setter;
+    },
+    [],
+  );
+  const handleMobileSearchInputChange = (value: string) => {
+    setMobileSearchState((prev) => ({ ...prev, query: value }));
+    mobileSearchSetterRef.current?.(value);
+  };
+  const openMobileSearch = () => {
+    // Focus synchronously so iOS opens the on-screen keyboard within the
+    // user-gesture window. The input is always mounted so the ref is valid
+    // regardless of the isMobileSearchOpen state.
+    mobileSearchInputRef.current?.focus({ preventScroll: true });
+    // Delay the pill -> input slide so it plays AFTER the keyboard has
+    // finished raising the bar. Otherwise the keyboard-driven translate
+    // dominates and the slide animation is hard to see.
+    setTimeout(() => {
+      setIsMobileSearchOpen(true);
+    }, 250);
+  };
+  const closeMobileSearch = () => {
+    mobileSearchSetterRef.current?.("");
+    setMobileSearchState((prev) => ({ ...prev, query: "" }));
+    // Blur first so the keyboard starts retracting (and the bar slides
+    // back down via visualViewport). Delay the state flip so the input ->
+    // pill slide runs AFTER the keyboard drop, matching the open timing.
+    mobileSearchInputRef.current?.blur();
+    setTimeout(() => {
+      setIsMobileSearchOpen(false);
+    }, 250);
+  };
+  const [desktopMenuPos, setDesktopMenuPos] = useState({ bottom: 0, left: 0 });
+  const desktopMenuBtnRef = useRef<HTMLButtonElement>(null);
+
   // Tutorial refs
   const addDayNavButtonRef = useRef<HTMLButtonElement>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
-  const firstDayTabRef = useRef<HTMLButtonElement>(null);
+  const firstDayTabRef = useRef<HTMLDivElement>(null);
   const firstSessionPillRef = useRef<HTMLButtonElement>(null);
   const addSessionNavButtonRef = useRef<HTMLButtonElement>(null);
   const restaurantListRef = useRef<HTMLDivElement>(null);
   const firstMenuItemRef = useRef<HTMLDivElement>(null);
+  const categoriesRowRef = useRef<HTMLDivElement>(null);
+  const resetRestaurantListRef = useRef<(() => void) | null>(null);
 
   // Use custom hooks
   const {
@@ -138,8 +302,6 @@ export default function CateringOrderBuilder() {
     restaurantsLoading,
     selectedDietaryFilters,
     toggleDietaryFilter,
-    allMenuItems,
-    fetchAllMenuItems,
   } = useCateringData({ expandedSessionIndex: activeSessionIndex });
 
   const {
@@ -149,6 +311,7 @@ export default function CateringOrderBuilder() {
     handleTutorialNext,
     handleSkipTutorial,
     triggerNavigationTutorial,
+    triggerSessionCreated,
     resetTutorial,
     getTutorialSteps,
   } = useCateringTutorial({
@@ -159,8 +322,10 @@ export default function CateringOrderBuilder() {
       firstDayTabRef,
       firstSessionPillRef,
       addSessionNavButtonRef,
+      categoriesRowRef,
       restaurantListRef,
       firstMenuItemRef,
+      resetRestaurantListRef,
     },
   });
 
@@ -217,16 +382,26 @@ export default function CateringOrderBuilder() {
     setExpandedItemId(item.id);
   };
 
-  // Detect when sticky nav becomes stuck
+
+  const basketColumnRef = useRef<HTMLDivElement>(null);
+  const [basketHeight, setBasketHeight] = useState("100vh");
   useEffect(() => {
-    const handleScroll = () => {
-      setIsNavSticky(window.scrollY > 10);
+    const updateHeight = () => {
+      if (basketColumnRef.current) {
+        const top = Math.max(
+          0,
+          basketColumnRef.current.getBoundingClientRect().top,
+        );
+        setBasketHeight(`calc(100vh - ${top}px)`);
+      }
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
+    updateHeight();
+    window.addEventListener("scroll", updateHeight, { passive: true });
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      window.removeEventListener("scroll", updateHeight);
+      window.removeEventListener("resize", updateHeight);
+    };
   }, []);
 
   // Prefill cart from bundle query parameter
@@ -269,7 +444,7 @@ export default function CateringOrderBuilder() {
 
         bundle.items.forEach((bundleItem) => {
           const menuItem = allMenuItems.find(
-            (item: MenuItem) => item.id === bundleItem.menuItemId
+            (item: MenuItem) => item.id === bundleItem.menuItemId,
           );
 
           if (menuItem) {
@@ -284,7 +459,7 @@ export default function CateringOrderBuilder() {
             });
           } else {
             console.warn(
-              `Menu item ${bundleItem.menuItemId} not found in loaded menu items`
+              `Menu item ${bundleItem.menuItemId} not found in loaded menu items`,
             );
           }
         });
@@ -376,7 +551,10 @@ export default function CateringOrderBuilder() {
   const handleBackToDates = () => {
     if (selectedDayDate && currentDayGroup) {
       const sessionsToRemove = currentDayGroup.sessions
-        .filter(({ session }) => session.orderItems.length === 0 && !session.eventTime)
+        .filter(
+          ({ session }) =>
+            session.orderItems.length === 0 && !session.eventTime,
+        )
         .map(({ index }) => index)
         .sort((a, b) => b - a);
 
@@ -419,20 +597,16 @@ export default function CateringOrderBuilder() {
 
     // Try to find and select a category that matches the section name
     const matchingCategory = categories.find(
-      (cat) => cat.name.toLowerCase() === section.toLowerCase()
+      (cat) => cat.name.toLowerCase() === section.toLowerCase(),
     );
     if (matchingCategory) {
       handleCategoryClick(matchingCategory);
     }
   };
 
-  // Handle adding a new day
-  const handleAddDay = () => {
-    setNewDayDate("");
-    setIsAddDayModalOpen(true);
-  };
-
-  const isUnconfiguredDefaultSession = (session: MealSessionState | undefined) => {
+  const isUnconfiguredDefaultSession = (
+    session: MealSessionState | undefined,
+  ) => {
     if (!session) return false;
 
     return (
@@ -445,28 +619,18 @@ export default function CateringOrderBuilder() {
     );
   };
 
-  // Handle confirm add day
-  const handleConfirmAddDay = () => {
-    if (!newDayDate) {
-      alert("Please select a date.");
-      return;
-    }
-
-    const existingDay = dayGroups.find((g) => g.date === newDayDate);
-    if (existingDay) {
-      alert("This date already has sessions. Please select a different date.");
-      return;
-    }
-
+  // Handle adding a new day — opens the SessionEditor directly
+  const handleAddDay = () => {
     const newSession: MealSessionState = {
-      sessionName: "New Session",
-      sessionDate: newDayDate,
+      sessionName: `Session ${mealSessions.length + 1}`,
+      sessionDate: "",
       eventTime: "",
       orderItems: [],
     };
 
     const shouldReuseDefaultSession =
-      mealSessions.length === 1 && isUnconfiguredDefaultSession(mealSessions[0]);
+      mealSessions.length === 1 &&
+      isUnconfiguredDefaultSession(mealSessions[0]);
     const newIndex = shouldReuseDefaultSession ? 0 : mealSessions.length;
 
     if (shouldReuseDefaultSession) {
@@ -475,14 +639,11 @@ export default function CateringOrderBuilder() {
       addMealSession(newSession);
     }
 
-    setIsAddDayModalOpen(false);
-    setSelectedDayDate(newDayDate);
-    setNavMode("sessions");
+    setActiveSessionIndex(newIndex);
     selectMainsCategory();
 
     setTimeout(() => {
       setEditingSessionIndex(newIndex);
-      setActiveSessionIndex(newIndex);
       setIsNewSession(true);
     }, 100);
   };
@@ -497,7 +658,8 @@ export default function CateringOrderBuilder() {
     };
 
     const shouldReuseDefaultSession =
-      mealSessions.length === 1 && isUnconfiguredDefaultSession(mealSessions[0]);
+      mealSessions.length === 1 &&
+      isUnconfiguredDefaultSession(mealSessions[0]);
     const newIndex = shouldReuseDefaultSession ? 0 : mealSessions.length;
 
     if (shouldReuseDefaultSession) {
@@ -520,7 +682,111 @@ export default function CateringOrderBuilder() {
   // Calculate totals
   const totalDays = dayGroups.filter((g) => g.date !== "unscheduled").length;
   const totalSessions = mealSessions.length;
-  const totalItems = mealSessions.reduce((acc, s) => acc + s.orderItems.reduce((sum, oi) => sum + oi.quantity, 0), 0);
+  const totalItems = mealSessions.reduce(
+    (acc, s) => acc + s.orderItems.reduce((sum, oi) => sum + oi.quantity, 0),
+    0,
+  );
+
+  // Pricing summary
+  const [pricing, setPricing] = useState<CateringPricingResult | null>(null);
+  const [calculatingPricing, setCalculatingPricing] = useState(false);
+  const pricingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Delivery address for pricing — seeded from persisted contactInfo
+  const [deliveryLocation, setDeliveryLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(
+    contactInfo?.latitude && contactInfo?.longitude
+      ? { latitude: contactInfo.latitude, longitude: contactInfo.longitude }
+      : null,
+  );
+
+  const handleDeliveryPlaceSelect = useCallback(
+    (place: google.maps.places.PlaceResult) => {
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
+      if (!lat || !lng) return;
+
+      // Extract address components
+      let addressLine1 = "";
+      let city = "";
+      let zipcode = "";
+      place.address_components?.forEach((c) => {
+        if (c.types.includes("street_number")) addressLine1 = c.long_name + " ";
+        if (c.types.includes("route")) addressLine1 += c.long_name;
+        if (c.types.includes("postal_town") || c.types.includes("locality"))
+          city = c.long_name;
+        if (c.types.includes("postal_code")) zipcode = c.long_name;
+      });
+
+      setDeliveryLocation({ latitude: lat, longitude: lng });
+
+      // Persist to CateringContext so Step3 pre-fills the address
+      setContactInfo({
+        ...(contactInfo ?? ({} as ContactInfo)),
+        addressLine1: addressLine1.trim() || place.formatted_address || "",
+        city,
+        zipcode,
+        latitude: lat,
+        longitude: lng,
+      });
+
+      const placeText = `${place.name || ""} ${place.formatted_address || ""}`;
+      if (/halkin\s*-/i.test(placeText)) {
+        setShowHalkinModal(true);
+      }
+    },
+    [contactInfo, setContactInfo],
+  );
+
+  const handleClearDeliveryAddress = useCallback(() => {
+    setDeliveryLocation(null);
+    setPricing(null);
+    setContactInfo({
+      ...(contactInfo ?? ({} as ContactInfo)),
+      addressLine1: "",
+      city: "",
+      zipcode: "",
+      latitude: undefined,
+      longitude: undefined,
+    });
+  }, [contactInfo, setContactInfo]);
+
+  const fetchPricing = useCallback(
+    async (sessions: MealSessionState[]) => {
+      const hasItems = sessions.some((s) => s.orderItems.length > 0);
+      if (!hasItems) {
+        setPricing(null);
+        return;
+      }
+      setCalculatingPricing(true);
+      try {
+        const result =
+          await cateringService.calculateCateringPricingWithMealSessions(
+            sessions,
+            [],
+            deliveryLocation ?? undefined,
+          );
+        if (result.isValid) setPricing(result);
+      } catch {
+        // silently ignore — pricing is best-effort in the sidebar
+      } finally {
+        setCalculatingPricing(false);
+      }
+    },
+    [deliveryLocation],
+  );
+
+  useEffect(() => {
+    if (pricingDebounceRef.current) clearTimeout(pricingDebounceRef.current);
+    pricingDebounceRef.current = setTimeout(() => {
+      fetchPricing(mealSessions);
+    }, 600);
+    return () => {
+      if (pricingDebounceRef.current) clearTimeout(pricingDebounceRef.current);
+    };
+  }, [mealSessions, fetchPricing]);
 
   // Handle editor close
   const handleEditorClose = (cancelled: boolean) => {
@@ -550,8 +816,8 @@ export default function CateringOrderBuilder() {
       }
       setActiveSessionIndex(sessionIndex);
 
-      if (wasNewSession && tutorialPhase === "initial") {
-        triggerNavigationTutorial();
+      if (wasNewSession && tutorialPhase === "navigation") {
+        triggerSessionCreated();
       }
     }
   };
@@ -565,7 +831,7 @@ export default function CateringOrderBuilder() {
   const confirmRemoveSession = () => {
     if (sessionToRemove !== null) {
       const remainingSessions = mealSessions.filter(
-        (_, index) => index !== sessionToRemove
+        (_, index) => index !== sessionToRemove,
       );
 
       removeMealSession(sessionToRemove);
@@ -577,7 +843,7 @@ export default function CateringOrderBuilder() {
       } else {
         const nextSessionIndex = Math.min(
           sessionToRemove,
-          remainingSessions.length - 1
+          remainingSessions.length - 1,
         );
         const nextSession = remainingSessions[nextSessionIndex];
 
@@ -632,8 +898,8 @@ export default function CateringOrderBuilder() {
     indices.forEach((idx) => removeMenuItemByIndex(activeSessionIndex, idx));
   };
 
-  // Handle swap item (for bundle items)
-  const handleSwapItem = (itemIndex: number) => {
+  // Handle swap item (for bundle items) — fetches from restaurant on demand
+  const handleSwapItem = async (itemIndex: number) => {
     const session = mealSessions[activeSessionIndex];
     if (!session) return;
     const orderItem = session.orderItems[itemIndex];
@@ -641,17 +907,26 @@ export default function CateringOrderBuilder() {
 
     const item = orderItem.item as MenuItem;
     const restaurantId = item.restaurantId;
-    const groupTitle = item.groupTitle;
 
-    let alternatives: MenuItem[] = [];
-    if (allMenuItems && restaurantId && groupTitle) {
-      alternatives = allMenuItems.filter(
-        (mi) => mi.restaurantId === restaurantId && mi.groupTitle === groupTitle
-      );
-    }
-
-    setSwapAlternatives(alternatives);
     setSwapItemIndex(itemIndex);
+    setSwapAlternatives([]);
+
+    if (!restaurantId) return;
+
+    try {
+      const response = await fetchWithAuth(
+        `${API_BASE_URL}/menu-item/restaurant/${restaurantId}`,
+      );
+      const data = await response.json();
+      const items: MenuItem[] = (data.menuItems || []).map(mapToMenuItem);
+      const groupTitle = item.groupTitle;
+      const alternatives = groupTitle
+        ? items.filter((mi) => mi.groupTitle === groupTitle)
+        : items;
+      setSwapAlternatives(alternatives);
+    } catch (error) {
+      console.error("Failed to fetch swap alternatives:", error);
+    }
   };
 
   const handleConfirmSwap = (newItem: MenuItem) => {
@@ -720,7 +995,7 @@ export default function CateringOrderBuilder() {
     // Check for empty sessions
     if (mealSessions.length > 1) {
       const emptyIndex = mealSessions.findIndex(
-        (session) => session.orderItems.length === 0
+        (session) => session.orderItems.length === 0,
       );
       if (emptyIndex !== -1) {
         setEmptySessionIndex(emptyIndex);
@@ -735,7 +1010,7 @@ export default function CateringOrderBuilder() {
 
       const sessionValidation = validateSessionMinOrders(session, restaurants);
       const hasUnmetRequirements = sessionValidation.some(
-        (status) => !status.isValid
+        (status) => !status.isValid,
       );
 
       if (hasUnmetRequirements) {
@@ -769,7 +1044,7 @@ export default function CateringOrderBuilder() {
       if (session.orderItems.length === 0) continue;
 
       const restaurantIds = new Set(
-        session.orderItems.map((oi) => oi.item.restaurantId)
+        session.orderItems.map((oi) => oi.item.restaurantId),
       );
 
       for (const restaurantId of restaurantIds) {
@@ -793,21 +1068,30 @@ export default function CateringOrderBuilder() {
         // Check date overrides first
         const dateString = session.sessionDate;
         const dateOverride = restaurant.dateOverrides?.find(
-          (o) => o.date === dateString
+          (o) => o.date === dateString,
         );
 
         if (dateOverride) {
           if (dateOverride.isClosed) {
-            errors[i] = `${restaurant.restaurant_name} is closed on ${dateString}${dateOverride.reason ? ` (${dateOverride.reason})` : ""}. Please select a different date.`;
+            errors[i] =
+              `${restaurant.restaurant_name} is closed on ${dateString}${dateOverride.reason ? ` (${dateOverride.reason})` : ""}. Please select a different date.`;
             break;
           }
-          if (dateOverride.timeSlots && dateOverride.timeSlots.length > 0 && session.eventTime) {
-            const [eventHour, eventMinute] = session.eventTime.split(":").map(Number);
+          if (
+            dateOverride.timeSlots &&
+            dateOverride.timeSlots.length > 0 &&
+            session.eventTime
+          ) {
+            const [eventHour, eventMinute] = session.eventTime
+              .split(":")
+              .map(Number);
             const eventMinutes = eventHour * 60 + eventMinute;
             const inAnySlot = dateOverride.timeSlots.some((slot) => {
               const [oh, om] = slot.open.split(":").map(Number);
               const [ch, cm] = slot.close.split(":").map(Number);
-              return eventMinutes >= oh * 60 + om && eventMinutes <= ch * 60 + cm;
+              return (
+                eventMinutes >= oh * 60 + om && eventMinutes <= ch * 60 + cm
+              );
             });
             if (!inAnySlot) {
               const slotDescs = dateOverride.timeSlots
@@ -817,7 +1101,8 @@ export default function CateringOrderBuilder() {
                   return `${formatTimeRange(oh, om)} - ${formatTimeRange(ch, cm)}`;
                 })
                 .join(", ");
-              errors[i] = `${restaurant.restaurant_name} only accepts orders between ${slotDescs} on ${dateString}.`;
+              errors[i] =
+                `${restaurant.restaurant_name} only accepts orders between ${slotDescs} on ${dateString}.`;
               break;
             }
           }
@@ -825,11 +1110,12 @@ export default function CateringOrderBuilder() {
           // Regular weekly schedule
           const daySlots = cateringHours.filter(
             (schedule) =>
-              schedule.day.toLowerCase() === dayOfWeek && schedule.enabled
+              schedule.day.toLowerCase() === dayOfWeek && schedule.enabled,
           );
 
           if (daySlots.length === 0) {
-            errors[i] = `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date for this session.`;
+            errors[i] =
+              `${restaurant.restaurant_name} does not accept event orders on ${dayOfWeek}s. Please select a different date for this session.`;
             break;
           }
 
@@ -842,7 +1128,9 @@ export default function CateringOrderBuilder() {
 
             const inAnySlot = enabledSlots.some((slot) => {
               const [openHour, openMinute] = slot.open!.split(":").map(Number);
-              const [closeHour, closeMinute] = slot.close!.split(":").map(Number);
+              const [closeHour, closeMinute] = slot
+                .close!.split(":")
+                .map(Number);
               return (
                 eventMinutes >= openHour * 60 + openMinute &&
                 eventMinutes <= closeHour * 60 + closeMinute
@@ -857,7 +1145,8 @@ export default function CateringOrderBuilder() {
                   return `${formatTimeRange(oh, om)} - ${formatTimeRange(ch, cm)}`;
                 })
                 .join(", ");
-              errors[i] = `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${slotDescs}. Please select a time within these hours for this session.`;
+              errors[i] =
+                `${restaurant.restaurant_name} accepts event orders on ${dayOfWeek}s between ${slotDescs}. Please select a time within these hours for this session.`;
               break;
             }
           }
@@ -906,16 +1195,48 @@ export default function CateringOrderBuilder() {
     setShowPdfModal(true);
   };
 
+  const handleClearAllItems = () => {
+    // Remove sessions from highest index down. When the last one is removed,
+    // the context resets to a single fresh default session.
+    for (let i = mealSessions.length - 1; i >= 0; i--) {
+      removeMealSession(i);
+    }
+    setActiveSessionIndex(0);
+    setIsClearAllConfirmOpen(false);
+    setIsMobileCartMenuOpen(false);
+  };
+
   // Handle PDF download with selected price option
   const handlePdfDownload = async (withPrices: boolean) => {
     if (generatingPdf) return;
     setGeneratingPdf(true);
     try {
+      const hasDeliveryQuote = deliveryLocation !== null;
+      const pricingMealSessions = (pricing as any)?.mealSessions as
+        | Array<{ deliveryFee?: number }>
+        | undefined;
+      // The API only sends non-empty sessions, so pricingMealSessions[i] corresponds
+      // to the i-th non-empty local session. Build a local-index → deliveryFee map.
+      const deliveryFeeByLocalIndex = new Map<number, number | undefined>();
+      let pricingSessionIndex = 0;
+      mealSessions.forEach((session, localIndex) => {
+        if (session.orderItems.length > 0) {
+          deliveryFeeByLocalIndex.set(
+            localIndex,
+            pricingMealSessions?.[pricingSessionIndex]?.deliveryFee,
+          );
+          pricingSessionIndex++;
+        }
+      });
+
       const sessionsForPreview: LocalMealSession[] = mealSessions.map(
-        (session) => ({
+        (session, index) => ({
           sessionName: session.sessionName,
           sessionDate: session.sessionDate,
           eventTime: session.eventTime,
+          deliveryFee: hasDeliveryQuote
+            ? deliveryFeeByLocalIndex.get(index)
+            : undefined,
           orderItems: session.orderItems.map((orderItem) => ({
             item: {
               id: orderItem.item.id,
@@ -936,12 +1257,27 @@ export default function CateringOrderBuilder() {
             },
             quantity: orderItem.quantity,
           })),
-        })
+        }),
       );
 
+      const restaurantNameById = Object.fromEntries(
+        restaurants.map((r) => [r.id, r.restaurant_name]),
+      );
+      const pdfAppliedPromotions = (pricing?.appliedPromotions || [])
+        .map((p) => {
+          const restaurantName = restaurantNameById[p.restaurantId];
+          const label = restaurantName
+            ? `${p.name} (${restaurantName})`
+            : p.name;
+          return { name: label, discountAmount: p.discount };
+        })
+        .filter((p) => p.discountAmount > 0);
       const pdfData = await transformLocalSessionsToPdfData(
         sessionsForPreview,
-        withPrices
+        withPrices,
+        pricing?.deliveryFee || undefined,
+        pricing?.promoDiscount || undefined,
+        pdfAppliedPromotions.length > 0 ? pdfAppliedPromotions : undefined,
       );
 
       const blob = await pdf(
@@ -949,15 +1285,19 @@ export default function CateringOrderBuilder() {
           sessions={pdfData.sessions}
           showPrices={pdfData.showPrices}
           deliveryCharge={pdfData.deliveryCharge}
-          totalPrice={pdfData.totalPrice}
+          totalPrice={pricing?.total ?? pdfData.totalPrice}
+          promoDiscount={pdfData.promoDiscount}
+          appliedPromotions={pdfData.appliedPromotions}
           logoUrl={pdfData.logoUrl}
-        />
+        />,
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = withPrices ? "catering-menu-with-prices.pdf" : "catering-menu.pdf";
+      link.download = withPrices
+        ? "catering-menu-with-prices.pdf"
+        : "catering-menu.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -973,27 +1313,6 @@ export default function CateringOrderBuilder() {
 
   return (
     <div className="min-h-screen bg-base-100">
-      {/* Sticky Navigation */}
-      <DateSessionNav
-        navMode={navMode}
-        dayGroups={dayGroups}
-        selectedDayDate={selectedDayDate}
-        currentDayGroup={currentDayGroup}
-        expandedSessionIndex={activeSessionIndex}
-        isNavSticky={isNavSticky}
-        onDateClick={handleDateClick}
-        onBackToDates={handleBackToDates}
-        onSessionPillClick={handleSessionPillClick}
-        onAddDay={handleAddDay}
-        onAddSessionToDay={handleAddSessionToDay}
-        formatTimeDisplay={formatTimeDisplay}
-        addDayNavButtonRef={addDayNavButtonRef}
-        backButtonRef={backButtonRef}
-        firstDayTabRef={firstDayTabRef}
-        firstSessionPillRef={firstSessionPillRef}
-        addSessionNavButtonRef={addSessionNavButtonRef}
-      />
-
       {/* Session Editor Modal */}
       {editingSessionIndex !== null && (
         <SessionEditor
@@ -1002,81 +1321,47 @@ export default function CateringOrderBuilder() {
           onUpdate={updateMealSession}
           onClose={handleEditorClose}
           restaurants={restaurants}
+          existingDates={dayGroups
+            .filter((d) => d.date !== "unscheduled")
+            .map((d) => ({
+              date: d.date,
+              dayName: d.dayName,
+              displayDate: d.displayDate,
+            }))}
         />
       )}
 
-      <div className="max-w-7xl mx-auto p-2">
-        {/* Summary Card */}
-        <div className="flex gap-3 mb-6">
-          <div className="flex-1 bg-white rounded-xl shadow-sm border border-base-200 p-3 md:p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-gray-500">
-                {totalDays > 0
-                  ? `${totalDays} day${totalDays !== 1 ? "s" : ""}`
-                  : "No days scheduled"}{" "}
-                • {totalSessions} session{totalSessions !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xl md:text-2xl font-bold text-primary">
-                £{getTotalPrice().toFixed(2)}
-              </p>
-              <p className="text-xs md:text-sm text-gray-500">
-                {totalItems} items total
-              </p>
-            </div>
-          </div>
+      {/* Two-Column Layout */}
+      <div className="flex flex-col md:flex-row px-2">
+        {/* Left Column: Session Nav + Menu Browser — centered in remaining space */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <DateSessionNav
+            navMode={navMode}
+            dayGroups={dayGroups}
+            selectedDayDate={selectedDayDate}
+            currentDayGroup={currentDayGroup}
+            expandedSessionIndex={activeSessionIndex}
 
-          {/* Download Menu Button */}
-          {totalItems > 0 && (
-            <button
-              onClick={handleViewMenu}
-              disabled={generatingPdf}
-              className="flex-shrink-0 bg-white rounded-xl shadow-sm border border-base-200 p-4 flex flex-col items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {generatingPdf ? (
-                <>
-                  <span className="loading loading-spinner loading-sm text-primary"></span>
-                  <span className="hidden md:block text-xs text-gray-500 mt-1">
-                    Generating...
-                  </span>
-                </>
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                  <span className="hidden md:block text-xs text-gray-500 mt-1 group-hover:text-primary transition-colors">
-                    Download Menu
-                  </span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
-
-        {/* Two-Column Layout */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Column: Menu Browser */}
-          <div className="flex-1 min-w-0">
+            onDateClick={handleDateClick}
+            onBackToDates={handleBackToDates}
+            onSessionPillClick={handleSessionPillClick}
+            onAddDay={handleAddDay}
+            onAddSessionToDay={handleAddSessionToDay}
+            formatTimeDisplay={formatTimeDisplay}
+            addDayNavButtonRef={addDayNavButtonRef}
+            backButtonRef={backButtonRef}
+            firstDayTabRef={firstDayTabRef}
+            firstSessionPillRef={firstSessionPillRef}
+            addSessionNavButtonRef={addSessionNavButtonRef}
+          />
+          <div className="max-w-6xl mx-auto w-full px-2 md:px-6">
             <MenuBrowserColumn
               showBundleBrowser={showBundleBrowser}
               onToggleBundleBrowser={setShowBundleBrowser}
               sessionIndex={activeSessionIndex}
-              allMenuItems={allMenuItems}
-              fetchAllMenuItems={fetchAllMenuItems}
-              defaultGuestCount={mealSessions[activeSessionIndex]?.guestCount ?? 1}
+              defaultGuestCount={
+                mealSessions[activeSessionIndex]?.guestCount ?? 1
+              }
               restaurants={restaurants}
               restaurantsLoading={restaurantsLoading}
               onAddItem={handleAddItem}
@@ -1089,92 +1374,330 @@ export default function CateringOrderBuilder() {
               toggleDietaryFilter={toggleDietaryFilter}
               restaurantListRef={restaurantListRef}
               firstMenuItemRef={firstMenuItemRef}
+              categoriesRowRef={categoriesRowRef}
               expandedSessionIndex={activeSessionIndex}
+              onRegisterResetToList={(fn) => {
+                resetRestaurantListRef.current = fn;
+              }}
+              onMobileSearchStateChange={setMobileSearchState}
+              onRegisterMobileSearchSetter={handleRegisterMobileSearchSetter}
             />
           </div>
+        </div>
 
-          {/* Right Column: Active Session (Desktop only) */}
-          <div className="hidden md:block md:w-[50%] xl:w-[40%] flex-shrink-0 self-start md:sticky md:top-24 h-[calc(100vh-7rem)]">
-            {mealSessions[activeSessionIndex] && (
-              <div className="flex h-full flex-col gap-3 overflow-hidden">
-                <ActiveSessionPanel
-                  session={mealSessions[activeSessionIndex]}
-                  sessionIndex={activeSessionIndex}
-                  sessionTotal={getSessionTotal(activeSessionIndex)}
-                  sessionPromotions={getSessionDiscount(activeSessionIndex).promotions}
-                  validationError={sessionValidationErrors[activeSessionIndex] || null}
-                  isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
-                  canRemove={mealSessions.length > 1}
-                  onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
-                  onRemoveSession={(e) => handleRemoveSession(activeSessionIndex, e)}
-                  onEditItem={handleEditItem}
-                  onRemoveItem={handleRemoveItem}
-                  onSwapItem={handleSwapItem}
-                  onRemoveBundle={handleRemoveBundle}
-                  collapsedCategories={collapsedCategories}
-                  onToggleCategory={handleToggleCategory}
-                  onViewMenu={handleViewMenu}
-                  isCurrentSessionValid={isCurrentSessionValid}
-                  totalPrice={getTotalPrice()}
-                  onCheckout={handleCheckout}
-                  showCheckoutButton={false}
-                  restaurants={restaurants}
-                />
-                <div className="flex-shrink-0">
+        {/* Right Column: Basket — full-height sticky sidebar */}
+        <div
+          ref={basketColumnRef}
+          className="hidden md:flex md:w-96 flex-shrink-0 flex-col sticky top-0 overflow-hidden"
+          style={{ height: basketHeight }}
+        >
+          {mealSessions[activeSessionIndex] && (
+            <div className="flex h-full flex-col gap-2 overflow-hidden">
+              <ActiveSessionPanel
+                session={mealSessions[activeSessionIndex]}
+                sessionIndex={activeSessionIndex}
+                sessionTotal={getSessionTotal(activeSessionIndex)}
+                sessionPromotions={
+                  getSessionDiscount(activeSessionIndex).promotions
+                }
+                validationError={
+                  sessionValidationErrors[activeSessionIndex] || null
+                }
+                isUnscheduled={!mealSessions[activeSessionIndex].sessionDate}
+                canRemove={mealSessions.length > 1}
+                onEditSession={() => setEditingSessionIndex(activeSessionIndex)}
+                onRemoveSession={(e) =>
+                  handleRemoveSession(activeSessionIndex, e)
+                }
+                onEditItem={handleEditItem}
+                onRemoveItem={handleRemoveItem}
+                onSwapItem={handleSwapItem}
+                onRemoveBundle={handleRemoveBundle}
+                collapsedCategories={collapsedCategories}
+                onToggleCategory={handleToggleCategory}
+                onViewMenu={handleViewMenu}
+                isCurrentSessionValid={isCurrentSessionValid}
+                totalPrice={getTotalPrice()}
+                onCheckout={handleCheckout}
+                showCheckoutButton={false}
+                restaurants={restaurants}
+              />
+              <div className="mt-auto flex-shrink-0 flex flex-col gap-1.5 pb-4">
+                {totalItems > 0 && (
+                  <div className="px-2 pb-1 border-t border-base-300 pt-3">
+                    <PricingSummary
+                      pricing={pricing}
+                      calculatingPricing={calculatingPricing}
+                      compact
+                      onPlaceSelect={handleDeliveryPlaceSelect}
+                      onClearAddress={handleClearDeliveryAddress}
+                    />
+                  </div>
+                )}
+                <div className="flex w-full items-stretch gap-2 px-2">
+                  {mealSessions.length > 0 && (
+                    <div className="relative flex-shrink-0">
+                      <button
+                        ref={desktopMenuBtnRef}
+                        onClick={() => {
+                          if (
+                            !isDesktopCartMenuOpen &&
+                            desktopMenuBtnRef.current
+                          ) {
+                            const rect =
+                              desktopMenuBtnRef.current.getBoundingClientRect();
+                            setDesktopMenuPos({
+                              bottom: window.innerHeight - rect.top + 8,
+                              left: rect.left,
+                            });
+                          }
+                          setIsDesktopCartMenuOpen((v) => !v);
+                        }}
+                        className="flex h-full items-center justify-center rounded-lg border border-base-300 px-3 text-base-content/60 transition-colors hover:bg-base-200"
+                        title="More options"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                      {isDesktopCartMenuOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={() => setIsDesktopCartMenuOpen(false)}
+                          />
+                          <div
+                            className="fixed z-50 w-44 overflow-hidden rounded-xl border border-base-200 bg-white shadow-lg"
+                            style={{
+                              bottom: desktopMenuPos.bottom,
+                              left: desktopMenuPos.left,
+                            }}
+                          >
+                            <button
+                              onClick={() => {
+                                setIsDesktopCartMenuOpen(false);
+                                handleViewMenu();
+                              }}
+                              disabled={generatingPdf || totalItems === 0}
+                              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-base-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {generatingPdf ? (
+                                <span className="loading loading-spinner loading-xs" />
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                  />
+                                </svg>
+                              )}
+                              Download Menu
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsDesktopCartMenuOpen(false);
+                                setIsClearAllConfirmOpen(true);
+                              }}
+                              className="flex w-full items-center gap-2 border-t border-base-200 px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Clear Cart
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                   <button
                     onClick={handleCheckout}
-                    className={`flex w-full items-center justify-between rounded-xl px-5 py-3 font-semibold text-white transition-colors ${
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-3 text-sm font-semibold text-white transition-colors ${
                       isCurrentSessionValid
                         ? "bg-primary hover:bg-primary/90"
                         : "bg-warning hover:bg-warning/90"
                     }`}
                   >
-                    <div>
-                      <span className="text-sm opacity-90">Total</span>
-                      <span className="ml-2 text-lg font-bold">£{getTotalPrice().toFixed(2)}</span>
-                    </div>
-                    <span>{isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}</span>
+                    {isCurrentSessionValid ? "Checkout" : "Min. Order Not Met"}
                   </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Mobile: View Order Bar */}
-      {mealSessions.some((s) => s.orderItems.length > 0) && (
-        <div className="fixed bottom-0 left-0 right-0 md:hidden z-50">
+      <div
+        className="fixed left-0 right-0 md:hidden z-50"
+        style={{ bottom: keyboardOffset }}
+      >
           {/* Session detail pill */}
-          <div className="flex justify-center pb-2 px-4">
-            <div className="flex flex-col items-center px-3 py-1.5 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm border border-base-200">
-              <span className="text-xs font-semibold text-gray-800">{mealSessions[activeSessionIndex]?.sessionName}</span>
-              <span className="text-[10px] text-gray-500">
-                {mealSessions[activeSessionIndex]?.sessionDate
-                  ? new Date(mealSessions[activeSessionIndex].sessionDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-                  : "Date not set"}
-                {mealSessions[activeSessionIndex]?.eventTime && ` · ${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
-              </span>
+          <div
+            ref={mobileBarRowRef}
+            className="relative mx-auto max-w-[325px] px-1 pt-1 pb-2"
+          >
+            <div className="flex w-full items-center gap-2">
+            <div className="relative">
+              <button
+                onClick={() => setIsMobileCartMenuOpen((v) => !v)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-base-200 bg-white/70 text-gray-700 shadow-sm backdrop-blur-sm transition-colors hover:bg-white"
+                title="More actions"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+              {isMobileCartMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsMobileCartMenuOpen(false)}
+                  />
+                  <div className="absolute bottom-full left-0 z-50 mb-2 w-44 overflow-hidden rounded-xl border border-base-200 bg-white shadow-lg">
+                    <button
+                      onClick={() => {
+                        setIsMobileCartMenuOpen(false);
+                        handleViewMenu();
+                      }}
+                      disabled={generatingPdf || totalItems === 0}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-base-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                      </svg>
+                      Download Menu
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsMobileCartMenuOpen(false);
+                        resetTutorial();
+                        setNavMode("dates");
+                        setSelectedDayDate(null);
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-base-100"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Tutorial
+                    </button>
+                    <div className="mx-3 border-t border-base-200" />
+                    <button
+                      onClick={() => {
+                        setIsMobileCartMenuOpen(false);
+                        setIsClearAllConfirmOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Clear Cart
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="relative h-11 min-w-0 flex-1 overflow-hidden rounded-full border border-base-200 bg-white/70 shadow-sm backdrop-blur-sm focus-within:border-primary">
+              {/* Pill content (visible when search is closed) */}
+              <button
+                type="button"
+                onClick={() => setEditingSessionIndex(activeSessionIndex)}
+                className={`absolute inset-0 flex flex-col items-center justify-center px-4 py-1 transition duration-300 ease-out ${
+                  isMobileSearchOpen
+                    ? "pointer-events-none -translate-y-full opacity-0"
+                    : "translate-y-0 opacity-100"
+                }`}
+                aria-hidden={isMobileSearchOpen}
+                tabIndex={isMobileSearchOpen ? -1 : 0}
+              >
+                <span className="w-full truncate text-center text-xs font-semibold text-gray-800">
+                  {mealSessions[activeSessionIndex]?.sessionName}
+                </span>
+                <span className="w-full truncate text-center text-[10px] text-gray-500">
+                  {mealSessions[activeSessionIndex]?.sessionDate
+                    ? new Date(
+                        mealSessions[activeSessionIndex].sessionDate,
+                      ).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                      })
+                    : "Date not set"}
+                  {mealSessions[activeSessionIndex]?.eventTime &&
+                    `\u2009·\u2009${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
+                </span>
+              </button>
+              {/* Input content (visible when search is open) */}
+              <div
+                className={`absolute inset-0 transition duration-300 ease-out ${
+                  isMobileSearchOpen
+                    ? "translate-y-0 opacity-100"
+                    : "pointer-events-none translate-y-full opacity-0"
+                }`}
+                aria-hidden={!isMobileSearchOpen}
+              >
+                <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  ref={mobileSearchInputRef}
+                  type="text"
+                  value={mobileSearchState.query}
+                  onChange={(e) => handleMobileSearchInputChange(e.target.value)}
+                  placeholder="Search Swift Food"
+                  tabIndex={isMobileSearchOpen ? 0 : -1}
+                  className={`h-full w-full rounded-full bg-transparent pl-9 pr-3 text-base placeholder:text-xs focus:outline-none ${
+                    mobileSearchCaretVisible ? "" : "caret-transparent"
+                  }`}
+                />
+              </div>
+            </div>
+            <button
+              onClick={isMobileSearchOpen ? closeMobileSearch : openMobileSearch}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-base-200 bg-white/70 text-gray-700 shadow-sm backdrop-blur-sm transition-colors hover:bg-white"
+              title={isMobileSearchOpen ? "Close search" : "Search"}
+              aria-label={isMobileSearchOpen ? "Close search" : "Open search"}
+              type="button"
+            >
+              {isMobileSearchOpen ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </button>
             </div>
           </div>
           {/* View Order bar */}
-          <div className="p-4 bg-primary">
-            <button
-              onClick={() => setIsViewOrderOpen(true)}
-              className="w-full flex items-center justify-between text-white"
-            >
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5" />
-                <span className="font-semibold">View Order</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">£{getTotalPrice().toFixed(2)}</span>
-                <span className="text-sm opacity-80">{totalItems} items</span>
-              </div>
-            </button>
-          </div>
+          {mealSessions.some((s) => s.orderItems.length > 0) && (
+            <div className="p-4 bg-primary">
+              <button
+                onClick={() => setIsViewOrderOpen(true)}
+                className="w-full flex items-center justify-between text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5" />
+                  <span className="font-semibold">View Order</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold">
+                    £{getTotalPrice().toFixed(2)}
+                  </span>
+                  <span className="text-sm opacity-80">{totalItems} items</span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
-      )}
 
       {/* Mobile: View Order Modal */}
       <ViewOrderModal
@@ -1198,6 +1721,7 @@ export default function CateringOrderBuilder() {
         collapsedCategories={collapsedCategories}
         onToggleCategory={handleToggleCategory}
         onViewMenu={handleViewMenu}
+        generatingPdf={generatingPdf}
         isCurrentSessionValid={isCurrentSessionValid}
         totalPrice={getTotalPrice()}
         onCheckout={handleCheckout}
@@ -1212,6 +1736,10 @@ export default function CateringOrderBuilder() {
         onAddDay={handleAddDay}
         onAddSessionToDay={handleAddSessionToDay}
         restaurants={restaurants}
+        pricing={pricing}
+        calculatingPricing={calculatingPricing}
+        onPlaceSelect={handleDeliveryPlaceSelect}
+        onClearAddress={handleClearDeliveryAddress}
       />
 
       {/* Edit Item Modal */}
@@ -1255,19 +1783,12 @@ export default function CateringOrderBuilder() {
         />
       )}
 
-      {/* Add Day Modal */}
-      <AddDayModal
-        isOpen={isAddDayModalOpen}
-        newDayDate={newDayDate}
-        onDateChange={setNewDayDate}
-        onConfirm={handleConfirmAddDay}
-        onClose={() => setIsAddDayModalOpen(false)}
-      />
-
       {/* Empty Session Warning Modal */}
       {emptySessionIndex !== null && (
         <EmptySessionWarningModal
-          sessionName={mealSessions[emptySessionIndex]?.sessionName || "Session"}
+          sessionName={
+            mealSessions[emptySessionIndex]?.sessionName || "Session"
+          }
           onRemove={handleRemoveEmptySession}
           onAddItems={handleAddItemsToEmptySession}
         />
@@ -1284,7 +1805,8 @@ export default function CateringOrderBuilder() {
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Remove Item</h3>
                 <p className="text-sm text-gray-500">
-                  {mealSessions[activeSessionIndex]?.orderItems[removeItemIndex]?.item.menuItemName || "Item"}
+                  {mealSessions[activeSessionIndex]?.orderItems[removeItemIndex]
+                    ?.item.menuItemName || "Item"}
                 </p>
               </div>
             </div>
@@ -1318,14 +1840,58 @@ export default function CateringOrderBuilder() {
         />
       )}
 
+      {/* Clear All Items Confirmation Modal */}
+      {isClearAllConfirmOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Clear Cart</h3>
+                <p className="text-sm text-gray-500">
+                  Remove all items and sessions
+                </p>
+              </div>
+            </div>
+            <p className="mb-6 text-gray-600">
+              This will delete every session and remove all items you&apos;ve
+              added, returning your order to a single empty session. This action
+              cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsClearAllConfirmOpen(false)}
+                className="flex-1 rounded-xl border border-base-300 px-4 py-3 font-medium text-gray-600 transition-colors hover:bg-base-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearAllItems}
+                className="flex-1 rounded-xl bg-red-500 px-4 py-3 font-medium text-white transition-colors hover:bg-red-600"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Min Order Modal */}
       {minOrderModalSession !== null && (
         <MinOrderModal
-          sessionName={mealSessions[minOrderModalSession.index]?.sessionName || "Session"}
+          sessionName={
+            mealSessions[minOrderModalSession.index]?.sessionName || "Session"
+          }
           validationStatus={minOrderModalSession.validation}
           onClose={() => setMinOrderModalSession(null)}
           onNavigateToSection={handleMinOrderNavigate}
         />
+      )}
+
+      {showHalkinModal && (
+        <HalkinVenueModal onClose={() => setShowHalkinModal(false)} />
       )}
 
       {/* PDF Download Modal */}
@@ -1340,11 +1906,20 @@ export default function CateringOrderBuilder() {
       {/* Swap Item Modal */}
       {swapItemIndex !== null && (
         <SwapItemModal
-          currentItem={mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]?.item as MenuItem}
-          currentQuantity={mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]?.quantity ?? 0}
+          currentItem={
+            mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]
+              ?.item as MenuItem
+          }
+          currentQuantity={
+            mealSessions[activeSessionIndex]?.orderItems[swapItemIndex]
+              ?.quantity ?? 0
+          }
           alternatives={swapAlternatives}
           isOpen={true}
-          onClose={() => { setSwapItemIndex(null); setSwapAlternatives([]); }}
+          onClose={() => {
+            setSwapItemIndex(null);
+            setSwapAlternatives([]);
+          }}
           onSwap={handleConfirmSwap}
         />
       )}
@@ -1365,7 +1940,7 @@ export default function CateringOrderBuilder() {
           setNavMode("dates");
           setSelectedDayDate(null);
         }}
-        className="fixed bottom-4 left-4 md:bottom-8 md:left-8 w-10 h-10 md:w-12 md:h-12 bg-white border border-base-300 rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition-colors z-40"
+        className="hidden md:flex fixed bottom-4 left-4 md:bottom-8 md:left-8 w-10 h-10 md:w-12 md:h-12 bg-white border border-base-300 rounded-full shadow-lg items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition-colors z-40"
         title="Restart Tutorial"
       >
         <svg

@@ -10,6 +10,7 @@ export interface TutorialStep {
   description: string;
   position: "top" | "bottom" | "left" | "right";
   requiresClick?: boolean; // User must click the target to proceed
+  manualAdvance?: boolean; // Like requiresClick (shows hint + hole) but does NOT auto-advance on click
   showNext?: boolean; // Show "Next" button
   nextLabel?: string; // Custom label for the primary action
   showSkip?: boolean; // Show "Skip Tutorial" button
@@ -17,7 +18,8 @@ export interface TutorialStep {
   highlightExtendBottom?: number; // Extra height to extend highlight downward
   highlightExtendBottomToViewport?: boolean; // Extend highlight to bottom of viewport
   highlightMinTop?: number; // Clamp the highlight so it doesn't extend into sticky UI
-  onBeforeShow?: () => void; // Called before showing this step
+  autoScroll?: boolean; // Scroll element into view inside updatePosition before positioning
+  onBeforeShow?: (onComplete: () => void) => void; // Called before showing this step; call onComplete when ready to position
 }
 
 interface HighlightRect {
@@ -49,6 +51,8 @@ export default function TutorialTooltip({
   const [highlightRect, setHighlightRect] = useState<HighlightRect | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const prevStepIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -59,6 +63,16 @@ export default function TutorialTooltip({
 
     const targetEl = step.targetRef.current;
     const tooltipEl = tooltipRef.current;
+
+    // If autoScroll: scroll element to roughly the middle of the viewport, then re-measure
+    if (step.autoScroll) {
+      const preRect = targetEl.getBoundingClientRect();
+      const targetTop = Math.round(window.innerHeight * 0.35);
+      if (preRect.top < (step.highlightMinTop ?? 0) || preRect.top > window.innerHeight * 0.65) {
+        window.scrollTo({ top: window.scrollY + preRect.top - targetTop, behavior: "instant" });
+      }
+    }
+
     const targetRect = targetEl.getBoundingClientRect();
     const tooltipRect = tooltipEl.getBoundingClientRect();
     const highlightTop = Math.max(targetRect.top, step.highlightMinTop ?? 0);
@@ -157,28 +171,78 @@ export default function TutorialTooltip({
   }, [step]);
 
   useEffect(() => {
-    if (!step) return;
+    if (!step) {
+      setIsReady(false);
+      return;
+    }
 
-    // Call onBeforeShow if provided
-    step.onBeforeShow?.();
+    let cancelled = false;
 
-    // Initial position update
-    const timer = setTimeout(updatePosition, 50);
+    // schedulePosition: called by onBeforeShow when ready — marks the step as ready to display,
+    // then retries until targetRef is populated and positions the tooltip.
+    const schedulePosition = () => {
+      // Always mark ready — safe to call even if this effect invocation was superseded.
+      // The cancelled flag guards positioning side-effects, not state updates.
+      setIsReady(true);
+      if (cancelled) return;
+      let attempts = 0;
+      const tryUpdate = () => {
+        if (cancelled) return;
+        if (step.targetRef?.current) {
+          updatePosition();
+        } else if (attempts < 20) {
+          attempts++;
+          setTimeout(tryUpdate, 100);
+        }
+      };
+      setTimeout(tryUpdate, 30);
+      // For autoScroll steps, re-check after layout shifts (image loads pushing content down)
+      if (step.autoScroll) {
+        [200, 500, 900].forEach((delay) => {
+          setTimeout(() => {
+            if (!cancelled && step.targetRef?.current) updatePosition();
+          }, delay);
+        });
+      }
+    };
+
+    // Only run onBeforeShow when step id actually changes (not on every re-render).
+    // onBeforeShow is responsible for scrolling; it calls onComplete when ready to position.
+    if (step.id !== prevStepIdRef.current) {
+      prevStepIdRef.current = step.id;
+      setIsReady(false);
+      if (step.onBeforeShow) {
+        step.onBeforeShow(schedulePosition);
+      } else {
+        schedulePosition();
+      }
+    }
 
     // Update position on scroll/resize
     window.addEventListener("scroll", updatePosition, true);
     window.addEventListener("resize", updatePosition);
 
     return () => {
-      clearTimeout(timer);
+      cancelled = true;
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };
   }, [step, updatePosition]);
 
-  // Handle click on target element for requiresClick steps
+  // Once isReady flips true, trigger positioning immediately.
+  // The main effect's tryUpdate may have been cancelled by a re-render before it ran,
+  // so we need this separate trigger to ensure the tooltip is positioned on first show.
   useEffect(() => {
-    if (!step?.requiresClick || !step.targetRef?.current) return;
+    if (isReady && step?.targetRef?.current) {
+      updatePosition();
+    }
+    // Intentionally omit step and updatePosition — this should only fire on isReady changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReady]);
+
+  // Handle click on target element for requiresClick steps (not manualAdvance)
+  useEffect(() => {
+    if (!step?.requiresClick || step.manualAdvance || !step.targetRef?.current) return;
 
     const targetEl = step.targetRef.current;
     const handleClick = () => {
@@ -190,7 +254,7 @@ export default function TutorialTooltip({
     return () => targetEl.removeEventListener("click", handleClick);
   }, [step, onNext]);
 
-  if (!mounted || !step) return null;
+  if (!mounted || !step || !isReady) return null;
 
   const highlightPadding = step.highlightPadding ?? 8;
   const highlightExtendBottom = step.highlightExtendBottom ?? 0;
@@ -258,7 +322,7 @@ export default function TutorialTooltip({
         style={{
           // Only create a hole in the overlay if the step requires clicking the target
           // For "showNext" steps, block all clicks including on the highlighted area
-          clipPath: highlightRect && step.requiresClick
+          clipPath: highlightRect && (step.requiresClick || step.manualAdvance)
             ? `polygon(
                 0% 0%,
                 0% 100%,
@@ -325,7 +389,7 @@ export default function TutorialTooltip({
                 {step.nextLabel || "Next"}
               </button>
             )}
-            {step.requiresClick && (
+            {(step.requiresClick || step.manualAdvance) && (
               <span className="ml-auto text-xs text-white/70 italic">
                 Click the highlighted area to continue
               </span>

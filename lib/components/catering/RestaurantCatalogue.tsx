@@ -18,6 +18,22 @@ interface RestaurantCatalogueProps {
   onFilterClick: () => void;
   filterModalOpen: boolean;
   hideDateTime?: boolean;
+  userLocation?: { latitude: number; longitude: number };
+}
+
+function haversineDistanceMiles(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number
+): number {
+  const R = 3958.8; // Earth radius in miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 const formatCateringHours = (
@@ -103,6 +119,7 @@ export default function RestaurantCatalogue({
   onFilterClick,
   filterModalOpen,
   hideDateTime,
+  userLocation,
 }: RestaurantCatalogueProps) {
   return (
     <div className="flex-1">
@@ -127,6 +144,17 @@ export default function RestaurantCatalogue({
         <div className="flex flex-wrap sm:grid sm:grid-cols-3 gap-3 md:gap-4 pb-4">
           {restaurants.map((restaurant) => {
             const isComingSoon = restaurant.status === "coming_soon";
+            const restaurantLoc = restaurant.pickupAddresses?.[0]?.location;
+            const distance =
+              !isComingSoon && userLocation && restaurantLoc
+                ? haversineDistanceMiles(
+                    userLocation.latitude, userLocation.longitude,
+                    restaurantLoc.latitude, restaurantLoc.longitude
+                  )
+                : null;
+            const rating = restaurant.averageRating && parseFloat(restaurant.averageRating) > 0
+              ? parseFloat(restaurant.averageRating)
+              : null;
             return (
               <button
                 key={restaurant.id}
@@ -276,14 +304,26 @@ export default function RestaurantCatalogue({
                       </div>
                     )}
                   </div>
-                  {/* <div className="flex items-center gap-1 mt-1">
-                    <span className="text-yellow-500 text-sm md:text-sm">
-                      ★
-                    </span>
-                    <span className="text-sm md:text-sm text-base-content/70">
-                      {restaurant.averageRating}
-                    </span>
-                  </div> */}
+                  {!isComingSoon && (rating !== null || distance !== null) && (
+                    <div className="flex items-center gap-2 mt-1">
+                      {rating !== null && (
+                        <span className="flex items-center gap-0.5 text-xs text-base-content/70">
+                          <span className="text-yellow-500">★</span>
+                          {rating.toFixed(1)}
+                        </span>
+                      )}
+                      {rating !== null && distance !== null && (
+                        <span className="text-base-content/30 text-xs">·</span>
+                      )}
+                      {distance !== null && (
+                        <span className="text-xs text-base-content/70">
+                          {distance < 1
+                            ? `${(distance * 5280).toFixed(0)} ft`
+                            : `${distance.toFixed(1)} mi`}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {restaurant.minCateringOrderQuantity &&
                     restaurant.minCateringOrderQuantity > 1 && (
