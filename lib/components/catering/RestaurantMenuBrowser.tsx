@@ -438,14 +438,53 @@ export default function RestaurantMenuBrowser({
   const activeSession = mealSessions[sessionIndex];
 
   // --- State ---
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<
+  // Selected restaurant is synced to the ?restaurant= URL param so that
+  // browser back/forward and direct links work.
+  const [selectedRestaurantId, setSelectedRestaurantIdState] = useState<
     string | null
-  >(null);
+  >(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("restaurant");
+  });
+
+  const updateRestaurantUrl = useCallback(
+    (id: string | null, replace = false) => {
+      if (typeof window === "undefined") return;
+      const params = new URLSearchParams(window.location.search);
+      if (id) params.set("restaurant", id);
+      else params.delete("restaurant");
+      const url = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      window.history[replace ? "replaceState" : "pushState"](null, "", url);
+    },
+    [],
+  );
+
+  const setSelectedRestaurantId = useCallback(
+    (id: string | null, replace = false) => {
+      setSelectedRestaurantIdState(id);
+      updateRestaurantUrl(id, replace);
+    },
+    [updateRestaurantUrl],
+  );
+
+  // Browser back/forward: sync URL → state and reset related UI.
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSelectedRestaurantIdState(params.get("restaurant"));
+      setRestaurantSearchQuery("");
+      setSelectedCategoryId(null);
+      setCollapsedGroups(new Set());
+      setActiveGroupName(null);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Register reset function so the tutorial can bring user back to restaurant list
   useEffect(() => {
-    onRegisterResetToList?.(() => setSelectedRestaurantId(null));
-  }, [onRegisterResetToList]);
+    onRegisterResetToList?.(() => setSelectedRestaurantId(null, true));
+  }, [onRegisterResetToList, setSelectedRestaurantId]);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
 
