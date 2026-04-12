@@ -1787,10 +1787,10 @@ export default function RestaurantMenuBrowser({
                   </div>
                 </div>
 
-                {/* Search — explicit square (width=height) when closed, expands width when open */}
+                {/* Search — explicit square (width=height) when closed, expands width when open. Desktop only; mobile uses the bottom-bar search. */}
                 <div
                   ref={searchContainerRef}
-                  className="relative flex-shrink-0"
+                  className="relative hidden flex-shrink-0 md:block"
                   style={{
                     width: isRestaurantSearchOpen
                       ? (isDesktopSearch ? "min(100%, 14rem)" : "100%")
