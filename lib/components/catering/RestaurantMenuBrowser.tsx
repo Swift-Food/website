@@ -1962,7 +1962,8 @@ export default function RestaurantMenuBrowser({
     <div style={{ contain: "inline-size" }}>
       {hoursInfoTooltip}
       {mobileHoursInfoSheet}
-      <div className="relative mt-2 mb-2">
+      {/* Desktop-only top search; mobile uses the bottom-bar search */}
+      <div className="relative mt-2 mb-2 hidden md:block">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
