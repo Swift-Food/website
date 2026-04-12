@@ -1654,11 +1654,7 @@ export default function CateringOrderBuilder() {
                   type="text"
                   value={mobileSearchState.query}
                   onChange={(e) => handleMobileSearchInputChange(e.target.value)}
-                  placeholder={
-                    mobileSearchState.mode === "list"
-                      ? "Search restaurants and items..."
-                      : "Search items..."
-                  }
+                  placeholder="Search Swift Food"
                   tabIndex={isMobileSearchOpen ? 0 : -1}
                   className={`h-full w-full rounded-full bg-transparent pl-9 pr-3 text-base placeholder:text-xs focus:outline-none ${
                     mobileSearchCaretVisible ? "" : "caret-transparent"
