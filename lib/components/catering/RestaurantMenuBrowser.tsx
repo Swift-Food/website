@@ -62,6 +62,11 @@ interface RestaurantMenuBrowserProps {
   sessionIndex: number;
   expandedSessionIndex: number | null;
   onRegisterResetToList?: (fn: () => void) => void;
+  onMobileSearchStateChange?: (state: {
+    mode: "list" | "restaurant";
+    query: string;
+  }) => void;
+  onRegisterMobileSearchSetter?: (setter: (query: string) => void) => void;
 }
 
 interface MenuItemGroup {
@@ -426,6 +431,8 @@ export default function RestaurantMenuBrowser({
   sessionIndex,
   expandedSessionIndex,
   onRegisterResetToList,
+  onMobileSearchStateChange,
+  onRegisterMobileSearchSetter,
 }: RestaurantMenuBrowserProps) {
   const { addMenuItem, mealSessions, restaurantPromotions, contactInfo } = useCatering();
   const activeSession = mealSessions[sessionIndex];
@@ -441,6 +448,32 @@ export default function RestaurantMenuBrowser({
   }, [onRegisterResetToList]);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchQuery, setRestaurantSearchQuery] = useState("");
+
+  // Publish current search state to parent (mobile bottom-bar search)
+  useEffect(() => {
+    onMobileSearchStateChange?.({
+      mode: selectedRestaurantId ? "restaurant" : "list",
+      query: selectedRestaurantId ? restaurantSearchQuery : searchQuery,
+    });
+  }, [
+    selectedRestaurantId,
+    searchQuery,
+    restaurantSearchQuery,
+    onMobileSearchStateChange,
+  ]);
+
+  // Register a setter so the parent mobile search input can write into the
+  // appropriate query state based on the current view mode.
+  useEffect(() => {
+    const setter = (query: string) => {
+      if (selectedRestaurantId) {
+        setRestaurantSearchQuery(query);
+      } else {
+        setSearchQuery(query);
+      }
+    };
+    onRegisterMobileSearchSetter?.(setter);
+  }, [selectedRestaurantId, onRegisterMobileSearchSetter]);
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(

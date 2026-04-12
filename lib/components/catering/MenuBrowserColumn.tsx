@@ -26,6 +26,11 @@ interface MenuBrowserColumnProps {
   categoriesRowRef?: RefObject<HTMLDivElement | null>;
   expandedSessionIndex: number | null;
   onRegisterResetToList?: (fn: () => void) => void;
+  onMobileSearchStateChange?: (state: {
+    mode: "list" | "restaurant";
+    query: string;
+  }) => void;
+  onRegisterMobileSearchSetter?: (setter: (query: string) => void) => void;
 }
 
 export default function MenuBrowserColumn({
@@ -48,6 +53,8 @@ export default function MenuBrowserColumn({
   categoriesRowRef,
   expandedSessionIndex,
   onRegisterResetToList,
+  onMobileSearchStateChange,
+  onRegisterMobileSearchSetter,
 }: MenuBrowserColumnProps) {
   if (showBundleBrowser) {
     return (
@@ -79,6 +86,8 @@ export default function MenuBrowserColumn({
       sessionIndex={sessionIndex}
       expandedSessionIndex={expandedSessionIndex}
       onRegisterResetToList={onRegisterResetToList}
+      onMobileSearchStateChange={onMobileSearchStateChange}
+      onRegisterMobileSearchSetter={onRegisterMobileSearchSetter}
     />
   );
 }
