@@ -1602,7 +1602,7 @@ export default function CateringOrderBuilder() {
                     })
                   : "Date not set"}
                 {mealSessions[activeSessionIndex]?.eventTime &&
-                  ` · ${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
+                  `\u2009·\u2009${formatTimeDisplay(mealSessions[activeSessionIndex].eventTime)}`}
               </span>
             </button>
             <button
