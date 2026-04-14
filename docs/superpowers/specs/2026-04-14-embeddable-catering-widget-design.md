@@ -61,9 +61,10 @@ widget to work end-to-end on a third-party site.
 - **Stripe Connect.** Payments continue to settle to Swift's Stripe account.
   Routing funds to partner-owned Stripe accounts (destination charges or
   separate accounts) is material work and is deferred.
-- **Partner self-serve onboarding.** Partners are provisioned manually by
-  Swift staff via the admin dashboard. A self-serve signup / key generation
-  flow is a later add.
+- **Partner self-serve onboarding.** Partners are provisioned by
+  engineering calling the new `/admin/partners` endpoints directly
+  (curl/Postman). An internal admin UI that consumes these endpoints,
+  and any partner-facing self-serve signup flow, are later adds.
 - **User authentication inside the widget.** The catering flow is guest-only
   today and stays guest-only in the widget. Corporate-user login, saved
   cards, and user-scoped order history are out of scope for the widget.
@@ -93,9 +94,9 @@ this in two ways:
   random server running curl against `/widget/session` fails because its
   origin is not in the partner's allowed list.
 - The session token itself is short-lived (30 minutes) and carries the
-  validated `partnerId` + allowed-restaurant list in its payload, signed
-  with a backend secret. Downstream endpoints don't need to re-check the
-  origin; they just verify the JWT signature and read the claims.
+  validated `partnerId` in its payload, signed with a backend secret.
+  Downstream endpoints don't need to re-check the origin; they just verify
+  the JWT signature and read the claims.
 
 ### Flow
 
@@ -105,7 +106,7 @@ this in two ways:
    `Origin` header.
 3. Backend looks up the partner by publishable key, checks the `Origin`
    against the partner's allowed-origins list, and returns a signed JWT
-   containing `{ partnerId, allowedRestaurantIds, exp }` (30 min expiry).
+   containing `{ partnerId, exp }` (30 min expiry).
 4. Widget caches the JWT (in memory; see Storage below for details) and
    attaches it as `Authorization: Bearer <jwt>` on every subsequent API
    call.
@@ -196,7 +197,6 @@ code. Replace `router.push` with a call to a host-supplied callback:
 onOrderComplete?: (result: { orderId: string; accessToken: string }) => void;
 onError?: (error: WidgetError) => void;
 onReady?: () => void;
-onStepChange?: (step: 1 | 2) => void;
 ```
 
 The widget fires events; the host decides what happens. A Next partner can
@@ -226,8 +226,8 @@ anywhere React runs.
   a near-verbatim extraction of today's context, minus the `localStorage`
   calls (those move behind the storage layer).
 - **`CateringConfigContext`** — widget configuration, set once at mount
-  and immutable thereafter: `partnerId`, `theme`, and the host callbacks
-  (`onOrderComplete`, `onError`, `onReady`, `onStepChange`).
+  and immutable thereafter: `partnerId`, `theme`, `initialData`, and the
+  host callbacks (`onOrderComplete`, `onError`, `onReady`).
 
 The API client and the storage layer are not in either context in phase 1
 — they're module-level implementations initialized by `<CateringWidget>`
@@ -338,7 +338,7 @@ Its responsibilities:
   `payments.createPaymentIntent`, etc.).
 - Attach `Authorization: Bearer <widget-session-jwt>` to every request.
 - Set the base URL from a compile-time constant that defaults to
-  `https://api.swiftfood.uk` (overridable per build for staging / dogfood).
+  `https://api.swiftfood.uk` (overridable per build for staging).
 
 Internally the client is roughly:
 
@@ -436,28 +436,12 @@ CSS variables, reads `theme.primary` directly.
 site; we want a narrow, stable customization API rather than a fully open
 style prop. Three tokens cover ~90% of branding needs.
 
-#### 9. Code-split heavy dependencies
-
-**Today.** `@react-pdf/renderer` (PDF export) and the Google Maps script
-loader are imported eagerly; both are sizeable.
-
-**Proposed.**
-- Dynamic-import `@react-pdf/renderer` inside the PDF download modal —
-  only loaded when a user actually clicks "download PDF."
-- Dynamic-import the Google Maps loader on the contact step when the
-  address autocomplete mounts.
-
-**Rationale.** The widget's first-render bundle size directly affects
-partner page performance. Partners will notice; we should minimize the
-cost of embedding.
-
-#### 10. Peer dependencies and packaging
+#### 9. Peer dependencies and packaging
 
 **Peer dependencies.** `react` (>=18), `react-dom` (>=18). Nothing else.
 
 **Bundled dependencies.** Stripe JS SDK, lucide icons, dayjs,
-`@react-pdf/renderer` (lazy-loaded), Google Maps loader (lazy-loaded),
-`jwt-decode`.
+`@react-pdf/renderer`, Google Maps loader, `jwt-decode`.
 
 **Build.** `tsup` (or Rollup) produces:
 - `dist/index.mjs` (ESM)
@@ -468,18 +452,81 @@ cost of embedding.
 Package exports declare all three entry points via the modern `exports`
 field.
 
+#### 10. Initial data prop for host-supplied pre-fill
+
+**Today.** The order builder always starts empty. A user on
+`swiftfood.uk/event-order` enters every field from scratch, including
+event date, guest count, delivery address, and contact info.
+
+**Proposed.** Add an optional `initialData` prop so partners can
+pre-populate fields they already know. A typical use case is a venue that
+already has the event's date, address, and primary contact on file —
+there's no reason to force the user to re-type them.
+
+```ts
+interface InitialData {
+  eventName?: string;
+  eventDate?: string;        // ISO date, e.g. "2026-05-14"
+  eventTime?: string;        // "19:00"
+  guestCount?: number;
+  deliveryAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    postcode: string;
+    lat?: number;
+    lng?: number;
+  };
+  contact?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    organization?: string;
+  };
+}
+```
+
+All fields are optional — partners supply only what they have. The widget
+applies `initialData` to state **only on first mount** (when no persisted
+order state exists in storage). If the user previously started an order
+and refreshed, the persisted state wins and `initialData` is ignored.
+
+**Rationale.**
+- **User intent preservation.** If a user filled in half a form, closed
+  the tab, and came back, clobbering their input with `initialData` on
+  every re-render would be surprising and destructive.
+- **Pre-fill, not lock.** The fields are editable after pre-fill; the
+  widget does not enforce that the user keep the partner-supplied values.
+  A "locked fields" feature would require UI-level changes and is not
+  part of this phase.
+
 #### 11. Public component
 
 Single public export, intentionally small:
 
 ```tsx
+interface OrderSummary {
+  eventName?: string;
+  eventDate: string;
+  total: number;
+  currency: string;
+  itemCount: number;
+  restaurants: { id: string; name: string }[];
+  deliveryAddress: { line1: string; city: string; postcode: string };
+  contactEmail: string;
+}
+
 interface CateringWidgetProps {
   publishableKey: string;
   theme?: Theme;
+  initialData?: InitialData;
   onReady?: () => void;
-  onOrderComplete?: (result: { orderId: string; accessToken: string }) => void;
+  onOrderComplete?: (result: {
+    orderId: string;
+    accessToken: string;
+    summary: OrderSummary;
+  }) => void;
   onError?: (error: WidgetError) => void;
-  onStepChange?: (step: 1 | 2) => void;
 }
 
 export function CateringWidget(props: CateringWidgetProps): JSX.Element;
@@ -487,6 +534,13 @@ export function CateringWidget(props: CateringWidgetProps): JSX.Element;
 
 That's the entire partner-facing surface. No factories, no adapters, no
 builders.
+
+**Why `summary` is included.** The partner's page may want to render a
+thank-you view without making another API call — event name, total,
+address, etc. The `summary` object carries just enough data for a
+standalone confirmation screen. Partners that want the full order detail
+view direct users to Swift's hosted view page using `accessToken`; the
+widget itself does not handle post-order viewing.
 
 ### How a partner integrates
 
@@ -542,6 +596,45 @@ export default function CateringPage() {
 The partner owns navigation, toasts, analytics, logging. The widget
 handles everything inside itself and fires callbacks at key moments.
 
+#### Venue with known event details (pre-fill via `initialData`)
+
+```tsx
+"use client";
+import { CateringWidget } from "@swift/catering-widget";
+import "@swift/catering-widget/dist/styles.css";
+
+export default function EventCateringPage({ event }: { event: Event }) {
+  return (
+    <CateringWidget
+      publishableKey={process.env.NEXT_PUBLIC_SWIFT_KEY!}
+      initialData={{
+        eventName: event.name,
+        eventDate: event.date,        // "2026-07-12"
+        guestCount: event.expectedGuests,
+        deliveryAddress: {
+          line1: event.venue.line1,
+          city: event.venue.city,
+          postcode: event.venue.postcode,
+        },
+        contact: {
+          name: event.organizer.name,
+          email: event.organizer.email,
+        },
+      }}
+      onOrderComplete={({ orderId }) => {
+        window.location.href = `/events/${event.id}/catering/${orderId}`;
+      }}
+    />
+  );
+}
+```
+
+The widget opens with event, address, and contact fields populated from
+the partner's booking system. The user can still edit any field.
+`initialData` applies only on first mount — if the user already has an
+order in progress (persisted state exists), it is preserved and
+`initialData` is ignored.
+
 ### What the partner is responsible for
 
 - Obtaining a publishable key from Swift and storing it in their env
@@ -558,10 +651,10 @@ handles everything inside itself and fires callbacks at key moments.
 
 - Initializing Stripe — the widget loads Stripe.js internally and mounts
   Elements within itself. Partners don't even install a Stripe SDK.
-- Loading Google Maps — the widget lazy-loads the script when the
-  address-autocomplete field mounts.
+- Loading Google Maps — the widget loads the script internally for the
+  address-autocomplete field.
 - API calls — menu fetching, pricing preview, promo codes, order
-  submission, webhooks: all internal.
+  submission: all internal.
 - State persistence — the widget handles its own `localStorage` under
   namespaced keys.
 - Styling — one CSS import covers it; the `theme` prop handles common
@@ -579,42 +672,22 @@ partner.
 
 ### Partner data model
 
-Two new tables, living alongside existing entities.
+One new table, living alongside existing entities.
 
 **`partner`**
 - `id: uuid`
 - `name: string` (internal label, e.g. "Halkin")
 - `slug: string` (URL-safe, e.g. `halkin`)
 - `contactEmail: string`
+- `publishableKey: string` (indexed; format `pk_live_...`)
 - `allowedOrigins: string[]` (e.g. `["https://events.halkin.com",
   "https://halkin.com"]`)
-- `allowedRestaurantIds: string[]` — which restaurants this partner may
-  order from
-- `webhookUrl: string | null` — optional; where to POST order events
-- `webhookSecret: string | null` — HMAC key for signing webhook bodies
 - `active: boolean`
-- `rateLimit: { windowSeconds: number; max: number } | null` — per-key
-  throttle override
 - `createdAt`, `updatedAt`
 
-**`partner_api_key`**
-- `id: uuid`
-- `partnerId: uuid` (FK)
-- `publishableKey: string` (indexed; format `pk_live_...` / `pk_test_...`)
-- `secretKeyHash: string | null` (optional secret key, stored as bcrypt /
-  argon2 hash; plaintext secret shown once at creation)
-- `label: string` (e.g. "production", "staging")
-- `active: boolean`
-- `revokedAt: Date | null`
-- `createdAt`
-
-A partner has many API keys to support rotation without downtime (create
-new → update frontend env → revoke old).
-
-**Why separate entities.** Most partners will want different keys for
-staging vs production (same partner, different environments, maybe
-different allowed origins per key). Keeping keys separate from partners
-makes rotation and environment separation clean.
+One key per partner for MVP. Rotating a compromised key requires the
+partner to update their env var and redeploy during a short maintenance
+window; multi-key hot rotation is deferred until a partner needs it.
 
 ### Endpoints
 
@@ -622,13 +695,12 @@ makes rotation and environment separation clean.
 - Request body: `{ publishableKey: string }`
 - Required header: `Origin` (automatically set by browsers)
 - Logic:
-  1. Look up `partner_api_key` by `publishableKey`. If not found or
-     inactive, return 401.
-  2. Load the partner. If inactive, return 401.
-  3. Check `Origin` is in `partner.allowedOrigins`. If not, return 403.
-  4. Sign a JWT with `{ partnerId, allowedRestaurantIds, keyId, exp:
-     now + 30min }` using the backend's widget-session secret.
-  5. Return `{ token: <jwt>, expiresAt: <iso> }`.
+  1. Look up `partner` by `publishableKey`. If not found or inactive,
+     return 401.
+  2. Check `Origin` is in `partner.allowedOrigins`. If not, return 403.
+  3. Sign a JWT with `{ partnerId, exp: now + 30min }` using the
+     backend's widget-session secret.
+  4. Return `{ token: <jwt>, expiresAt: <iso> }`.
 - Rate-limited aggressively per publishable key (e.g. 60 handshakes /
   minute) to prevent token-minting abuse.
 
@@ -644,23 +716,90 @@ Two new NestJS guards:
 **`PartnerApiKeyGuard`** (applied to `POST /widget/session`)
 - Extracts `publishableKey` from the request body.
 - Validates existence, activity, and origin.
-- On success, attaches `{ partnerId, keyId }` to `request.partner`.
+- On success, attaches `{ partnerId }` to `request.partner`.
 
 **`WidgetSessionGuard`** (applied to all widget-accessible catering
 endpoints)
 - Extracts the JWT from the `Authorization: Bearer ...` header.
 - Verifies signature and expiry.
-- Attaches `{ partnerId, allowedRestaurantIds, keyId }` to
-  `request.partner`.
+- Attaches `{ partnerId }` to `request.partner`.
 - Returns 401 on invalid or expired tokens so the widget knows to refresh.
 
-**Backward compatibility.** Existing callers (the main `swiftfood.uk`
-site, admin dashboards) don't send these headers. During rollout, the
-widget-accessible endpoints accept either path: a valid widget session
-JWT *or* the existing public-access behavior. Once the main site is
-rebuilt on top of the widget library (dogfood step), we can remove the
-public-access fallback and require widget session tokens universally.
-This staging keeps risk low.
+**Backward compatibility and origin-scoped public access.** Existing
+callers (the main `swiftfood.uk` site, admin dashboards) don't send
+widget session tokens. Widget-accessible endpoints therefore accept one
+of two paths, decided by the guard on every request:
+
+```
+IF Authorization has a valid widget session JWT:
+    → allow, attach partnerId to request
+ELSE IF no Authorization header:
+    IF origin is Swift-internal (swiftfood.uk and admin origins):
+        → allow as public, partnerId = null
+    ELSE:
+        → reject 401 (partner origins must authenticate via the widget)
+ELSE (header present but invalid):
+    → reject 401
+```
+
+The crucial rule: **the public-access path is open only to Swift's own
+origins.** A request from any partner-registered origin must carry a
+widget session token. Without this, a registered partner could skip the
+widget and hit `/catering-orders` directly with no header, creating
+orders with `partnerId = null` and avoiding attribution. CORS alone
+doesn't protect against this (partner origins are allowed by CORS
+precisely so their widget *can* talk to the backend); the guard does.
+
+This dual-auth arrangement lets us ship the backend changes without
+touching `swiftfood.uk` frontend code. The public-access path remains in
+place until a later phase migrates the main site onto the widget
+library, at which point the guard can enforce widget sessions
+universally.
+
+**Layer responsibilities.**
+- **CORS** decides whether a browser is allowed to send the request at
+  all, based on the request's origin. Enforced per-request, queries the
+  partner table (see Dynamic CORS below).
+- **Guard** decides, once the request arrives, whether it's
+  authenticated enough to proceed and what `partnerId` to attribute it
+  to. Reads the JWT and (for no-auth requests) the origin.
+
+Both layers are needed: CORS keeps unregistered origins out of the
+system entirely; the guard distinguishes Swift-internal traffic from
+partner traffic among the origins CORS lets through.
+
+**Worked examples.**
+
+*Example 1 — Partner using the widget correctly (`halkin.com`).*
+1. Widget mounts on `halkin.com/catering` with `pk_live_halkin`.
+2. `POST /widget/session`: CORS check finds `halkin.com` in
+   `partner.allowedOrigins` → passes. Handshake validates key + origin
+   → returns JWT with `partnerId = halkin`.
+3. `POST /catering-orders` with `Authorization: Bearer <jwt>`: CORS
+   passes (same reason). Guard sees valid JWT → attaches
+   `partnerId = halkin`. Order saved with `partnerId = halkin`.
+
+*Example 2 — Swift's own site (`swiftfood.uk/event-order`).*
+1. User submits order from the main site. Frontend sends
+   `POST /catering-orders` with no `Authorization` header.
+2. CORS check finds `swiftfood.uk` in the Swift-internal list → passes.
+3. Guard sees no header → checks origin → Swift-internal → allows as
+   public. Order saved with `partnerId = null`. Main site code is
+   unchanged from today.
+
+*Example 3 — Attacker: registered partner tries to skip the widget.*
+A dev at Halkin writes a script in their partner site that calls
+`POST /catering-orders` directly, without embedding the widget, hoping
+to create orders with `partnerId = null` to dodge attribution.
+1. Request goes out from `halkin.com` with no `Authorization` header.
+2. CORS passes (Halkin's origin is registered).
+3. Guard sees no header → checks origin → `halkin.com` is **not**
+   Swift-internal → rejects with `401`.
+
+The guard's origin check is what prevents this. CORS alone would let
+the request through, because Halkin's origin has to be allowed for the
+legitimate widget path to work; the guard is what enforces "if you're a
+partner origin, you must authenticate."
 
 ### Dynamic CORS
 
@@ -705,75 +844,44 @@ partner widget." This column enables:
 - Abuse tracing — if a partner is being abused, we can see it in order
   patterns.
 
-### Restaurant scoping enforcement
+### Rate limiting on the handshake
 
-Every catering write endpoint (order creation, pricing verification)
-checks that every `restaurantId` in the request body is in the partner's
-`allowedRestaurantIds`. If not, return 403.
+A blanket rate limit on `POST /widget/session` (e.g. 60 requests per
+minute per publishable key, IP-scoped as fallback) to prevent
+token-minting abuse. Other catering endpoints rely on whatever global
+throttling already exists on the backend.
 
-This is server-side enforcement; we cannot trust the frontend to only
-show allowed restaurants. A malicious partner could pass any restaurant
-ID; the backend must reject.
+**Rationale.** The handshake endpoint is the only new attack surface
+introduced by this design; everything else reuses existing endpoints.
+Per-partner rate-limit overrides are deferred — if one partner
+legitimately needs a higher ceiling later, add the customization then.
 
-Read endpoints (menu search, bundle listing) filter by allowed
-restaurants — no reject; just return the subset the partner is allowed to
-see.
+### Partner management endpoints
 
-### Per-key rate limiting
+New admin-only endpoints for managing partner records. All are protected
+by the existing admin auth guard used by the current admin dashboard
+(restaurant-owner/admin JWT or whatever the dashboard already uses — not
+the widget session token).
 
-`@nestjs/throttler` with a custom tracker keyed by `partnerId` (falling
-back to IP for anonymous traffic). Default limit applies to everyone;
-partner records can override via `partner.rateLimit`.
+| Method | Route | Purpose |
+|---|---|---|
+| `POST` | `/admin/partners` | Create a new partner. Generates `publishableKey` on the server and returns it in the response (one-time view). |
+| `GET` | `/admin/partners` | List partners (paginated). |
+| `GET` | `/admin/partners/:id` | Get a single partner's details. |
+| `PATCH` | `/admin/partners/:id` | Edit name, contactEmail, allowedOrigins, active flag. |
+| `POST` | `/admin/partners/:id/regenerate-key` | Rotate the `publishableKey`. Returns the new key once. |
+| `DELETE` | `/admin/partners/:id` | Soft-delete (sets `active: false`). Order attribution history is preserved; the partner simply stops being able to authenticate. |
 
-**Rationale.** One misbehaving or compromised partner shouldn't be able
-to exhaust capacity for the others.
+These endpoints give Swift staff (and a future admin UI) a complete
+CRUD surface. In the MVP, the endpoints exist but are called via
+`curl`/Postman by engineering when onboarding a partner. The generated
+publishable key is shared with the partner out of band (e.g. 1Password).
 
-### Partner webhooks
-
-Order lifecycle events (`created`, `paid`, `confirmed`, `completed`,
-`cancelled`) emit a webhook to the partner's configured `webhookUrl`, if
-set.
-
-**Payload.**
-```json
-{
-  "type": "order.paid",
-  "orderId": "cat_abc123",
-  "partnerId": "partner_xyz",
-  "occurredAt": "2026-04-14T10:34:00Z",
-  "data": { ...order summary... }
-}
-```
-
-**Signing.** Every request includes `X-Swift-Signature:
-t=<timestamp>,v1=<hmac>` where `hmac = HMAC-SHA256(secret, timestamp +
-"." + body)`. Partners validate this to confirm the webhook came from
-Swift.
-
-**Reliability.** Webhooks are sent via a job queue (Bull / BullMQ — check
-what the backend already uses) with retry-with-backoff on non-2xx. Dead
-letters after N retries. This should use the same infrastructure as any
-existing webhook work; we're not inventing a new queue.
-
-**Rationale.** Partners need a reliable server-to-server channel for
-order events. Relying solely on `onOrderComplete` firing in the browser
-is fragile — the user may close the tab before it fires, or network may
-drop. Webhooks are the source of truth for the partner's backend.
-
-### Admin surface
-
-Extend the existing admin dashboard with:
-
-- Partner CRUD (create, edit, deactivate).
-- API key CRUD under each partner (create, label, revoke).
-- Allowed origins editor.
-- Allowed restaurants selector.
-- Webhook URL + secret rotation.
-- Per-partner usage stats (orders, total revenue, API call volume —
-  whatever is cheap to compute).
-
-**Rationale.** Swift staff need to onboard partners and rotate keys
-without filing tickets to engineering.
+Implementation note: a Swift-internal admin dashboard page that consumes
+these endpoints — forms for create/edit, a partner list with
+deactivate/regenerate buttons — is out of scope for this phase. It
+should be added to the existing admin dashboard as a follow-up when
+partner volume justifies it. The backend work is complete without it.
 
 ## Testing
 
@@ -786,36 +894,35 @@ without filing tickets to engineering.
   the full flow against a staging backend. This verifies the *built*
   package, not just source.
 - **Unit tests (backend).** Both guards, the `checkPartnerAllowedOrigin`
-  function, webhook signing, rate-limit tracker.
+  function.
 - **Integration tests (backend).** `POST /widget/session` happy path and
   every failure mode (bad key, inactive key, bad origin, inactive
-  partner). Order creation with partnerId attribution. Restaurant
-  scoping rejection.
+  partner). Order creation with partnerId attribution. `/admin/partners`
+  CRUD endpoints with admin auth required.
 - **Manual.** Embed built package into a staging partner site. Walk
   complete flow: restaurant browse → menu → cart → contact → pay →
-  confirmation → webhook delivered to partner's test endpoint.
+  confirmation.
 
 ## Rollout
 
 Both layers must ship for a partner to use the widget, but they can be
 built and deployed in stages.
 
-1. **Backend — partner model, keys, guards, CORS, attribution.** Ships
-   first. All existing endpoints continue to accept public-access
-   requests; new widget-session path is additive. Zero impact on
-   `swiftfood.uk`.
-2. **Backend — webhooks, admin UI for partner management.** Lets us
-   provision partners internally ahead of frontend availability.
-3. **Frontend — extract widget into library, build pipeline, package
+1. **Backend — partner model, guards, CORS, attribution.** Ships first.
+   All existing endpoints continue to accept public-access requests; new
+   widget-session path is additive. Zero impact on `swiftfood.uk`.
+2. **Frontend — extract widget into library, build pipeline, package
    publish to internal registry.** Not yet used by anyone.
-4. **Frontend — dogfood on `swiftfood.uk`.** Rebuild
-   `app/(public)/event-order` on top of the widget library. This proves
-   parity and catches regressions. The main site now uses the same code
-   path partners will.
-5. **Pilot with one partner.** Provision them, provide the package and
-   key, support integration, monitor orders and webhook deliveries.
-6. **Widen.** Onboard additional partners. Add self-serve admin flows if
-   volume justifies.
-7. **Deprecate public-access fallback on backend.** Once all known
-   callers use widget sessions, remove the dual-auth path and require
-   session tokens universally.
+3. **Pilot with one partner.** Provision via the `/admin/partners`
+   endpoints, provide the package and key, support integration, monitor
+   orders. The main `swiftfood.uk` site continues to render the original
+   `lib/components/catering/*` code untouched.
+4. **Widen.** Onboard additional partners. Build internal admin UI
+   consuming the `/admin/partners` endpoints when volume justifies.
+5. **Later — migrate `swiftfood.uk/event-order` onto the widget library.**
+   Rebuild the main site's event-order page to render `<CateringWidget>`
+   so there is one code path for Swift and for partners. Not part of
+   this phase.
+6. **Deprecate public-access fallback on backend.** Once the main site
+   has migrated and all known callers use widget sessions, remove the
+   dual-auth path and require session tokens universally.
