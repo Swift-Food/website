@@ -926,3 +926,123 @@ built and deployed in stages.
 6. **Deprecate public-access fallback on backend.** Once the main site
    has migrated and all known callers use widget sessions, remove the
    dual-auth path and require session tokens universally.
+
+## Partner developer flow — start to first order
+
+Here's what a partner dev actually does, end to end.
+
+### 1. Swift provisions them (one-time, happens before the dev starts)
+
+- Swift staff hit `POST /admin/partners` with the partner's info: name, contact, `allowedOrigins` (e.g. `["https://halkin.com", "https://staging.halkin.com", "http://localhost:3000"]`).
+- Backend creates the row and returns a generated `publishableKey` (e.g. `pk_live_abc123xyz`).
+- Swift shares the key with the partner via 1Password / secure email.
+
+The dev starts at step 2 with a publishable key in hand.
+
+### 2. Install the package
+
+In their project:
+
+```bash
+npm install @swift/catering-widget
+```
+
+That's one line. NPM pulls the compiled package from the registry.
+
+### 3. Add the publishable key to their env
+
+They store the key wherever they keep config. For a Next.js app:
+
+```bash
+# .env.local
+NEXT_PUBLIC_SWIFT_KEY=pk_live_abc123xyz
+```
+
+For Vite: `VITE_SWIFT_KEY=...`. For plain React: whatever their env pattern is.
+
+The key is public (ships in the browser bundle) — the `NEXT_PUBLIC_` / `VITE_` prefix is just the framework convention for "bundle this into the client." This is intentional and safe; the backend's origin check and widget session handshake protect against misuse.
+
+### 4. Render the component
+
+They create a page (anywhere they want the catering flow to live):
+
+```tsx
+// app/catering/page.tsx  (Next.js example)
+"use client";
+import { CateringWidget } from "@swift/catering-widget";
+import "@swift/catering-widget/dist/styles.css";  // one-time CSS import
+import { useRouter } from "next/navigation";
+
+export default function CateringPage() {
+  const router = useRouter();
+
+  return (
+    <CateringWidget
+      publishableKey={process.env.NEXT_PUBLIC_SWIFT_KEY!}
+      onOrderComplete={({ orderId }) => {
+        router.push(`/thanks?order=${orderId}`);
+      }}
+      onError={(err) => console.error(err)}
+    />
+  );
+}
+```
+
+Done. That's a working integration.
+
+### 5. Run locally
+
+```bash
+npm run dev
+```
+
+- Partner's dev server starts (e.g. `localhost:3000`).
+- They visit `/catering`.
+- Widget mounts → fires `POST /widget/session` with their publishable key.
+- Backend validates key + checks `Origin: http://localhost:3000` is in their `allowedOrigins` → issues a JWT.
+- Widget fetches menu, user browses, builds an order, reaches checkout, pays.
+- `onOrderComplete` fires → their router pushes to `/thanks`.
+
+First order placed against staging, end-to-end, in roughly 10 minutes from `npm install`.
+
+### 6. Optional: add pre-fill and theming
+
+If the partner has event context already (e.g. a venue page with a known event):
+
+```tsx
+<CateringWidget
+  publishableKey={process.env.NEXT_PUBLIC_SWIFT_KEY!}
+  theme={{ primary: "#ff5a1f", radius: "8px" }}
+  initialData={{
+    eventName: event.name,
+    eventDate: event.date,
+    deliveryAddress: { line1: event.venue.line1, city: event.venue.city, postcode: event.venue.postcode },
+    contact: { name: event.organizer.name, email: event.organizer.email },
+  }}
+  onOrderComplete={({ orderId }) => router.push(`/orders/${orderId}`)}
+/>
+```
+
+### 7. Deploy to production
+
+- They build their app normally (`npm run build`).
+- They deploy to their host (Vercel, Netlify, their own infra — doesn't matter).
+- Make sure the production origin (`https://halkin.com`) is in the partner record's `allowedOrigins` list on Swift's side. If it was added at provisioning time, nothing to do.
+- First request from production goes through: widget session handshake validates origin → widget works in prod.
+
+### 8. Ongoing
+
+- **Updates:** `npm update @swift/catering-widget` pulls new versions. Semver rules apply (patch = bug fixes, minor = new features backward compatible, major = breaking).
+- **New origins:** partner wants to embed on a new subdomain? They ask Swift to add the origin to their partner record. No code change, no redeploy on Swift's side beyond the SQL / admin-endpoint call.
+- **Key rotation:** Swift regenerates key via `POST /admin/partners/:id/regenerate-key`, partner updates their env var, redeploys. Brief maintenance window while old key becomes invalid.
+
+## Summary
+
+From the partner dev's perspective, the whole integration is:
+
+1. `npm install @swift/catering-widget`
+2. Put key in env
+3. Render `<CateringWidget>` with a publishable key and an `onOrderComplete` handler
+4. Deploy
+
+Four steps. Nothing else on their end — no Stripe SDK, no Google Maps script, no API client, no state management, no session handling. The widget is a sealed unit; they plug in a key and a callback and it works.
