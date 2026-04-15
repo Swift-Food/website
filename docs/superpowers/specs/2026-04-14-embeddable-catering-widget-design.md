@@ -20,8 +20,10 @@ into their own pages with a single component:
 
 The widget encapsulates the full ordering experience: restaurant browsing,
 menu exploration, multi-session meal building (multiple dates/times per
-order), contact and delivery details, promo codes, pricing, and Stripe
-checkout. Partners get a plug-in catering channel without integrating dozens
+order), contact and delivery details, promo codes, and pricing. Payment
+itself happens out of band — after the order is submitted, Swift
+reviews it and sends the customer a Stripe payment link by email. The
+widget does not handle payment. Partners get a plug-in catering channel without integrating dozens
 of endpoints themselves. Swift gets a distribution channel and knows, per
 order, which partner brought it in — enabling per-partner reporting,
 commission, and billing.
@@ -58,9 +60,12 @@ widget to work end-to-end on a third-party site.
   because the NPM component gives partners a more native visual integration
   and is what early partner conversations have asked for. Iframe may be
   added later as a second distribution mode.
-- **Stripe Connect.** Payments continue to settle to Swift's Stripe account.
-  Routing funds to partner-owned Stripe accounts (destination charges or
-  separate accounts) is material work and is deferred.
+- **In-widget payment.** Order submission does not take payment inline.
+  Customers receive a payment link from Swift after the order is
+  reviewed and confirmed, and pay on Swift's own site. The widget
+  therefore does not embed Stripe Elements or any other payment UI.
+  Corporate-user payment flows (saved cards, organization wallet) on
+  `swiftfood.uk` are not exposed through the widget.
 - **Partner self-serve onboarding.** Partners are provisioned by
   engineering calling the new `/admin/partners` endpoints directly
   (curl/Postman). An internal admin UI that consumes these endpoints,
@@ -137,7 +142,10 @@ The two components being extracted are large and tightly coupled:
   keyboard handling).
 - `lib/components/catering/Step3ContactDetails.tsx` — ~800 lines, contact
   form, Google Maps address autocomplete, promo code entry, pricing
-  summary, Stripe Elements payment UI, checkout bar.
+  summary, submit bar. The file also contains a corporate-user Stripe
+  Elements payment modal for same-session payment by logged-in corporate
+  accounts; this is the only path that renders Stripe UI today, and it
+  is not used by the default guest flow that the widget will ship.
 - `context/CateringContext.tsx` — ~560 lines. Holds all in-flight order
   state (meal sessions, items, contact info, promo codes, selected
   restaurants, etc.) and persists every change to `localStorage` under a
@@ -335,7 +343,7 @@ Its responsibilities:
 - Expose typed methods for every endpoint the widget calls
   (`catering.submitOrder`, `catering.verifyPricing`,
   `menu.searchCatering`, `menu.getBundles`, `restaurants.listForCatering`,
-  `payments.createPaymentIntent`, etc.).
+  etc.). No payment endpoints — the widget does not take payment.
 - Attach `Authorization: Bearer <widget-session-jwt>` to every request.
 - Set the base URL from a compile-time constant that defaults to
   `https://api.swiftfood.uk` (overridable per build for staging).
@@ -429,8 +437,7 @@ type Theme = {
 
 The widget applies these by setting CSS custom properties on its root
 (`--swift-primary`, `--swift-radius`, `--swift-font`), which the compiled
-stylesheet reads. Stripe Elements, which needs JS color values rather than
-CSS variables, reads `theme.primary` directly.
+stylesheet reads.
 
 **Rationale.** Partners want the widget to feel like it belongs on their
 site; we want a narrow, stable customization API rather than a fully open
@@ -440,8 +447,8 @@ style prop. Three tokens cover ~90% of branding needs.
 
 **Peer dependencies.** `react` (>=18), `react-dom` (>=18). Nothing else.
 
-**Bundled dependencies.** Stripe JS SDK, lucide icons, dayjs,
-`@react-pdf/renderer`, Google Maps loader, `jwt-decode`.
+**Bundled dependencies.** Lucide icons, dayjs, `@react-pdf/renderer`,
+Google Maps loader, `jwt-decode`.
 
 **Build.** `tsup` (or Rollup) produces:
 - `dist/index.mjs` (ESM)
@@ -649,8 +656,9 @@ order in progress (persisted state exists), it is preserved and
 
 ### What the partner is NOT responsible for
 
-- Initializing Stripe — the widget loads Stripe.js internally and mounts
-  Elements within itself. Partners don't even install a Stripe SDK.
+- Handling payment — the widget submits the order and shows a
+  confirmation message; payment happens later via a Stripe link Swift
+  sends to the customer by email.
 - Loading Google Maps — the widget loads the script internally for the
   address-autocomplete field.
 - API calls — menu fetching, pricing preview, promo codes, order
@@ -1045,4 +1053,4 @@ From the partner dev's perspective, the whole integration is:
 3. Render `<CateringWidget>` with a publishable key and an `onOrderComplete` handler
 4. Deploy
 
-Four steps. Nothing else on their end — no Stripe SDK, no Google Maps script, no API client, no state management, no session handling. The widget is a sealed unit; they plug in a key and a callback and it works.
+Four steps. Nothing else on their end — no payment integration, no Google Maps script, no API client, no state management, no session handling. The widget is a sealed unit; they plug in a key and a callback and it works.
