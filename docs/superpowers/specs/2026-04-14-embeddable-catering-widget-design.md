@@ -512,6 +512,21 @@ and refreshed, the persisted state wins and `initialData` is ignored.
 Single public export, intentionally small:
 
 ```tsx
+interface MealSessionItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  selectedAddons?: { name: string; price: number; quantity: number }[];
+}
+
+interface MealSession {
+  sessionName: string;
+  sessionDate: string;   // ISO date, e.g. "2026-07-12"
+  eventTime: string;     // "19:00"
+  orderItems: MealSessionItem[];
+}
+
 interface OrderSummary {
   eventName?: string;
   eventDate: string;
@@ -521,6 +536,13 @@ interface OrderSummary {
   restaurants: { id: string; name: string }[];
   deliveryAddress: { line1: string; city: string; postcode: string };
   contactEmail: string;
+  mealSessions: MealSession[];
+}
+
+interface OrderCompleteResult {
+  orderId: string;
+  accessToken: string;
+  summary: OrderSummary;
 }
 
 interface CateringWidgetProps {
@@ -528,11 +550,7 @@ interface CateringWidgetProps {
   theme?: Theme;
   initialData?: InitialData;
   onReady?: () => void;
-  onOrderComplete?: (result: {
-    orderId: string;
-    accessToken: string;
-    summary: OrderSummary;
-  }) => void;
+  onOrderComplete?: (result: OrderCompleteResult) => void;
   onError?: (error: WidgetError) => void;
 }
 
@@ -543,11 +561,40 @@ That's the entire partner-facing surface. No factories, no adapters, no
 builders.
 
 **Why `summary` is included.** The partner's page may want to render a
-thank-you view without making another API call — event name, total,
-address, etc. The `summary` object carries just enough data for a
-standalone confirmation screen. Partners that want the full order detail
-view direct users to Swift's hosted view page using `accessToken`; the
-widget itself does not handle post-order viewing.
+thank-you view, run per-session analytics, or display the full order
+breakdown without making another API call. The `summary` object carries
+the priced, structured order data the user just submitted — including
+the full `mealSessions` array so partners can introspect per-date
+details. Partners that want the canonical post-order detail view direct
+users to Swift's hosted view page using `accessToken`; the widget itself
+does not handle post-order viewing.
+
+### Exported types
+
+The widget package's public entry point re-exports every type partners
+need to type their integration. Partners import them with `type`-only
+imports (zero runtime cost):
+
+```ts
+import {
+  CateringWidget,
+  type CateringWidgetProps,
+  type Theme,
+  type InitialData,
+  type OrderCompleteResult,
+  type OrderSummary,
+  type MealSession,
+  type MealSessionItem,
+  type WidgetError,
+} from "@swift/catering-widget";
+```
+
+These are the committed public API surface; anything not re-exported is
+considered internal and may change without a major version bump.
+
+Types are generated at build time from the widget's TypeScript source
+and shipped as `dist/index.d.ts`. Partners' IDEs pick them up
+automatically once the package is installed — no additional setup.
 
 ### How a partner integrates
 
