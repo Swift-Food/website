@@ -982,6 +982,142 @@ built and deployed in stages.
    has migrated and all known callers use widget sessions, remove the
    dual-auth path and require session tokens universally.
 
+## Publishing the package
+
+The widget is distributed as a public NPM package. Public means anyone
+can `npm install @swift/catering-widget`, but real access control happens
+at the backend (publishable key + origin validation), not at the package
+level. This is the same model Stripe, Algolia, Segment, and every other
+embeddable widget uses — the SDK source isn't a secret because it ships
+to every end-user's browser anyway.
+
+### One-time setup
+
+These steps are done once before the first publish.
+
+#### 1. NPM account
+
+- Sign up at `npmjs.com`. Free.
+- **Enable 2FA** on the account — NPM requires this for publishing.
+- Whoever creates the account becomes the initial owner of the
+  organization in step 2.
+
+#### 2. NPM organization (for the `@swift` scope)
+
+- Create an organization on NPM. Likely names: `swift`, `swiftfoods`,
+  `swift-food` (the chosen name has to be globally unique on NPM).
+- Free tier covers unlimited public packages. No paid plan required.
+- Add other Swift engineers as members so they can publish too. Use
+  separate NPM accounts per person; do not share credentials.
+
+#### 3. Package metadata
+
+In the widget repo's `package.json`:
+
+```json
+{
+  "name": "@swift/catering-widget",
+  "version": "0.1.0",
+  "description": "Swift Food catering widget for partner sites",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/styles.css": "./dist/styles.css"
+  },
+  "files": ["dist"],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
+```
+
+Two specific notes:
+
+- **`files: ["dist"]`** is a whitelist — only the `dist/` folder is
+  included in the published tarball. `src/`, tests, configs, `.git/`,
+  `node_modules/`, `.env` are all excluded automatically. Verify
+  before publishing with `npm pack --dry-run`.
+- **`publishConfig.access: "public"`** is required for scoped packages
+  (`@swift/...`). Without it, `npm publish` defaults to private and
+  fails on the free tier.
+
+#### 4. Auth
+
+Locally for development: `npm login` once per machine. For CI publishing
+(recommended), generate a **granular access token** in NPM scoped to
+publish only this package, store it as a GitHub Actions secret
+(`NPM_TOKEN`), and have the CI workflow use it. This avoids long-lived
+credentials on engineer laptops.
+
+### Publishing flow
+
+#### Manual publish (early-stage)
+
+```bash
+npm run build           # produces dist/
+npm pack --dry-run      # preview what will ship; verify no surprises
+npm publish             # uploads to registry
+```
+
+The package is live at `npmjs.com/package/@swift/catering-widget`
+within seconds. Partners can `npm install` immediately.
+
+#### Automated publish via CI (recommended once stable)
+
+A GitHub Actions workflow triggered by tagged releases (`v0.1.0`,
+`v0.1.1`, etc.) that runs `npm ci`, `npm run build`, `npm publish`
+using the stored `NPM_TOKEN`. Means no one needs to publish from a
+laptop with a live token, and every published version is traceable to
+a tagged commit.
+
+### Versioning and updates
+
+The widget follows semver. Bump versions with `npm version <bump>`,
+which updates `package.json` and creates a git tag in one step:
+
+- `npm version patch` — bug fixes, no API change (e.g. `0.1.0` → `0.1.1`)
+- `npm version minor` — new feature, backward compatible (e.g. `0.1.0` → `0.2.0`)
+- `npm version major` — breaking change to the public API (e.g. `0.1.0` → `1.0.0`)
+
+Push the tag, CI publishes the new version. Partners pick it up via
+`npm update @swift/catering-widget` or normal lockfile bumps.
+
+The "public API" for semver purposes is everything re-exported from the
+package entry (`CateringWidget`, the props interface, the exported
+types). Internal modules can change freely without a major bump.
+
+### Pre-publish checklist
+
+Before every publish:
+
+- `npm pack --dry-run` shows only `dist/` contents — no source, no
+  secrets, no `.git`.
+- `dist/index.d.ts` exists and contains the public types.
+- Version in `package.json` is bumped from the previous published
+  version.
+- CHANGELOG entry written for partners (what changed, what to do if
+  upgrading).
+- Smoke test: install the local tarball into a scratch project
+  (`npm install /path/to/swift-catering-widget-X.Y.Z.tgz`), render the
+  component, run through one order against staging.
+
+### Cost summary
+
+- **NPM:** $0/month, unlimited public packages on the free tier.
+- **Infrastructure:** none. NPM hosts the registry.
+- **Per-partner provisioning:** none on the package side. `npm install`
+  works for anyone the moment they have a publishable key from Swift.
+
 ## Partner developer flow — start to first order
 
 Here's what a partner dev actually does, end to end.
