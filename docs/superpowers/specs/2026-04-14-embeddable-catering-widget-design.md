@@ -958,6 +958,113 @@ partner volume justifies it. The backend work is complete without it.
   complete flow: restaurant browse → menu → cart → contact → pay →
   confirmation.
 
+## Development workflow
+
+The widget is a library, not an app — you can't just `npm run dev` and
+visit a URL. Three layers of local testing cover the spectrum from
+"iterate on a single component" to "prove the published package works."
+
+### Layer 1 — Storybook (component-level iteration)
+
+Runs inside the widget repo. Each component gets a `.stories.tsx` file
+that renders it with mocked state and API responses (via MSW —
+intercepts `fetch`, returns fake data).
+
+```
+packages/catering-widget/
+├── src/
+│   └── components/MenuBrowser.tsx
+│   └── components/MenuBrowser.stories.tsx
+└── .storybook/
+```
+
+```bash
+npm run storybook        # localhost:6006
+```
+
+Use it for: tight dev loop on UI, edge states (empty cart, errors,
+loading), visual regression snapshots, component-level docs. This is
+where 90% of initial development happens.
+
+Catches: UI bugs, component API issues, bad edge-case handling.
+Doesn't catch: real API integration, host-framework embedding,
+build-output correctness.
+
+### Layer 2 — Example host apps (integration / framework testing)
+
+The widget repo is a small monorepo with an `examples/` folder
+containing real host apps that embed the widget. Workspaces link them
+to the library source — no publishing, no `npm link`.
+
+```
+catering-widget/                  (the repo)
+├── packages/
+│   └── catering-widget/          (the library)
+└── examples/
+    ├── next-app/                 (Next.js host — most common partner stack)
+    │   └── app/catering/page.tsx
+    └── vite-app/                 (Vite host — proves framework-agnosticism)
+        └── src/App.tsx
+```
+
+Each example's `package.json` declares
+`"@swift/catering-widget": "workspace:*"` and imports the widget from
+source.
+
+```bash
+# Terminal 1
+cd packages/catering-widget && npm run dev   # watch-build
+
+# Terminal 2
+cd examples/next-app && npm run dev          # host app on :3000
+```
+
+Browse `localhost:3000/catering` → real widget mounted in a real Next
+page, hitting staging backend. Save a widget file → rebuild → host
+hot-reloads.
+
+Use it for: integration testing end-to-end, real order submissions
+against staging, SSR/hydration checks, CSS isolation checks, catching
+`"use client"` issues, exercising the widget-session handshake.
+Maintaining two example apps (Next + Vite) verifies the widget is
+genuinely framework-agnostic, not just "works in Next."
+
+Catches: framework integration bugs, real-API issues, auth handshake
+edge cases. Doesn't catch: published-package correctness (missing
+files, broken `exports`, etc.).
+
+### Layer 3 — `npm pack` smoke test (published-package correctness)
+
+Before every publish, verify the actual tarball NPM would ship works
+when installed into a clean project.
+
+```bash
+# In widget repo
+npm run build
+npm pack                               # produces swift-catering-widget-0.1.0.tgz
+
+# In a scratch project somewhere else
+npm install /path/to/swift-catering-widget-0.1.0.tgz
+# Render the widget, walk one full order
+```
+
+Catches: files missing from the `files: ["dist"]` whitelist, broken
+`exports` field, type definitions not resolving, peer-dep errors at
+install time, anything that works against source but breaks after
+packaging.
+
+Mandatory before the first publish. Automate as a CI check thereafter
+— on every PR, run `npm pack` + install into a template project +
+render the widget as a headless smoke test.
+
+### Daily workflow
+
+- **Most of the time:** Storybook with mocked data. Fast feedback loop.
+- **Before merging significant changes:** run an example app, do one
+  real order against staging.
+- **Before publishing a version:** `npm pack` smoke test into a scratch
+  project.
+
 ## Rollout
 
 Both layers must ship for a partner to use the widget, but they can be
