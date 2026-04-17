@@ -1237,3 +1237,209 @@ From the partner dev's perspective, the whole integration is:
 4. Deploy
 
 Four steps. Nothing else on their end — no payment integration, no Google Maps script, no API client, no state management, no session handling. The widget is a sealed unit; they plug in a key and a callback and it works.
+
+## Halkin considerations
+
+halkins-food is a Swift-maintained but technically third-party site. Its
+catering flow is not a drop-in candidate for this widget — halkin is
+structurally a *coworking booking* workflow where catering is a
+sub-feature, not a catering-first flow with extra fields. Documenting
+the gaps here to decide how halkin relates to this widget.
+
+### Functional gaps between halkin's flow and the widget's design
+
+1. **Auth model.** Halkin uses a URL-token coworking session
+   (`/coworking/{spaceSlug}/view/{token}/...`) enforced by
+   `CoworkingSessionGuard`, which reads `session.email` / `memberId`
+   and rejects mismatched callers. The widget uses a publishable-key →
+   widget-session JWT bound to `partnerId`. Halkin's backend would not
+   accept widget-issued tokens.
+
+2. **Order submission is multi-step, not a single call.** Halkin's
+   flow is: `cart-pricing` → `create-checkout` (Stripe deposit session)
+   → `confirm-checkout` → webhook `coworking.deposit.paid` creates
+   linked `CoworkingOrder` + `CateringOrder`. The widget submits
+   directly to `POST /catering-orders` once.
+
+3. **Pricing has halkin-only layers.** Venue hire fee
+   (`max(250, floor(subtotal / 250) * 250)`) and a deposit computed
+   from `depositPerDayRate × days`. The widget's pricing endpoint
+   returns catering-only totals.
+
+4. **Deposit payment before order creation.** Halkin collects a
+   Stripe deposit before the catering order is even created. The
+   widget takes no payment at all (post-submission payment link model).
+
+5. **Delivery address is fixed from venue, not user-entered.** Halkin
+   uses `selectedVenue.name` or a hardcoded fallback, plus an optional
+   `roomLocation` suffix. The widget renders Google Places autocomplete
+   for a user-entered address.
+
+6. **Rich session pre-fill, not a static prop.** Halkin pre-fills from
+   the coworking session plus OfficeRnD booking lookups
+   (`getMemberBookings`, `getBookingByReference`, `formatRoomLocation`).
+   The widget's `initialData` is a static object the host passes once.
+
+7. **Booking questionnaire.** Halkin orders carry `additionalAnswers`
+   with eight halkin-specific fields (`eventUrl`, `eventInformation`,
+   `invitedGuestCount`, `runsOvernight`, `specialEquipment`, `sponsors`,
+   `outcomes`, `invoicingOrganisation`, `invoiceEmailAddress`,
+   `signature`). The widget has no UI or passthrough for these.
+
+8. **Admin review workflow.** Halkin orders land in
+   `adminReviewStatus: PENDING_ADMIN_REVIEW`; a space admin reviews
+   before confirmation, with separate admin emails. The widget has no
+   notion of per-partner admin review.
+
+9. **Linked order entities.** Every halkin catering order is a child
+   of a parent `CoworkingOrder` that owns the deposit, venue,
+   booking reference, access token, and admin state. The widget
+   creates a standalone `CateringOrder` with `partnerId`. Halkin's
+   admin dashboard (which queries `CoworkingOrder`) would not see
+   widget-submitted orders.
+
+### Four possible solution patterns
+
+#### Pattern 1 — Opinionated widget + escape-hatch props
+
+Single component, sensible defaults, a few optional props for variants.
+Cheapest to build; grows a long tail of props over time.
+
+```tsx
+// The 90% case — drop-in, no extras
+<CateringWidget publishableKey="..." onOrderComplete={...} />
+
+// Bespoke partner uses escape-hatch props:
+<CateringWidget
+  publishableKey="..."
+  deliveryAddressMode="fixed"                       // escape hatch
+  fixedDeliveryAddress={{ line1: "...", city: "..." }}
+  additionalFields={[
+    { key: "eventUrl", label: "Event URL", type: "text" },
+    { key: "guestCount", label: "Guests", type: "number" },
+  ]}                                                // escape hatch
+  onBeforeSubmit={async (draft) => ({ ...draft, customData })}
+  onOrderComplete={...}
+/>
+```
+
+#### Pattern 2 — Component library, not a widget
+
+Ship the pieces and a default composition. Bespoke clients compose
+differently. More up-front API design; scales to arbitrary variation.
+
+```tsx
+// The 90% case — same as today
+<CateringWidget publishableKey="..." onOrderComplete={...} />
+
+// Under the hood:
+export function CateringWidget(props) {
+  return (
+    <CateringProvider {...props}>
+      <MenuBrowser />
+      <Cart />
+      <ContactForm />
+      <CheckoutButton />
+    </CateringProvider>
+  );
+}
+
+// Bespoke partner composes differently:
+<CateringProvider publishableKey="..." submitMode="host">
+  <MenuBrowser />
+  <Cart />
+  <HalkinCustomContactForm />      {/* their own */}
+  <HalkinDepositStep />            {/* their own */}
+  <useCatering.Submit />           {/* programmatic submit */}
+</CateringProvider>
+```
+
+#### Pattern 3 — Headless core + default UI
+
+Split into hooks/state (`useCateringWidget`) and default UI
+(`<CateringWidget>`). Most clients use the UI. Bespoke clients use only
+the hooks and build their own UI. Maximum flexibility; two products to
+document.
+
+```tsx
+// The 90% case — same as today
+<CateringWidget publishableKey="..." onOrderComplete={...} />
+
+// Bespoke partner — uses only the hook, fully custom UI:
+function HalkinCheckout() {
+  const { menu, cart, addItem, removeItem, submit, pricing } =
+    useCateringWidget({ publishableKey });
+
+  return (
+    <div>
+      <HalkinMenuUI menu={menu} onAdd={addItem} />
+      <HalkinDepositStep />
+      <HalkinContactForm />
+      <button onClick={submit}>Submit (pay deposit)</button>
+    </div>
+  );
+}
+```
+
+#### Pattern 4 — Multiple SKUs
+
+Separate packages, shared internally via monorepo. Each package is
+simple for its audience. Worth it only when two or more coherent
+archetypes exist, not a single outlier.
+
+```tsx
+// Third-party partners install the standard package:
+import { CateringWidget } from "@swift/catering-widget";
+<CateringWidget publishableKey="..." onOrderComplete={...} />
+
+// Halkin-shaped partners install the coworking package:
+import { CoworkingCateringWidget } from "@swift/catering-widget-coworking";
+<CoworkingCateringWidget
+  sessionToken={token}
+  spaceSlug="halkin"
+  depositPerDayRate={100}
+  onDepositPaid={...}
+  onOrderComplete={...}
+/>
+```
+
+### Decision tables
+
+#### Use the widget for halkin vs not use it
+
+| Dimension | Use widget (replace halkin's flow) | Don't use widget (halkin keeps direct integration) |
+|---|---|---|
+| Scope | Large — widget must gain deposit, questionnaire, venue fee, admin review, linked orders | Zero — halkin unchanged, widget ships for true third parties |
+| Risk | High — deposit/booking workflow regresses during the rewrite | Low — no changes to halkin |
+| MVP timeline | Slipped significantly | Unaffected |
+| Code duplication | None (single codebase) | Halkin keeps its own checkout/submission; shares menu-browse via imports |
+| Fit for true partners | Worse (widget becomes a kitchen sink) | Better (widget stays focused on the standard catering flow) |
+| Future halkin maintenance | Centralized in widget | Stays in halkins-food repo |
+
+#### Pattern comparison
+
+| Pattern | Pros | Cons | When to pick |
+|---|---|---|---|
+| **1 — Opinionated widget + props** | Fastest to ship; 90% case is drop-in; partner API stays small for common integrations | Grows a long tail of props; structural variations (like halkin's) don't fit cleanly; bespoke clients still feel constrained | Standard MVP; when variations are small tweaks rather than workflow differences |
+| **2 — Component library** | Scales to arbitrary variation; 90% case still a one-liner via default composition; bespoke clients compose their own | More sub-component public API surface to version; harder to get right up-front; encourages clients to build more UI themselves | When you have two or more clients who want to rearrange things, and expect that list to grow |
+| **3 — Headless core + UI** | Maximum flexibility for power users; clear separation of logic and UI; default UI is just one consumer of the hooks | Two products to document; hooks become permanent public API; power users must write a lot of UI | When bespoke clients have serious engineering teams and want deep customization |
+| **4 — Multiple SKUs** | Each package opinionated for its audience; no branching code paths in the common case; can position/price separately | Code duplication without good monorepo sharing; two release cycles, two sets of docs; not worth it for a single outlier | When two or more distinct client archetypes exist, not one standard + one outlier |
+
+### Recommendation
+
+**Ship Pattern 1 as the widget's MVP. Exclude halkin from the widget
+entirely for now.** Halkin continues to import the underlying catering
+components directly from the Swift monorepo, as it does today. Its
+coworking-specific flow stays untouched.
+
+Reason: halkin's divergences are structural (deposit, linked orders,
+admin review, session auth), not cosmetic. Wedging them into the
+widget via props would bloat the widget with halkin-only code paths
+that no other partner wants or understands. Designing Pattern 2 or 3
+speculatively around a single bespoke client usually produces the
+wrong abstraction.
+
+Re-evaluate when a second halkin-shaped partner emerges. At that
+point there's real signal to design against — two data points, not
+one — and the cost of refactoring Pattern 1 into Pattern 2/3 is mostly
+mechanical once the seams are known.
