@@ -80,9 +80,6 @@ These files will be copied verbatim in Phase D, then edited in place. Line count
 │       │   ├── types/
 │       │   │   ├── public.ts            # Theme, InitialData, OrderCompleteResult, etc.
 │       │   │   └── internal.ts          # ported catering.types.ts
-│       │   ├── hooks/
-│       │   │   ├── useApiClient.ts
-│       │   │   └── useStorage.ts
 │       │   ├── components/              # copied from website/lib/components/catering/
 │       │   │   └── (all the files)
 │       │   ├── utils/
@@ -298,6 +295,7 @@ mkdir -p packages/catering-widget/src
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
     "@types/google.maps": "^3.58.1",
+    "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
@@ -326,7 +324,7 @@ mkdir -p packages/catering-widget/src
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["@types/google.maps"],
+    "types": ["@types/google.maps", "node"],
     "jsx": "react-jsx"
   },
   "include": ["src/**/*"],
@@ -594,6 +592,8 @@ Expected: no errors.
 rm src/smoke.test.ts
 ```
 
+**Note:** after this step, `npm test` will report "no tests found" until Task B2 adds the storage test. That's expected — don't treat it as a failure.
+
 - [ ] **Step 5: Commit**
 
 ```bash
@@ -666,7 +666,7 @@ describe("createStorage", () => {
     expect(other.getItem("k")).toBe("from-xyz");
   });
 
-  it("falls back to in-memory when localStorage is unavailable", () => {
+  it("uses in-memory storage when explicitly opted in via driver: 'memory'", () => {
     const s = createStorage("abc", { driver: "memory" });
     s.setItem("k", "v");
     expect(s.getItem("k")).toBe("v");
@@ -767,65 +767,12 @@ git commit -m "feat: add namespaced storage module"
 
 **Files:**
 - Create: `packages/catering-widget/src/api/sessionToken.ts`
-- Create: `packages/catering-widget/src/api/sessionToken.test.ts`
 
 **Why this exists as a stub:** the real backend endpoint `POST /widget/session` does not exist yet. The widget's API client is built to call it, cache the JWT, and refresh on 401. Until the endpoint ships, this module returns a synthetic token with a 30-minute expiry. The *shape* matches production; only the fetch is a stub. When the backend lands, swapping in a real `fetch` call is a one-file change.
 
-- [ ] **Step 1: Write the failing test**
+**Why no tests at this layer:** the module is a deliberate throwaway stub, and its only real behaviours (cache, invalidate, refresh-on-expiry) are exercised end-to-end by the API client tests in Task B4. Testing `Date.now()` math at two layers is duplication. When the real handshake lands — real fetch, real error paths — tests get written then, against the real module.
 
-```ts
-// src/api/sessionToken.test.ts
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { createSessionTokenClient } from "./sessionToken";
-
-describe("sessionTokenClient", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-04-17T12:00:00Z"));
-  });
-  afterEach(() => vi.useRealTimers());
-
-  it("returns a synthetic token with a 30-minute expiry", async () => {
-    const client = createSessionTokenClient({ publishableKey: "pk_live_x" });
-    const t = await client.getToken();
-    expect(t.token).toMatch(/^stub_/);
-    expect(t.expiresAt).toBe(new Date("2026-04-17T12:30:00Z").toISOString());
-  });
-
-  it("caches the token and returns the same one on repeated calls", async () => {
-    const client = createSessionTokenClient({ publishableKey: "pk_live_x" });
-    const a = await client.getToken();
-    const b = await client.getToken();
-    expect(a.token).toBe(b.token);
-  });
-
-  it("refreshes when expired", async () => {
-    const client = createSessionTokenClient({ publishableKey: "pk_live_x" });
-    const a = await client.getToken();
-    vi.setSystemTime(new Date("2026-04-17T12:45:00Z"));
-    const b = await client.getToken();
-    expect(b.token).not.toBe(a.token);
-  });
-
-  it("invalidate() forces the next getToken to re-fetch", async () => {
-    const client = createSessionTokenClient({ publishableKey: "pk_live_x" });
-    const a = await client.getToken();
-    client.invalidate();
-    const b = await client.getToken();
-    expect(b.token).not.toBe(a.token);
-  });
-});
-```
-
-- [ ] **Step 2: Run to verify failure**
-
-```bash
-npm test -- sessionToken
-```
-
-Expected: FAIL — module not found.
-
-- [ ] **Step 3: Implement `src/api/sessionToken.ts`**
+- [ ] **Step 1: Implement `src/api/sessionToken.ts`**
 
 ```ts
 export interface SessionToken {
@@ -846,6 +793,7 @@ const EXPIRY_MS = 30 * 60 * 1000;
 
 export function createSessionTokenClient(opts: Options): SessionTokenClient {
   let cached: SessionToken | null = null;
+  let counter = 0;
 
   const fetchToken = async (): Promise<SessionToken> => {
     // STUB: real implementation will POST to /widget/session with
@@ -854,10 +802,10 @@ export function createSessionTokenClient(opts: Options): SessionTokenClient {
     if (!opts.publishableKey) {
       throw new Error("publishableKey is required");
     }
-    const now = Date.now();
+    counter += 1;
     return {
-      token: `stub_${opts.publishableKey}_${now}`,
-      expiresAt: new Date(now + EXPIRY_MS).toISOString(),
+      token: `stub_${opts.publishableKey}_${counter}`,
+      expiresAt: new Date(Date.now() + EXPIRY_MS).toISOString(),
     };
   };
 
@@ -878,15 +826,15 @@ export function createSessionTokenClient(opts: Options): SessionTokenClient {
 }
 ```
 
-- [ ] **Step 4: Run**
+- [ ] **Step 2: Typecheck**
 
 ```bash
-npm test -- sessionToken
+npm run typecheck
 ```
 
-Expected: all 4 tests PASS.
+Expected: clean.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -1104,149 +1052,12 @@ git commit -m "feat: add API client with 401 retry and JSON helper"
 
 ---
 
-### Task B5: Typed endpoint modules
-
-**Files:**
-- Create: `packages/catering-widget/src/api/endpoints/restaurants.ts`
-- Create: `packages/catering-widget/src/api/endpoints/menu.ts`
-- Create: `packages/catering-widget/src/api/endpoints/bundles.ts`
-- Create: `packages/catering-widget/src/api/endpoints/pricing.ts`
-- Create: `packages/catering-widget/src/api/endpoints/catering.ts`
-- Create: `packages/catering-widget/src/api/endpoints/index.ts`
-
-**Approach:** the existing `website/services/api/catering.api.ts` (1083 lines) calls `fetchWithAuth` and uses build-time base URL. We port every method the widget needs, each one now calling `client.requestJson`. Methods are split across files by resource.
-
-- [ ] **Step 1: Read the existing file to list the methods**
-
-```bash
-cat /Users/thadoos/Coding/AllRestaurantApps/website/services/api/catering.api.ts | grep -E "^\s+(async\s+)?[a-zA-Z]+\s*[(:]" | head -50
-```
-
-The engineer must list every exported method and categorize it into: `restaurants`, `menu`, `bundles`, `pricing`, `catering` (orders). Methods that hit Stripe or user-auth endpoints are **not** ported — flag them and exclude. Expected categories (verify against the source):
-
-- **restaurants**: `listForCatering`, `searchCateringRestaurants`
-- **menu**: `searchCatering`, `getMenuItemsByRestaurant`, `getCategoriesForRestaurant`
-- **bundles**: `listBundles`, `getBundleById`
-- **pricing**: `verifyCart` (→ `POST /pricing/catering-verify-cart`)
-- **catering (orders)**: `submitOrder` (→ `POST /catering-orders`), `applyPromoCode`
-
-- [ ] **Step 2: Write `src/api/endpoints/restaurants.ts`**
-
-```ts
-import type { ApiClient } from "../client";
-
-export interface CateringRestaurantSummary {
-  id: string;
-  name: string;
-  slug: string;
-  imageUrl?: string;
-  cuisines?: string[];
-  minOrder?: number;
-  leadTimeHours?: number;
-}
-
-export function createRestaurantsApi(client: ApiClient) {
-  return {
-    listForCatering: (): Promise<CateringRestaurantSummary[]> =>
-      client.requestJson<CateringRestaurantSummary[]>("/restaurants/catering"),
-
-    search: (query: string): Promise<CateringRestaurantSummary[]> =>
-      client.requestJson<CateringRestaurantSummary[]>(
-        `/restaurants/catering/search?q=${encodeURIComponent(query)}`
-      ),
-  };
-}
-```
-
-> **Note:** these URL paths MUST match what `website/services/api/catering.api.ts` uses. The engineer must grep that file to confirm the real paths before implementing each endpoint module — do not invent them. The shapes here are placeholders; copy actual types from `website/types/catering.types.ts`.
-
-- [ ] **Step 3: Write `src/api/endpoints/menu.ts`**
-
-Mirror the methods from `catering.api.ts` related to menu items and categories. Example stub:
-
-```ts
-import type { ApiClient } from "../client";
-import type { CateringMenuItem, CateringCategory } from "../../types/internal";
-
-export function createMenuApi(client: ApiClient) {
-  return {
-    searchCatering: (params: {
-      restaurantId?: string;
-      query?: string;
-    }): Promise<CateringMenuItem[]> => {
-      const qs = new URLSearchParams();
-      if (params.restaurantId) qs.set("restaurantId", params.restaurantId);
-      if (params.query) qs.set("q", params.query);
-      return client.requestJson<CateringMenuItem[]>(
-        `/menu-item/catering?${qs.toString()}`
-      );
-    },
-    getByRestaurant: (restaurantId: string): Promise<CateringMenuItem[]> =>
-      client.requestJson<CateringMenuItem[]>(
-        `/menu-item/catering/by-restaurant/${restaurantId}`
-      ),
-    getCategories: (restaurantId: string): Promise<CateringCategory[]> =>
-      client.requestJson<CateringCategory[]>(
-        `/menu-item/catering/categories/${restaurantId}`
-      ),
-  };
-}
-```
-
-`CateringMenuItem` / `CateringCategory` types are defined in Task B6.
-
-- [ ] **Step 4: Write `src/api/endpoints/bundles.ts`, `pricing.ts`, `catering.ts`**
-
-Follow the same pattern: one module per resource, each exporting a `create<Resource>Api(client)` factory returning typed methods. Every method's HTTP path and body shape **must** match the current `website/services/api/catering.api.ts` — the engineer greps each method there first, then ports.
-
-`catering.ts` must expose at minimum `submitOrder(payload): Promise<SubmitOrderResult>` and `applyPromoCode(...)`.
-
-`pricing.ts` must expose `verifyCart(payload): Promise<CateringPricingResult>`.
-
-- [ ] **Step 5: Write `src/api/endpoints/index.ts`**
-
-```ts
-import type { ApiClient } from "../client";
-import { createRestaurantsApi } from "./restaurants";
-import { createMenuApi } from "./menu";
-import { createBundlesApi } from "./bundles";
-import { createPricingApi } from "./pricing";
-import { createCateringApi } from "./catering";
-
-export function createApiEndpoints(client: ApiClient) {
-  return {
-    restaurants: createRestaurantsApi(client),
-    menu: createMenuApi(client),
-    bundles: createBundlesApi(client),
-    pricing: createPricingApi(client),
-    catering: createCateringApi(client),
-  };
-}
-
-export type ApiEndpoints = ReturnType<typeof createApiEndpoints>;
-```
-
-- [ ] **Step 6: Typecheck**
-
-```bash
-npm run typecheck
-```
-
-Expected: no errors. (Internal type imports resolved in next task.)
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add -A
-git commit -m "feat: add typed API endpoint modules"
-```
-
----
-
-### Task B6: Port internal types
+### Task B5: Port internal types
 
 **Files:**
 - Create: `packages/catering-widget/src/types/internal.ts`
+
+This task runs before the endpoint modules (Task B6) because those modules import the types defined here. If you flip the order, Task B6's typecheck step fails with missing types.
 
 - [ ] **Step 1: Copy `website/types/catering.types.ts` into the widget**
 
@@ -1276,6 +1087,120 @@ Expected: clean. If errors remain, inline or delete until clean.
 ```bash
 git add -A
 git commit -m "feat: port internal catering types"
+```
+
+---
+
+### Task B6: Typed endpoint modules
+
+**Files:**
+- Create: `packages/catering-widget/src/api/endpoints/restaurants.ts`
+- Create: `packages/catering-widget/src/api/endpoints/menu.ts`
+- Create: `packages/catering-widget/src/api/endpoints/bundles.ts`
+- Create: `packages/catering-widget/src/api/endpoints/pricing.ts`
+- Create: `packages/catering-widget/src/api/endpoints/catering.ts`
+- Create: `packages/catering-widget/src/api/endpoints/index.ts`
+
+**Approach — port, don't invent.** The existing `website/services/api/catering.api.ts` (1083 lines) is the **source of truth** for every URL, every query param, every request/response shape. Do not guess. The work is mechanical: for each method the widget needs, copy its path and body shape verbatim, then rewire the call from `fetchWithAuth` to `client.requestJson`. Methods are split across files by resource.
+
+- [ ] **Step 1: Inventory the methods the widget needs**
+
+Open `website/services/api/catering.api.ts` and scan for exported methods. Bucket each one into:
+
+- **Keep (widget uses it):** menu search, restaurant listing, bundle listing, pricing verification, order submission, promo code application.
+- **Exclude (not widget-relevant):** anything that calls Stripe, anything that requires user auth (saved cards, corporate user endpoints, order history by user), anything tied to admin/restaurant-owner flows.
+
+Produce a written list mapping each kept method to its destination file (`restaurants.ts` / `menu.ts` / `bundles.ts` / `pricing.ts` / `catering.ts`).
+
+Use the Grep tool on `website/services/api/catering.api.ts` to find method declarations (pattern: `async\s+\w+\s*\(`). Record each method name, its HTTP verb, its URL path, its request body shape (if POST/PUT), and its return type.
+
+- [ ] **Step 2: Port one method end-to-end as a template**
+
+Pick the simplest kept method — typically a plain GET that lists something. Copy the path and types verbatim from the source, then translate the fetch call.
+
+Pattern:
+
+```ts
+// BEFORE — in website/services/api/catering.api.ts
+async listForCatering(): Promise<CateringRestaurantSummary[]> {
+  const res = await fetchWithAuth(`${API_BASE_URL}/restaurants/catering`);
+  if (!res.ok) throw new Error(...);
+  return res.json();
+}
+
+// AFTER — in packages/catering-widget/src/api/endpoints/restaurants.ts
+import type { ApiClient } from "../client";
+import type { CateringRestaurantSummary } from "../../types/internal";
+
+export function createRestaurantsApi(client: ApiClient) {
+  return {
+    listForCatering: (): Promise<CateringRestaurantSummary[]> =>
+      client.requestJson<CateringRestaurantSummary[]>("/restaurants/catering"),
+  };
+}
+```
+
+Key rules:
+- **Path:** literal copy from the source, including any hyphens, plurals, or quirks. Do not rewrite for consistency.
+- **Query params:** copy the key names and encoding behavior verbatim. If the source uses `URLSearchParams`, match it.
+- **Request body:** copy the exact field names the source sends. If the backend expects `restaurantId` (camelCase), don't "clean it up" to snake_case.
+- **Return type:** use the exact type the source returned. Types come from `../../types/internal` (ported in Task B5).
+- **No base URL:** `client.requestJson` prepends the base URL itself. Don't re-prepend `API_BASE_URL`.
+- **Error handling:** drop the manual `!res.ok` check — `client.requestJson` throws a `WidgetError` automatically.
+
+- [ ] **Step 3: Port the remaining methods, one file at a time**
+
+Go through the inventory from Step 1 and port each method using the pattern from Step 2. One commit per file is fine. Order: start with the simplest GET-only files (`restaurants.ts`, `bundles.ts`), then `menu.ts`, then the POST-bearing files (`pricing.ts`, `catering.ts`).
+
+When a method takes a request body, mirror the body shape exactly. Example for a POST:
+
+```ts
+// AFTER
+verifyCart: (payload: CateringVerifyCartPayload): Promise<CateringPricingResult> =>
+  client.requestJson<CateringPricingResult>("/pricing/catering-verify-cart", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+```
+
+The `CateringVerifyCartPayload` and `CateringPricingResult` types come from `../../types/internal`. If the source used an inline type or an untyped payload, define a named interface in `internal.ts` so the widget's port is typed end-to-end.
+
+- [ ] **Step 4: Write `src/api/endpoints/index.ts`**
+
+```ts
+import type { ApiClient } from "../client";
+import { createRestaurantsApi } from "./restaurants";
+import { createMenuApi } from "./menu";
+import { createBundlesApi } from "./bundles";
+import { createPricingApi } from "./pricing";
+import { createCateringApi } from "./catering";
+
+export function createApiEndpoints(client: ApiClient) {
+  return {
+    restaurants: createRestaurantsApi(client),
+    menu: createMenuApi(client),
+    bundles: createBundlesApi(client),
+    pricing: createPricingApi(client),
+    catering: createCateringApi(client),
+  };
+}
+
+export type ApiEndpoints = ReturnType<typeof createApiEndpoints>;
+```
+
+- [ ] **Step 5: Typecheck**
+
+```bash
+npm run typecheck
+```
+
+Expected: no errors. Internal types (`CateringMenuItem`, `CateringCategory`, etc.) are already available from Task B5.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add -A
+git commit -m "feat: add typed API endpoint modules"
 ```
 
 ---
@@ -1667,8 +1592,25 @@ The ported address-autocomplete field in `Step3ContactDetails.tsx` uses the Goog
 ```ts
 // Swift Food's public Google Maps API key. Restricted via Google Cloud
 // Console to the referrers where the widget is allowed to load.
+const PLACEHOLDER = "__REPLACE_AT_BUILD_TIME__";
+
 export const GOOGLE_MAPS_API_KEY =
-  process.env.SWIFT_WIDGET_GOOGLE_MAPS_KEY ?? "__REPLACE_AT_BUILD_TIME__";
+  process.env.SWIFT_WIDGET_GOOGLE_MAPS_KEY ?? PLACEHOLDER;
+
+// Runtime guard: if the widget ships with an empty or unreplaced key,
+// the Maps script will silently fail to load — which is maddening to
+// debug. Warn loudly at module evaluation so the bundle log shows it.
+if (
+  typeof window !== "undefined" &&
+  (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === PLACEHOLDER)
+) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    "[@swift/catering-widget] Google Maps API key was not injected at build " +
+      "time. The address-autocomplete field will not work. Set " +
+      "SWIFT_WIDGET_GOOGLE_MAPS_KEY before running the widget build."
+  );
+}
 ```
 
 The final value is injected by `tsup` at build time. Update `tsup.config.ts`:
@@ -2069,7 +2011,7 @@ git commit -m "refactor: route all API calls through the widget API client"
 - [ ] **Step 1: Write `src/CateringWidget.tsx`**
 
 ```tsx
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactElement } from "react";
 import type { CateringWidgetProps, WidgetError } from "./types/public";
 import {
   CateringConfigProvider,
@@ -2083,7 +2025,7 @@ import { CateringOrderBuilder } from "./components/CateringOrderBuilder";
 
 const STUB_PARTNER_ID = "stub";
 
-export function CateringWidget(props: CateringWidgetProps): JSX.Element {
+export function CateringWidget(props: CateringWidgetProps): ReactElement {
   const {
     publishableKey,
     theme,
@@ -2327,10 +2269,13 @@ const preview: Preview = {
 export default preview;
 ```
 
-- [ ] **Step 4: Delete the default stories Storybook generated** (if any)
+- [ ] **Step 4: Remove Storybook's example stubs and prepare `stories/` for our own**
+
+Storybook 8's init typically creates example files under `stories/` at the package root (and sometimes under `src/stories/` depending on the template). Wipe both possible locations, then re-create an empty `stories/` so F3 and F4 have a target:
 
 ```bash
-rm -rf packages/catering-widget/src/stories
+rm -rf packages/catering-widget/stories packages/catering-widget/src/stories
+mkdir -p packages/catering-widget/stories
 ```
 
 - [ ] **Step 5: Commit**
@@ -3230,3 +3175,30 @@ Anything in these sections of the design doc is **not** part of this plan; track
 - **Halkin (§Halkin considerations):** deposit step, linked coworking order, questionnaire, admin review, session-token auth. The widget ships focused on the standard catering flow.
 
 When any of the above becomes active work, it gets its own spec + plan.
+
+---
+
+## Known post-MVP improvements
+
+These are acceptable in the MVP but should be addressed before a wider partner release. Track as follow-ups; not part of this plan.
+
+### Lazy-load `@react-pdf/renderer`
+
+**Current state.** The widget statically imports `@react-pdf/renderer` (~500KB–1MB minified) at the top of the PDF module. Every partner's page pays that cost on first load even though most end-users never click "Download PDF."
+
+**Improvement.** Replace the top-level import with a dynamic `import()` inside the download handler:
+
+```tsx
+async function handleDownloadPdf(order: Order) {
+  const [{ pdf }, { CateringMenuPdf }] = await Promise.all([
+    import("@react-pdf/renderer"),
+    import("../pdf/CateringMenuPdf"),
+  ]);
+  const blob = await pdf(<CateringMenuPdf order={order} />).toBlob();
+  // trigger download
+}
+```
+
+**Build-config change required.** `tsup.config.ts` currently sets `splitting: false`. Switch to `splitting: true` so the ESM build emits a separate chunk for the dynamic import. (CJS doesn't support code-splitting — CJS consumers continue to bundle everything, which is acceptable since modern React hosts use ESM.)
+
+**Rationale for deferring.** Premature optimization during the MVP. The cost is a one-time bundle bloat on partner sites, not a broken feature. Worth measuring first; revisit when (a) a partner complains about widget load time, or (b) we're preparing the first public/stable release. Changing this post-MVP is a small, contained refactor.
