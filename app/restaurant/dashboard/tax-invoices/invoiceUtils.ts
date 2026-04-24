@@ -27,18 +27,18 @@ export interface CommissionInvoiceData {
     totalOrderValue: number;
     netCommission: number;
     commissionVatRate: string;
-    commissionVat: string;
+    commissionVat: number;
     grossCommission: number;
   }>;
 
   totalQuantity: number;
   totalOrderValue: number;
   totalNetCommission: number;
-  totalCommissionVat: string;
+  totalCommissionVat: number;
   totalGrossCommission: number;
 
   invoiceNet: number;
-  invoiceVat: string;
+  invoiceVat: number;
   invoiceTotal: number;
 
   commissionRate: number;
