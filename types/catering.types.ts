@@ -855,6 +855,8 @@ export interface CreateMenuItemDto {
   deliveryPortionSize?: string;
   vatApplicable?: boolean;
   minOrderQuantity?: number;
+  mealCategory?: string;
+  mealTime?: string;
 }
 
 export interface MenuItemDetails extends CreateMenuItemDto {
@@ -890,4 +892,6 @@ export interface UpdateMenuItemDto {
   cateringQuantityUnit?: number;
   vatApplicable?: boolean;
   minOrderQuantity?: number;
+  mealCategory?: string;
+  mealTime?: string;
 }

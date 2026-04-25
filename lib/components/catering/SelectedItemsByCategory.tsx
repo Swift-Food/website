@@ -274,51 +274,8 @@ export default function SelectedItemsByCategory({
                 })()}
               </div>
             )}
-            {item.allergens && item.allergens.length > 0 && (
-              <div className="mt-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleAllergen(originalIndex);
-                  }}
-                  className="flex items-center gap-1 text-xs font-medium text-orange-700 hover:text-orange-800 transition-colors"
-                >
-                  <span className="text-orange-600">⚠️</span>
-                  <span>Allergens ({item.allergens.length})</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-3 w-3 transition-transform ${
-                      expandedAllergens.has(originalIndex) ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-                {expandedAllergens.has(originalIndex) && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {item.allergens.map((allergenValue: string) => {
-                      const allergen = ALLERGENS.find((a) => a.value === allergenValue);
-                      return (
-                        <span
-                          key={allergenValue}
-                          className="inline-flex items-center bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs"
-                        >
-                          {allergen?.label || allergenValue}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+          
+    
           </div>
         </div>
 

@@ -25,6 +25,12 @@ interface FormData {
   eventImages: string[];
   showOnSite: boolean;
   isCorporate: boolean;
+  cuisine: string;
+  cateringFormats: string[];
+  dietarySupport: string[];
+  minCapacity: string;
+  maxCapacity: string;
+  cateringServiceWindows: string[];
 }
 
 const RestaurantSettingsPage = () => {
@@ -48,6 +54,12 @@ const RestaurantSettingsPage = () => {
     eventImages: [],
     showOnSite: false,
     isCorporate: false,
+    cuisine: "other",
+    cateringFormats: [],
+    dietarySupport: [],
+    minCapacity: "",
+    maxCapacity: "",
+    cateringServiceWindows: [],
   });
 
   const [uploadingEventImage, setUploadingEventImage] = useState(false);
@@ -79,6 +91,12 @@ const RestaurantSettingsPage = () => {
           eventImages: eventImages,
           showOnSite: restaurantDetails.showOnSite || false,
           isCorporate: restaurantDetails.isCorporate || false,
+          cuisine: restaurantDetails.cuisine || "other",
+          cateringFormats: restaurantDetails.cateringFormats || [],
+          dietarySupport: restaurantDetails.dietarySupport || [],
+          minCapacity: restaurantDetails.minCapacity ? String(restaurantDetails.minCapacity) : "",
+          maxCapacity: restaurantDetails.maxCapacity ? String(restaurantDetails.maxCapacity) : "",
+          cateringServiceWindows: restaurantDetails.cateringServiceWindows || [],
         });
         setLoading(false);
         sessionStorage.removeItem("restaurantData");
@@ -107,6 +125,12 @@ const RestaurantSettingsPage = () => {
         eventImages: eventImages,
         showOnSite: restaurantDetails.showOnSite || false,
         isCorporate: restaurantDetails.isCorporate || false,
+        cuisine: restaurantDetails.cuisine || "other",
+        cateringFormats: restaurantDetails.cateringFormats || [],
+        dietarySupport: restaurantDetails.dietarySupport || [],
+        minCapacity: restaurantDetails.minCapacity ? String(restaurantDetails.minCapacity) : "",
+        maxCapacity: restaurantDetails.maxCapacity ? String(restaurantDetails.maxCapacity) : "",
+        cateringServiceWindows: restaurantDetails.cateringServiceWindows || [],
       });
     } catch (err: any) {
       setError(err.message || "Failed to load restaurant details");
@@ -262,6 +286,12 @@ const RestaurantSettingsPage = () => {
         contactNumber: formData.contactNumber,
         images: formData.images,
         eventImages: [...remainingEventImages, ...newEventImageUrls],
+        cuisine: formData.cuisine,
+        cateringFormats: formData.cateringFormats,
+        dietarySupport: formData.dietarySupport,
+        cateringServiceWindows: formData.cateringServiceWindows,
+        ...(formData.minCapacity ? { minCapacity: parseInt(formData.minCapacity) } : {}),
+        ...(formData.maxCapacity ? { maxCapacity: parseInt(formData.maxCapacity) } : {}),
       };
 
       await updateRestaurant(restaurantId, updateData);
@@ -345,6 +375,18 @@ const RestaurantSettingsPage = () => {
           saving={saving}
           error={error}
           success={success}
+          cuisine={formData.cuisine}
+          cateringFormats={formData.cateringFormats}
+          dietarySupport={formData.dietarySupport}
+          minCapacity={formData.minCapacity}
+          maxCapacity={formData.maxCapacity}
+          cateringServiceWindows={formData.cateringServiceWindows}
+          onCuisineChange={(value) => setFormData((prev) => ({ ...prev, cuisine: value }))}
+          onCateringFormatsChange={(value) => setFormData((prev) => ({ ...prev, cateringFormats: value }))}
+          onDietarySupportChange={(value) => setFormData((prev) => ({ ...prev, dietarySupport: value }))}
+          onMinCapacityChange={(value) => setFormData((prev) => ({ ...prev, minCapacity: value }))}
+          onMaxCapacityChange={(value) => setFormData((prev) => ({ ...prev, maxCapacity: value }))}
+          onCateringServiceWindowsChange={(value) => setFormData((prev) => ({ ...prev, cateringServiceWindows: value }))}
         />
 
         {showConfirmModal && (
