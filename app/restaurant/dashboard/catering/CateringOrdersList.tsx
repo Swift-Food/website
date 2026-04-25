@@ -226,6 +226,11 @@ export const CateringOrdersList = ({
       label: "Completed",
       count: ordersByStatus["completed"]?.length || 0,
     },
+    {
+      key: "cancelled",
+      label: "Cancelled",
+      count: ordersByStatus["cancelled"]?.length || 0,
+    },
   ];
 
   const statusTabs = showOnlyPendingReview
