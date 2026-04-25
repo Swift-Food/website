@@ -582,12 +582,7 @@ export const CateringOrderCard = ({
               {getPayoutAccountName() || "Not selected"}
             </span>
           </p>
-          {order.guestCount && (
-            <p className="text-gray-600">
-              Total Guests:{" "}
-              <span className="text-gray-900 font-medium">{order.guestCount}</span>
-            </p>
-          )}
+
         </div>
         <p className="text-sm text-gray-600 mt-2">
           Delivery:{" "}
@@ -605,9 +600,13 @@ export const CateringOrderCard = ({
               Meal Sessions ({order.mealSessions!.length})
             </h4>
             <div className="space-y-3">
-              {order.mealSessions!.map((session) =>
-                renderMealSession(session)
-              )}
+              {[...order.mealSessions!]
+                .sort((a, b) => {
+                  const dateA = new Date(`${a.sessionDate}T${a.collectionTime || a.eventTime || "00:00"}`).getTime();
+                  const dateB = new Date(`${b.sessionDate}T${b.collectionTime || b.eventTime || "00:00"}`).getTime();
+                  return dateA - dateB;
+                })
+                .map((session) => renderMealSession(session))}
             </div>
           </>
         ) : (

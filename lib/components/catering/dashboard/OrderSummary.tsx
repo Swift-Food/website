@@ -58,7 +58,13 @@ export default function OrderSummary({ order }: OrderSummaryProps) {
           {/* Delivery fee breakdown - Show per session */}
           {showDeliveryBreakdown && (order as any).mealSessions && (
             <div className="pl-4 space-y-1 text-xs text-gray-600">
-              {(order as any).mealSessions.map((session: any, index: number) => (
+              {[...(order as any).mealSessions]
+                .sort((a: any, b: any) => {
+                  const dateA = new Date(`${a.sessionDate}T${a.collectionTime || a.eventTime || "00:00"}`).getTime();
+                  const dateB = new Date(`${b.sessionDate}T${b.collectionTime || b.eventTime || "00:00"}`).getTime();
+                  return dateA - dateB;
+                })
+                .map((session: any, index: number) => (
                 <div key={index} className="flex justify-between">
                   <span>{session.sessionName}:</span>
                   <span>£{session.deliveryFee.toFixed(2)}</span>
