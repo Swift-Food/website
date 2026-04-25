@@ -3,7 +3,7 @@
  * Displays event details like date, time, delivery address
  */
 
-import { formatDate, formatEventTime } from "../utils/format.utils";
+import { formatDate, formatCollectionTimeRange, formatEventTimeRange } from "../utils/format.utils";
 
 interface EventInformationProps {
   eventDate: string | Date;
@@ -35,7 +35,7 @@ export function EventInformation({
         <p className="text-gray-600">
           Collection Time:{" "}
           <span className="text-gray-900 font-medium">
-            {collectionTime ? collectionTime : formatEventTime(eventTime)}
+            {collectionTime ? formatCollectionTimeRange(collectionTime) : formatEventTimeRange(eventTime)}
           </span>
         </p>
         <p className="text-gray-600">

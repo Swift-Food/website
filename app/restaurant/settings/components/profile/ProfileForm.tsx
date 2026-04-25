@@ -4,6 +4,55 @@ import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react";
 import { ImageUploadSection } from "./ImageUploadSection";
 import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
 
+const CUISINE_OPTIONS = [
+  { value: "british", label: "British" },
+  { value: "italian", label: "Italian" },
+  { value: "chinese", label: "Chinese" },
+  { value: "japanese", label: "Japanese" },
+  { value: "korean", label: "Korean" },
+  { value: "indian", label: "Indian" },
+  { value: "middle_eastern", label: "Middle Eastern" },
+  { value: "american", label: "American" },
+  { value: "mediterranean", label: "Mediterranean" },
+  { value: "thai", label: "Thai" },
+  { value: "mexican", label: "Mexican" },
+  { value: "caribbean", label: "Caribbean" },
+  { value: "african", label: "African" },
+  { value: "eastern_european", label: "Eastern European" },
+  { value: "fusion", label: "Fusion" },
+  { value: "other", label: "Other" },
+];
+
+const CATERING_FORMAT_OPTIONS = [
+  { value: "buffet", label: "Buffet" },
+  { value: "set_menu", label: "Set Menu" },
+  { value: "individual_box", label: "Individual Box" },
+  { value: "canapes", label: "Canapés" },
+  { value: "grazing_table", label: "Grazing Table" },
+  { value: "family_style", label: "Family Style" },
+];
+
+const DIETARY_SUPPORT_OPTIONS = [
+  { value: "vegetarian", label: "Vegetarian" },
+  { value: "vegan", label: "Vegan" },
+  { value: "halal", label: "Halal" },
+  { value: "kosher", label: "Kosher" },
+  { value: "gluten_free", label: "Gluten Free" },
+  { value: "dairy_free", label: "Dairy Free" },
+  { value: "nut_free", label: "Nut Free" },
+  { value: "peanut_free", label: "Peanut Free" },
+  { value: "high_protein", label: "High Protein" },
+  { value: "pescatarian", label: "Pescatarian" },
+  { value: "low_calorie", label: "Low Calorie" },
+];
+
+const SERVICE_WINDOW_OPTIONS = [
+  { value: "breakfast", label: "Breakfast" },
+  { value: "lunch", label: "Lunch" },
+  { value: "dinner", label: "Dinner" },
+  { value: "all", label: "All Day" },
+];
+
 interface ProfileFormProps {
   restaurantName: string;
   description: string;
@@ -29,6 +78,19 @@ interface ProfileFormProps {
   saving: boolean;
   error: string;
   success: string;
+  // Catering capabilities
+  cuisine: string;
+  cateringFormats: string[];
+  dietarySupport: string[];
+  minCapacity: string;
+  maxCapacity: string;
+  cateringServiceWindows: string[];
+  onCuisineChange: (value: string) => void;
+  onCateringFormatsChange: (value: string[]) => void;
+  onDietarySupportChange: (value: string[]) => void;
+  onMinCapacityChange: (value: string) => void;
+  onMaxCapacityChange: (value: string) => void;
+  onCateringServiceWindowsChange: (value: string[]) => void;
 }
 
 export const ProfileForm = ({
@@ -56,7 +118,21 @@ export const ProfileForm = ({
   saving,
   error,
   success,
+  cuisine,
+  cateringFormats,
+  dietarySupport,
+  minCapacity,
+  maxCapacity,
+  cateringServiceWindows,
+  onCuisineChange,
+  onCateringFormatsChange,
+  onDietarySupportChange,
+  onMinCapacityChange,
+  onMaxCapacityChange,
+  onCateringServiceWindowsChange,
 }: ProfileFormProps) => {
+  const toggleArrayValue = (arr: string[], value: string): string[] =>
+    arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave();
@@ -205,6 +281,70 @@ export const ProfileForm = ({
               />
             </div>
           </div>
+
+            {/* Catering Capabilities */}
+            <div className="border-t border-gray-200"></div>
+
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-6">Catering Capabilities</h2>
+
+              {/* Primary Cuisine */}
+              <div className="mb-6">
+                <label className="block text-lg font-bold text-gray-900 mb-3">
+                  Primary Cuisine
+                </label>
+                <select
+                  value={cuisine}
+                  onChange={(e) => onCuisineChange(e.target.value)}
+                  className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
+                >
+                  {CUISINE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Service Formats */}
+              <div className="mb-6">
+                <label className="block text-lg font-bold text-gray-900 mb-3">
+                  Service Formats
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {CATERING_FORMAT_OPTIONS.map((opt) => (
+                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cateringFormats.includes(opt.value)}
+                        onChange={() => onCateringFormatsChange(toggleArrayValue(cateringFormats, opt.value))}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dietary Capabilities */}
+              <div className="mb-6">
+                <label className="block text-lg font-bold text-gray-900 mb-3">
+                  Dietary Capabilities
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {DIETARY_SUPPORT_OPTIONS.map((opt) => (
+                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={dietarySupport.includes(opt.value)}
+                        onChange={() => onDietarySupportChange(toggleArrayValue(dietarySupport, opt.value))}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+      
+            </div>
 
           {/* Action Buttons */}
           <div className="flex gap-4 pt-8 mt-8 border-t border-gray-200">

@@ -603,9 +603,13 @@ export default function AllMealSessionsItems({
   };
 
   // Filter out empty sessions
-  const nonEmptySessions = mealSessions.filter(
-    (session) => session.orderItems.length > 0,
-  );
+  const nonEmptySessions = mealSessions
+    .filter((session) => session.orderItems.length > 0)
+    .sort((a, b) => {
+      const dateA = new Date(`${a.sessionDate}T${a.eventTime || "00:00"}`).getTime();
+      const dateB = new Date(`${b.sessionDate}T${b.eventTime || "00:00"}`).getTime();
+      return dateA - dateB;
+    });
 
   if (nonEmptySessions.length === 0) {
     return null;

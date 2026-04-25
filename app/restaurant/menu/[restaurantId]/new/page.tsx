@@ -63,6 +63,8 @@ const NewMenuItemPage = () => {
   const [deliveryPortionSize, setDeliveryPortionSize] = useState<string>("");
   const [minOrderQuantity, setMinOrderQuantity] = useState<string>("1");
   const [vatApplicable, setVatApplicable] = useState(false);
+  const [mealCategory, setMealCategory] = useState<string>("main");
+  const [mealTime, setMealTime] = useState<string>("all");
 
   // Group management state
   const [existingGroups, setExistingGroups] = useState<string[]>([]);
@@ -515,6 +517,8 @@ const NewMenuItemPage = () => {
         ...(deliveryPortionSize ? { deliveryPortionSize } : {}),
         minOrderQuantity: parseInt(minOrderQuantity) || 1,
         vatApplicable,
+        mealCategory,
+        mealTime,
       };
 
       await cateringService.createMenuItem(createData);
@@ -741,6 +745,40 @@ const NewMenuItemPage = () => {
                 <p className="text-xs text-gray-500 mt-1">
                   Number of people this item feeds (optional)
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Meal Category *
+                </label>
+                <select
+                  value={mealCategory}
+                  onChange={(e) => setMealCategory(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                >
+                  <option value="snack">Snack</option>
+                  <option value="main">Main</option>
+                  <option value="drink">Drink</option>
+                  <option value="dessert">Dessert</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Meal Time *
+                </label>
+                <select
+                  value={mealTime}
+                  onChange={(e) => setMealTime(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                >
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="all">All</option>
+                </select>
               </div>
             </div>
 

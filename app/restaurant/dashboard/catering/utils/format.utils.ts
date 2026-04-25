@@ -34,3 +34,18 @@ export function formatEventTime(eventTime: string): string {
     "0"
   )}`;
 }
+
+function subtractMinutes(time: string, mins: number): string {
+  const [hours, minutes] = time.split(":").map(Number);
+  const total = ((hours * 60 + minutes - mins) % (24 * 60) + 24 * 60) % (24 * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+export function formatCollectionTimeRange(collectionTime: string): string {
+  return `${subtractMinutes(collectionTime, 30)} – ${collectionTime}`;
+}
+
+export function formatEventTimeRange(eventTime: string): string {
+  const collectionTime = formatEventTime(eventTime);
+  return formatCollectionTimeRange(collectionTime);
+}
