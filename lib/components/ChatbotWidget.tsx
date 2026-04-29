@@ -123,9 +123,27 @@ export default function ChatbotWidget() {
         body: JSON.stringify({ message: text.trim() }),
       });
 
-      if (res.status === 503) {
+      if (res.status === 409) {
+        // Pessimistic session lock collision — another tab/click is in flight.
         throw new Error(
-          "The AI is taking a breather (rate-limited). Try again in a few seconds.",
+          "Just a moment — your last message is still being processed.",
+        );
+      }
+      if (res.status === 503) {
+        // Backend now produces a friendlier message that may include
+        // Google's retry-after hint (e.g. "try again in about 21s").
+        // Surface whatever it sent verbatim instead of a hardcoded fallback.
+        let backendMessage: string | undefined;
+        try {
+          const body = await res.json();
+          backendMessage =
+            typeof body?.message === "string" ? body.message : undefined;
+        } catch {
+          // body wasn't JSON — fall through to default
+        }
+        throw new Error(
+          backendMessage ??
+            "Our AI is having a busy moment — give it 20–30 seconds and try again.",
         );
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
