@@ -184,9 +184,15 @@ export default function ChatbotWidget() {
       return;
     }
     if (chip.action === "place_order") {
+      // Hand off to /event-order with the chat session id. The page
+      // resolves the draft and prefills CateringContext before
+      // mounting. Use the FRONTEND's origin so this works in dev
+      // (localhost) and production identically — the backend's
+      // place-order response is treated as a confirmation that the
+      // hand-off is allowed; we construct the URL ourselves.
       try {
-        const { redirectUrl } = await api.placeOrder(sid);
-        if (redirectUrl) window.location.href = redirectUrl;
+        await api.placeOrder(sid);
+        window.location.href = `/event-order?draftSessionId=${encodeURIComponent(sid)}`;
       } catch (e) {
         setError("Couldn't move to checkout — try again in a moment.");
       }
