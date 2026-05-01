@@ -230,29 +230,45 @@ export default function CateringAIClient() {
             <div
               style={{
                 flex: 1,
-                overflowY: "auto",
+                minHeight: 0,
+                position: "relative",
               }}
             >
               {latestSummaryCard && (
                 <div
                   style={{
-                    position: "sticky",
+                    position: "absolute",
                     top: 0,
+                    left: 0,
+                    right: 0,
                     zIndex: 5,
                     padding: "12px 20px 0",
+                    pointerEvents: "none",
                   }}
                 >
-                  <SummaryCard
-                    taxonomy={latestSummaryCard.taxonomy}
-                    editable={latestSummaryCard.editable}
-                    onEdit={handleEditField}
-                    collapsible
-                  />
+                  <div style={{ pointerEvents: "auto" }}>
+                    <SummaryCard
+                      taxonomy={latestSummaryCard.taxonomy}
+                      editable={latestSummaryCard.editable}
+                      onEdit={handleEditField}
+                      collapsible
+                    />
+                  </div>
                 </div>
               )}
               <div
                 style={{
-                  padding: "16px 24px",
+                  position: "absolute",
+                  inset: 0,
+                  overflowY: "auto",
+                }}
+              >
+              <div
+                style={{
+                  paddingLeft: 24,
+                  paddingRight: 24,
+                  paddingBottom: 16,
+                  paddingTop: latestSummaryCard ? 76 : 16,
                   display: "flex",
                   flexDirection: "column",
                   gap: 14,
@@ -289,6 +305,7 @@ export default function CateringAIClient() {
                 </motion.div>
               )}
               <div ref={messagesEndRef} />
+              </div>
               </div>
             </div>
 
