@@ -128,7 +128,6 @@ function RestaurantCard({
         display: "flex",
         flexDirection: "column",
         gap: 8,
-        boxShadow: isCurrent ? "var(--shadow-lift)" : "var(--shadow-card)",
         position: "relative",
       }}
     >

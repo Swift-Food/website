@@ -86,9 +86,7 @@ export default function CateringAIClient() {
   }, []);
 
   const hasLeftContent =
-    latestSummaryCard !== null ||
-    latestDraft !== null ||
-    actionChips.length > 0;
+    latestDraft !== null || actionChips.length > 0;
 
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
@@ -181,13 +179,6 @@ export default function CateringAIClient() {
                   gap: 18,
                 }}
               >
-                {latestSummaryCard && (
-                  <SummaryCard
-                    taxonomy={latestSummaryCard.taxonomy}
-                    editable={latestSummaryCard.editable}
-                    onEdit={handleEditField}
-                  />
-                )}
                 {latestDraft && (
                   <RestaurantStrip
                     draft={latestDraft}
@@ -240,12 +231,33 @@ export default function CateringAIClient() {
               style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "24px 24px 16px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 14,
               }}
             >
+              {latestSummaryCard && (
+                <div
+                  style={{
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 5,
+                    padding: "12px 20px 0",
+                  }}
+                >
+                  <SummaryCard
+                    taxonomy={latestSummaryCard.taxonomy}
+                    editable={latestSummaryCard.editable}
+                    onEdit={handleEditField}
+                    collapsible
+                  />
+                </div>
+              )}
+              <div
+                style={{
+                  padding: "16px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 14,
+                }}
+              >
               {bootstrapping && chatMessages.length === 0 && (
                 <div
                   style={{
@@ -277,6 +289,7 @@ export default function CateringAIClient() {
                 </motion.div>
               )}
               <div ref={messagesEndRef} />
+              </div>
             </div>
 
             <hr className="hairline" />
