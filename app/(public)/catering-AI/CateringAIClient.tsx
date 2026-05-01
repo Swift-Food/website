@@ -1,27 +1,30 @@
 "use client";
 
 import "@/lib/components/chatbot/styles.css";
-import { useEffect, useRef, useState, FormEvent, KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, FormEvent, KeyboardEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fraunces, geist } from "@/lib/components/chatbot/fonts";
-import { MessageThread } from "@/lib/components/chatbot/MessageThread";
+import { MessageThread, type ThreadMessage } from "@/lib/components/chatbot/MessageThread";
 import { EditFieldModal } from "@/lib/components/chatbot/edit/EditFieldModal";
 import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
+import { SummaryCard } from "@/lib/components/chatbot/parts/SummaryCard";
+import { ChipGroup } from "@/lib/components/chatbot/parts/ChipGroup";
 import { MenuDraftPanel } from "@/lib/components/chatbot/page/MenuDraftPanel";
+import { RestaurantStrip } from "@/lib/components/chatbot/page/RestaurantStrip";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
 import type { SwapOption } from "@/lib/components/chatbot/api";
-import type { Chip } from "@/lib/components/chatbot/types";
+import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
 
 /**
- * Full-page version of the catering chatbot at /catering-AI. Shares
- * the conversation logic (useChatSession) and primitive renderers
- * (MessageThread, modals, item rows) with the floating widget — only
- * the layout and chrome are different.
+ * Full-page version of the catering chatbot at /catering-AI. Routes
+ * message parts to two surfaces:
  *
- * Pre-draft: chat is centered, full width.
- * Post-draft: page splits into 2 columns, with the menu draft on the
- * left animating in from the side.
- * Mobile (<900px): columns stack vertically (draft above chat).
+ *   Left column   summary card (event details), restaurant strip,
+ *                 menu items, sticky action bar (Confirm / Place order).
+ *   Right column  chat thread — text + clarifier parts only, plus
+ *                 conversational `send_text` chips. Form-state and
+ *                 action chips never appear here, so editing a slot
+ *                 doesn't pollute the conversation.
  */
 export default function CateringAIClient() {
   const [input, setInput] = useState("");
@@ -42,6 +45,8 @@ export default function CateringAIClient() {
     error,
     sessionId,
     latestDraft,
+    latestSummaryCard,
+    latestChips,
     sendText,
     handleChip,
     applyEditField,
@@ -53,15 +58,37 @@ export default function CateringAIClient() {
     getTaxonomyValueFor,
   } = chat;
 
+  // Filter the chat thread: keep text + clarifier + conversational
+  // (send_text) chips. Drop summary, draft, and action chips — those
+  // live in the left column.
+  const chatMessages = useMemo<ThreadMessage[]>(
+    () =>
+      messages
+        .map((m) => ({ ...m, parts: chatPartsOnly(m.parts) }))
+        .filter((m) => m.parts.length > 0),
+    [messages],
+  );
+
+  // Action chips (everything that isn't a conversational send_text).
+  const actionChips = useMemo<Chip[]>(
+    () => (latestChips ?? []).filter((c) => c.action !== "send_text"),
+    [latestChips],
+  );
+
   // Auto-scroll to newest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, sending]);
+  }, [chatMessages, sending]);
 
   // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  const hasLeftContent =
+    latestSummaryCard !== null ||
+    latestDraft !== null ||
+    actionChips.length > 0;
 
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
@@ -113,7 +140,6 @@ export default function CateringAIClient() {
   }
 
   const fontClass = `${fraunces.variable} ${geist.variable}`;
-  const hasDraft = latestDraft !== null;
 
   return (
     <div
@@ -122,9 +148,9 @@ export default function CateringAIClient() {
     >
       <div className="swift-chat-page-shell">
         <AnimatePresence initial={false}>
-          {hasDraft && (
+          {hasLeftContent && (
             <motion.aside
-              key="draft-aside"
+              key="left-aside"
               initial={
                 prefersReducedMotion
                   ? { opacity: 0 }
@@ -144,13 +170,50 @@ export default function CateringAIClient() {
               className="swift-chat-page-aside"
               style={{ overflow: "hidden" }}
             >
-              <MenuDraftPanel
-                draft={latestDraft!}
-                onSwap={handleSwap}
-                onRemove={(id) => void remove(id)}
-                onQtyChange={(id, qty) => void setQuantity(id, qty)}
-                onPickRestaurant={(id) => void pickRestaurant(id)}
-              />
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: "auto",
+                  padding: "20px 24px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 18,
+                }}
+              >
+                {latestSummaryCard && (
+                  <SummaryCard
+                    taxonomy={latestSummaryCard.taxonomy}
+                    editable={latestSummaryCard.editable}
+                    onEdit={handleEditField}
+                  />
+                )}
+                {latestDraft && (
+                  <RestaurantStrip
+                    draft={latestDraft}
+                    onPick={(id) => void pickRestaurant(id)}
+                  />
+                )}
+                {latestDraft && (
+                  <MenuDraftPanel
+                    draft={latestDraft}
+                    onSwap={handleSwap}
+                    onRemove={(id) => void remove(id)}
+                    onQtyChange={(id, qty) => void setQuantity(id, qty)}
+                  />
+                )}
+              </div>
+              {actionChips.length > 0 && (
+                <div
+                  style={{
+                    borderTop: "1px solid var(--rule)",
+                    background: "var(--paper)",
+                    padding: "12px 20px",
+                  }}
+                >
+                  <ChipGroup chips={actionChips} onAction={handleChipClick} />
+                </div>
+              )}
             </motion.aside>
           )}
         </AnimatePresence>
@@ -167,7 +230,7 @@ export default function CateringAIClient() {
               minHeight: 0,
               display: "flex",
               flexDirection: "column",
-              maxWidth: hasDraft ? "none" : 760,
+              maxWidth: hasLeftContent ? "none" : 760,
               width: "100%",
               margin: "0 auto",
               transition: "max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
@@ -183,7 +246,7 @@ export default function CateringAIClient() {
                 gap: 14,
               }}
             >
-              {bootstrapping && messages.length === 0 && (
+              {bootstrapping && chatMessages.length === 0 && (
                 <div
                   style={{
                     textAlign: "center",
@@ -197,13 +260,9 @@ export default function CateringAIClient() {
               )}
 
               <MessageThread
-                messages={messages}
+                messages={chatMessages}
                 onChip={handleChipClick}
                 onEditField={handleEditField}
-                onSwapItem={handleSwap}
-                onRemoveItem={(id) => void remove(id)}
-                onQtyChange={(id, qty) => void setQuantity(id, qty)}
-                onPickRestaurant={(id) => void pickRestaurant(id)}
               />
 
               {sending && <TypingIndicator />}
@@ -262,6 +321,28 @@ export default function CateringAIClient() {
       />
     </div>
   );
+}
+
+/**
+ * Filter parts so the chat thread only carries text, clarifier, and
+ * conversational `send_text` chips. Form state (summary_card,
+ * menu_draft) and action chips are owned by the left column.
+ */
+function chatPartsOnly(parts: MessagePart[]): MessagePart[] {
+  const result: MessagePart[] = [];
+  for (const p of parts) {
+    if (p.type === "text" || p.type === "clarifier") {
+      result.push(p);
+      continue;
+    }
+    if (p.type === "chips") {
+      const conversational = p.chips.filter((c) => c.action === "send_text");
+      if (conversational.length > 0) {
+        result.push({ type: "chips", chips: conversational });
+      }
+    }
+  }
+  return result;
 }
 
 // ---------------- Sub-components ----------------

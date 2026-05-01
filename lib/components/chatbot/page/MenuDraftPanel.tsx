@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import { DraftItemRow } from "../items/DraftItemRow";
-import { RestaurantStrip } from "./RestaurantStrip";
 import type { DraftItem, MealCategory, MenuDraft } from "../types";
 
 interface MenuDraftPanelProps {
@@ -10,7 +9,6 @@ interface MenuDraftPanelProps {
   onSwap: (itemId: string, itemName: string) => void;
   onRemove: (itemId: string) => void;
   onQtyChange: (itemId: string, qty: number) => void;
-  onPickRestaurant: (restaurantId: string) => void;
 }
 
 const CATEGORY_LABELS: Record<MealCategory, string> = {
@@ -23,17 +21,16 @@ const CATEGORY_LABELS: Record<MealCategory, string> = {
 const CATEGORY_ORDER: MealCategory[] = ["main", "snack", "drink", "dessert"];
 
 /**
- * Full-page left-column draft view. Shares item primitives with the
- * floating widget's MenuDraftCard but uses a roomier layout: a
- * dedicated restaurant strip on top, a header block for the picked
- * restaurant, a pricing block, then category sections of items.
+ * Pricing block + grouped item list for the picked restaurant. Pure
+ * content — no fixed height, no internal scroll. The page-aside owns
+ * the scroll context so summary card, restaurant strip, and items
+ * scroll as one continuous column.
  */
 export function MenuDraftPanel({
   draft,
   onSwap,
   onRemove,
   onQtyChange,
-  onPickRestaurant,
 }: MenuDraftPanelProps) {
   const grouped: Record<MealCategory, DraftItem[]> = {
     main: [],
@@ -54,54 +51,44 @@ export function MenuDraftPanel({
         hidden: {},
         visible: { transition: { staggerChildren: 0.04, delayChildren: 0.06 } },
       }}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        background: "var(--paper)",
-        overflow: "hidden",
-      }}
     >
-      <RestaurantStrip draft={draft} onPick={onPickRestaurant} />
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px 28px" }}>
-        <PricingBlock draft={draft} />
-        {CATEGORY_ORDER.map((cat) => {
-          const items = grouped[cat];
-          if (items.length === 0) return null;
-          return (
-            <motion.section
-              key={cat}
-              variants={{
-                hidden: { opacity: 0 },
-                visible: { opacity: 1, transition: { duration: 0.2 } },
+      <PricingBlock draft={draft} />
+      {CATEGORY_ORDER.map((cat) => {
+        const items = grouped[cat];
+        if (items.length === 0) return null;
+        return (
+          <motion.section
+            key={cat}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { duration: 0.2 } },
+            }}
+            style={{ marginTop: 22 }}
+          >
+            <div
+              className="small-caps"
+              style={{
+                marginBottom: 6,
+                fontSize: "0.72rem",
+                letterSpacing: "0.18em",
               }}
-              style={{ marginTop: 22 }}
             >
-              <div
-                className="small-caps"
-                style={{
-                  marginBottom: 6,
-                  fontSize: "0.72rem",
-                  letterSpacing: "0.18em",
-                }}
-              >
-                {CATEGORY_LABELS[cat]}
-              </div>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                {items.map((item) => (
-                  <DraftItemRow
-                    key={item.id}
-                    item={item}
-                    onSwap={() => onSwap(item.id, item.name)}
-                    onRemove={() => onRemove(item.id)}
-                    onQtyChange={(q) => onQtyChange(item.id, q)}
-                  />
-                ))}
-              </ul>
-            </motion.section>
-          );
-        })}
-      </div>
+              {CATEGORY_LABELS[cat]}
+            </div>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+              {items.map((item) => (
+                <DraftItemRow
+                  key={item.id}
+                  item={item}
+                  onSwap={() => onSwap(item.id, item.name)}
+                  onRemove={() => onRemove(item.id)}
+                  onQtyChange={(q) => onQtyChange(item.id, q)}
+                />
+              ))}
+            </ul>
+          </motion.section>
+        );
+      })}
     </motion.div>
   );
 }

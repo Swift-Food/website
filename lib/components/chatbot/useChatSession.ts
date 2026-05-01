@@ -8,11 +8,17 @@ import type {
   ChatResponse,
   ChatStatus,
   Chip,
+  CollectedTaxonomyView,
   MenuDraft,
   MessagePart,
 } from "./types";
 
 const STORAGE_KEY = "swift-food-chat-session";
+
+export interface SummaryCardSnapshot {
+  taxonomy: CollectedTaxonomyView;
+  editable: string[];
+}
 
 export interface ChatSession {
   // state
@@ -23,6 +29,8 @@ export interface ChatSession {
   sessionId: string | null;
   status: ChatStatus | null;
   latestDraft: MenuDraft | null;
+  latestSummaryCard: SummaryCardSnapshot | null;
+  latestChips: Chip[] | null;
 
   // setters the consumer needs
   setError: (msg: string | null) => void;
@@ -331,6 +339,11 @@ export function useChatSession(
   }, []);
 
   const latestDraft = useMemo(() => findLatestDraft(messages), [messages]);
+  const latestSummaryCard = useMemo(
+    () => findLatestSummaryCard(messages),
+    [messages],
+  );
+  const latestChips = useMemo(() => findLatestChips(messages), [messages]);
 
   return {
     messages,
@@ -340,6 +353,8 @@ export function useChatSession(
     sessionId,
     status,
     latestDraft,
+    latestSummaryCard,
+    latestChips,
     setError,
     sendText,
     handleChip,
@@ -400,6 +415,32 @@ function findLatestDraft(messages: ThreadMessage[]): MenuDraft | null {
     for (let j = parts.length - 1; j >= 0; j--) {
       const p = parts[j];
       if (p.type === "menu_draft") return p.draft;
+    }
+  }
+  return null;
+}
+
+function findLatestSummaryCard(
+  messages: ThreadMessage[],
+): SummaryCardSnapshot | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const parts = messages[i].parts;
+    for (let j = parts.length - 1; j >= 0; j--) {
+      const p = parts[j];
+      if (p.type === "summary_card") {
+        return { taxonomy: p.taxonomy, editable: p.editable };
+      }
+    }
+  }
+  return null;
+}
+
+function findLatestChips(messages: ThreadMessage[]): Chip[] | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const parts = messages[i].parts;
+    for (let j = parts.length - 1; j >= 0; j--) {
+      const p = parts[j];
+      if (p.type === "chips") return p.chips;
     }
   }
   return null;
