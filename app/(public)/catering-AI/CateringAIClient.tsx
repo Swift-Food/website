@@ -118,9 +118,8 @@ export default function CateringAIClient() {
   return (
     <div
       className={`${fontClass} swift-chat-design swift-chat-page`}
-      style={{ height: "calc(100dvh - 80px)", minHeight: 560 }}
+      style={{ height: "100dvh", minHeight: 560 }}
     >
-      <PageHeader onRefresh={() => void resetSession()} />
       <div className="swift-chat-page-shell">
         <AnimatePresence initial={false}>
           {hasDraft && (
@@ -161,6 +160,7 @@ export default function CateringAIClient() {
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="swift-chat-page-main"
         >
+          <PageHeader onRefresh={() => void resetSession()} />
           <div
             style={{
               flex: 1,

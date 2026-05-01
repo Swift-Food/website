@@ -1,6 +1,5 @@
 import "./globals.css";
-import Navbar from "@/lib/components/navbar";
-import Footer from "@/lib/components/footer";
+import { SiteNavbar, SiteFooter } from "@/lib/components/SiteChrome";
 import { IBM_Plex_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import { ScrollProvider } from "@/context/ScrollContext";
@@ -99,9 +98,9 @@ export default function RootLayout({
       <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
         <ScrollProvider>
           <div className="min-h-screen flex flex-col">
-            <Navbar />
+            <SiteNavbar />
             <main className="flex-1">{children}</main>
-            <Footer />
+            <SiteFooter />
           </div>
         </ScrollProvider>
       </body>
