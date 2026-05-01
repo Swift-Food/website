@@ -85,8 +85,19 @@ export default function CateringAIClient() {
     inputRef.current?.focus();
   }, []);
 
-  const hasLeftContent =
-    latestDraft !== null || actionChips.length > 0;
+  // Auto-grow textarea to fit content, capped at 4 lines.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 22;
+    const verticalPadding = 20;
+    const maxHeight = lineHeight * 4 + verticalPadding;
+    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [input]);
+
+  const hasLeftContent = latestDraft !== null;
 
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
@@ -194,17 +205,6 @@ export default function CateringAIClient() {
                   />
                 )}
               </div>
-              {actionChips.length > 0 && (
-                <div
-                  style={{
-                    borderTop: "1px solid var(--rule)",
-                    background: "var(--paper)",
-                    padding: "12px 20px",
-                  }}
-                >
-                  <ChipGroup chips={actionChips} onAction={handleChipClick} />
-                </div>
-              )}
             </motion.aside>
           )}
         </AnimatePresence>
@@ -309,8 +309,19 @@ export default function CateringAIClient() {
               </div>
             </div>
 
-            <hr className="hairline" />
-            <form onSubmit={handleSubmit} style={inputBarStyle}>
+            <div
+              style={{
+                borderTop: "1px solid var(--rule)",
+                background: "var(--paper)",
+                flexShrink: 0,
+              }}
+            >
+              {actionChips.length > 0 && (
+                <div style={{ padding: "12px 16px 4px" }}>
+                  <ChipGroup chips={actionChips} onAction={handleChipClick} />
+                </div>
+              )}
+              <form onSubmit={handleSubmit} style={inputBarStyle}>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -329,7 +340,8 @@ export default function CateringAIClient() {
               >
                 <SendIcon />
               </button>
-            </form>
+              </form>
+            </div>
           </div>
         </motion.main>
       </div>
@@ -534,8 +546,8 @@ const textareaStyle: React.CSSProperties = {
   fontSize: "0.95rem",
   fontFamily: "var(--font-body)",
   minHeight: 42,
-  maxHeight: 130,
   outline: "none",
+  overflowY: "hidden",
 };
 
 const sendButtonStyle: React.CSSProperties = {

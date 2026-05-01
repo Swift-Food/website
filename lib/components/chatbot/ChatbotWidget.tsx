@@ -57,6 +57,18 @@ export default function ChatbotWidget() {
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  // Auto-grow textarea to fit content, capped at 4 lines.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 22;
+    const verticalPadding = 20;
+    const maxHeight = lineHeight * 4 + verticalPadding;
+    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [input, open]);
+
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
       const field = chip.payload?.field as string | undefined;
@@ -409,8 +421,8 @@ const textareaStyle: React.CSSProperties = {
   fontSize: "0.95rem",
   fontFamily: "var(--font-body)",
   minHeight: 42,
-  maxHeight: 130,
   outline: "none",
+  overflowY: "hidden",
 };
 
 const sendButtonStyle: React.CSSProperties = {
