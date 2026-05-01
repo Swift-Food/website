@@ -1,9 +1,13 @@
 /*
- * Editorial Menu Card palette + tokens.
- * Scoped to the chatbot panel via the .swift-chat-panel root class so
- * nothing leaks into the rest of the site (which lives on IBM Plex Mono
- * + the Swift brand pink).
+ * Editorial Menu Card design system.
+ * Two surfaces share the tokens, fonts, and helper classes:
+ *   .swift-chat-panel  — the floating widget (fixed position, ~400px wide)
+ *   .swift-chat-design — the /catering-AI full-page surface (no positioning)
+ * Panel-specific positioning lives under .swift-chat-panel only.
  */
+
+/* ---------- Panel-only positioning ---------- */
+
 .swift-chat-panel {
   /* Default: full-bleed mobile panel */
   inset: 0;
@@ -22,7 +26,10 @@
   }
 }
 
-.swift-chat-panel {
+/* ---------- Shared design tokens & typography ---------- */
+
+.swift-chat-panel,
+.swift-chat-design {
   --paper:        #FBF7F4;
   --paper-deep:   #F4EFE8;
   --ink:          #1A1A1A;
@@ -49,7 +56,8 @@
 }
 
 /* Hairline grain — subtle paper texture, only visible on close inspection. */
-.swift-chat-panel::before {
+.swift-chat-panel::before,
+.swift-chat-design::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -61,22 +69,26 @@
   z-index: 0;
 }
 
-.swift-chat-panel > * {
+.swift-chat-panel > *,
+.swift-chat-design > * {
   position: relative;
   z-index: 1;
 }
 
-.swift-chat-panel .display {
+.swift-chat-panel .display,
+.swift-chat-design .display {
   font-family: var(--font-display);
   font-feature-settings: "ss01", "ss02";
 }
 
-.swift-chat-panel .display-italic {
+.swift-chat-panel .display-italic,
+.swift-chat-design .display-italic {
   font-family: var(--font-display);
   font-style: italic;
 }
 
-.swift-chat-panel .small-caps {
+.swift-chat-panel .small-caps,
+.swift-chat-design .small-caps {
   font-family: var(--font-display);
   font-weight: 500;
   font-size: 0.65rem;
@@ -85,14 +97,16 @@
   color: var(--ink-faint);
 }
 
-.swift-chat-panel .hairline {
+.swift-chat-panel .hairline,
+.swift-chat-design .hairline {
   height: 1px;
   background: var(--rule);
   margin: 0;
   border: 0;
 }
 
-.swift-chat-panel .chip {
+.swift-chat-panel .chip,
+.swift-chat-design .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -110,34 +124,40 @@
   white-space: nowrap;
 }
 
-.swift-chat-panel .chip:hover {
+.swift-chat-panel .chip:hover,
+.swift-chat-design .chip:hover {
   background: var(--paper-deep);
   border-color: var(--ink-faint);
 }
 
-.swift-chat-panel .chip-primary {
+.swift-chat-panel .chip-primary,
+.swift-chat-design .chip-primary {
   background: var(--ink);
   color: var(--paper);
   border-color: var(--ink);
 }
 
-.swift-chat-panel .chip-primary:hover {
+.swift-chat-panel .chip-primary:hover,
+.swift-chat-design .chip-primary:hover {
   background: var(--ink-soft);
   border-color: var(--ink-soft);
 }
 
-.swift-chat-panel .chip-brand {
+.swift-chat-panel .chip-brand,
+.swift-chat-design .chip-brand {
   background: var(--brand);
   color: white;
   border-color: var(--brand);
 }
 
-.swift-chat-panel .chip-brand:hover {
+.swift-chat-panel .chip-brand:hover,
+.swift-chat-design .chip-brand:hover {
   background: var(--brand-deep);
   border-color: var(--brand-deep);
 }
 
-.swift-chat-panel .reason {
+.swift-chat-panel .reason,
+.swift-chat-design .reason {
   font-family: var(--font-display);
   font-style: italic;
   font-size: 0.78rem;
@@ -145,7 +165,8 @@
   letter-spacing: 0.01em;
 }
 
-.swift-chat-panel .allergen-pill {
+.swift-chat-panel .allergen-pill,
+.swift-chat-design .allergen-pill {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
@@ -158,7 +179,8 @@
   text-transform: lowercase;
 }
 
-.swift-chat-panel .dietary-pill {
+.swift-chat-panel .dietary-pill,
+.swift-chat-design .dietary-pill {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
@@ -171,7 +193,8 @@
   text-transform: lowercase;
 }
 
-.swift-chat-panel .summary-row {
+.swift-chat-panel .summary-row,
+.swift-chat-design .summary-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -180,11 +203,13 @@
   border-bottom: 1px solid var(--rule);
 }
 
-.swift-chat-panel .summary-row:last-child {
+.swift-chat-panel .summary-row:last-child,
+.swift-chat-design .summary-row:last-child {
   border-bottom: 0;
 }
 
-.swift-chat-panel .summary-label {
+.swift-chat-panel .summary-label,
+.swift-chat-design .summary-label {
   font-family: var(--font-display);
   font-weight: 500;
   color: var(--ink-faint);
@@ -194,7 +219,8 @@
   flex-shrink: 0;
 }
 
-.swift-chat-panel .summary-value {
+.swift-chat-panel .summary-value,
+.swift-chat-design .summary-value {
   font-family: var(--font-body);
   color: var(--ink);
   font-size: 0.95rem;
@@ -203,13 +229,15 @@
   min-width: 0;
 }
 
-.swift-chat-panel .summary-value-empty {
+.swift-chat-panel .summary-value-empty,
+.swift-chat-design .summary-value-empty {
   color: var(--ink-faint);
   font-style: italic;
   font-family: var(--font-display);
 }
 
-.swift-chat-panel .pencil-btn {
+.swift-chat-panel .pencil-btn,
+.swift-chat-design .pencil-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -224,7 +252,61 @@
   flex-shrink: 0;
 }
 
-.swift-chat-panel .pencil-btn:hover {
+.swift-chat-panel .pencil-btn:hover,
+.swift-chat-design .pencil-btn:hover {
   background: var(--paper-deep);
   color: var(--ink);
+}
+
+/* ---------- Page-only layout ---------- */
+
+.swift-chat-design.swift-chat-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.swift-chat-design .swift-chat-page-shell {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.swift-chat-design .swift-chat-page-aside {
+  flex: 1 1 0;
+  min-width: 0;
+  border-right: 1px solid var(--rule);
+  background: var(--paper);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.swift-chat-design .swift-chat-page-main {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+@media (max-width: 900px) {
+  .swift-chat-design .swift-chat-page-shell {
+    flex-direction: column;
+  }
+  .swift-chat-design .swift-chat-page-aside {
+    flex: none;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    max-height: 60vh;
+  }
+  .swift-chat-design .swift-chat-page-main {
+    flex: 1 1 0;
+    min-height: 0;
+  }
 }

@@ -1,41 +1,47 @@
 "use client";
 
-import "./styles.css";
+import "@/lib/components/chatbot/styles.css";
 import { useEffect, useRef, useState, FormEvent, KeyboardEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { fraunces, geist } from "./fonts";
-import { MessageThread } from "./MessageThread";
-import { EditFieldModal } from "./edit/EditFieldModal";
-import { SwapModal } from "./items/SwapModal";
-import type { SwapOption } from "./api";
-import type { Chip } from "./types";
-import { useChatSession } from "./useChatSession";
+import { fraunces, geist } from "@/lib/components/chatbot/fonts";
+import { MessageThread } from "@/lib/components/chatbot/MessageThread";
+import { EditFieldModal } from "@/lib/components/chatbot/edit/EditFieldModal";
+import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
+import { MenuDraftPanel } from "@/lib/components/chatbot/page/MenuDraftPanel";
+import { useChatSession } from "@/lib/components/chatbot/useChatSession";
+import type { SwapOption } from "@/lib/components/chatbot/api";
+import type { Chip } from "@/lib/components/chatbot/types";
 
 /**
- * Editorial Menu Card chatbot. Cream paper panel, charcoal ink, brand
- * pink reserved for the header bar and primary CTAs. The conversation
- * thread renders typed parts (text bubbles, summary cards, chips, menu
- * drafts) inline. Refinement actions (swap/remove/qty/edit-field)
- * round-trip to deterministic backend endpoints — the LLM is only
- * involved when the user types free text.
+ * Full-page version of the catering chatbot at /catering-AI. Shares
+ * the conversation logic (useChatSession) and primitive renderers
+ * (MessageThread, modals, item rows) with the floating widget — only
+ * the layout and chrome are different.
+ *
+ * Pre-draft: chat is centered, full width.
+ * Post-draft: page splits into 2 columns, with the menu draft on the
+ * left animating in from the side.
+ * Mobile (<900px): columns stack vertically (draft above chat).
  */
-export default function ChatbotWidget() {
-  const [open, setOpen] = useState(false);
+export default function CateringAIClient() {
   const [input, setInput] = useState("");
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<unknown>(undefined);
-  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(null);
+  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(
+    null,
+  );
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  const chat = useChatSession({ enabled: open });
+  const chat = useChatSession({ enabled: true });
   const {
     messages,
     sending,
     bootstrapping,
     error,
     sessionId,
+    latestDraft,
     sendText,
     handleChip,
     applyEditField,
@@ -52,10 +58,10 @@ export default function ChatbotWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
 
-  // Focus input on open
+  // Focus input on mount
   useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
+    inputRef.current?.focus();
+  }, []);
 
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
@@ -107,63 +113,85 @@ export default function ChatbotWidget() {
   }
 
   const fontClass = `${fraunces.variable} ${geist.variable}`;
+  const hasDraft = latestDraft !== null;
 
   return (
-    <div className={fontClass}>
-      <AnimatePresence>
-        {!open && (
-          <motion.button
-            key="launcher"
-            aria-label="Open chat"
-            onClick={() => setOpen(true)}
-            initial={prefersReducedMotion ? undefined : { scale: 0, rotate: -10 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={prefersReducedMotion ? undefined : { scale: 0, opacity: 0 }}
-            whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+    <div
+      className={`${fontClass} swift-chat-design swift-chat-page`}
+      style={{ height: "calc(100dvh - 80px)", minHeight: 560 }}
+    >
+      <PageHeader onRefresh={() => void resetSession()} />
+      <div className="swift-chat-page-shell">
+        <AnimatePresence initial={false}>
+          {hasDraft && (
+            <motion.aside
+              key="draft-aside"
+              initial={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, x: -48, width: 0 }
+              }
+              animate={
+                prefersReducedMotion
+                  ? { opacity: 1 }
+                  : { opacity: 1, x: 0, width: "auto" }
+              }
+              exit={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, x: -48, width: 0 }
+              }
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="swift-chat-page-aside"
+              style={{ overflow: "hidden" }}
+            >
+              <MenuDraftPanel
+                draft={latestDraft!}
+                onSwap={handleSwap}
+                onRemove={(id) => void remove(id)}
+                onQtyChange={(id, qty) => void setQuantity(id, qty)}
+                onPickRestaurant={(id) => void pickRestaurant(id)}
+              />
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
+        <motion.main
+          layout
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="swift-chat-page-main"
+        >
+          <div
             style={{
-              position: "fixed",
-              bottom: 24,
-              right: 24,
-              zIndex: 50,
-              width: 56,
-              height: 56,
-              borderRadius: "50%",
-              backgroundColor: "var(--brand, #fa43ad)",
-              color: "white",
-              border: 0,
-              boxShadow: "0 4px 16px rgba(250, 67, 173, 0.35)",
-              cursor: "pointer",
+              flex: 1,
+              minHeight: 0,
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              flexDirection: "column",
+              maxWidth: hasDraft ? "none" : 760,
+              width: "100%",
+              margin: "0 auto",
+              transition: "max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           >
-            <ChatIcon />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            key="panel"
-            initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={prefersReducedMotion ? undefined : { opacity: 0, y: 8, scale: 0.99 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="swift-chat-panel"
-            role="dialog"
-            aria-label="Swift Food chat"
-            style={panelStyle}
-          >
-            <PanelHeader onRefresh={() => void resetSession()} onClose={() => setOpen(false)} />
-            <hr className="hairline" />
-
-            <div style={messagesContainerStyle}>
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "24px 24px 16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+              }}
+            >
               {bootstrapping && messages.length === 0 && (
-                <div style={{ textAlign: "center", color: "var(--ink-faint)", marginTop: 24, fontSize: "0.85rem" }}>
+                <div
+                  style={{
+                    textAlign: "center",
+                    color: "var(--ink-faint)",
+                    marginTop: 32,
+                    fontSize: "0.9rem",
+                  }}
+                >
                   Connecting…
                 </div>
               )}
@@ -213,56 +241,82 @@ export default function ChatbotWidget() {
                 <SendIcon />
               </button>
             </form>
+          </div>
+        </motion.main>
+      </div>
 
-            <EditFieldModal
-              open={editField !== null}
-              field={editField ?? ""}
-              initialValue={editValue}
-              onClose={() => setEditField(null)}
-              onSave={handleEditSave}
-            />
-            <SwapModal
-              open={swapTarget !== null}
-              sessionId={sessionId ?? ""}
-              itemId={swapTarget?.id ?? null}
-              itemName={swapTarget?.name ?? ""}
-              onClose={() => setSwapTarget(null)}
-              onPick={handleSwapPick}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <EditFieldModal
+        open={editField !== null}
+        field={editField ?? ""}
+        initialValue={editValue}
+        onClose={() => setEditField(null)}
+        onSave={handleEditSave}
+      />
+      <SwapModal
+        open={swapTarget !== null}
+        sessionId={sessionId ?? ""}
+        itemId={swapTarget?.id ?? null}
+        itemName={swapTarget?.name ?? ""}
+        onClose={() => setSwapTarget(null)}
+        onPick={handleSwapPick}
+      />
     </div>
   );
 }
 
 // ---------------- Sub-components ----------------
 
-function PanelHeader({
-  onRefresh,
-  onClose,
-}: {
-  onRefresh: () => void;
-  onClose: () => void;
-}) {
+function PageHeader({ onRefresh }: { onRefresh: () => void }) {
   return (
-    <div style={headerStyle}>
+    <div
+      style={{
+        background: "var(--brand)",
+        color: "white",
+        padding: "16px 24px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexShrink: 0,
+      }}
+    >
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <div className="display" style={{ fontSize: "1.05rem", fontWeight: 600, color: "white", letterSpacing: "0.01em" }}>
+        <div
+          className="display"
+          style={{
+            fontSize: "1.2rem",
+            fontWeight: 600,
+            color: "white",
+            letterSpacing: "0.01em",
+          }}
+        >
           Swift Food Helper
         </div>
-        <div className="display-italic" style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.85)" }}>
+        <div
+          className="display-italic"
+          style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.85)" }}
+        >
           Let's craft your menu
         </div>
       </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button onClick={onRefresh} aria-label="Start a new chat" style={iconButtonStyle} title="Start fresh">
-          <RefreshIcon />
-        </button>
-        <button onClick={onClose} aria-label="Close chat" style={iconButtonStyle}>
-          <CloseIcon />
-        </button>
-      </div>
+      <button
+        onClick={onRefresh}
+        aria-label="Start a new chat"
+        title="Start fresh"
+        style={{
+          padding: "8px 14px",
+          borderRadius: 8,
+          background: "rgba(255,255,255,0.15)",
+          color: "white",
+          border: 0,
+          cursor: "pointer",
+          fontSize: "0.85rem",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <RefreshIcon /> Start fresh
+      </button>
     </div>
   );
 }
@@ -285,7 +339,12 @@ function TypingIndicator() {
           <motion.span
             key={i}
             animate={{ y: [0, -3, 0] }}
-            transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.12, ease: "easeInOut" }}
+            transition={{
+              duration: 0.9,
+              repeat: Infinity,
+              delay: i * 0.12,
+              ease: "easeInOut",
+            }}
             style={{
               width: 6,
               height: 6,
@@ -299,28 +358,18 @@ function TypingIndicator() {
   );
 }
 
-// ---------------- Icons ----------------
-
-function ChatIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-
 function RefreshIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="23 4 23 10 17 10" />
       <polyline points="1 20 1 14 7 14" />
       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
@@ -330,56 +379,21 @@ function RefreshIcon() {
 
 function SendIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <line x1="22" y1="2" x2="11" y2="13" />
       <polygon points="22 2 15 22 11 13 2 9 22 2" />
     </svg>
   );
 }
-
-// ---------------- Inline styles ----------------
-
-const panelStyle: React.CSSProperties = {
-  position: "fixed",
-  zIndex: 50,
-  display: "flex",
-  flexDirection: "column",
-  overflow: "hidden",
-  border: "1px solid var(--rule)",
-  boxShadow: "var(--shadow-lift)",
-};
-
-const headerStyle: React.CSSProperties = {
-  background: "var(--brand)",
-  color: "white",
-  padding: "14px 16px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-};
-
-const iconButtonStyle: React.CSSProperties = {
-  width: 28,
-  height: 28,
-  borderRadius: 6,
-  background: "rgba(255,255,255,0.12)",
-  color: "white",
-  border: 0,
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const messagesContainerStyle: React.CSSProperties = {
-  flex: 1,
-  overflowY: "auto",
-  padding: "16px",
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-  position: "relative",
-};
 
 const errorBoxStyle: React.CSSProperties = {
   fontSize: "0.85rem",
@@ -394,7 +408,7 @@ const inputBarStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "flex-end",
   gap: 8,
-  padding: "10px 12px",
+  padding: "12px 16px",
   background: "var(--paper)",
 };
 

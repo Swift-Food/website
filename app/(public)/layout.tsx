@@ -1,4 +1,4 @@
-import ChatbotWidget from "@/lib/components/ChatbotWidget";
+import FloatingChatbotMount from "@/lib/components/FloatingChatbotMount";
 
 export default function PublicLayout({
   children,
@@ -8,7 +8,7 @@ export default function PublicLayout({
   return (
     <>
       {children}
-      <ChatbotWidget />
+      <FloatingChatbotMount />
     </>
   );
 }
