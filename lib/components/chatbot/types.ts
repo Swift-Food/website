@@ -109,6 +109,12 @@ export interface ChatResponse {
   sessionId: string;
   status: ChatStatus;
   parts: MessagePart[];
+  /**
+   * Display-formatted view of the captured taxonomy. Always present
+   * regardless of status — useful for inspecting captured fields
+   * without depending on which parts are emitted.
+   */
+  taxonomy: CollectedTaxonomyView;
   draft?: MenuDraft;
   message?: string;
   collectedFields: string[];

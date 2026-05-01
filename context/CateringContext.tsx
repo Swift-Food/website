@@ -15,7 +15,8 @@ import {
   CorporateUser,
   MealSessionState,
 } from "@/types/catering.types";
-import { Restaurant } from "@/lib/components/catering/Step2MenuItems";
+import { MenuItem, Restaurant } from "@/lib/components/catering/Step2MenuItems";
+import type { OrderDraftHandoff } from "@/lib/types/order-draft-handoff";
 
 // Default session for new orders
 const createDefaultSession = (): MealSessionState => ({
@@ -70,6 +71,15 @@ interface CateringContextType {
   setRestaurantPromotions: (promotions: Record<string, any[]>) => void;
   resetOrder: () => void;
   markOrderAsSubmitted: () => void;
+
+  /**
+   * Apply a draft handoff (today only emitted by the chatbot, but the
+   * interface is source-agnostic). Replaces eventDetails, the first
+   * meal session's items, and the active restaurant. Skips localStorage
+   * hydration when called before the load-from-storage effect runs —
+   * see the pendingHandoffRef below for the suppression pattern.
+   */
+  hydrateFromHandoff: (handoff: OrderDraftHandoff) => void;
 }
 
 const CateringContext = createContext<CateringContextType | undefined>(
@@ -92,7 +102,19 @@ const STORAGE_KEYS = {
   SELECTED_ITEMS: "catering_selected_items",
 };
 
-export function CateringProvider({ children }: { children: ReactNode }) {
+export function CateringProvider({
+  children,
+  initialHandoff,
+}: {
+  children: ReactNode;
+  /**
+   * When set, the provider seeds its state from this handoff and
+   * skips loading from localStorage. Used by /event-order when the
+   * page is opened with ?draftSessionId=… from the chatbot. Resolved
+   * BEFORE the provider mounts so there's no flash of stale UI.
+   */
+  initialHandoff?: OrderDraftHandoff | null;
+}) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [currentStep, setCurrentStepState] = useState(1);
   const [eventDetails, setEventDetailsState] = useState<EventDetails | null>(null);
@@ -191,6 +213,20 @@ export function CateringProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
+      // Initial handoff (e.g. from the chatbot draft) takes precedence
+      // over localStorage. Apply it as the sole source of truth and
+      // bail before reading any saved keys, otherwise we'd briefly
+      // render the prior order's state before overwriting.
+      if (initialHandoff) {
+        hydrateFromHandoff(initialHandoff);
+        // Clear any stale localStorage from a prior order so a refresh
+        // of the page doesn't bring back the previous state on top of
+        // the handoff. The save-effect will re-persist below.
+        Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+        setIsHydrated(true);
+        return;
+      }
+
       const orderSubmitted = localStorage.getItem(STORAGE_KEYS.ORDER_SUBMITTED);
 
       if (orderSubmitted === "true") {
@@ -496,6 +532,84 @@ export function CateringProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEYS.ORDER_SUBMITTED, "true");
   };
 
+  /**
+   * Apply a draft handoff. Replaces eventDetails, the meal sessions
+   * (with a single session named after the handoff source), and the
+   * selected restaurants. Used both by the mount-time `initialHandoff`
+   * prop and any runtime caller.
+   *
+   * The "shape adapter" lives entirely here: HandoffItem → MenuItem
+   * with the addons/displayOrder/etc. fields the order builder needs
+   * but the chatbot doesn't track. Other consumers of OrderDraftHandoff
+   * never have to think about MenuItem's full surface area.
+   */
+  const hydrateFromHandoff = useCallback((handoff: OrderDraftHandoff) => {
+    const eventDetails: EventDetails = {
+      eventType: "",
+      eventDate: handoff.event.date,
+      eventTime: handoff.event.time,
+      guestCount: handoff.event.headcount,
+      specialRequests: handoff.event.specialRequests,
+      address: handoff.event.address,
+      userType: "guest",
+    };
+
+    const orderItems: SelectedMenuItem[] = handoff.items.map((h, idx) => {
+      const menuItem: MenuItem = {
+        id: h.menuItemId,
+        menuItemName: h.name,
+        description: h.description ?? undefined,
+        price: h.price,
+        allergens: h.allergens,
+        isDiscount: false,
+        image: h.imageUrl ?? undefined,
+        cateringQuantityUnit: h.cateringQuantityUnit,
+        feedsPerUnit: h.feedsPerUnit,
+        restaurantId: handoff.restaurant.id,
+        restaurantName: handoff.restaurant.name,
+        restaurant: {
+          id: handoff.restaurant.id,
+          name: handoff.restaurant.name,
+          restaurantId: handoff.restaurant.id,
+          images: handoff.restaurant.imageUrl ? [handoff.restaurant.imageUrl] : undefined,
+        },
+        groupTitle: h.groupTitle ?? undefined,
+        // Order builder requires these but the chatbot doesn't track
+        // them. Defaults are safe because the user can edit each item
+        // through the existing Menu Item Modal to add addons / refine.
+        itemDisplayOrder: idx,
+        addons: [],
+      };
+      return { item: menuItem, quantity: h.quantity };
+    });
+
+    const session: MealSessionState = {
+      sessionName: "Main Event",
+      sessionDate: handoff.event.date,
+      eventTime: handoff.event.time,
+      guestCount: handoff.event.headcount,
+      orderItems,
+    };
+
+    setEventDetailsState(eventDetails);
+    setMealSessionsState([session]);
+    setActiveSessionIndexState(0);
+    // Synthesise a minimal Restaurant. The order builder hydrates
+    // additional fields lazily when the user interacts with the menu
+    // browser; we just need enough here for the selectedRestaurants
+    // chip + restaurant header to render.
+    const restaurantStub: Restaurant = {
+      id: handoff.restaurant.id,
+      restaurant_name: handoff.restaurant.name,
+      status: "active",
+      images: handoff.restaurant.imageUrl ? [handoff.restaurant.imageUrl] : [],
+      averageRating: "0",
+      cateringMinOrderSettings: {},
+    };
+    setSelectedRestaurantsState([restaurantStub]);
+    setCurrentStepState(1);
+  }, []);
+
   if (!isHydrated) {
     return null;
   }
@@ -547,6 +661,7 @@ export function CateringProvider({ children }: { children: ReactNode }) {
         setRestaurantPromotions,
         resetOrder,
         markOrderAsSubmitted,
+        hydrateFromHandoff,
       }}
     >
       {children}
