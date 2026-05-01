@@ -1,0 +1,230 @@
+/*
+ * Editorial Menu Card palette + tokens.
+ * Scoped to the chatbot panel via the .swift-chat-panel root class so
+ * nothing leaks into the rest of the site (which lives on IBM Plex Mono
+ * + the Swift brand pink).
+ */
+.swift-chat-panel {
+  /* Default: full-bleed mobile panel */
+  inset: 0;
+  border-radius: 0;
+}
+
+@media (min-width: 640px) {
+  .swift-chat-panel {
+    /* Desktop: floating card in the bottom-right */
+    inset: auto;
+    bottom: 24px;
+    right: 24px;
+    width: 400px;
+    height: min(640px, 82vh);
+    border-radius: 16px;
+  }
+}
+
+.swift-chat-panel {
+  --paper:        #FBF7F4;
+  --paper-deep:   #F4EFE8;
+  --ink:          #1A1A1A;
+  --ink-soft:     #4A4845;
+  --ink-faint:    #8A8580;
+  --rule:         #E8E2DA;
+  --brand:        #FA43AD;
+  --brand-soft:   #FFEAF4;
+  --brand-deep:   #C9277F;
+  --olive:        #6B7A4C;
+  --olive-soft:   #EDEFE3;
+  --ember:        #C8553D;
+  --ember-soft:   #F8E4DE;
+
+  --shadow-card:  0 1px 2px rgba(26,26,26,0.04), 0 8px 24px rgba(26,26,26,0.06);
+  --shadow-lift:  0 2px 6px rgba(26,26,26,0.06), 0 12px 36px rgba(26,26,26,0.1);
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body:    var(--font-geist), -apple-system, system-ui, sans-serif;
+
+  font-family: var(--font-body);
+  color: var(--ink);
+  background-color: var(--paper);
+}
+
+/* Hairline grain — subtle paper texture, only visible on close inspection. */
+.swift-chat-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0.025 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>");
+  background-size: 120px 120px;
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+  z-index: 0;
+}
+
+.swift-chat-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.swift-chat-panel .display {
+  font-family: var(--font-display);
+  font-feature-settings: "ss01", "ss02";
+}
+
+.swift-chat-panel .display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.swift-chat-panel .small-caps {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.swift-chat-panel .hairline {
+  height: 1px;
+  background: var(--rule);
+  margin: 0;
+  border: 0;
+}
+
+.swift-chat-panel .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+}
+
+.swift-chat-panel .chip:hover {
+  background: var(--paper-deep);
+  border-color: var(--ink-faint);
+}
+
+.swift-chat-panel .chip-primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.swift-chat-panel .chip-primary:hover {
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+}
+
+.swift-chat-panel .chip-brand {
+  background: var(--brand);
+  color: white;
+  border-color: var(--brand);
+}
+
+.swift-chat-panel .chip-brand:hover {
+  background: var(--brand-deep);
+  border-color: var(--brand-deep);
+}
+
+.swift-chat-panel .reason {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.78rem;
+  color: var(--olive);
+  letter-spacing: 0.01em;
+}
+
+.swift-chat-panel .allergen-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ember-soft);
+  color: var(--ember);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.swift-chat-panel .dietary-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--olive-soft);
+  color: var(--olive);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.swift-chat-panel .summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.swift-chat-panel .summary-row:last-child {
+  border-bottom: 0;
+}
+
+.swift-chat-panel .summary-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.swift-chat-panel .summary-value {
+  font-family: var(--font-body);
+  color: var(--ink);
+  font-size: 0.95rem;
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+}
+
+.swift-chat-panel .summary-value-empty {
+  color: var(--ink-faint);
+  font-style: italic;
+  font-family: var(--font-display);
+}
+
+.swift-chat-panel .pencil-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-faint);
+  border: 0;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+  flex-shrink: 0;
+}
+
+.swift-chat-panel .pencil-btn:hover {
+  background: var(--paper-deep);
+  color: var(--ink);
+}
