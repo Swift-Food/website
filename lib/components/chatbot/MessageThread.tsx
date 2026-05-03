@@ -4,6 +4,7 @@ import { TextBubble } from "./parts/TextBubble";
 import { ChipGroup } from "./parts/ChipGroup";
 import { SummaryCard } from "./parts/SummaryCard";
 import { MenuDraftCard } from "./parts/MenuDraftCard";
+import { MenuPreviewCard } from "./parts/MenuPreviewCard";
 import type { Chip, MessagePart } from "./types";
 
 export interface ThreadMessage {
@@ -111,6 +112,9 @@ function PartRenderer({
         onPickRestaurant={onPickRestaurant}
       />
     );
+  }
+  if (part.type === "menu_preview") {
+    return <MenuPreviewCard preview={part.preview} />;
   }
   // clarifier — Phase 4
   return null;

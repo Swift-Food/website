@@ -98,11 +98,44 @@ export interface MenuDraft {
   alternatives: RestaurantCandidate[];
 }
 
+// ── Exploration mode (no headcount yet) ─────────────────────────────
+// Returned when the user is browsing rather than committing to a draft.
+// No qty/cost — those need a headcount.
+
+export interface PreviewItem {
+  menuItemId: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  groupTitle: string | null;
+  mealCategory: MealCategory;
+  allergens: string[];
+  dietaryFilters: string[];
+  unitPrice: number;
+  feedsPerUnit: number;
+  restaurant: RestaurantSummary;
+  /** One-line "shown because…" copy. e.g. "Top vector match for 'spicy'". */
+  matchReason: string;
+}
+
+export interface PreviewSection {
+  /** The intent this section answers, e.g. "pizza", "milk tea". Single-intent
+   *  queries produce one section whose intent equals the user's query. */
+  intent: string;
+  items: PreviewItem[];
+}
+
+export interface MenuPreview {
+  /** Up to 5 sections, one per distinct retrieval intent. */
+  sections: PreviewSection[];
+}
+
 export type MessagePart =
   | { type: "text"; text: string }
   | { type: "summary_card"; taxonomy: CollectedTaxonomyView; editable: string[] }
   | { type: "chips"; chips: Chip[] }
   | { type: "menu_draft"; draft: MenuDraft }
+  | { type: "menu_preview"; preview: MenuPreview }
   | { type: "clarifier"; field: string; question: string; options: ChipOption[] };
 
 export interface ChatResponse {
