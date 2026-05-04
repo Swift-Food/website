@@ -29,6 +29,7 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
 
   const statusIndex = timelineSteps.findIndex((step) => step.keys.includes(status as CateringOrderStatus));
   const isCancelled = status === CateringOrderStatus.CANCELLED;
+  const isAllDone = !isCancelled && statusIndex === timelineSteps.length - 1;
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -61,8 +62,8 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
         <div className="flex items-center">
           {timelineSteps.map((step, i) => {
             const Icon = step.icon;
-            const isCompleted = !isCancelled && i < statusIndex;
-            const isActive = !isCancelled && i === statusIndex;
+            const isCompleted = !isCancelled && (i < statusIndex || isAllDone);
+            const isActive = !isCancelled && !isAllDone && i === statusIndex;
             const isFuture = isCancelled ? true : i > statusIndex;
             // Segment i (between node i-1 and node i) is filled when node i
             // is completed or active, i.e. i <= statusIndex.
@@ -71,7 +72,7 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
             return (
               <Fragment key={step.keys[0]}>
                 {i > 0 && (
-                  <div className="flex-1 h-1 mx-1.5 rounded-full bg-gray-200 overflow-hidden">
+                  <div className="flex-1 h-1 mx-1 sm:mx-1.5 rounded-full bg-gray-200 overflow-hidden">
                     <div
                       className={`h-full origin-left rounded-full bg-primary transition-transform duration-200 ease-linear ${
                         isCancelled ? "" : "shadow-[0_0_10px] shadow-primary/40"
@@ -88,31 +89,32 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
                 )}
 
                 {/* Node */}
-                <div className="relative flex items-center justify-center w-12 h-14 shrink-0">
+                <div className="relative flex items-center justify-center w-9 sm:w-12 h-11 sm:h-14 shrink-0">
                   {isActive && (
                     <div
-                      className="absolute w-11 h-11 rounded-full border-2 border-primary opacity-45 pointer-events-none"
+                      className="absolute w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-primary opacity-45 pointer-events-none"
                       style={{ animation: "otl-pulse-ring 2s ease-out infinite" }}
                     />
                   )}
                   <div
-                    className={`relative z-10 flex items-center justify-center rounded-full border-[2.5px] transition-all ${
-                      isActive ? "w-11 h-11" : "w-[38px] h-[38px]"
+                    className={`relative z-10 flex items-center justify-center rounded-full border-2 sm:border-[2.5px] transition-all ${
+                      isActive
+                        ? "w-9 h-9 sm:w-11 sm:h-11"
+                        : "w-8 h-8 sm:w-[38px] sm:h-[38px]"
                     } ${
                       isCompleted
                         ? "bg-primary border-primary shadow-md shadow-primary/30"
                         : isFuture
                           ? "bg-white border-gray-300"
                           : "bg-white border-primary"
-                    } ${isActive ? "ring-4 ring-primary/30" : ""}`}
+                    } ${isActive ? "ring-2 sm:ring-4 ring-primary/30" : ""}`}
                   >
                     {isCompleted ? (
-                      <Check className="w-4 h-4 text-white" strokeWidth={2.8} />
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={2.8} />
                     ) : (
                       <Icon
-                        size={15}
                         strokeWidth={1.8}
-                        className={isFuture ? "text-gray-400" : "text-primary"}
+                        className={`w-3 h-3 sm:w-[15px] sm:h-[15px] ${isFuture ? "text-gray-400" : "text-primary"}`}
                       />
                     )}
                   </div>
@@ -125,16 +127,16 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
         {/* Labels row: mirrors the track structure so labels align with node centers */}
         <div className="flex items-start mt-1.5">
           {timelineSteps.map((step, i) => {
-            const isCompleted = !isCancelled && i < statusIndex;
-            const isActive = !isCancelled && i === statusIndex;
+            const isCompleted = !isCancelled && (i < statusIndex || isAllDone);
+            const isActive = !isCancelled && !isAllDone && i === statusIndex;
             const isFuture = isCancelled ? true : i > statusIndex;
 
             return (
               <Fragment key={step.keys[0]}>
-                {i > 0 && <div className="flex-1 mx-1.5" />}
-                <div className="w-12 shrink-0 flex flex-col items-center gap-1">
+                {i > 0 && <div className="flex-1 mx-1 sm:mx-1.5" />}
+                <div className="w-9 sm:w-12 shrink-0 flex flex-col items-center gap-1">
                   <span
-                    className={`text-[11px] tracking-wide whitespace-nowrap text-center ${
+                    className={`text-[9px] sm:text-[11px] leading-tight tracking-wide whitespace-nowrap text-center ${
                       isFuture
                         ? "text-gray-400 font-medium"
                         : isActive
@@ -147,7 +149,7 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
                     {step.label}
                   </span>
                   {isActive && (
-                    <span className="text-[9px] font-semibold text-primary bg-primary/10 border border-primary/30 px-1.5 py-px rounded-full whitespace-nowrap">
+                    <span className="text-[8px] sm:text-[9px] font-semibold text-primary bg-primary/10 border border-primary/30 px-1.5 py-px rounded-full whitespace-nowrap">
                       now
                     </span>
                   )}
