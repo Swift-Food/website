@@ -8,7 +8,7 @@ import type {
   ChatResponse,
   ChatStatus,
   Chip,
-  CollectedTaxonomyView,
+  SharedTaxonomyView,
   MenuDraft,
   MessagePart,
 } from "./types";
@@ -16,7 +16,7 @@ import type {
 const STORAGE_KEY = "swift-food-chat-session";
 
 export interface SummaryCardSnapshot {
-  taxonomy: CollectedTaxonomyView;
+  taxonomy: SharedTaxonomyView;
   editable: string[];
 }
 
@@ -338,7 +338,7 @@ export function useChatSession(
     return taxonomyValueFor(field, lastTaxonomyRef.current);
   }, []);
 
-  const latestDraft = useMemo(() => findLatestDraft(messages), [messages]);
+  const latestDraft = useMemo(() => findActiveDraft(messages), [messages]);
   const latestSummaryCard = useMemo(
     () => findLatestSummaryCard(messages),
     [messages],
@@ -408,12 +408,17 @@ function taxonomyValueFor(
   return taxonomy[key];
 }
 
-function findLatestDraft(messages: ThreadMessage[]): MenuDraft | null {
+function findActiveDraft(messages: ThreadMessage[]): MenuDraft | null {
   for (let i = messages.length - 1; i >= 0; i--) {
     const parts = messages[i].parts;
     for (let j = parts.length - 1; j >= 0; j--) {
       const p = parts[j];
-      if (p.type === "menu_draft") return p.draft;
+      if (p.type === "menu_plan") {
+        const active =
+          p.drafts.find((d) => d.mealSessionIndex === p.activeMealSessionIndex) ??
+          p.drafts[0];
+        return active?.draft ?? null;
+      }
     }
   }
   return null;

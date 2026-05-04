@@ -95,14 +95,22 @@ function PartRenderer({
   if (part.type === "chips") {
     return <ChipGroup chips={part.chips} onAction={onChip} />;
   }
-  if (part.type === "menu_draft") {
+  if (part.type === "menu_plan") {
+    // TODO(frontend): proper multi-meal renderer (MenuPlanCard) — for now
+    // surface the active meal's draft via the existing MenuDraftCard so
+    // single-meal flows keep working unchanged.
+    const active =
+      part.drafts.find(
+        (d) => d.mealSessionIndex === part.activeMealSessionIndex,
+      ) ?? part.drafts[0];
+    if (!active) return null;
     return (
       <MenuDraftCard
-        draft={part.draft}
+        draft={active.draft}
         onSwap={
           onSwapItem
             ? (itemId) => {
-                const item = part.draft.items.find((i) => i.id === itemId);
+                const item = active.draft.items.find((i) => i.id === itemId);
                 onSwapItem(itemId, item?.name ?? "this item");
               }
             : undefined
@@ -118,6 +126,11 @@ function PartRenderer({
   }
   if (part.type === "feedback") {
     // Phase A6: thumbs-up/down on retrieval. No renderer wired yet.
+    return null;
+  }
+  if (part.type === "inheritance_clarifier") {
+    // TODO(frontend): renderer for "Apply same dietary/cuisine to <meal>?"
+    // prompt. Backend already emits these parts.
     return null;
   }
   // clarifier — Phase 4

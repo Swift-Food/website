@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import { PencilIcon } from "../ui/PencilIcon";
-import type { CollectedTaxonomyView } from "../types";
+import type { SharedTaxonomyView } from "../types";
 
 interface SummaryCardProps {
-  taxonomy: CollectedTaxonomyView;
+  taxonomy: SharedTaxonomyView;
   editable: string[];
   onEdit: (field: string) => void;
   /**
@@ -67,19 +67,10 @@ export function SummaryCard({
 }: SummaryCardProps) {
   const [open, setOpen] = useState(defaultOpen);
 
+  // Per-meal fields (when, headcount, meal_time) live in the menu_plan
+  // part's section headers now — they're per-meal in the multi-session
+  // model, not event-wide. SummaryCard renders only event-wide fields.
   const rows: Row[] = [
-    {
-      field: "event_datetime",
-      label: "When",
-      value: taxonomy.eventDateTime,
-      emptyHint: "tap to add date and time",
-    },
-    {
-      field: "headcount",
-      label: "Headcount",
-      value: formatHeadcountAndMeal(taxonomy),
-      emptyHint: "tap to add",
-    },
     {
       field: "budget",
       label: "Budget",
@@ -271,13 +262,6 @@ function Chevron({ open }: { open: boolean }) {
       <polyline points="6 9 12 15 18 9" />
     </motion.svg>
   );
-}
-
-function formatHeadcountAndMeal(t: CollectedTaxonomyView): string | null {
-  const parts: string[] = [];
-  if (t.headcount !== null) parts.push(`${t.headcount} people`);
-  if (t.mealTime) parts.push(t.mealTime.toLowerCase());
-  return parts.length ? parts.join(" · ") : null;
 }
 
 function formatList(arr: string[] | null, emptyLabel: string): string | null {

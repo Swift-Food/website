@@ -11,22 +11,46 @@ export type ChatStatus =
   | "no_match"
   | "abandoned";
 
-export interface CollectedTaxonomyView {
-  headcount: number | null;
+/**
+ * Display-formatted view of the shared (event-wide) taxonomy. Mirrors
+ * the backend's `SharedTaxonomyView` from datetime-format.helper.
+ */
+export interface SharedTaxonomyView {
   budget: number | null;
-  eventDateTime: string | null;
-  mealTime: string | null;
+  occasion: string | null;
   // Always an array (backend initialises to []). Empty means the user
   // hasn't specified or said "none" — render the same.
   dietaryRestrictions: string[];
-  occasion: string | null;
   // Arrays are null when the field has never been asked, [] when the
-  // user explicitly said "none". Differentiate so the summary card
-  // can render "Cuisine: not set yet" vs "Cuisine: none".
+  // user explicitly said "none".
   cuisinePreference: string[] | null;
   allergensToExclude: string[] | null;
   formatPreference: string[] | null;
+  // Backend-only retrieval signal. Do NOT render — it's the free-text
+  // bucket the LLM stuffs dish/ingredient terms into for vector search.
   extras: string;
+}
+
+/**
+ * Per-meal display view. Mirrors the backend's `ChatMealSessionView`.
+ * One per planned meal in the order; multi-meal orders carry multiple.
+ */
+export interface ChatMealSessionView {
+  index: number;
+  sessionName: string;
+  sessionDate: string; // friendly form: "Friday 15 May"
+  eventTime: string; // "9:00 AM" or "13:00"
+  guestCount: number | null;
+  mealTime: string | null; // "Breakfast" | "Lunch" | "Dinner"
+  hasDraft: boolean;
+  ready: boolean; // hasDraft AND guestCount !== null
+  /** Resolved override-vs-shared, ready for UI display. */
+  effectiveTaxonomy: {
+    dietaryRestrictions: string[];
+    cuisinePreference: string[] | null;
+    allergensToExclude: string[] | null;
+    formatPreference: string[] | null;
+  };
 }
 
 export type ChipAction =
@@ -36,7 +60,9 @@ export type ChipAction =
   | "menu_action"
   | "pick_restaurant"
   | "place_order"
-  | "more_variety";
+  | "more_variety"
+  | "pick_meal_session"
+  | "confirm_inheritance";
 
 export interface Chip {
   label: string;
@@ -44,13 +70,15 @@ export interface Chip {
   payload?: Record<string, unknown>;
 }
 
-export type TaxonomyField =
-  | "headcount"
+/**
+ * Shared-taxonomy field names, used by ChipOption.field. Per-meal field
+ * routing happens via the `mealSessionIndex` payload on the chip itself,
+ * not via this type.
+ */
+export type SharedTaxonomyField =
   | "budget"
-  | "event_datetime"
-  | "meal_time"
-  | "dietary_restrictions"
   | "occasion"
+  | "dietary_restrictions"
   | "cuisine_preference"
   | "allergens_to_exclude"
   | "format_preference"
@@ -59,7 +87,7 @@ export type TaxonomyField =
 export interface ChipOption {
   label: string;
   /** Where this option's value is routed. */
-  field: TaxonomyField | "extras_addition" | "ignore";
+  field: SharedTaxonomyField | "extras_addition" | "ignore";
   value: unknown;
 }
 
@@ -110,7 +138,7 @@ export interface MenuDraft {
   feedsPeople: number;
   pickedReason: string;
   alternatives: RestaurantCandidate[];
-  /** Stringified bigint from retrieval_events.id. Used to wire feedback parts back to the retrieval event that produced this draft. */
+  /** Stringified bigint from retrieval_events.id. */
   retrievalEventId?: string;
 }
 
@@ -154,18 +182,49 @@ export interface SummaryTag {
   removable: boolean;
 }
 
+/**
+ * One meal session's draft, wrapped with the meal-session metadata.
+ * Multi-meal orders produce one PlanDraft per meal; single-meal orders
+ * produce one. The wrapper carries the meal index so refinement actions
+ * (swap/remove/qty/restaurant) know which meal they're acting on.
+ */
+export interface PlanDraft {
+  mealSessionIndex: number;
+  sessionName: string;
+  sessionDate: string;
+  eventTime: string;
+  guestCount: number;
+  draft: MenuDraft;
+  ready: boolean;
+}
+
 export type MessagePart =
   | { type: "text"; text: string }
   | {
       type: "summary_card";
-      taxonomy: CollectedTaxonomyView;
+      taxonomy: SharedTaxonomyView;
       editable: string[];
       tags: SummaryTag[];
     }
   | { type: "chips"; chips: Chip[] }
-  | { type: "menu_draft"; draft: MenuDraft }
+  | {
+      type: "menu_plan";
+      drafts: PlanDraft[];
+      activeMealSessionIndex: number;
+    }
   | { type: "menu_preview"; preview: MenuPreview }
-  | { type: "clarifier"; field: string; question: string; options: ChipOption[] }
+  | {
+      type: "clarifier";
+      field: string;
+      question: string;
+      options: ChipOption[];
+    }
+  | {
+      type: "inheritance_clarifier";
+      mealSessionIndex: number;
+      mealSessionName: string;
+      sharedFields: Array<{ field: string; rendered: string }>;
+    }
   | {
       type: "feedback";
       retrieval_event_id: string;
@@ -177,13 +236,12 @@ export interface ChatResponse {
   sessionId: string;
   status: ChatStatus;
   parts: MessagePart[];
-  /**
-   * Display-formatted view of the captured taxonomy. Always present
-   * regardless of status — useful for inspecting captured fields
-   * without depending on which parts are emitted.
-   */
-  taxonomy: CollectedTaxonomyView;
-  draft?: MenuDraft;
+  /** Display-formatted view of the shared (event-wide) taxonomy. */
+  taxonomy: SharedTaxonomyView;
+  /** Per-meal display views — one per planned meal. */
+  mealSessions: ChatMealSessionView[];
+  /** Which meal the user is currently focused on. */
+  activeMealSessionIndex: number;
   message?: string;
   collectedFields: string[];
 }

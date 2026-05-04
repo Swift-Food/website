@@ -164,35 +164,43 @@ export async function placeOrder(
 export function chatSessionToHandoff(
   response: ChatResponse,
 ): OrderDraftHandoff | null {
-  if (response.status !== "complete" || !response.draft) return null;
+  if (response.status !== "complete") return null;
 
-  const t = response.taxonomy ?? {};
-  const headcount =
-    typeof (t as any).headcount === "number" ? (t as any).headcount : 0;
+  // Find the active meal's draft inside the menu_plan part. The wire no
+  // longer carries `response.draft` — drafts live per-meal inside the
+  // typed parts array.
+  const planPart = response.parts.find((p) => p.type === "menu_plan");
+  if (!planPart || planPart.type !== "menu_plan") return null;
+  const activePlanDraft =
+    planPart.drafts.find(
+      (d) => d.mealSessionIndex === planPart.activeMealSessionIndex,
+    ) ?? planPart.drafts[0];
+  if (!activePlanDraft) return null;
+  const draft = activePlanDraft.draft;
+
+  // Pull date / time / headcount from the active meal session view.
+  const activeMeal =
+    response.mealSessions[response.activeMealSessionIndex] ??
+    response.mealSessions[0];
+  const headcount = activeMeal?.guestCount ?? activePlanDraft.guestCount;
+  const { date, time } = splitEventDateTime(activeMeal?.sessionDate ?? null);
   // Address isn't captured in the chat taxonomy — the order form
-  // collects it after handoff. Always empty here.
+  // collects it after handoff.
   const address = "";
-  const draft = response.draft;
 
-  const { date, time } = splitEventDateTime((t as any).eventDateTime);
-
-  // Synthesise a single notes string from the structured fields the
-  // order form doesn't have first-class slots for. The order form
-  // surfaces this in a free-text "Special requests" field.
-  // extras is a backend retrieval signal (raw dish/ingredient terms the
-  // LLM extracted for vector search), not a user-authored note — don't
+  // Synthesise a single notes string from shared taxonomy fields. extras
+  // is a backend retrieval signal (raw dish/ingredient terms the LLM
+  // extracted for vector search), not a user-authored note — don't
   // surface it on the order form.
+  const t = response.taxonomy;
   const noteParts: string[] = [];
-  const dietary = (t as any).dietaryRestrictions as string[] | null;
-  const cuisine = (t as any).cuisinePreference as string[] | null;
-  const occasion = (t as any).occasion as string | null;
-  if (Array.isArray(dietary) && dietary.length > 0) {
-    noteParts.push(`Dietary: ${dietary.join(", ")}`);
+  if (t.dietaryRestrictions.length > 0) {
+    noteParts.push(`Dietary: ${t.dietaryRestrictions.join(", ")}`);
   }
-  if (Array.isArray(cuisine) && cuisine.length > 0) {
-    noteParts.push(`Cuisine: ${cuisine.join(", ")}`);
+  if (t.cuisinePreference && t.cuisinePreference.length > 0) {
+    noteParts.push(`Cuisine: ${t.cuisinePreference.join(", ")}`);
   }
-  if (occasion) noteParts.push(`Occasion: ${occasion}`);
+  if (t.occasion) noteParts.push(`Occasion: ${t.occasion}`);
 
   const items: HandoffItem[] = draft.items.map((d) => ({
     menuItemId: d.menuItemId,
