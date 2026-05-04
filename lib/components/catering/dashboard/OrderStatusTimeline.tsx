@@ -20,11 +20,11 @@ interface OrderStatusTimelineProps {
 
 export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
   const timelineSteps = [
-    { keys: [CateringOrderStatus.PENDING_REVIEW], label: "Submitted", icon: Clock },
-    { keys: [CateringOrderStatus.ADMIN_REVIEWED, CateringOrderStatus.RESTAURANT_REVIEWED], label: "Reviewing", icon: Search },
-    { keys: [CateringOrderStatus.PAYMENT_LINK_SENT], label: "Payment", icon: CreditCard },
-    { keys: [CateringOrderStatus.PAID, CateringOrderStatus.CONFIRMED], label: "Confirmed", icon: CheckCircle2 },
-    { keys: [CateringOrderStatus.COMPLETED], label: "Delivered", icon: Package },
+    { keys: [CateringOrderStatus.PENDING_REVIEW], label: "Submitted", desc: "Order received and logged", icon: Clock },
+    { keys: [CateringOrderStatus.ADMIN_REVIEWED, CateringOrderStatus.RESTAURANT_REVIEWED], label: "Reviewing", desc: "Our team is reviewing your order", icon: Search },
+    { keys: [CateringOrderStatus.PAYMENT_LINK_SENT], label: "Payment", desc: "Payment processed successfully", icon: CreditCard },
+    { keys: [CateringOrderStatus.PAID, CateringOrderStatus.CONFIRMED], label: "Confirmed", desc: "Order confirmed by kitchen", icon: CheckCircle2 },
+    { keys: [CateringOrderStatus.COMPLETED], label: "Delivered", desc: "Delivered to your address", icon: Package },
   ];
 
   const statusIndex = timelineSteps.findIndex((step) => step.keys.includes(status as CateringOrderStatus));
@@ -57,7 +57,106 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
         }
       `}</style>
 
-      <div className="relative py-2">
+      {/* Vertical timeline (mobile only) */}
+      <div className="block sm:hidden">
+        {timelineSteps.map((step, i) => {
+          const Icon = step.icon;
+          const isCompleted = !isCancelled && (i < statusIndex || isAllDone);
+          const isActive = !isCancelled && !isAllDone && i === statusIndex;
+          const isFuture = isCancelled ? true : i > statusIndex;
+          const isLast = i === timelineSteps.length - 1;
+          // Line below node i is filled when node i+1 is reached.
+          const isLineFilled = !isCancelled && (i < statusIndex || isAllDone);
+
+          return (
+            <div key={step.keys[0]} className="flex gap-3.5">
+              {/* Left: node + connecting line */}
+              <div className="flex flex-col items-center w-9 shrink-0">
+                <div className="relative w-9 h-9 flex items-center justify-center">
+                  {isActive && (
+                    <div
+                      className="absolute w-9 h-9 rounded-full border-2 border-primary opacity-45 pointer-events-none"
+                      style={{ animation: "otl-pulse-ring 2s ease-out infinite" }}
+                    />
+                  )}
+                  <div
+                    className={`relative z-10 flex items-center justify-center w-9 h-9 rounded-full border-2 transition-all ${
+                      isCompleted
+                        ? "bg-primary border-primary shadow-md shadow-primary/30"
+                        : isFuture
+                          ? "bg-white border-gray-300"
+                          : "bg-white border-primary"
+                    } ${isActive ? "ring-4 ring-primary/30" : ""}`}
+                  >
+                    {isCompleted ? (
+                      <Check className="w-4 h-4 text-white" strokeWidth={2.8} />
+                    ) : (
+                      <Icon
+                        strokeWidth={1.8}
+                        className={`w-4 h-4 ${isFuture ? "text-gray-400" : "text-primary"}`}
+                      />
+                    )}
+                  </div>
+                </div>
+                {!isLast && (
+                  <div className="flex-1 w-0.5 my-1 min-h-7 rounded-full bg-gray-200 overflow-hidden">
+                    <div
+                      className="w-full h-full origin-top rounded-full bg-primary transition-transform duration-200 ease-linear"
+                      style={{
+                        transform:
+                          mounted && isLineFilled ? "scaleY(1)" : "scaleY(0)",
+                        transitionDelay: `${i * 0.2}s`,
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Right: label + description */}
+              <div className={`pt-1 ${isLast ? "" : "pb-5"}`}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`text-sm leading-tight ${
+                      isFuture
+                        ? "text-gray-400 font-medium"
+                        : isActive
+                          ? "text-gray-900 font-bold"
+                          : isCompleted
+                            ? "text-gray-900 font-semibold"
+                            : "text-gray-900 font-medium"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                  {isActive && (
+                    <span className="text-[10px] font-semibold text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-full whitespace-nowrap">
+                      In Progress
+                    </span>
+                  )}
+                </div>
+                <div
+                  className={`text-xs mt-0.5 ${
+                    isFuture ? "text-gray-300" : "text-gray-500"
+                  }`}
+                >
+                  {step.desc}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {isCancelled && (
+          <div className="flex items-center gap-2 mt-2 px-3.5 py-2.5 rounded-lg bg-primary/10 border border-primary/30">
+            <XCircle className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[13px] font-semibold text-primary">
+              Order Cancelled
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Horizontal timeline (sm and up) */}
+      <div className="relative py-2 hidden sm:block">
         {/* Track row: nodes (fixed width) with flex-1 segments between them */}
         <div className="flex items-center">
           {timelineSteps.map((step, i) => {
