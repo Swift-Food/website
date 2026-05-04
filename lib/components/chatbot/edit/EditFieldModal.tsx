@@ -8,8 +8,9 @@ interface EditFieldModalProps {
   open: boolean;
   field: string;
   initialValue?: unknown;
+  mealSessionIndex?: number;
   onClose: () => void;
-  onSave: (value: unknown) => void;
+  onSave: (value: unknown, mealSessionIndex?: number) => void;
 }
 
 const DIETARY_VALUES = [
@@ -54,6 +55,7 @@ export function EditFieldModal({
   open,
   field,
   initialValue,
+  mealSessionIndex,
   onClose,
   onSave,
 }: EditFieldModalProps) {
@@ -118,7 +120,7 @@ export function EditFieldModal({
               <Chip
                 variant="brand"
                 onClick={() => {
-                  onSave(value);
+                  onSave(value, mealSessionIndex);
                   onClose();
                 }}
               >

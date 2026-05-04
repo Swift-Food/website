@@ -66,11 +66,14 @@ export async function editField(
   sid: string,
   field: string,
   value: unknown,
+  mealSessionIndex?: number,
 ): Promise<ChatResponse> {
+  const body: Record<string, unknown> = { field, value };
+  if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/edit-field`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ field, value }),
+    body: JSON.stringify(body),
   });
   return handle(res);
 }
@@ -85,9 +88,11 @@ export async function confirm(sid: string): Promise<ChatResponse> {
 export async function menuAction(
   sid: string,
   payload:
-    | { action: "swap"; itemId: string; replacementMenuItemId: string }
-    | { action: "remove"; itemId: string }
-    | { action: "set_quantity"; itemId: string; quantity: number },
+    | { action: "swap"; itemId: string; replacementMenuItemId: string; mealSessionIndex?: number }
+    | { action: "remove"; itemId: string; mealSessionIndex?: number }
+    | { action: "set_quantity"; itemId: string; quantity: number; mealSessionIndex?: number }
+    | { action: "pick_meal_session"; mealSessionIndex: number }
+    | { action: "confirm_inheritance"; mealSessionIndex: number; accept: boolean },
 ): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/menu-action`, {
     method: "POST",
@@ -100,11 +105,14 @@ export async function menuAction(
 export async function pickRestaurant(
   sid: string,
   restaurantId: string,
+  mealSessionIndex?: number,
 ): Promise<ChatResponse> {
+  const body: Record<string, unknown> = { restaurantId };
+  if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/pick-restaurant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ restaurantId }),
+    body: JSON.stringify(body),
   });
   return handle(res);
 }
@@ -128,17 +136,27 @@ export interface SwapOption {
 export async function getSwapOptions(
   sid: string,
   itemId: string,
+  mealSessionIndex?: number,
 ): Promise<SwapOption[]> {
-  const res = await fetch(
-    `${API_BASE}/catering-chat/${sid}/swap-options/${encodeURIComponent(itemId)}`,
-  );
+  let url = `${API_BASE}/catering-chat/${sid}/swap-options/${encodeURIComponent(itemId)}`;
+  if (mealSessionIndex !== undefined) {
+    url += `?mealSessionIndex=${encodeURIComponent(String(mealSessionIndex))}`;
+  }
+  const res = await fetch(url);
   if (!res.ok) throw new ChatApiError(`HTTP ${res.status}`, res.status);
   return res.json();
 }
 
-export async function moreVariety(sid: string): Promise<ChatResponse> {
+export async function moreVariety(
+  sid: string,
+  mealSessionIndex?: number,
+): Promise<ChatResponse> {
+  const body: Record<string, unknown> = {};
+  if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/more-variety`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
   return handle(res);
 }

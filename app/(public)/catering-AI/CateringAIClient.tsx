@@ -30,9 +30,11 @@ export default function CateringAIClient() {
   const [input, setInput] = useState("");
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<unknown>(undefined);
-  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(
-    null,
-  );
+  const [swapTarget, setSwapTarget] = useState<{
+    id: string;
+    name: string;
+    mealSessionIndex?: number;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -47,6 +49,8 @@ export default function CateringAIClient() {
     latestDraft,
     latestSummaryCard,
     latestChips,
+    editingMealSessionIndex,
+    setEditingMealSessionIndex,
     sendText,
     handleChip,
     applyEditField,
@@ -102,34 +106,37 @@ export default function CateringAIClient() {
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
       const field = chip.payload?.field as string | undefined;
-      if (field) handleEditField(field);
+      const mealSessionIndex = chip.payload?.mealSessionIndex as number | undefined;
+      if (field) handleEditField(field, mealSessionIndex);
       return;
     }
     void handleChip(chip);
   }
 
-  function handleEditField(field: string) {
+  function handleEditField(field: string, mealSessionIndex?: number) {
     setEditField(field);
     setEditValue(getTaxonomyValueFor(field));
+    setEditingMealSessionIndex(mealSessionIndex);
   }
 
-  async function handleEditSave(value: unknown) {
+  async function handleEditSave(value: unknown, mealSessionIndex?: number) {
     if (!editField) return;
     const field = editField;
     setEditField(null);
-    await applyEditField(field, value);
+    setEditingMealSessionIndex(undefined);
+    await applyEditField(field, value, mealSessionIndex);
     inputRef.current?.focus();
   }
 
-  function handleSwap(itemId: string, itemName: string) {
-    setSwapTarget({ id: itemId, name: itemName });
+  function handleSwap(itemId: string, itemName: string, mealSessionIndex?: number) {
+    setSwapTarget({ id: itemId, name: itemName, mealSessionIndex });
   }
 
   async function handleSwapPick(replacement: SwapOption) {
     const target = swapTarget;
     if (!target) return;
     setSwapTarget(null);
-    await swap(target.id, replacement.menuItemId);
+    await swap(target.id, replacement.menuItemId, target.mealSessionIndex);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -350,7 +357,11 @@ export default function CateringAIClient() {
         open={editField !== null}
         field={editField ?? ""}
         initialValue={editValue}
-        onClose={() => setEditField(null)}
+        mealSessionIndex={editingMealSessionIndex}
+        onClose={() => {
+          setEditField(null);
+          setEditingMealSessionIndex(undefined);
+        }}
         onSave={handleEditSave}
       />
       <SwapModal

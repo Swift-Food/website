@@ -35,20 +35,26 @@ export interface ChatSession {
   // setters the consumer needs
   setError: (msg: string | null) => void;
 
+  // editing meal session tracking
+  editingMealSessionIndex: number | undefined;
+  setEditingMealSessionIndex: (idx: number | undefined) => void;
+
   // actions
   sendText: (text: string) => Promise<void>;
   handleChip: (chip: Chip) => Promise<void>;
-  applyEditField: (field: string, value: unknown) => Promise<void>;
-  swap: (itemId: string, replacementMenuItemId: string) => Promise<void>;
-  remove: (itemId: string) => Promise<void>;
-  setQuantity: (itemId: string, quantity: number) => Promise<void>;
-  pickRestaurant: (restaurantId: string) => Promise<void>;
-  moreVariety: () => Promise<void>;
+  applyEditField: (field: string, value: unknown, mealSessionIndex?: number) => Promise<void>;
+  swap: (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => Promise<void>;
+  remove: (itemId: string, mealSessionIndex?: number) => Promise<void>;
+  setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
+  pickRestaurant: (restaurantId: string, mealSessionIndex?: number) => Promise<void>;
+  moreVariety: (mealSessionIndex?: number) => Promise<void>;
   placeOrder: () => Promise<void>;
   resetSession: () => Promise<void>;
+  pickMealSession: (mealSessionIndex: number) => Promise<void>;
+  confirmInheritance: (mealSessionIndex: number, accept: boolean) => Promise<void>;
 
   // helpers
-  getSwapOptions: (itemId: string) => Promise<SwapOption[]>;
+  getSwapOptions: (itemId: string, mealSessionIndex?: number) => Promise<SwapOption[]>;
   getTaxonomyValueFor: (field: string) => unknown;
 }
 
@@ -79,6 +85,7 @@ export function useChatSession(
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [status, setStatus] = useState<ChatStatus | null>(null);
+  const [editingMealSessionIndex, setEditingMealSessionIndex] = useState<number | undefined>(undefined);
 
   const sessionIdRef = useRef<string | null>(null);
   const lastTaxonomyRef = useRef<Record<string, unknown>>({});
@@ -205,16 +212,16 @@ export function useChatSession(
   );
 
   const applyEditField = useCallback(
-    async (field: string, value: unknown) => {
+    async (field: string, value: unknown, mealSessionIndex?: number) => {
       const sid = sessionIdRef.current;
       if (!sid) return;
-      await callApiAndApply(() => api.editField(sid, field, value));
+      await callApiAndApply(() => api.editField(sid, field, value, mealSessionIndex));
     },
     [callApiAndApply],
   );
 
   const swap = useCallback(
-    async (itemId: string, replacementMenuItemId: string) => {
+    async (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => {
       const sid = sessionIdRef.current;
       if (!sid) return;
       await callApiAndApply(() =>
@@ -222,6 +229,7 @@ export function useChatSession(
           action: "swap",
           itemId,
           replacementMenuItemId,
+          mealSessionIndex,
         }),
       );
     },
@@ -229,41 +237,67 @@ export function useChatSession(
   );
 
   const remove = useCallback(
-    async (itemId: string) => {
+    async (itemId: string, mealSessionIndex?: number) => {
       const sid = sessionIdRef.current;
       if (!sid) return;
       await callApiAndApply(() =>
-        api.menuAction(sid, { action: "remove", itemId }),
+        api.menuAction(sid, { action: "remove", itemId, mealSessionIndex }),
       );
     },
     [callApiAndApply],
   );
 
   const setQuantity = useCallback(
-    async (itemId: string, quantity: number) => {
+    async (itemId: string, quantity: number, mealSessionIndex?: number) => {
       const sid = sessionIdRef.current;
       if (!sid) return;
       await callApiAndApply(() =>
-        api.menuAction(sid, { action: "set_quantity", itemId, quantity }),
+        api.menuAction(sid, { action: "set_quantity", itemId, quantity, mealSessionIndex }),
       );
     },
     [callApiAndApply],
   );
 
   const pickRestaurant = useCallback(
-    async (restaurantId: string) => {
+    async (restaurantId: string, mealSessionIndex?: number) => {
       const sid = sessionIdRef.current;
       if (!sid) return;
-      await callApiAndApply(() => api.pickRestaurant(sid, restaurantId));
+      await callApiAndApply(() => api.pickRestaurant(sid, restaurantId, mealSessionIndex));
     },
     [callApiAndApply],
   );
 
-  const moreVariety = useCallback(async () => {
+  const moreVariety = useCallback(async (mealSessionIndex?: number) => {
     const sid = sessionIdRef.current;
     if (!sid) return;
-    await callApiAndApply(() => api.moreVariety(sid));
+    await callApiAndApply(() => api.moreVariety(sid, mealSessionIndex));
   }, [callApiAndApply]);
+
+  const pickMealSession = useCallback(
+    async (mealSessionIndex: number) => {
+      const sid = sessionIdRef.current;
+      if (!sid) return;
+      await callApiAndApply(() =>
+        api.menuAction(sid, { action: "pick_meal_session", mealSessionIndex }),
+      );
+    },
+    [callApiAndApply],
+  );
+
+  const confirmInheritance = useCallback(
+    async (mealSessionIndex: number, accept: boolean) => {
+      const sid = sessionIdRef.current;
+      if (!sid) return;
+      await callApiAndApply(() =>
+        api.menuAction(sid, {
+          action: "confirm_inheritance",
+          mealSessionIndex,
+          accept,
+        }),
+      );
+    },
+    [callApiAndApply],
+  );
 
   const placeOrder = useCallback(async () => {
     const sid = sessionIdRef.current;
@@ -285,6 +319,19 @@ export function useChatSession(
     async (chip: Chip) => {
       const sid = sessionIdRef.current;
       if (!sid) return;
+      if (chip.action === "pick_meal_session") {
+        const idx = chip.payload?.mealSessionIndex;
+        if (typeof idx === "number") await pickMealSession(idx);
+        return;
+      }
+      if (chip.action === "confirm_inheritance") {
+        const idx = chip.payload?.mealSessionIndex;
+        const accept = chip.payload?.accept;
+        if (typeof idx === "number" && typeof accept === "boolean") {
+          await confirmInheritance(idx, accept);
+        }
+        return;
+      }
       switch (chip.action) {
         case "send_text": {
           const txt = (chip.payload?.text as string) ?? chip.label;
@@ -302,7 +349,8 @@ export function useChatSession(
           return;
         case "pick_restaurant": {
           const restaurantId = chip.payload?.restaurantId as string | undefined;
-          if (restaurantId) await pickRestaurant(restaurantId);
+          const mealSessionIndex = chip.payload?.mealSessionIndex as number | undefined;
+          if (restaurantId) await pickRestaurant(restaurantId, mealSessionIndex);
           return;
         }
         case "edit_field":
@@ -314,7 +362,7 @@ export function useChatSession(
           return;
       }
     },
-    [sendText, callApiAndApply, moreVariety, placeOrder, pickRestaurant],
+    [sendText, callApiAndApply, moreVariety, placeOrder, pickRestaurant, pickMealSession, confirmInheritance],
   );
 
   const resetSession = useCallback(async () => {
@@ -328,10 +376,10 @@ export function useChatSession(
     await createSession();
   }, [createSession]);
 
-  const getSwapOptions = useCallback(async (itemId: string) => {
+  const getSwapOptions = useCallback(async (itemId: string, mealSessionIndex?: number) => {
     const sid = sessionIdRef.current;
     if (!sid) return [];
-    return api.getSwapOptions(sid, itemId);
+    return api.getSwapOptions(sid, itemId, mealSessionIndex);
   }, []);
 
   const getTaxonomyValueFor = useCallback((field: string) => {
@@ -355,6 +403,8 @@ export function useChatSession(
     latestDraft,
     latestSummaryCard,
     latestChips,
+    editingMealSessionIndex,
+    setEditingMealSessionIndex,
     setError,
     sendText,
     handleChip,
@@ -366,6 +416,8 @@ export function useChatSession(
     moreVariety,
     placeOrder,
     resetSession,
+    pickMealSession,
+    confirmInheritance,
     getSwapOptions,
     getTaxonomyValueFor,
   };

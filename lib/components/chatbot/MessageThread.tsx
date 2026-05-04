@@ -3,8 +3,9 @@
 import { TextBubble } from "./parts/TextBubble";
 import { ChipGroup } from "./parts/ChipGroup";
 import { SummaryCard } from "./parts/SummaryCard";
-import { MenuDraftCard } from "./parts/MenuDraftCard";
+import { MenuPlanCard } from "./parts/MenuPlanCard";
 import { MenuPreviewCard } from "./parts/MenuPreviewCard";
+import { InheritanceClarifierCard } from "./parts/InheritanceClarifierCard";
 import type { Chip, MessagePart } from "./types";
 
 export interface ThreadMessage {
@@ -16,11 +17,11 @@ export interface ThreadMessage {
 interface MessageThreadProps {
   messages: ThreadMessage[];
   onChip: (chip: Chip) => void;
-  onEditField: (field: string) => void;
-  onSwapItem?: (itemId: string, itemName: string) => void;
-  onRemoveItem?: (itemId: string) => void;
-  onQtyChange?: (itemId: string, qty: number) => void;
-  onPickRestaurant?: (restaurantId: string) => void;
+  onEditField: (field: string, mealSessionIndex?: number) => void;
+  onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
+  onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
+  onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
+  onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
 }
 
 /**
@@ -74,11 +75,11 @@ function PartRenderer({
   part: MessagePart;
   sender: "user" | "bot";
   onChip: (chip: Chip) => void;
-  onEditField: (field: string) => void;
-  onSwapItem?: (itemId: string, itemName: string) => void;
-  onRemoveItem?: (itemId: string) => void;
-  onQtyChange?: (itemId: string, qty: number) => void;
-  onPickRestaurant?: (restaurantId: string) => void;
+  onEditField: (field: string, mealSessionIndex?: number) => void;
+  onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
+  onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
+  onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
+  onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
 }) {
   if (part.type === "text") {
     return <TextBubble sender={sender} text={part.text} />;
@@ -96,26 +97,15 @@ function PartRenderer({
     return <ChipGroup chips={part.chips} onAction={onChip} />;
   }
   if (part.type === "menu_plan") {
-    // TODO(frontend): proper multi-meal renderer (MenuPlanCard) — for now
-    // surface the active meal's draft via the existing MenuDraftCard so
-    // single-meal flows keep working unchanged.
-    const active =
-      part.drafts.find(
-        (d) => d.mealSessionIndex === part.activeMealSessionIndex,
-      ) ?? part.drafts[0];
-    if (!active) return null;
     return (
-      <MenuDraftCard
-        draft={active.draft}
-        onSwap={
-          onSwapItem
-            ? (itemId) => {
-                const item = active.draft.items.find((i) => i.id === itemId);
-                onSwapItem(itemId, item?.name ?? "this item");
-              }
-            : undefined
+      <MenuPlanCard
+        drafts={part.drafts}
+        activeMealSessionIndex={part.activeMealSessionIndex}
+        onPickMealSession={(idx) =>
+          onChip({ label: "", action: "pick_meal_session", payload: { mealSessionIndex: idx } })
         }
-        onRemove={onRemoveItem}
+        onSwapItem={onSwapItem}
+        onRemoveItem={onRemoveItem}
         onQtyChange={onQtyChange}
         onPickRestaurant={onPickRestaurant}
       />
@@ -124,13 +114,24 @@ function PartRenderer({
   if (part.type === "menu_preview") {
     return <MenuPreviewCard preview={part.preview} />;
   }
+  if (part.type === "inheritance_clarifier") {
+    return (
+      <InheritanceClarifierCard
+        mealSessionIndex={part.mealSessionIndex}
+        mealSessionName={part.mealSessionName}
+        sharedFields={part.sharedFields}
+        onConfirm={(idx, accept) =>
+          onChip({
+            label: "",
+            action: "confirm_inheritance",
+            payload: { mealSessionIndex: idx, accept },
+          })
+        }
+      />
+    );
+  }
   if (part.type === "feedback") {
     // Phase A6: thumbs-up/down on retrieval. No renderer wired yet.
-    return null;
-  }
-  if (part.type === "inheritance_clarifier") {
-    // TODO(frontend): renderer for "Apply same dietary/cuisine to <meal>?"
-    // prompt. Backend already emits these parts.
     return null;
   }
   // clarifier — Phase 4
