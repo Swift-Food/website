@@ -75,12 +75,6 @@ export function SummaryCard({
       emptyHint: "tap to add date and time",
     },
     {
-      field: "address",
-      label: "Where",
-      value: taxonomy.address,
-      emptyHint: "tap to add address",
-    },
-    {
       field: "headcount",
       label: "Headcount",
       value: formatHeadcountAndMeal(taxonomy),
@@ -95,7 +89,10 @@ export function SummaryCard({
     {
       field: "dietary_restrictions",
       label: "Dietary",
-      value: formatList(taxonomy.dietaryRestrictions, "none"),
+      value:
+        taxonomy.dietaryRestrictions.length > 0
+          ? taxonomy.dietaryRestrictions.join(", ")
+          : null,
     },
     {
       field: "cuisine_preference",
@@ -111,11 +108,6 @@ export function SummaryCard({
       field: "occasion",
       label: "Occasion",
       value: taxonomy.occasion,
-    },
-    {
-      field: "extras",
-      label: "Notes",
-      value: taxonomy.extras || null,
     },
   ];
 

@@ -16,12 +16,13 @@ export interface CollectedTaxonomyView {
   budget: number | null;
   eventDateTime: string | null;
   mealTime: string | null;
-  address: string | null;
+  // Always an array (backend initialises to []). Empty means the user
+  // hasn't specified or said "none" — render the same.
+  dietaryRestrictions: string[];
+  occasion: string | null;
   // Arrays are null when the field has never been asked, [] when the
   // user explicitly said "none". Differentiate so the summary card
-  // can render "Dietary: not set yet" vs "Dietary: none".
-  dietaryRestrictions: string[] | null;
-  occasion: string | null;
+  // can render "Cuisine: not set yet" vs "Cuisine: none".
   cuisinePreference: string[] | null;
   allergensToExclude: string[] | null;
   formatPreference: string[] | null;
@@ -43,9 +44,22 @@ export interface Chip {
   payload?: Record<string, unknown>;
 }
 
+export type TaxonomyField =
+  | "headcount"
+  | "budget"
+  | "event_datetime"
+  | "meal_time"
+  | "dietary_restrictions"
+  | "occasion"
+  | "cuisine_preference"
+  | "allergens_to_exclude"
+  | "format_preference"
+  | "extras";
+
 export interface ChipOption {
   label: string;
-  field: string;
+  /** Where this option's value is routed. */
+  field: TaxonomyField | "extras_addition" | "ignore";
   value: unknown;
 }
 
@@ -96,6 +110,8 @@ export interface MenuDraft {
   feedsPeople: number;
   pickedReason: string;
   alternatives: RestaurantCandidate[];
+  /** Stringified bigint from retrieval_events.id. Used to wire feedback parts back to the retrieval event that produced this draft. */
+  retrievalEventId?: string;
 }
 
 // ── Exploration mode (no headcount yet) ─────────────────────────────
@@ -130,13 +146,32 @@ export interface MenuPreview {
   sections: PreviewSection[];
 }
 
+/** Chip-strip tag derived from taxonomy. Array fields emit removable
+ * tags (one per value); scalar fields emit a single non-removable tag. */
+export interface SummaryTag {
+  field: string;
+  value: string;
+  removable: boolean;
+}
+
 export type MessagePart =
   | { type: "text"; text: string }
-  | { type: "summary_card"; taxonomy: CollectedTaxonomyView; editable: string[] }
+  | {
+      type: "summary_card";
+      taxonomy: CollectedTaxonomyView;
+      editable: string[];
+      tags: SummaryTag[];
+    }
   | { type: "chips"; chips: Chip[] }
   | { type: "menu_draft"; draft: MenuDraft }
   | { type: "menu_preview"; preview: MenuPreview }
-  | { type: "clarifier"; field: string; question: string; options: ChipOption[] };
+  | { type: "clarifier"; field: string; question: string; options: ChipOption[] }
+  | {
+      type: "feedback";
+      retrieval_event_id: string;
+      prompt: string;
+      state: "pending" | "thumbs_up" | "thumbs_down";
+    };
 
 export interface ChatResponse {
   sessionId: string;

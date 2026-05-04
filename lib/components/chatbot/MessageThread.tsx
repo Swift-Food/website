@@ -116,6 +116,10 @@ function PartRenderer({
   if (part.type === "menu_preview") {
     return <MenuPreviewCard preview={part.preview} />;
   }
+  if (part.type === "feedback") {
+    // Phase A6: thumbs-up/down on retrieval. No renderer wired yet.
+    return null;
+  }
   // clarifier — Phase 4
   return null;
 }

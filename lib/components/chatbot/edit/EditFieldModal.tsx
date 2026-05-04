@@ -33,7 +33,6 @@ const MEAL_TIMES = ["breakfast", "lunch", "dinner"];
 
 const FIELD_TITLES: Record<string, string> = {
   event_datetime: "When is your event?",
-  address: "Where should we deliver?",
   headcount: "How many people?",
   meal_time: "Which meal?",
   budget: "What's your budget?",
@@ -41,7 +40,6 @@ const FIELD_TITLES: Record<string, string> = {
   cuisine_preference: "Cuisine preference",
   format_preference: "Serving format",
   occasion: "Occasion (optional)",
-  extras: "Anything else?",
 };
 
 /**
@@ -185,18 +183,6 @@ function FieldEditor({
     );
   }
 
-  if (field === "address") {
-    return (
-      <input
-        type="text"
-        value={(value as string) ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="e.g. UCL Student Centre, London"
-        style={inputStyle}
-      />
-    );
-  }
-
   if (field === "occasion") {
     return (
       <input
@@ -205,18 +191,6 @@ function FieldEditor({
         onChange={(e) => onChange(e.target.value)}
         placeholder="e.g. team lunch, conference"
         style={inputStyle}
-      />
-    );
-  }
-
-  if (field === "extras") {
-    return (
-      <textarea
-        value={(value as string) ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="e.g. include some chicken options, plenty of variety"
-        rows={3}
-        style={{ ...inputStyle, resize: "vertical", minHeight: 70 }}
       />
     );
   }

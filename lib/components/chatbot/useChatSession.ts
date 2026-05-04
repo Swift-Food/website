@@ -395,15 +395,14 @@ function taxonomyValueFor(
 ): unknown {
   const map: Record<string, string> = {
     event_datetime: "eventDateTime",
-    address: "address",
     headcount: "headcount",
     budget: "budget",
     meal_time: "mealTime",
     dietary_restrictions: "dietaryRestrictions",
     cuisine_preference: "cuisinePreference",
+    allergens_to_exclude: "allergensToExclude",
     format_preference: "formatPreference",
     occasion: "occasion",
-    extras: "extras",
   };
   const key = map[field] ?? field;
   return taxonomy[key];

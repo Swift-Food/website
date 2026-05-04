@@ -169,7 +169,9 @@ export function chatSessionToHandoff(
   const t = response.taxonomy ?? {};
   const headcount =
     typeof (t as any).headcount === "number" ? (t as any).headcount : 0;
-  const address = (t as any).address ?? "";
+  // Address isn't captured in the chat taxonomy — the order form
+  // collects it after handoff. Always empty here.
+  const address = "";
   const draft = response.draft;
 
   const { date, time } = splitEventDateTime((t as any).eventDateTime);
@@ -177,11 +179,13 @@ export function chatSessionToHandoff(
   // Synthesise a single notes string from the structured fields the
   // order form doesn't have first-class slots for. The order form
   // surfaces this in a free-text "Special requests" field.
+  // extras is a backend retrieval signal (raw dish/ingredient terms the
+  // LLM extracted for vector search), not a user-authored note — don't
+  // surface it on the order form.
   const noteParts: string[] = [];
   const dietary = (t as any).dietaryRestrictions as string[] | null;
   const cuisine = (t as any).cuisinePreference as string[] | null;
   const occasion = (t as any).occasion as string | null;
-  const extras = (t as any).extras as string;
   if (Array.isArray(dietary) && dietary.length > 0) {
     noteParts.push(`Dietary: ${dietary.join(", ")}`);
   }
@@ -189,7 +193,6 @@ export function chatSessionToHandoff(
     noteParts.push(`Cuisine: ${cuisine.join(", ")}`);
   }
   if (occasion) noteParts.push(`Occasion: ${occasion}`);
-  if (extras && extras.trim().length > 0) noteParts.push(`Notes: ${extras.trim()}`);
 
   const items: HandoffItem[] = draft.items.map((d) => ({
     menuItemId: d.menuItemId,
