@@ -31,6 +31,15 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
   const isCancelled = status === CateringOrderStatus.CANCELLED;
   const isAllDone = !isCancelled && statusIndex === timelineSteps.length - 1;
 
+  // Truck-bar progress: 0% at first step → 100% at last step.
+  const safeIndex = Math.max(0, Math.min(statusIndex, timelineSteps.length - 1));
+  const truckPct = isCancelled
+    ? 0
+    : (safeIndex / (timelineSteps.length - 1)) * 100;
+  // Total animation duration scales with how many segments we cross.
+  const segMs = 1000;
+  const truckDurationMs = Math.max(1, safeIndex) * segMs;
+
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -101,11 +110,12 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
                 {!isLast && (
                   <div className="flex-1 w-0.5 my-1 min-h-7 rounded-full bg-gray-200 overflow-hidden">
                     <div
-                      className="w-full h-full origin-top rounded-full bg-primary transition-transform duration-200 ease-linear"
+                      className="w-full h-full origin-top rounded-full bg-primary transition-transform ease-linear"
                       style={{
                         transform:
                           mounted && isLineFilled ? "scaleY(1)" : "scaleY(0)",
-                        transitionDelay: `${i * 0.2}s`,
+                        transitionDuration: `${segMs}ms`,
+                        transitionDelay: `${i * segMs}ms`,
                       }}
                     />
                   </div>
@@ -157,70 +167,113 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
 
       {/* Horizontal timeline (sm and up) */}
       <div className="relative py-2 hidden sm:block">
-        {/* Track row: nodes (fixed width) with flex-1 segments between them */}
-        <div className="flex items-center">
-          {timelineSteps.map((step, i) => {
-            const Icon = step.icon;
-            const isCompleted = !isCancelled && (i < statusIndex || isAllDone);
-            const isActive = !isCancelled && !isAllDone && i === statusIndex;
-            const isFuture = isCancelled ? true : i > statusIndex;
-            // Segment i (between node i-1 and node i) is filled when node i
-            // is completed or active, i.e. i <= statusIndex.
-            const isSegmentFilled = !isCancelled && i <= statusIndex;
+        {/*
+          Single continuous bar + truck overlay. Both the bar's fill width
+          and the truck's left use the SAME percentage of the outer
+          container width with the SAME px-offset math, so they interpolate
+          in perfect lockstep regardless of container size:
+            bar_right_x  = 24 + (p% - p*0.48px + 28px) = p% - p*0.48px + 52px
+            truck_left_x = p% + 14px - p*0.48px + 38px = p% - p*0.48px + 52px
+          → bar_right_x = truck_left_x (bar meets the back of the truck).
+        */}
+        <div className="relative">
+          {/* Background bar — spans node-0 center (24px from left) to last
+              node center (24px from right). */}
+          <div
+            className="absolute h-1 rounded-full bg-gray-200"
+            style={{ top: "calc(50% - 2px)", left: 24, right: 24 }}
+          />
+          {/* Filled bar */}
+          {!isCancelled && (
+            <div
+              className="absolute h-1 rounded-full bg-primary ease-linear shadow-[0_0_10px] shadow-primary/40"
+              style={{
+                top: "calc(50% - 2px)",
+                left: 24,
+                width: `calc(${mounted ? truckPct : 0}% - ${
+                  (mounted ? truckPct : 0) * 0.48
+                }px + 28px)`,
+                transitionProperty: "width",
+                transitionDuration: `${truckDurationMs}ms`,
+              }}
+            />
+          )}
+          {/* Truck — z-0 so node circles (z-10) cover it as it slides under. */}
+          {!isCancelled && (
+            <div
+              className="absolute z-0 pointer-events-none ease-linear"
+              style={{
+                top: "calc(50% - 10px)",
+                left: `calc(${mounted ? truckPct : 0}% + ${
+                  14 - (mounted ? truckPct : 0) * 0.48 + 38
+                }px)`,
+                transitionProperty: "left",
+                transitionDuration: `${truckDurationMs}ms`,
+              }}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-primary drop-shadow-[0_0_8px_var(--color-primary)]"
+              >
+                <path
+                  d="M16 3H1v13h15V3zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          )}
+          {/* Node row — flex layout with pure spacers. Nodes overlay the bar. */}
+          <div className="flex items-center">
+            {timelineSteps.map((step, i) => {
+              const Icon = step.icon;
+              const isCompleted = !isCancelled && (i < statusIndex || isAllDone);
+              const isActive = !isCancelled && !isAllDone && i === statusIndex;
+              const isFuture = isCancelled ? true : i > statusIndex;
 
-            return (
-              <Fragment key={step.keys[0]}>
-                {i > 0 && (
-                  <div className="flex-1 h-1 mx-1 sm:mx-1.5 rounded-full bg-gray-200 overflow-hidden">
-                    <div
-                      className={`h-full origin-left rounded-full bg-primary transition-transform duration-200 ease-linear ${
-                        isCancelled ? "" : "shadow-[0_0_10px] shadow-primary/40"
-                      }`}
-                      style={{
-                        transform:
-                          mounted && isSegmentFilled ? "scaleX(1)" : "scaleX(0)",
-                        // Each segment waits for the previous one to fully complete
-                        // (duration is 200ms, so delay = (i-1) * 200ms).
-                        transitionDelay: `${(i - 1) * 0.2}s`,
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Node */}
-                <div className="relative flex items-center justify-center w-9 sm:w-12 h-11 sm:h-14 shrink-0">
-                  {isActive && (
-                    <div
-                      className="absolute w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-primary opacity-45 pointer-events-none"
-                      style={{ animation: "otl-pulse-ring 2s ease-out infinite" }}
-                    />
-                  )}
-                  <div
-                    className={`relative z-10 flex items-center justify-center rounded-full border-2 sm:border-[2.5px] transition-all ${
-                      isActive
-                        ? "w-9 h-9 sm:w-11 sm:h-11"
-                        : "w-8 h-8 sm:w-[38px] sm:h-[38px]"
-                    } ${
-                      isCompleted
-                        ? "bg-primary border-primary shadow-md shadow-primary/30"
-                        : isFuture
-                          ? "bg-white border-gray-300"
-                          : "bg-white border-primary"
-                    } ${isActive ? "ring-2 sm:ring-4 ring-primary/30" : ""}`}
-                  >
-                    {isCompleted ? (
-                      <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={2.8} />
-                    ) : (
-                      <Icon
-                        strokeWidth={1.8}
-                        className={`w-3 h-3 sm:w-[15px] sm:h-[15px] ${isFuture ? "text-gray-400" : "text-primary"}`}
+              return (
+                <Fragment key={step.keys[0]}>
+                  {i > 0 && <div className="flex-1 mx-1 sm:mx-1.5" />}
+                  {/* Node */}
+                  <div className="relative z-10 flex items-center justify-center w-9 sm:w-12 h-11 sm:h-14 shrink-0">
+                    {isActive && (
+                      <div
+                        className="absolute w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-primary opacity-45 pointer-events-none"
+                        style={{ animation: "otl-pulse-ring 2s ease-out infinite" }}
                       />
                     )}
+                    <div
+                      className={`relative z-10 flex items-center justify-center rounded-full border-2 sm:border-[2.5px] transition-all ${
+                        isActive
+                          ? "w-9 h-9 sm:w-11 sm:h-11"
+                          : "w-8 h-8 sm:w-[38px] sm:h-[38px]"
+                      } ${
+                        isCompleted
+                          ? "bg-primary border-primary shadow-md shadow-primary/30"
+                          : isFuture
+                            ? "bg-white border-gray-300"
+                            : "bg-white border-primary"
+                      } ${isActive ? "ring-2 sm:ring-4 ring-primary/30" : ""}`}
+                    >
+                      {isCompleted ? (
+                        <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={2.8} />
+                      ) : (
+                        <Icon
+                          strokeWidth={1.8}
+                          className={`w-3 h-3 sm:w-[15px] sm:h-[15px] ${isFuture ? "text-gray-400" : "text-primary"}`}
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Fragment>
-            );
-          })}
+                </Fragment>
+              );
+            })}
+          </div>
         </div>
 
         {/* Labels row: mirrors the track structure so labels align with node centers */}
