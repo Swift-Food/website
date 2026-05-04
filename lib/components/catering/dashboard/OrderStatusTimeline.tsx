@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment, useEffect, useState } from "react";
 import { CateringOrderStatus } from "@/types/catering.types";
 import { CateringOrderStatus as ApiCateringOrderStatus } from "@/types/api";
 import {
@@ -9,6 +10,7 @@ import {
   CreditCard,
   Package,
   XCircle,
+  Check,
   ClipboardList,
 } from "lucide-react";
 
@@ -28,6 +30,12 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
   const statusIndex = timelineSteps.findIndex((step) => step.keys.includes(status as CateringOrderStatus));
   const isCancelled = status === CateringOrderStatus.CANCELLED;
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
@@ -40,73 +48,121 @@ export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
         </div>
       </div>
 
-      <div className="relative">
-        <div className="flex items-center justify-between">
-          {timelineSteps.map((step, index) => {
+      <style>{`
+        @keyframes otl-pulse-ring {
+          0% { transform: scale(0.9); opacity: 0.8; }
+          70% { transform: scale(1.4); opacity: 0; }
+          100% { transform: scale(1.4); opacity: 0; }
+        }
+      `}</style>
+
+      <div className="relative py-2">
+        {/* Track row: nodes (fixed width) with flex-1 segments between them */}
+        <div className="flex items-center">
+          {timelineSteps.map((step, i) => {
             const Icon = step.icon;
-            const isCompleted = index <= statusIndex;
-            const isCurrent = index === statusIndex;
+            const isCompleted = !isCancelled && i < statusIndex;
+            const isActive = !isCancelled && i === statusIndex;
+            const isFuture = isCancelled ? true : i > statusIndex;
+            // Segment i (between node i-1 and node i) is filled when node i
+            // is completed or active, i.e. i <= statusIndex.
+            const isSegmentFilled = !isCancelled && i <= statusIndex;
 
             return (
-              <div key={step.keys[0]} className="flex flex-col items-center flex-1">
-                <div className="relative flex items-center w-full">
-                  {index > 0 && (
+              <Fragment key={step.keys[0]}>
+                {i > 0 && (
+                  <div className="flex-1 h-1 mx-1.5 rounded-full bg-gray-200 overflow-hidden">
                     <div
-                      className={`flex-1 h-1 ${
-                        isCompleted && !isCancelled ? "bg-pink-500" : "bg-gray-200"
+                      className={`h-full origin-left rounded-full bg-primary transition-transform duration-200 ease-linear ${
+                        isCancelled ? "" : "shadow-[0_0_10px] shadow-primary/40"
                       }`}
+                      style={{
+                        transform:
+                          mounted && isSegmentFilled ? "scaleX(1)" : "scaleX(0)",
+                        // Each segment waits for the previous one to fully complete
+                        // (duration is 200ms, so delay = (i-1) * 200ms).
+                        transitionDelay: `${(i - 1) * 0.2}s`,
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Node */}
+                <div className="relative flex items-center justify-center w-12 h-14 shrink-0">
+                  {isActive && (
+                    <div
+                      className="absolute w-11 h-11 rounded-full border-2 border-primary opacity-45 pointer-events-none"
+                      style={{ animation: "otl-pulse-ring 2s ease-out infinite" }}
                     />
                   )}
                   <div
-                    className={`relative z-10 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${
-                      isCancelled
-                        ? "border-red-500 bg-red-50"
-                        : isCompleted
-                          ? "border-pink-500 bg-pink-100"
-                          : "border-gray-200 bg-white"
-                    } ${isCurrent && !isCancelled ? "ring-2 sm:ring-4 ring-pink-200" : ""}`}
+                    className={`relative z-10 flex items-center justify-center rounded-full border-[2.5px] transition-all ${
+                      isActive ? "w-11 h-11" : "w-[38px] h-[38px]"
+                    } ${
+                      isCompleted
+                        ? "bg-primary border-primary shadow-md shadow-primary/30"
+                        : isFuture
+                          ? "bg-white border-gray-300"
+                          : "bg-white border-primary"
+                    } ${isActive ? "ring-4 ring-primary/30" : ""}`}
                   >
-                    <Icon
-                      className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                        isCancelled
-                          ? "text-red-500"
-                          : isCompleted
-                            ? "text-pink-500"
-                            : "text-gray-400"
-                      }`}
-                    />
+                    {isCompleted ? (
+                      <Check className="w-4 h-4 text-white" strokeWidth={2.8} />
+                    ) : (
+                      <Icon
+                        size={15}
+                        strokeWidth={1.8}
+                        className={isFuture ? "text-gray-400" : "text-primary"}
+                      />
+                    )}
                   </div>
-                  {index < timelineSteps.length - 1 && (
-                    <div
-                      className={`flex-1 h-1 ${
-                        isCompleted && !isCancelled ? "bg-pink-500" : "bg-gray-200"
-                      }`}
-                    />
-                  )}
                 </div>
-                <div className="mt-2 text-center px-1">
-                  <p
-                    className={`text-xs font-medium ${
-                      isCancelled
-                        ? "text-red-500"
-                        : isCompleted
-                          ? "text-gray-900"
-                          : "text-gray-400"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">{step.label}</span>
-                  </p>
-                </div>
-              </div>
+              </Fragment>
             );
           })}
         </div>
+
+        {/* Labels row: mirrors the track structure so labels align with node centers */}
+        <div className="flex items-start mt-1.5">
+          {timelineSteps.map((step, i) => {
+            const isCompleted = !isCancelled && i < statusIndex;
+            const isActive = !isCancelled && i === statusIndex;
+            const isFuture = isCancelled ? true : i > statusIndex;
+
+            return (
+              <Fragment key={step.keys[0]}>
+                {i > 0 && <div className="flex-1 mx-1.5" />}
+                <div className="w-12 shrink-0 flex flex-col items-center gap-1">
+                  <span
+                    className={`text-[11px] tracking-wide whitespace-nowrap text-center ${
+                      isFuture
+                        ? "text-gray-400 font-medium"
+                        : isActive
+                          ? "text-primary font-bold"
+                          : isCompleted
+                            ? "text-gray-900 font-semibold"
+                            : "text-gray-500 font-medium"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                  {isActive && (
+                    <span className="text-[9px] font-semibold text-primary bg-primary/10 border border-primary/30 px-1.5 py-px rounded-full whitespace-nowrap">
+                      now
+                    </span>
+                  )}
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+
         {isCancelled && (
-          <div className="mt-4 text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-500 border border-red-200">
-              <XCircle className="w-4 h-4" />
+          <div className="flex justify-center mt-4">
+            <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary bg-primary/10 border border-primary/30 rounded-full px-4 py-1.5">
+              <XCircle className="w-3.5 h-3.5" />
               Order Cancelled
-            </span>
+            </div>
           </div>
         )}
       </div>
