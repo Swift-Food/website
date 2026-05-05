@@ -84,21 +84,25 @@ export function SummaryCard({
         taxonomy.dietaryRestrictions.length > 0
           ? taxonomy.dietaryRestrictions.join(", ")
           : null,
+      emptyHint: "tap to add",
     },
     {
       field: "cuisine_preference",
       label: "Cuisine",
       value: formatList(taxonomy.cuisinePreference, ""),
+      emptyHint: "tap to add",
     },
     {
       field: "format_preference",
       label: "Format",
       value: formatList(taxonomy.formatPreference, ""),
+      emptyHint: "tap to add",
     },
     {
       field: "occasion",
       label: "Occasion",
       value: taxonomy.occasion,
+      emptyHint: "tap to add",
     },
   ];
 
