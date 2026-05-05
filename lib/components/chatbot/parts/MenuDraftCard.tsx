@@ -105,7 +105,13 @@ export function MenuDraftCard({
   if (isMultiRestaurant) {
     const byRestaurant = draft.restaurants.map((r) => ({
       restaurant: r,
-      subtotal: draft.restaurantSubtotals.find((s) => s.restaurantId === r.id)!,
+      subtotal: draft.restaurantSubtotals.find((s) => s.restaurantId === r.id) ?? {
+        restaurantId: r.id,
+        restaurantName: r.name,
+        itemCount: 0,
+        subtotal: 0,
+        meetsMinOrder: true,
+      },
       items: draft.items.filter((i) => i.restaurantId === r.id),
     }));
 
