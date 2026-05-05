@@ -49,10 +49,9 @@ export function RestaurantStrip({ draft, onPick }: RestaurantStripProps) {
         }}
       >
         <RestaurantCard
-          name={draft.restaurant.name}
-          cuisine={draft.restaurant.cuisine}
-          rating={draft.restaurant.rating}
-          imageUrl={draft.restaurant.imageUrl}
+          name={draft.restaurants[0].name}
+          cuisine={draft.restaurants[0].cuisine}
+          imageUrl={draft.restaurants[0].imageUrl}
           pricePerPerson={draft.pricing.pricePerPerson}
           reason={draft.pickedReason}
           isCurrent
@@ -62,7 +61,6 @@ export function RestaurantStrip({ draft, onPick }: RestaurantStripProps) {
             key={alt.restaurant.id}
             name={alt.restaurant.name}
             cuisine={alt.restaurant.cuisine}
-            rating={alt.restaurant.rating}
             imageUrl={alt.restaurant.imageUrl}
             pricePerPerson={alt.estimatedPricePerPerson}
             reason={alt.pickedReason}
@@ -77,7 +75,6 @@ export function RestaurantStrip({ draft, onPick }: RestaurantStripProps) {
 interface RestaurantCardProps {
   name: string;
   cuisine: string | null;
-  rating: number;
   imageUrl: string | null;
   pricePerPerson: number;
   reason: string;
@@ -88,7 +85,6 @@ interface RestaurantCardProps {
 function RestaurantCard({
   name,
   cuisine,
-  rating,
   imageUrl,
   pricePerPerson,
   reason,
@@ -182,7 +178,7 @@ function RestaurantCard({
         {name}
       </div>
       <div style={{ fontSize: "0.72rem", color: "var(--ink-soft)" }}>
-        {[cuisine, `${rating.toFixed(1)}★`].filter(Boolean).join(" · ")}
+        {cuisine ?? ""}
       </div>
       <div
         className="display"

@@ -39,7 +39,7 @@ export function MenuDraftPanel({
     dessert: [],
   };
   for (const item of draft.items) {
-    if (grouped[item.mealCategory]) grouped[item.mealCategory].push(item);
+    if (grouped[item.mealCategory as MealCategory]) grouped[item.mealCategory as MealCategory].push(item);
   }
 
   return (

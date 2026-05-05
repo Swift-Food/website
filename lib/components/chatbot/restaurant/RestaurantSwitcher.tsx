@@ -136,7 +136,7 @@ function CandidateCard({
         {r.name}
       </div>
       <div style={{ fontSize: "0.72rem", color: "var(--ink-soft)" }}>
-        {[r.cuisine, `${r.rating.toFixed(1)}★`].filter(Boolean).join(" · ")}
+        {r.cuisine ?? ""}
       </div>
       <div
         className="display"
