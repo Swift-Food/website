@@ -27,11 +27,7 @@ export interface OrderDraftHandoff {
     specialRequests: string;
   };
 
-  restaurant: {
-    id: string;
-    name: string;
-    imageUrl: string | null;
-  };
+  restaurants: { id: string; name: string; imageUrl: string | null }[];
 
   items: HandoffItem[];
 }
@@ -50,4 +46,5 @@ export interface HandoffItem {
   quantity: number;
   allergens: string[];
   dietaryFilters: string[];
+  restaurantId: string;
 }

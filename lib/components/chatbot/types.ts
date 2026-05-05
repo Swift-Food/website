@@ -62,7 +62,8 @@ export type ChipAction =
   | "place_order"
   | "more_variety"
   | "pick_meal_session"
-  | "confirm_inheritance";
+  | "confirm_inheritance"
+  | "collapse_to_single_restaurant";
 
 export interface Chip {
   label: string;
@@ -96,9 +97,17 @@ export type MealCategory = "main" | "snack" | "drink" | "dessert";
 export interface RestaurantSummary {
   id: string;
   name: string;
-  cuisine: string | null;
-  rating: number;
   imageUrl: string | null;
+  cuisine: string;
+}
+
+export interface RestaurantSubtotal {
+  restaurantId: string;
+  restaurantName: string;
+  itemCount: number;
+  subtotal: number;
+  meetsMinOrder: boolean;
+  minOrderShortfall?: { missingItems: number; missingValue: number };
 }
 
 export interface DraftItem {
@@ -108,7 +117,7 @@ export interface DraftItem {
   description: string | null;
   imageUrl: string | null;
   groupTitle: string | null;
-  mealCategory: MealCategory;
+  mealCategory: string;
   allergens: string[];
   dietaryFilters: string[];
   unitPrice: number;
@@ -116,6 +125,7 @@ export interface DraftItem {
   quantity: number;
   totalPrice: number;
   reason: string;
+  restaurantId: string;
 }
 
 export interface DraftPricing {
@@ -132,14 +142,13 @@ export interface RestaurantCandidate {
 
 export interface MenuDraft {
   id: string;
-  restaurant: RestaurantSummary;
+  restaurants: RestaurantSummary[];
+  restaurantSubtotals: RestaurantSubtotal[];
   items: DraftItem[];
   pricing: DraftPricing;
   feedsPeople: number;
   pickedReason: string;
   alternatives: RestaurantCandidate[];
-  /** Stringified bigint from retrieval_events.id. */
-  retrievalEventId?: string;
 }
 
 // ── Exploration mode (no headcount yet) ─────────────────────────────
