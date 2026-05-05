@@ -6,6 +6,7 @@ import type { DraftItem } from "../types";
 
 interface DraftItemRowProps {
   item: DraftItem;
+  restaurantName?: string;
   onSwap?: () => void;
   onRemove?: () => void;
   onQtyChange?: (next: number) => void;
@@ -23,6 +24,7 @@ const PLACEHOLDER_BG =
  */
 export function DraftItemRow({
   item,
+  restaurantName,
   onSwap,
   onRemove,
   onQtyChange,
@@ -57,6 +59,9 @@ export function DraftItemRow({
         <div className="display" style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--ink)" }}>
           {item.name}
         </div>
+        {restaurantName && (
+          <span className="item-restaurant-badge">from {restaurantName}</span>
+        )}
         {item.reason && (
           <div style={{ marginTop: 2 }}>
             <Reason>{item.reason}</Reason>

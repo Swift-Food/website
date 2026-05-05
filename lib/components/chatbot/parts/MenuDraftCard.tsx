@@ -26,11 +26,13 @@ const CATEGORY_ORDER: MealCategory[] = ["main", "snack", "drink", "dessert"];
 /** Renders items grouped by category for a given item list. */
 function ItemsByCategory({
   items,
+  restaurantName,
   onSwap,
   onRemove,
   onQtyChange,
 }: {
   items: DraftItem[];
+  restaurantName?: string;
   onSwap?: (itemId: string) => void;
   onRemove?: (itemId: string) => void;
   onQtyChange?: (itemId: string, qty: number) => void;
@@ -69,6 +71,7 @@ function ItemsByCategory({
                 <DraftItemRow
                   key={item.id}
                   item={item}
+                  restaurantName={restaurantName}
                   onSwap={onSwap ? () => onSwap(item.id) : undefined}
                   onRemove={onRemove ? () => onRemove(item.id) : undefined}
                   onQtyChange={
@@ -134,6 +137,7 @@ export function MenuDraftCard({
               <div style={{ padding: "0 16px" }}>
                 <ItemsByCategory
                   items={group.items}
+                  restaurantName={group.restaurant.name}
                   onSwap={onSwap}
                   onRemove={onRemove}
                   onQtyChange={onQtyChange}
