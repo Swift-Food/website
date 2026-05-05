@@ -92,7 +92,8 @@ export async function menuAction(
     | { action: "remove"; itemId: string; mealSessionIndex?: number }
     | { action: "set_quantity"; itemId: string; quantity: number; mealSessionIndex?: number }
     | { action: "pick_meal_session"; mealSessionIndex: number }
-    | { action: "confirm_inheritance"; mealSessionIndex: number; accept: boolean },
+    | { action: "confirm_inheritance"; mealSessionIndex: number; accept: boolean }
+    | { action: "collapse_to_single_restaurant"; restaurantId: string; mealSessionIndex?: number },
 ): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/menu-action`, {
     method: "POST",
@@ -231,6 +232,7 @@ export function chatSessionToHandoff(
     quantity: d.quantity,
     allergens: d.allergens ?? [],
     dietaryFilters: d.dietaryFilters ?? [],
+    restaurantId: d.restaurantId,
   }));
 
   return {
@@ -242,11 +244,11 @@ export function chatSessionToHandoff(
       address,
       specialRequests: noteParts.join(" · "),
     },
-    restaurant: {
-      id: draft.restaurant.id,
-      name: draft.restaurant.name,
-      imageUrl: draft.restaurant.imageUrl,
-    },
+    restaurants: draft.restaurants.map((r) => ({
+      id: r.id,
+      name: r.name,
+      imageUrl: r.imageUrl,
+    })),
     items,
   };
 }
