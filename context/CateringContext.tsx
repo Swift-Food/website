@@ -554,7 +554,13 @@ export function CateringProvider({
       userType: "guest",
     };
 
+    // Build a lookup so each item can find its restaurant by id.
+    const restaurantById = new Map(
+      handoff.restaurants.map(r => [r.id, r])
+    );
+
     const orderItems: SelectedMenuItem[] = handoff.items.map((h, idx) => {
+      const r = restaurantById.get(h.restaurantId);
       const menuItem: MenuItem = {
         id: h.menuItemId,
         menuItemName: h.name,
@@ -565,14 +571,16 @@ export function CateringProvider({
         image: h.imageUrl ?? undefined,
         cateringQuantityUnit: h.cateringQuantityUnit,
         feedsPerUnit: h.feedsPerUnit,
-        restaurantId: handoff.restaurant.id,
-        restaurantName: handoff.restaurant.name,
-        restaurant: {
-          id: handoff.restaurant.id,
-          name: handoff.restaurant.name,
-          restaurantId: handoff.restaurant.id,
-          images: handoff.restaurant.imageUrl ? [handoff.restaurant.imageUrl] : undefined,
-        },
+        restaurantId: h.restaurantId,
+        restaurantName: r?.name,
+        restaurant: r
+          ? {
+              id: r.id,
+              name: r.name,
+              restaurantId: r.id,
+              images: r.imageUrl ? [r.imageUrl] : undefined,
+            }
+          : undefined,
         groupTitle: h.groupTitle ?? undefined,
         // Order builder requires these but the chatbot doesn't track
         // them. Defaults are safe because the user can edit each item
@@ -594,19 +602,19 @@ export function CateringProvider({
     setEventDetailsState(eventDetails);
     setMealSessionsState([session]);
     setActiveSessionIndexState(0);
-    // Synthesise a minimal Restaurant. The order builder hydrates
+    // Synthesise minimal Restaurant stubs. The order builder hydrates
     // additional fields lazily when the user interacts with the menu
     // browser; we just need enough here for the selectedRestaurants
-    // chip + restaurant header to render.
-    const restaurantStub: Restaurant = {
-      id: handoff.restaurant.id,
-      restaurant_name: handoff.restaurant.name,
+    // chips + restaurant headers to render.
+    const restaurantStubs: Restaurant[] = handoff.restaurants.map(r => ({
+      id: r.id,
+      restaurant_name: r.name,
       status: "active",
-      images: handoff.restaurant.imageUrl ? [handoff.restaurant.imageUrl] : [],
+      images: r.imageUrl ? [r.imageUrl] : [],
       averageRating: "0",
       cateringMinOrderSettings: {},
-    };
-    setSelectedRestaurantsState([restaurantStub]);
+    }));
+    setSelectedRestaurantsState(restaurantStubs);
     setCurrentStepState(1);
   }, []);
 
