@@ -567,6 +567,7 @@ export function CateringProvider({
         description: h.description ?? undefined,
         price: h.price,
         allergens: h.allergens,
+        dietaryFilters: h.dietaryFilters,
         isDiscount: false,
         image: h.imageUrl ?? undefined,
         cateringQuantityUnit: h.cateringQuantityUnit,

@@ -202,7 +202,16 @@ export function chatSessionToHandoff(
     response.mealSessions[response.activeMealSessionIndex] ??
     response.mealSessions[0];
   const headcount = activeMeal?.guestCount ?? activePlanDraft.guestCount;
-  const { date, time } = splitEventDateTime(activeMeal?.sessionDate ?? null);
+  // Combine sessionDate ("Friday 15 May 2026") with eventTime ("12:30 pm") so
+  // splitEventDateTime can extract both a date and a time in one parse pass.
+  // The backend formats sessionDate without a year when no year is present;
+  // eventTime carries the clock portion. Without combining, the time is lost.
+  const rawDateTime = activeMeal?.sessionDate
+    ? activeMeal.eventTime
+      ? `${activeMeal.sessionDate} at ${activeMeal.eventTime}`
+      : activeMeal.sessionDate
+    : null;
+  const { date, time } = splitEventDateTime(rawDateTime);
   // Address isn't captured in the chat taxonomy — the order form
   // collects it after handoff.
   const address = "";
@@ -229,6 +238,7 @@ export function chatSessionToHandoff(
     groupTitle: d.groupTitle,
     price: d.unitPrice.toFixed(2),
     feedsPerUnit: d.feedsPerUnit,
+    cateringQuantityUnit: d.cateringQuantityUnit,
     quantity: d.quantity,
     allergens: d.allergens ?? [],
     dietaryFilters: d.dietaryFilters ?? [],

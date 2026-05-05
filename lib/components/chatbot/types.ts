@@ -122,6 +122,7 @@ export interface DraftItem {
   dietaryFilters: string[];
   unitPrice: number;
   feedsPerUnit: number;
+  cateringQuantityUnit: number;
   quantity: number;
   totalPrice: number;
   reason: string;

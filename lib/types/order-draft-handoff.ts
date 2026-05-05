@@ -42,7 +42,7 @@ export interface HandoffItem {
   /** Decimal currency string ("12.00") to match the existing MenuItem.price contract. */
   price: string;
   feedsPerUnit: number;
-  cateringQuantityUnit?: number;
+  cateringQuantityUnit: number;
   quantity: number;
   allergens: string[];
   dietaryFilters: string[];
