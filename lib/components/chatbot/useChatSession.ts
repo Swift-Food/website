@@ -47,6 +47,7 @@ export interface ChatSession {
   remove: (itemId: string, mealSessionIndex?: number) => Promise<void>;
   setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
   pickRestaurant: (restaurantId: string, mealSessionIndex?: number) => Promise<void>;
+  collapseToSingleRestaurant: (restaurantId: string, mealSessionIndex?: number) => Promise<void>;
   moreVariety: (mealSessionIndex?: number) => Promise<void>;
   placeOrder: () => Promise<void>;
   resetSession: () => Promise<void>;
@@ -267,6 +268,21 @@ export function useChatSession(
     [callApiAndApply],
   );
 
+  const collapseToSingleRestaurant = useCallback(
+    async (restaurantId: string, mealSessionIndex?: number) => {
+      const sid = sessionIdRef.current;
+      if (!sid) return;
+      await callApiAndApply(() =>
+        api.menuAction(sid, {
+          action: 'collapse_to_single_restaurant',
+          restaurantId,
+          mealSessionIndex,
+        }),
+      );
+    },
+    [callApiAndApply],
+  );
+
   const moreVariety = useCallback(async (mealSessionIndex?: number) => {
     const sid = sessionIdRef.current;
     if (!sid) return;
@@ -353,6 +369,14 @@ export function useChatSession(
           if (restaurantId) await pickRestaurant(restaurantId, mealSessionIndex);
           return;
         }
+        case "collapse_to_single_restaurant": {
+          const restaurantId = chip.payload?.restaurantId as string | undefined;
+          const mealSessionIndex = chip.payload?.mealSessionIndex as number | undefined;
+          if (restaurantId) {
+            await collapseToSingleRestaurant(restaurantId, mealSessionIndex);
+          }
+          break;
+        }
         case "edit_field":
           // edit_field opens a modal owned by the consumer; the hook
           // doesn't act on it directly. Consumer reads chip.payload.field
@@ -362,7 +386,7 @@ export function useChatSession(
           return;
       }
     },
-    [sendText, callApiAndApply, moreVariety, placeOrder, pickRestaurant, pickMealSession, confirmInheritance],
+    [sendText, callApiAndApply, moreVariety, placeOrder, pickRestaurant, pickMealSession, confirmInheritance, collapseToSingleRestaurant],
   );
 
   const resetSession = useCallback(async () => {
@@ -413,6 +437,7 @@ export function useChatSession(
     remove,
     setQuantity,
     pickRestaurant,
+    collapseToSingleRestaurant,
     moreVariety,
     placeOrder,
     resetSession,
