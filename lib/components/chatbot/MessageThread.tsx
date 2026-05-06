@@ -5,7 +5,9 @@ import { ChipGroup } from "./parts/ChipGroup";
 import { SummaryCard } from "./parts/SummaryCard";
 import { MenuPlanCard } from "./parts/MenuPlanCard";
 import { MenuPreviewCard } from "./parts/MenuPreviewCard";
-import type { Chip, MessagePart } from "./types";
+import { IntentBlockCard } from "./parts/IntentBlockCard";
+import { MealSessionStepper } from "./parts/MealSessionStepper";
+import type { Chip, IntentBlockPart, MessagePart } from "./types";
 
 export interface ThreadMessage {
   id: string;
@@ -15,12 +17,17 @@ export interface ThreadMessage {
 
 interface MessageThreadProps {
   messages: ThreadMessage[];
+  sessionId: string | null;
   onChip: (chip: Chip) => void;
   onEditField: (field: string, mealSessionIndex?: number) => void;
   onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
   onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
   onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
   onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
+  onIntentBlockReplaced?: (
+    mealSessionIndex: number,
+    updated: IntentBlockPart,
+  ) => void;
 }
 
 /**
@@ -31,12 +38,14 @@ interface MessageThreadProps {
  */
 export function MessageThread({
   messages,
+  sessionId,
   onChip,
   onEditField,
   onSwapItem,
   onRemoveItem,
   onQtyChange,
   onPickRestaurant,
+  onIntentBlockReplaced,
 }: MessageThreadProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -47,12 +56,14 @@ export function MessageThread({
               key={`${msg.id}-${idx}`}
               part={part}
               sender={msg.sender}
+              sessionId={sessionId}
               onChip={onChip}
               onEditField={onEditField}
               onSwapItem={onSwapItem}
               onRemoveItem={onRemoveItem}
               onQtyChange={onQtyChange}
               onPickRestaurant={onPickRestaurant}
+              onIntentBlockReplaced={onIntentBlockReplaced}
             />
           ))}
         </div>
@@ -64,21 +75,28 @@ export function MessageThread({
 function PartRenderer({
   part,
   sender,
+  sessionId,
   onChip,
   onEditField,
   onSwapItem,
   onRemoveItem,
   onQtyChange,
   onPickRestaurant,
+  onIntentBlockReplaced,
 }: {
   part: MessagePart;
   sender: "user" | "bot";
+  sessionId: string | null;
   onChip: (chip: Chip) => void;
   onEditField: (field: string, mealSessionIndex?: number) => void;
   onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
   onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
   onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
   onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
+  onIntentBlockReplaced?: (
+    mealSessionIndex: number,
+    updated: IntentBlockPart,
+  ) => void;
 }) {
   if (part.type === "text") {
     return <TextBubble sender={sender} text={part.text} />;
@@ -112,6 +130,30 @@ function PartRenderer({
   }
   if (part.type === "menu_preview") {
     return <MenuPreviewCard preview={part.preview} />;
+  }
+  if (part.type === "meal_session") {
+    if (!sessionId) return null;
+    return (
+      <MealSessionStepper
+        sessionId={sessionId}
+        part={part}
+        onBlockReplaced={(idx, updated) =>
+          onIntentBlockReplaced?.(idx, updated)
+        }
+      />
+    );
+  }
+  if (part.type === "intent_block") {
+    if (!sessionId) return null;
+    return (
+      <IntentBlockCard
+        sessionId={sessionId}
+        part={part}
+        onBlockReplaced={(updated) =>
+          onIntentBlockReplaced?.(part.mealSessionIndex, updated)
+        }
+      />
+    );
   }
   if (part.type === "feedback") {
     // Phase A6: thumbs-up/down on retrieval. No renderer wired yet.

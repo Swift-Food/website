@@ -60,6 +60,7 @@ export default function CateringAIClient() {
     pickRestaurant,
     resetSession,
     getTaxonomyValueFor,
+    replaceIntentBlock,
   } = chat;
 
   // Filter the chat thread: keep text + clarifier + conversational
@@ -296,8 +297,10 @@ export default function CateringAIClient() {
 
               <MessageThread
                 messages={chatMessages}
+                sessionId={sessionId}
                 onChip={handleChipClick}
                 onEditField={handleEditField}
+                onIntentBlockReplaced={replaceIntentBlock}
               />
 
               {sending && <TypingIndicator />}
