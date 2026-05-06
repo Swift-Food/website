@@ -117,6 +117,19 @@ export async function pickRestaurant(
   return handle(res);
 }
 
+export async function swapIntentRestaurant(
+  sid: string,
+  intentId: string,
+  newRestaurantId: string,
+): Promise<ChatResponse> {
+  const res = await fetch(`${API_BASE}/catering-chat/${sid}/intent/swap-restaurant`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ intentId, newRestaurantId }),
+  });
+  return handle(res);
+}
+
 export interface SwapOption {
   menuItemId: string;
   name: string;
