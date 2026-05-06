@@ -126,6 +126,7 @@ export interface DraftItem {
   totalPrice: number;
   reason: string;
   restaurantId: string;
+  intentPhrase: string;
 }
 
 export interface DraftPricing {
