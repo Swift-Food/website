@@ -231,8 +231,8 @@ export const CateringOrderCard = ({
     return menuItems.map((item: any, itemIdx: number) => {
       // Group addons by groupTitle
       const addonGroups: Record<string, any[]> = {};
-      if (item.addons && Array.isArray(item.addons)) {
-        item.addons.forEach((addon: any) => {
+      if (item.selectedAddons && Array.isArray(item.selectedAddons)) {
+        item.selectedAddons.forEach((addon: any) => {
           const groupTitle = addon.groupTitle || "Other";
           if (!addonGroups[groupTitle]) {
             addonGroups[groupTitle] = [];
