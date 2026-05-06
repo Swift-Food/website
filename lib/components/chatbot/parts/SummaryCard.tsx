@@ -24,7 +24,6 @@ interface Row {
   field: string;
   label: string;
   value: string | null;
-  emptyHint?: string;
 }
 
 const cardStyle: React.CSSProperties = {
@@ -52,11 +51,11 @@ const glassCardStyle: React.CSSProperties = {
 };
 
 /**
- * Editorial summary card. Each row is a labelled slot the user can tap
- * to edit. Empty/unfilled slots show an italic "not set yet" hint
- * rather than disappearing — the user can fill them by tapping the
- * pencil. Pink is reserved for the panel header; this card stays
- * cream/charcoal with the small-caps Fraunces label treatment.
+ * Editorial summary card. Only renders rows that have a populated value —
+ * null, empty string, and empty arrays are skipped entirely. If no rows
+ * have values after filtering, the card renders nothing (returns null).
+ * Pink is reserved for the panel header; this card stays cream/charcoal
+ * with the small-caps Fraunces label treatment.
  */
 export function SummaryCard({
   taxonomy,
@@ -70,12 +69,11 @@ export function SummaryCard({
   // Per-meal fields (when, headcount, meal_time) live in the menu_plan
   // part's section headers now — they're per-meal in the multi-session
   // model, not event-wide. SummaryCard renders only event-wide fields.
-  const rows: Row[] = [
+  const allRows: Row[] = [
     {
       field: "budget",
       label: "Budget",
       value: taxonomy.budget !== null ? `£${taxonomy.budget}` : null,
-      emptyHint: "tap to add",
     },
     {
       field: "dietary_restrictions",
@@ -84,27 +82,34 @@ export function SummaryCard({
         taxonomy.dietaryRestrictions.length > 0
           ? taxonomy.dietaryRestrictions.join(", ")
           : null,
-      emptyHint: "tap to add",
     },
     {
       field: "cuisine_preference",
       label: "Cuisine",
       value: formatList(taxonomy.cuisinePreference, ""),
-      emptyHint: "tap to add",
     },
     {
       field: "format_preference",
       label: "Format",
       value: formatList(taxonomy.formatPreference, ""),
-      emptyHint: "tap to add",
     },
     {
       field: "occasion",
       label: "Occasion",
       value: taxonomy.occasion,
-      emptyHint: "tap to add",
     },
   ];
+
+  // Only show rows with a populated value.
+  const rows = allRows.filter(
+    (row) =>
+      row.value !== null &&
+      row.value !== "" &&
+      (!Array.isArray(row.value) || row.value.length > 0),
+  );
+
+  // If nothing is populated, render nothing at all.
+  if (rows.length === 0) return null;
 
   if (collapsible) {
     return (
@@ -200,22 +205,14 @@ function SummaryRow({
   onEdit: () => void;
   animated: boolean;
 }) {
-  const isEmpty = !row.value || row.value.length === 0;
-  if (isEmpty && !row.emptyHint) {
-    // Don't render rows that are both empty and don't invite filling.
-    return null;
-  }
+  // Rows are pre-filtered to only populated values before reaching here,
+  // but guard defensively in case the component is called directly.
+  if (!row.value || row.value.length === 0) return null;
 
   const inner = (
     <>
       <div className="summary-label">{row.label}</div>
-      <div className="summary-value">
-        {isEmpty ? (
-          <span className="summary-value-empty">{row.emptyHint}</span>
-        ) : (
-          row.value
-        )}
-      </div>
+      <div className="summary-value">{row.value}</div>
       {editable && (
         <button
           type="button"
