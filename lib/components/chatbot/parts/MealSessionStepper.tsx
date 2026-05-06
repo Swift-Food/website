@@ -1,0 +1,167 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import type { IntentBlockPart, MessagePart } from "../types";
+import { IntentBlockCard } from "./IntentBlockCard";
+
+type MealSessionPartType = Extract<MessagePart, { type: "meal_session" }>;
+
+interface MealSessionStepperProps {
+  sessionId: string;
+  part: MealSessionPartType;
+  onBlockReplaced: (
+    mealSessionIndex: number,
+    updated: IntentBlockPart,
+  ) => void;
+  onAddItem?: (itemId: string) => void;
+}
+
+/**
+ * Wraps the intent blocks for one meal session. Default = scroll mode
+ * (all blocks visible, vertical). Optional step mode = one block at a
+ * time with prev/next chevrons. Stepper state is local UI only.
+ */
+export function MealSessionStepper({
+  sessionId,
+  part,
+  onBlockReplaced,
+  onAddItem,
+}: MealSessionStepperProps) {
+  const [stepMode, setStepMode] = useState(false);
+  const [stepIdx, setStepIdx] = useState(0);
+
+  const blocks = part.intentBlocks;
+  if (blocks.length === 0) return null;
+
+  const safeStepIdx = Math.min(stepIdx, blocks.length - 1);
+  const visible = stepMode ? [blocks[safeStepIdx]] : blocks;
+
+  return (
+    <div style={{ marginTop: 16, marginBottom: 16 }}>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          marginBottom: 8,
+          padding: "0 4px",
+        }}
+      >
+        <div>
+          <div
+            className="display"
+            style={{ fontSize: "1.1rem", color: "var(--ink)" }}
+          >
+            {part.sessionName}
+          </div>
+          {(part.sessionDate || part.guestCount !== null) && (
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--ink-faint)",
+                marginTop: 2,
+              }}
+            >
+              {part.sessionDate}
+              {part.eventTime && ` · ${part.eventTime}`}
+              {part.guestCount !== null && ` · ${part.guestCount} guests`}
+            </div>
+          )}
+        </div>
+        {blocks.length > 1 && (
+          <button
+            type="button"
+            onClick={() => {
+              setStepMode((s) => !s);
+              setStepIdx(0);
+            }}
+            style={{
+              fontSize: "0.75rem",
+              border: "none",
+              background: "none",
+              color: "var(--ink-soft)",
+              cursor: "pointer",
+              padding: "2px 6px",
+            }}
+          >
+            {stepMode ? "Show all" : "Step through"}
+          </button>
+        )}
+      </header>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={stepMode ? `step-${safeStepIdx}` : "all"}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+        >
+          {visible.map((block) => (
+            <IntentBlockCard
+              key={block.intentId}
+              sessionId={sessionId}
+              part={block}
+              onBlockReplaced={(updated) =>
+                onBlockReplaced(part.mealSessionIndex, updated)
+              }
+              onAddItem={onAddItem}
+            />
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      {stepMode && blocks.length > 1 && (
+        <nav
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: 6,
+            padding: "0 4px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setStepIdx((i) => Math.max(0, i - 1))}
+            disabled={safeStepIdx === 0}
+            style={{
+              fontSize: "0.85rem",
+              border: "none",
+              background: "none",
+              color: "var(--ink-soft)",
+              cursor: safeStepIdx === 0 ? "default" : "pointer",
+              opacity: safeStepIdx === 0 ? 0.3 : 1,
+              padding: "4px 8px",
+            }}
+          >
+            ← Prev
+          </button>
+          <span style={{ fontSize: "0.75rem", color: "var(--ink-faint)" }}>
+            {safeStepIdx + 1} of {blocks.length}
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              setStepIdx((i) => Math.min(blocks.length - 1, i + 1))
+            }
+            disabled={safeStepIdx === blocks.length - 1}
+            style={{
+              fontSize: "0.85rem",
+              border: "none",
+              background: "none",
+              color: "var(--ink-soft)",
+              cursor:
+                safeStepIdx === blocks.length - 1 ? "default" : "pointer",
+              opacity: safeStepIdx === blocks.length - 1 ? 0.3 : 1,
+              padding: "4px 8px",
+            }}
+          >
+            Next →
+          </button>
+        </nav>
+      )}
+    </div>
+  );
+}
