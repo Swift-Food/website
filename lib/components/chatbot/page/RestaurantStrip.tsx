@@ -48,25 +48,49 @@ export function RestaurantStrip({ draft, onPick }: RestaurantStripProps) {
           scrollbarWidth: "thin",
         }}
       >
-        <RestaurantCard
-          name={draft.restaurants[0].name}
-          cuisine={draft.restaurants[0].cuisine}
-          imageUrl={draft.restaurants[0].imageUrl}
-          pricePerPerson={draft.pricing.pricePerPerson}
-          reason={draft.pickedReason}
-          isCurrent
-        />
-        {draft.alternatives.map((alt) => (
-          <RestaurantCard
-            key={alt.restaurant.id}
-            name={alt.restaurant.name}
-            cuisine={alt.restaurant.cuisine}
-            imageUrl={alt.restaurant.imageUrl}
-            pricePerPerson={alt.estimatedPricePerPerson}
-            reason={alt.pickedReason}
-            onPick={() => onPick(alt.restaurant.id)}
-          />
-        ))}
+        {draft.restaurants.length > 1 ? (
+          draft.restaurants.map((r) => {
+            const sub = draft.restaurantSubtotals.find(
+              (s) => s.restaurantId === r.id,
+            ) ?? { subtotal: 0, restaurantId: r.id, restaurantName: r.name, itemCount: 0, meetsMinOrder: true };
+            const pricePerPerson =
+              draft.feedsPeople > 0 ? sub.subtotal / draft.feedsPeople : 0;
+            return (
+              <RestaurantCard
+                key={r.id}
+                name={r.name}
+                cuisine={r.cuisine}
+                imageUrl={r.imageUrl}
+                pricePerPerson={pricePerPerson}
+                subtotal={sub.subtotal}
+                reason=""
+                isCurrent
+              />
+            );
+          })
+        ) : (
+          <>
+            <RestaurantCard
+              name={draft.restaurants[0].name}
+              cuisine={draft.restaurants[0].cuisine}
+              imageUrl={draft.restaurants[0].imageUrl}
+              pricePerPerson={draft.pricing.pricePerPerson}
+              reason={draft.pickedReason}
+              isCurrent
+            />
+            {draft.alternatives.map((alt) => (
+              <RestaurantCard
+                key={alt.restaurant.id}
+                name={alt.restaurant.name}
+                cuisine={alt.restaurant.cuisine}
+                imageUrl={alt.restaurant.imageUrl}
+                pricePerPerson={alt.estimatedPricePerPerson}
+                reason={alt.pickedReason}
+                onPick={() => onPick(alt.restaurant.id)}
+              />
+            ))}
+          </>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -77,6 +101,7 @@ interface RestaurantCardProps {
   cuisine: string | null;
   imageUrl: string | null;
   pricePerPerson: number;
+  subtotal?: number;
   reason: string;
   isCurrent?: boolean;
   onPick?: () => void;
@@ -87,6 +112,7 @@ function RestaurantCard({
   cuisine,
   imageUrl,
   pricePerPerson,
+  subtotal,
   reason,
   isCurrent,
   onPick,
@@ -180,17 +206,36 @@ function RestaurantCard({
       <div style={{ fontSize: "0.72rem", color: "var(--ink-soft)" }}>
         {cuisine ?? ""}
       </div>
-      <div
-        className="display"
-        style={{
-          fontSize: "0.85rem",
-          fontWeight: 600,
-          color: "var(--ink)",
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        ~£{pricePerPerson.toFixed(2)}/pp
-      </div>
+      {subtotal !== undefined ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <div
+            className="display"
+            style={{
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: "var(--ink)",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            £{subtotal.toFixed(2)}
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "var(--ink-soft)", fontVariantNumeric: "tabular-nums" }}>
+            £{pricePerPerson.toFixed(2)}/pp
+          </div>
+        </div>
+      ) : (
+        <div
+          className="display"
+          style={{
+            fontSize: "0.85rem",
+            fontWeight: 600,
+            color: "var(--ink)",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          ~£{pricePerPerson.toFixed(2)}/pp
+        </div>
+      )}
       {reason && <Reason>{reason}</Reason>}
     </motion.button>
   );

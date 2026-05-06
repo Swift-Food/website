@@ -241,7 +241,7 @@ function RestaurantHeader({ draft }: { draft: MenuDraft }) {
   );
 }
 
-function RestaurantGroupHeader({
+export function RestaurantGroupHeader({
   restaurant,
   subtotal,
 }: {

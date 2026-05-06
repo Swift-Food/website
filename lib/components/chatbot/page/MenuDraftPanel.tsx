@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { DraftItemRow } from "../items/DraftItemRow";
+import { RestaurantGroupHeader } from "../parts/MenuDraftCard";
 import type { DraftItem, MealCategory, MenuDraft } from "../types";
 
 interface MenuDraftPanelProps {
@@ -26,36 +27,33 @@ const CATEGORY_ORDER: MealCategory[] = ["main", "snack", "drink", "dessert"];
  * the scroll context so summary card, restaurant strip, and items
  * scroll as one continuous column.
  */
-export function MenuDraftPanel({
-  draft,
+function ItemsByCategory({
+  items,
   onSwap,
   onRemove,
   onQtyChange,
-}: MenuDraftPanelProps) {
+}: {
+  items: DraftItem[];
+  onSwap: (itemId: string, itemName: string) => void;
+  onRemove: (itemId: string) => void;
+  onQtyChange: (itemId: string, qty: number) => void;
+}) {
   const grouped: Record<MealCategory, DraftItem[]> = {
     main: [],
     snack: [],
     drink: [],
     dessert: [],
   };
-  for (const item of draft.items) {
-    if (grouped[item.mealCategory as MealCategory]) grouped[item.mealCategory as MealCategory].push(item);
+  for (const item of items) {
+    if (grouped[item.mealCategory as MealCategory])
+      grouped[item.mealCategory as MealCategory].push(item);
   }
 
   return (
-    <motion.div
-      key={draft.id}
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: {},
-        visible: { transition: { staggerChildren: 0.04, delayChildren: 0.06 } },
-      }}
-    >
-      <PricingBlock draft={draft} />
+    <>
       {CATEGORY_ORDER.map((cat) => {
-        const items = grouped[cat];
-        if (items.length === 0) return null;
+        const catItems = grouped[cat];
+        if (catItems.length === 0) return null;
         return (
           <motion.section
             key={cat}
@@ -76,7 +74,7 @@ export function MenuDraftPanel({
               {CATEGORY_LABELS[cat]}
             </div>
             <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {items.map((item) => (
+              {catItems.map((item) => (
                 <DraftItemRow
                   key={item.id}
                   item={item}
@@ -89,6 +87,88 @@ export function MenuDraftPanel({
           </motion.section>
         );
       })}
+    </>
+  );
+}
+
+export function MenuDraftPanel({
+  draft,
+  onSwap,
+  onRemove,
+  onQtyChange,
+}: MenuDraftPanelProps) {
+  const isMultiRestaurant = draft.restaurants.length > 1;
+
+  if (isMultiRestaurant) {
+    const byRestaurant = draft.restaurants.map((r) => ({
+      restaurant: r,
+      subtotal: draft.restaurantSubtotals.find((s) => s.restaurantId === r.id) ?? {
+        restaurantId: r.id,
+        restaurantName: r.name,
+        itemCount: 0,
+        subtotal: 0,
+        meetsMinOrder: true,
+      },
+      items: draft.items.filter((i) => i.restaurantId === r.id),
+    }));
+
+    return (
+      <motion.div
+        key={draft.id}
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.04, delayChildren: 0.06 } },
+        }}
+      >
+        <PricingBlock draft={draft} />
+        {byRestaurant.map((group, idx) => (
+          <div key={group.restaurant.id}>
+            {idx > 0 && (
+              <hr
+                style={{
+                  border: "none",
+                  borderTop: "1px solid var(--rule)",
+                  margin: "20px 0 0",
+                }}
+              />
+            )}
+            <div style={{ marginTop: idx === 0 ? 20 : 0 }}>
+              <RestaurantGroupHeader
+                restaurant={group.restaurant}
+                subtotal={group.subtotal}
+              />
+              <ItemsByCategory
+                items={group.items}
+                onSwap={onSwap}
+                onRemove={onRemove}
+                onQtyChange={onQtyChange}
+              />
+            </div>
+          </div>
+        ))}
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      key={draft.id}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.04, delayChildren: 0.06 } },
+      }}
+    >
+      <PricingBlock draft={draft} />
+      <ItemsByCategory
+        items={draft.items}
+        onSwap={onSwap}
+        onRemove={onRemove}
+        onQtyChange={onQtyChange}
+      />
     </motion.div>
   );
 }
