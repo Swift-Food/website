@@ -6,7 +6,7 @@
 
 export type ChatStatus =
   | "collecting"
-  | "awaiting_confirmation"
+  | "awaiting_confirmation" // legacy: backend no longer sets this; treat as 'collecting' if encountered
   | "complete"
   | "no_match"
   | "abandoned";
@@ -62,8 +62,7 @@ export type ChipAction =
   | "place_order"
   | "more_variety"
   | "pick_meal_session"
-  | "confirm_inheritance"
-  | "collapse_to_single_restaurant";
+  | "confirm_inheritance";
 
 export interface Chip {
   label: string;
@@ -228,12 +227,6 @@ export type MessagePart =
       field: string;
       question: string;
       options: ChipOption[];
-    }
-  | {
-      type: "inheritance_clarifier";
-      mealSessionIndex: number;
-      mealSessionName: string;
-      sharedFields: Array<{ field: string; rendered: string }>;
     }
   | {
       type: "feedback";

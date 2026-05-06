@@ -92,8 +92,7 @@ export async function menuAction(
     | { action: "remove"; itemId: string; mealSessionIndex?: number }
     | { action: "set_quantity"; itemId: string; quantity: number; mealSessionIndex?: number }
     | { action: "pick_meal_session"; mealSessionIndex: number }
-    | { action: "confirm_inheritance"; mealSessionIndex: number; accept: boolean }
-    | { action: "collapse_to_single_restaurant"; restaurantId: string; mealSessionIndex?: number },
+    | { action: "confirm_inheritance"; mealSessionIndex: number; accept: boolean },
 ): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/menu-action`, {
     method: "POST",

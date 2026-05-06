@@ -5,7 +5,6 @@ import { ChipGroup } from "./parts/ChipGroup";
 import { SummaryCard } from "./parts/SummaryCard";
 import { MenuPlanCard } from "./parts/MenuPlanCard";
 import { MenuPreviewCard } from "./parts/MenuPreviewCard";
-import { InheritanceClarifierCard } from "./parts/InheritanceClarifierCard";
 import type { Chip, MessagePart } from "./types";
 
 export interface ThreadMessage {
@@ -113,22 +112,6 @@ function PartRenderer({
   }
   if (part.type === "menu_preview") {
     return <MenuPreviewCard preview={part.preview} />;
-  }
-  if (part.type === "inheritance_clarifier") {
-    return (
-      <InheritanceClarifierCard
-        mealSessionIndex={part.mealSessionIndex}
-        mealSessionName={part.mealSessionName}
-        sharedFields={part.sharedFields}
-        onConfirm={(idx, accept) =>
-          onChip({
-            label: "",
-            action: "confirm_inheritance",
-            payload: { mealSessionIndex: idx, accept },
-          })
-        }
-      />
-    );
   }
   if (part.type === "feedback") {
     // Phase A6: thumbs-up/down on retrieval. No renderer wired yet.
