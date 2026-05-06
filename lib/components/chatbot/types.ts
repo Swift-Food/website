@@ -208,6 +208,62 @@ export interface PlanDraft {
   ready: boolean;
 }
 
+// ── Intent-block types (catering chat v3) ───────────────────────────────────
+
+export interface AlternativeRestaurant {
+  id: string;
+  name: string;
+  cuisineTags: string[];
+  reason: string | null;
+  candidateCount: number;
+}
+
+export interface ClientIntent {
+  intentId: string;
+  phrase: string;
+  category: 'main' | 'snack' | 'drink' | 'dessert' | null;
+  count: number | null;
+  restaurantScope: string[] | null;
+  excludes: string[] | null;
+}
+
+export interface IntentBlockGroupSection {
+  title: string | null;
+  order: number;
+  itemIndexes: number[];
+}
+
+export interface IntentBlockItem {
+  id: string;
+  name: string;
+  price: number;
+  groupTitle: string | null;
+  displayOrder: number;
+  mealCategory: 'main' | 'snack' | 'drink' | 'dessert';
+  description: string | null;
+  imageUrl: string | null;
+  reason: string | null;
+}
+
+export interface IntentBlockSelectedRestaurant {
+  id: string;
+  name: string;
+  cuisineTags: string[];
+}
+
+/** Named shape for an intent-block message part, reused inside meal_session.intentBlocks. */
+export interface IntentBlockPart {
+  type: "intent_block";
+  intentId: string;
+  mealSessionIndex: number; // -1 for exploration mode
+  intent: ClientIntent;
+  selectedRestaurant: IntentBlockSelectedRestaurant;
+  items: IntentBlockItem[];
+  groupSections: IntentBlockGroupSection[];
+  alternativeRestaurants: AlternativeRestaurant[];
+  pickedReason: string | null;
+}
+
 export type MessagePart =
   | { type: "text"; text: string }
   | {
@@ -234,6 +290,16 @@ export type MessagePart =
       retrieval_event_id: string;
       prompt: string;
       state: "pending" | "thumbs_up" | "thumbs_down";
+    }
+  | IntentBlockPart
+  | {
+      type: "meal_session";
+      mealSessionIndex: number;
+      sessionName: string;
+      sessionDate: string | null;
+      eventTime: string | null;
+      guestCount: number | null;
+      intentBlocks: IntentBlockPart[];
     };
 
 export interface ChatResponse {
