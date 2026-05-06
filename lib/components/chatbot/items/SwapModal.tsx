@@ -17,7 +17,7 @@ interface SwapModalProps {
 }
 
 /**
- * Three ranked alternatives in the same category, fetched on open.
+ * Up to ten ranked alternatives in the same category, fetched on open.
  * Cards stagger in from below; tapping one calls onPick which the
  * parent uses to fire /menu-action swap. Picked card briefly scales
  * before the modal dismisses, giving the swap a satisfying "I chose
@@ -112,7 +112,17 @@ export function SwapModal({
                   hidden: {},
                   visible: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
                 }}
-                style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}
+                style={{
+                  listStyle: "none",
+                  margin: 0,
+                  padding: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  maxHeight: "60vh",
+                  overflowY: "auto",
+                  WebkitOverflowScrolling: "touch",
+                }}
               >
                 {options.map((opt) => (
                   <SwapCard key={opt.menuItemId} option={opt} onPick={() => onPick(opt)} />
