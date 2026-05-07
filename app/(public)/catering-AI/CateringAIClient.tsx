@@ -10,6 +10,7 @@ import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
 import { SummaryCard } from "@/lib/components/chatbot/parts/SummaryCard";
 import { ChipGroup } from "@/lib/components/chatbot/parts/ChipGroup";
 import { MenuDraftPanel } from "@/lib/components/chatbot/page/MenuDraftPanel";
+import { RestaurantStrip } from "@/lib/components/chatbot/page/RestaurantStrip";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
 import type { SwapOption } from "@/lib/components/chatbot/api";
 import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
@@ -18,8 +19,8 @@ import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
  * Full-page version of the catering chatbot at /catering-AI. Routes
  * message parts to two surfaces:
  *
- *   Left column   summary card (event details), menu items (cart),
- *                 sticky action bar (Confirm / Place order).
+ *   Left column   summary card (event details), restaurant strip,
+ *                 menu items, sticky action bar (Confirm / Place order).
  *   Right column  chat thread — text + clarifier parts only, plus
  *                 conversational `send_text` chips. Form-state and
  *                 action chips never appear here, so editing a slot
@@ -29,15 +30,14 @@ export default function CateringAIClient() {
   const [input, setInput] = useState("");
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<unknown>(undefined);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
-
-  const prefersReducedMotion = useReducedMotion();
   const [swapTarget, setSwapTarget] = useState<{
     id: string;
     name: string;
     mealSessionIndex?: number;
   } | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const chat = useChatSession({ enabled: true });
   const {
@@ -47,7 +47,6 @@ export default function CateringAIClient() {
     error,
     sessionId,
     latestDraft,
-    latestActiveMealSessionIndex,
     latestSummaryCard,
     latestChips,
     editingMealSessionIndex,
@@ -58,13 +57,15 @@ export default function CateringAIClient() {
     swap,
     remove,
     setQuantity,
+    pickRestaurant,
     resetSession,
     getTaxonomyValueFor,
+    replaceIntentBlock,
   } = chat;
 
   // Filter the chat thread: keep text + clarifier + conversational
-  // (send_text) chips. Summary cards render as a sticky header above
-  // the thread, action chips render in the strip above the input.
+  // (send_text) chips. Drop summary, draft, and action chips — those
+  // live in the left column.
   const chatMessages = useMemo<ThreadMessage[]>(
     () =>
       messages
@@ -101,6 +102,8 @@ export default function CateringAIClient() {
     el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
   }, [input]);
 
+  const hasLeftContent = latestDraft !== null;
+
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
       const field = chip.payload?.field as string | undefined;
@@ -136,8 +139,6 @@ export default function CateringAIClient() {
     setSwapTarget(null);
     await swap(target.id, replacement.menuItemId, target.mealSessionIndex);
   }
-
-  const hasLeftContent = latestDraft !== null;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -198,15 +199,17 @@ export default function CateringAIClient() {
                 }}
               >
                 {latestDraft && (
+                  <RestaurantStrip
+                    draft={latestDraft}
+                    onPick={(id) => void pickRestaurant(id)}
+                  />
+                )}
+                {latestDraft && (
                   <MenuDraftPanel
                     draft={latestDraft}
-                    onSwap={(id, name) =>
-                      handleSwap(id, name, latestActiveMealSessionIndex)
-                    }
-                    onRemove={(id) => void remove(id, latestActiveMealSessionIndex)}
-                    onQtyChange={(id, qty) =>
-                      void setQuantity(id, qty, latestActiveMealSessionIndex)
-                    }
+                    onSwap={handleSwap}
+                    onRemove={(id) => void remove(id)}
+                    onQtyChange={(id, qty) => void setQuantity(id, qty)}
                   />
                 )}
               </div>
@@ -297,6 +300,7 @@ export default function CateringAIClient() {
                 sessionId={sessionId}
                 onChip={handleChipClick}
                 onEditField={handleEditField}
+                onIntentBlockReplaced={replaceIntentBlock}
               />
 
               {sending && <TypingIndicator />}
@@ -377,32 +381,13 @@ export default function CateringAIClient() {
 
 /**
  * Filter parts so the chat thread only carries text, clarifier, and
- * conversational `send_text` chips. Summary cards render as a sticky
- * header at the top of the chat column; action chips render in the
- * strip above the input. Inline rendering inside the thread would
- * pollute the conversation flow.
- */
-/**
- * Filter parts so the chat thread keeps text, clarifier, conversational
- * chips, and the per-intent UI (meal_session / intent_block — these carry
- * the alternative-restaurant chips users browse). Form state (summary
- * card) renders pinned at the top of the column; action chips render in
- * the strip above the input. Inline rendering inside the thread would
- * pollute the conversation flow.
- *
- * The cart (draft items) lives in the left aside via `latestDraft`, so
- * cart action handlers are NOT passed to MessageThread — that suppresses
- * MealSessionStepper's inline-cart render so we don't double-show items.
+ * conversational `send_text` chips. Form state (summary_card,
+ * menu_draft) and action chips are owned by the left column.
  */
 function chatPartsOnly(parts: MessagePart[]): MessagePart[] {
   const result: MessagePart[] = [];
   for (const p of parts) {
-    if (
-      p.type === "text" ||
-      p.type === "clarifier" ||
-      p.type === "intent_block" ||
-      p.type === "meal_session"
-    ) {
+    if (p.type === "text" || p.type === "clarifier") {
       result.push(p);
       continue;
     }

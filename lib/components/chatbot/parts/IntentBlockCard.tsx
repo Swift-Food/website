@@ -12,16 +12,15 @@ interface IntentBlockCardProps {
   part: IntentBlockPart;
   /** Restaurant id currently displayed. Parent owns this. */
   selectedRestaurantId: string;
-  /** Called when the user picks an alternative restaurant chip. */
+  /** Called when the user picks an alternative restaurant chip. Parent applies cohesion across blocks. */
   onSelectRestaurant: (restaurantId: string) => void;
   onAddItem?: (itemId: string) => void;
 }
 
 /**
  * One intent block: header, picked-restaurant strip, items grouped by
- * groupTitle into sections, alternative-restaurant chips beneath. The
- * card is controlled — selection lives in the parent so cross-block
- * cohesion can react to it.
+ * groupTitle into sections, alternative-restaurant chips beneath. Tapping
+ * a chip switches the rendered restaurant client-side — no roundtrip.
  */
 export function IntentBlockCard({
   part,
@@ -33,8 +32,9 @@ export function IntentBlockCard({
     0,
     part.restaurantPicks.findIndex((rp) => rp.restaurant.id === selectedRestaurantId),
   );
-  const selected: ClientRestaurantPick =
+  const selected: ClientRestaurantPick | undefined =
     part.restaurantPicks[selectedIdx] ?? part.restaurantPicks[0];
+  if (!selected) return null;
   const alts = part.restaurantPicks.filter((rp) => rp.restaurant.id !== selected.restaurant.id);
 
   return (
@@ -51,28 +51,64 @@ export function IntentBlockCard({
         boxShadow: "var(--shadow-card)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
-        <h3 className="display" style={{ margin: 0, fontSize: "1.25rem", color: "var(--ink)", textTransform: "capitalize" }}>
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          marginBottom: 10,
+        }}
+      >
+        <h3
+          className="display"
+          style={{
+            margin: 0,
+            fontSize: "1.25rem",
+            color: "var(--ink)",
+            textTransform: "capitalize",
+          }}
+        >
           {part.intent.phrase}
         </h3>
-        {part.intent.category && <span className="small-caps">{part.intent.category}</span>}
+        {part.intent.category && (
+          <span className="small-caps">{part.intent.category}</span>
+        )}
       </div>
 
-      <div style={{ fontSize: "0.85rem", color: "var(--ink-soft)", marginBottom: 14 }}>
+      {/* Picked-restaurant strip */}
+      <div
+        style={{
+          fontSize: "0.85rem",
+          color: "var(--ink-soft)",
+          marginBottom: 14,
+        }}
+      >
         From{" "}
-        <span style={{ color: "var(--ink)", fontWeight: 600 }}>{selected.restaurant.name}</span>
+        <span style={{ color: "var(--ink)", fontWeight: 600 }}>
+          {selected.restaurant.name}
+        </span>
         {selected.restaurant.cuisineTags.length > 0 && (
           <span style={{ color: "var(--ink-faint)" }}>
-            {" · "}{selected.restaurant.cuisineTags.slice(0, 3).join(" · ")}
+            {" · "}
+            {selected.restaurant.cuisineTags.slice(0, 3).join(" · ")}
           </span>
         )}
         {selected.pickedReason && (
-          <div style={{ fontSize: "0.75rem", color: "var(--ink-faint)", marginTop: 2, fontStyle: "italic" }}>
+          <div
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--ink-faint)",
+              marginTop: 2,
+              fontStyle: "italic",
+            }}
+          >
             {selected.pickedReason}
           </div>
         )}
       </div>
 
+      {/* Group sections */}
       <AnimatePresence mode="popLayout">
         {selected.groupSections.map((section) => (
           <SectionBlock
@@ -84,7 +120,8 @@ export function IntentBlockCard({
         ))}
       </AnimatePresence>
 
-      {alts.length > 0 && (
+      {/* Alternative restaurants */}
+      {alts.length >= 3 && (
         <AltRestaurantChips
           alts={alts}
           intentPhrase={part.intent.phrase}
@@ -112,7 +149,11 @@ function SectionBlock({
       exit={{ opacity: 0, transition: { duration: 0.12 } }}
       style={{ marginBottom: 14 }}
     >
-      {section.title && <div className="small-caps" style={{ marginBottom: 6 }}>{section.title}</div>}
+      {section.title && (
+        <div className="small-caps" style={{ marginBottom: 6 }}>
+          {section.title}
+        </div>
+      )}
       <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
         {section.itemIndexes.map((idx) => {
           const item = items[idx];
@@ -120,7 +161,9 @@ function SectionBlock({
             <li
               key={item.id}
               style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
                 padding: "8px 10px",
                 backgroundColor: "var(--paper-deep)",
                 border: "1px solid var(--rule)",
@@ -129,22 +172,57 @@ function SectionBlock({
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: "var(--ink)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div
+                  style={{
+                    color: "var(--ink)",
+                    fontWeight: 500,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {item.name}
                 </div>
                 {item.description && (
-                  <div style={{ fontSize: "0.75rem", color: "var(--ink-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--ink-faint)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {item.description}
                   </div>
                 )}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, marginLeft: 12 }}>
-                <span style={{ fontVariantNumeric: "tabular-nums", fontSize: "0.85rem" }}>£{item.price.toFixed(2)}</span>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  flexShrink: 0,
+                  marginLeft: 12,
+                }}
+              >
+                <span style={{ fontVariantNumeric: "tabular-nums", fontSize: "0.85rem" }}>
+                  £{item.price.toFixed(2)}
+                </span>
                 {onAddItem && (
                   <button
                     type="button"
                     onClick={() => onAddItem(item.id)}
-                    style={{ fontSize: "0.75rem", fontWeight: 500, padding: "4px 10px", borderRadius: 6, border: "none", backgroundColor: "var(--ink)", color: "var(--paper)", cursor: "pointer" }}
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 500,
+                      padding: "4px 10px",
+                      borderRadius: 6,
+                      border: "none",
+                      backgroundColor: "var(--ink)",
+                      color: "var(--paper)",
+                      cursor: "pointer",
+                    }}
                   >
                     Add
                   </button>
@@ -168,8 +246,16 @@ function AltRestaurantChips({
   onSelect: (restaurantId: string) => void;
 }) {
   return (
-    <div style={{ borderTop: "1px solid var(--rule)", paddingTop: 10, marginTop: 4 }}>
-      <div className="small-caps" style={{ marginBottom: 6 }}>Other options for {intentPhrase}</div>
+    <div
+      style={{
+        borderTop: "1px solid var(--rule)",
+        paddingTop: 10,
+        marginTop: 4,
+      }}
+    >
+      <div className="small-caps" style={{ marginBottom: 6 }}>
+        Other options for {intentPhrase}
+      </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {alts.map((rp) => (
           <button
@@ -177,13 +263,19 @@ function AltRestaurantChips({
             type="button"
             onClick={() => onSelect(rp.restaurant.id)}
             style={{
-              fontSize: "0.75rem", padding: "5px 12px", borderRadius: 999,
+              fontSize: "0.75rem",
+              padding: "5px 12px",
+              borderRadius: 999,
               border: "1px solid var(--rule)",
-              backgroundColor: "var(--paper)", color: "var(--ink)", cursor: "pointer",
+              backgroundColor: "var(--paper)",
+              color: "var(--ink)",
+              cursor: "pointer",
             }}
           >
             {rp.restaurant.name}
-            <span style={{ marginLeft: 4, color: "var(--ink-faint)" }}>· {rp.candidateCount}</span>
+            <span style={{ marginLeft: 4, color: "var(--ink-faint)" }}>
+              · {rp.candidateCount}
+            </span>
           </button>
         ))}
       </div>

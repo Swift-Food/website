@@ -2,13 +2,8 @@
 
 import { motion } from "motion/react";
 import { DraftItemRow } from "../items/DraftItemRow";
-import type {
-  DraftItem,
-  MealCategory,
-  MenuDraft,
-  RestaurantSubtotal,
-  RestaurantSummary,
-} from "../types";
+import { RestaurantGroupHeader } from "../parts/MenuDraftCard";
+import type { DraftItem, MealCategory, MenuDraft } from "../types";
 
 interface MenuDraftPanelProps {
   draft: MenuDraft;
@@ -175,69 +170,6 @@ export function MenuDraftPanel({
         onQtyChange={onQtyChange}
       />
     </motion.div>
-  );
-}
-
-function RestaurantGroupHeader({
-  restaurant,
-  subtotal,
-}: {
-  restaurant: RestaurantSummary;
-  subtotal: RestaurantSubtotal;
-}) {
-  const photo = restaurant.imageUrl;
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "10px 16px",
-        background: "var(--paper-deep)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {photo && (
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              background: `url(${photo}) center/cover`,
-              flexShrink: 0,
-              border: "1px solid var(--rule)",
-            }}
-            aria-hidden="true"
-          />
-        )}
-        <span
-          className="display"
-          style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--ink)" }}
-        >
-          {restaurant.name}
-        </span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span
-          style={{
-            background: "var(--paper)",
-            border: "1px solid var(--rule)",
-            borderRadius: 20,
-            padding: "2px 8px",
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            color: "var(--ink)",
-          }}
-        >
-          £{subtotal.subtotal.toFixed(2)}
-        </span>
-        {!subtotal.meetsMinOrder && subtotal.minOrderShortfall && (
-          <span style={{ fontSize: "0.72rem", color: "var(--ink-soft)" }}>
-            Add {subtotal.minOrderShortfall.missingItems} more item(s)
-          </span>
-        )}
-      </div>
-    </div>
   );
 }
 
