@@ -47,6 +47,7 @@ export default function CateringAIClient() {
     error,
     sessionId,
     latestDraft,
+    latestActiveMealSessionIndex,
     latestSummaryCard,
     latestChips,
     editingMealSessionIndex,
@@ -199,9 +200,13 @@ export default function CateringAIClient() {
                 {latestDraft && (
                   <MenuDraftPanel
                     draft={latestDraft}
-                    onSwap={handleSwap}
-                    onRemove={(id) => void remove(id)}
-                    onQtyChange={(id, qty) => void setQuantity(id, qty)}
+                    onSwap={(id, name) =>
+                      handleSwap(id, name, latestActiveMealSessionIndex)
+                    }
+                    onRemove={(id) => void remove(id, latestActiveMealSessionIndex)}
+                    onQtyChange={(id, qty) =>
+                      void setQuantity(id, qty, latestActiveMealSessionIndex)
+                    }
                   />
                 )}
               </div>
@@ -377,10 +382,27 @@ export default function CateringAIClient() {
  * strip above the input. Inline rendering inside the thread would
  * pollute the conversation flow.
  */
+/**
+ * Filter parts so the chat thread keeps text, clarifier, conversational
+ * chips, and the per-intent UI (meal_session / intent_block — these carry
+ * the alternative-restaurant chips users browse). Form state (summary
+ * card) renders pinned at the top of the column; action chips render in
+ * the strip above the input. Inline rendering inside the thread would
+ * pollute the conversation flow.
+ *
+ * The cart (draft items) lives in the left aside via `latestDraft`, so
+ * cart action handlers are NOT passed to MessageThread — that suppresses
+ * MealSessionStepper's inline-cart render so we don't double-show items.
+ */
 function chatPartsOnly(parts: MessagePart[]): MessagePart[] {
   const result: MessagePart[] = [];
   for (const p of parts) {
-    if (p.type === "text" || p.type === "clarifier") {
+    if (
+      p.type === "text" ||
+      p.type === "clarifier" ||
+      p.type === "intent_block" ||
+      p.type === "meal_session"
+    ) {
       result.push(p);
       continue;
     }

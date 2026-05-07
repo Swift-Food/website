@@ -30,6 +30,7 @@ export interface ChatSession {
   sessionId: string | null;
   status: ChatStatus | null;
   latestDraft: MenuDraft | null;
+  latestActiveMealSessionIndex: number;
   latestSummaryCard: SummaryCardSnapshot | null;
   latestChips: Chip[] | null;
 
@@ -400,6 +401,7 @@ export function useChatSession(
     sessionId,
     status,
     latestDraft,
+    latestActiveMealSessionIndex,
     latestSummaryCard,
     latestChips,
     editingMealSessionIndex,
