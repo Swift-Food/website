@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { TextBubble } from "./parts/TextBubble";
 import { ChipGroup } from "./parts/ChipGroup";
 import { SummaryCard } from "./parts/SummaryCard";
@@ -132,28 +133,10 @@ function PartRenderer({
     return <MenuPreviewCard preview={part.preview} />;
   }
   if (part.type === "meal_session") {
-    if (!sessionId) return null;
-    return (
-      <MealSessionStepper
-        sessionId={sessionId}
-        part={part}
-        onBlockReplaced={(idx, updated) =>
-          onIntentBlockReplaced?.(idx, updated)
-        }
-      />
-    );
+    return <MealSessionStepper part={part} />;
   }
   if (part.type === "intent_block") {
-    if (!sessionId) return null;
-    return (
-      <IntentBlockCard
-        sessionId={sessionId}
-        part={part}
-        onBlockReplaced={(updated) =>
-          onIntentBlockReplaced?.(part.mealSessionIndex, updated)
-        }
-      />
-    );
+    return <StandaloneIntentBlock part={part} />;
   }
   if (part.type === "feedback") {
     // Phase A6: thumbs-up/down on retrieval. No renderer wired yet.
@@ -161,4 +144,21 @@ function PartRenderer({
   }
   // clarifier — Phase 4
   return null;
+}
+
+function StandaloneIntentBlock({
+  part,
+}: {
+  part: Extract<MessagePart, { type: "intent_block" }>;
+}) {
+  const [selectedId, setSelectedId] = useState<string>(
+    part.restaurantPicks[0]?.restaurant.id ?? "",
+  );
+  return (
+    <IntentBlockCard
+      part={part}
+      selectedRestaurantId={selectedId}
+      onSelectRestaurant={setSelectedId}
+    />
+  );
 }

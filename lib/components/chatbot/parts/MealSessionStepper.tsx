@@ -1,19 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import type { IntentBlockPart, MessagePart } from "../types";
+import type { MessagePart } from "../types";
 import { IntentBlockCard } from "./IntentBlockCard";
+import { resolveSelections } from "../cohesion";
 
 type MealSessionPartType = Extract<MessagePart, { type: "meal_session" }>;
 
 interface MealSessionStepperProps {
-  sessionId: string;
   part: MealSessionPartType;
-  onBlockReplaced: (
-    mealSessionIndex: number,
-    updated: IntentBlockPart,
-  ) => void;
   onAddItem?: (itemId: string) => void;
 }
 
@@ -21,15 +17,26 @@ interface MealSessionStepperProps {
  * Wraps the intent blocks for one meal session. Default = scroll mode
  * (all blocks visible, vertical). Optional step mode = one block at a
  * time with prev/next chevrons. Stepper state is local UI only.
+ *
+ * Owns the explicit-selection map for its blocks (intentId → restaurantId)
+ * and runs resolveSelections() each render to apply same-restaurant cohesion
+ * to displayed defaults. The IntentBlockCard children are dumb / controlled.
  */
 export function MealSessionStepper({
-  sessionId,
   part,
-  onBlockReplaced,
   onAddItem,
 }: MealSessionStepperProps) {
   const [stepMode, setStepMode] = useState(false);
   const [stepIdx, setStepIdx] = useState(0);
+  const [explicit, setExplicit] = useState<Map<string, string>>(() => new Map());
+
+  const resolved = useMemo(
+    () => resolveSelections(part.intentBlocks, explicit),
+    [part.intentBlocks, explicit],
+  );
+
+  const handleSelect = (intentId: string) => (restaurantId: string) =>
+    setExplicit((prev) => new Map(prev).set(intentId, restaurantId));
 
   const blocks = part.intentBlocks;
   if (blocks.length === 0) return null;
@@ -101,11 +108,13 @@ export function MealSessionStepper({
           {visible.map((block) => (
             <IntentBlockCard
               key={block.intentId}
-              sessionId={sessionId}
               part={block}
-              onBlockReplaced={(updated) =>
-                onBlockReplaced(part.mealSessionIndex, updated)
+              selectedRestaurantId={
+                resolved.get(block.intentId) ??
+                block.restaurantPicks[0]?.restaurant.id ??
+                ""
               }
+              onSelectRestaurant={handleSelect(block.intentId)}
               onAddItem={onAddItem}
             />
           ))}
