@@ -152,60 +152,12 @@ export interface MenuDraft {
   alternatives: RestaurantCandidate[];
 }
 
-// ── Exploration mode (no headcount yet) ─────────────────────────────
-// Returned when the user is browsing rather than committing to a draft.
-// No qty/cost — those need a headcount.
-
-export interface PreviewItem {
-  menuItemId: string;
-  name: string;
-  description: string | null;
-  imageUrl: string | null;
-  groupTitle: string | null;
-  mealCategory: MealCategory;
-  allergens: string[];
-  dietaryFilters: string[];
-  unitPrice: number;
-  feedsPerUnit: number;
-  restaurant: RestaurantSummary;
-  /** One-line "shown because…" copy. e.g. "Top vector match for 'spicy'". */
-  matchReason: string;
-}
-
-export interface PreviewSection {
-  /** The intent this section answers, e.g. "pizza", "milk tea". Single-intent
-   *  queries produce one section whose intent equals the user's query. */
-  intent: string;
-  items: PreviewItem[];
-}
-
-export interface MenuPreview {
-  /** Up to 5 sections, one per distinct retrieval intent. */
-  sections: PreviewSection[];
-}
-
 /** Chip-strip tag derived from taxonomy. Array fields emit removable
  * tags (one per value); scalar fields emit a single non-removable tag. */
 export interface SummaryTag {
   field: string;
   value: string;
   removable: boolean;
-}
-
-/**
- * One meal session's draft, wrapped with the meal-session metadata.
- * Multi-meal orders produce one PlanDraft per meal; single-meal orders
- * produce one. The wrapper carries the meal index so refinement actions
- * (swap/remove/qty/restaurant) know which meal they're acting on.
- */
-export interface PlanDraft {
-  mealSessionIndex: number;
-  sessionName: string;
-  sessionDate: string;
-  eventTime: string;
-  guestCount: number;
-  draft: MenuDraft;
-  ready: boolean;
 }
 
 // ── Intent-block types (catering chat v3) ───────────────────────────────────
@@ -271,12 +223,6 @@ export type MessagePart =
       tags: SummaryTag[];
     }
   | { type: "chips"; chips: Chip[] }
-  | {
-      type: "menu_plan";
-      drafts: PlanDraft[];
-      activeMealSessionIndex: number;
-    }
-  | { type: "menu_preview"; preview: MenuPreview }
   | {
       type: "clarifier";
       field: string;

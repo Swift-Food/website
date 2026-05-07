@@ -66,8 +66,8 @@ export function SummaryCard({
 }: SummaryCardProps) {
   const [open, setOpen] = useState(defaultOpen);
 
-  // Per-meal fields (when, headcount, meal_time) live in the menu_plan
-  // part's section headers now — they're per-meal in the multi-session
+  // Per-meal fields (when, headcount, meal_time) live on each
+  // meal_session part now — they're per-meal in the multi-session
   // model, not event-wide. SummaryCard renders only event-wide fields.
   const allRows: Row[] = [
     {

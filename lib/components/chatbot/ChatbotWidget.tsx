@@ -6,25 +6,23 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fraunces, geist } from "./fonts";
 import { MessageThread } from "./MessageThread";
 import { EditFieldModal } from "./edit/EditFieldModal";
-import { SwapModal } from "./items/SwapModal";
-import type { SwapOption } from "./api";
 import type { Chip } from "./types";
 import { useChatSession } from "./useChatSession";
 
 /**
  * Editorial Menu Card chatbot. Cream paper panel, charcoal ink, brand
  * pink reserved for the header bar and primary CTAs. The conversation
- * thread renders typed parts (text bubbles, summary cards, chips, menu
- * drafts) inline. Refinement actions (swap/remove/qty/edit-field)
- * round-trip to deterministic backend endpoints — the LLM is only
- * involved when the user types free text.
+ * thread renders typed parts (text bubbles, summary cards, chips,
+ * meal sessions, intent blocks) inline. Refinement actions
+ * (edit-field) round-trip to deterministic backend endpoints — the
+ * LLM is only involved when the user types free text. Cart actions
+ * (swap/remove/qty) will reattach when the cart UI lands.
  */
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<unknown>(undefined);
-  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -39,10 +37,6 @@ export default function ChatbotWidget() {
     sendText,
     handleChip,
     applyEditField,
-    swap,
-    remove,
-    setQuantity,
-    pickRestaurant,
     resetSession,
     getTaxonomyValueFor,
   } = chat;
@@ -89,17 +83,6 @@ export default function ChatbotWidget() {
     setEditField(null);
     await applyEditField(field, value);
     inputRef.current?.focus();
-  }
-
-  function handleSwap(itemId: string, itemName: string) {
-    setSwapTarget({ id: itemId, name: itemName });
-  }
-
-  async function handleSwapPick(replacement: SwapOption) {
-    const target = swapTarget;
-    if (!target) return;
-    setSwapTarget(null);
-    await swap(target.id, replacement.menuItemId);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -185,10 +168,6 @@ export default function ChatbotWidget() {
                 sessionId={sessionId}
                 onChip={handleChipClick}
                 onEditField={handleEditField}
-                onSwapItem={handleSwap}
-                onRemoveItem={(id) => void remove(id)}
-                onQtyChange={(id, qty) => void setQuantity(id, qty)}
-                onPickRestaurant={(id) => void pickRestaurant(id)}
               />
 
               {sending && <TypingIndicator />}
@@ -233,14 +212,6 @@ export default function ChatbotWidget() {
               initialValue={editValue}
               onClose={() => setEditField(null)}
               onSave={handleEditSave}
-            />
-            <SwapModal
-              open={swapTarget !== null}
-              sessionId={sessionId ?? ""}
-              itemId={swapTarget?.id ?? null}
-              itemName={swapTarget?.name ?? ""}
-              onClose={() => setSwapTarget(null)}
-              onPick={handleSwapPick}
             />
           </motion.div>
         )}

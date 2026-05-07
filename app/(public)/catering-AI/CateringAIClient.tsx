@@ -2,42 +2,35 @@
 
 import "@/lib/components/chatbot/styles.css";
 import { useEffect, useMemo, useRef, useState, FormEvent, KeyboardEvent } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { fraunces, geist } from "@/lib/components/chatbot/fonts";
 import { MessageThread, type ThreadMessage } from "@/lib/components/chatbot/MessageThread";
 import { EditFieldModal } from "@/lib/components/chatbot/edit/EditFieldModal";
-import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
 import { SummaryCard } from "@/lib/components/chatbot/parts/SummaryCard";
 import { ChipGroup } from "@/lib/components/chatbot/parts/ChipGroup";
-import { MenuDraftPanel } from "@/lib/components/chatbot/page/MenuDraftPanel";
-import { RestaurantStrip } from "@/lib/components/chatbot/page/RestaurantStrip";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
-import type { SwapOption } from "@/lib/components/chatbot/api";
 import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
 
 /**
- * Full-page version of the catering chatbot at /catering-AI. Routes
- * message parts to two surfaces:
+ * Full-page version of the catering chatbot at /catering-AI. Renders
+ * the chat thread (text + clarifier + conversational send_text chips)
+ * as a single column with a sticky summary card at the top and an
+ * action-chip strip + input above the message form. Form state and
+ * action chips never appear inline in the thread, so editing a slot
+ * doesn't pollute the conversation.
  *
- *   Left column   summary card (event details), restaurant strip,
- *                 menu items, sticky action bar (Confirm / Place order).
- *   Right column  chat thread — text + clarifier parts only, plus
- *                 conversational `send_text` chips. Form-state and
- *                 action chips never appear here, so editing a slot
- *                 doesn't pollute the conversation.
+ * KNOWN GAP (Task 14 follow-up): the legacy left-column cart panel
+ * (RestaurantStrip + MenuDraftPanel) was removed when menu_plan parts
+ * stopped being emitted in T7. The new cart UI will live inside the
+ * active meal_session part (or a dedicated panel). Until then there is
+ * no user-visible cart on /catering-AI.
  */
 export default function CateringAIClient() {
   const [input, setInput] = useState("");
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<unknown>(undefined);
-  const [swapTarget, setSwapTarget] = useState<{
-    id: string;
-    name: string;
-    mealSessionIndex?: number;
-  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const prefersReducedMotion = useReducedMotion();
 
   const chat = useChatSession({ enabled: true });
   const {
@@ -46,7 +39,6 @@ export default function CateringAIClient() {
     bootstrapping,
     error,
     sessionId,
-    latestDraft,
     latestSummaryCard,
     latestChips,
     editingMealSessionIndex,
@@ -54,17 +46,13 @@ export default function CateringAIClient() {
     sendText,
     handleChip,
     applyEditField,
-    swap,
-    remove,
-    setQuantity,
-    pickRestaurant,
     resetSession,
     getTaxonomyValueFor,
   } = chat;
 
   // Filter the chat thread: keep text + clarifier + conversational
-  // (send_text) chips. Drop summary, draft, and action chips — those
-  // live in the left column.
+  // (send_text) chips. Summary cards render as a sticky header above
+  // the thread, action chips render in the strip above the input.
   const chatMessages = useMemo<ThreadMessage[]>(
     () =>
       messages
@@ -101,8 +89,6 @@ export default function CateringAIClient() {
     el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
   }, [input]);
 
-  const hasLeftContent = latestDraft !== null;
-
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
       const field = chip.payload?.field as string | undefined;
@@ -126,17 +112,6 @@ export default function CateringAIClient() {
     setEditingMealSessionIndex(undefined);
     await applyEditField(field, value, mealSessionIndex);
     inputRef.current?.focus();
-  }
-
-  function handleSwap(itemId: string, itemName: string, mealSessionIndex?: number) {
-    setSwapTarget({ id: itemId, name: itemName, mealSessionIndex });
-  }
-
-  async function handleSwapPick(replacement: SwapOption) {
-    const target = swapTarget;
-    if (!target) return;
-    setSwapTarget(null);
-    await swap(target.id, replacement.menuItemId, target.mealSessionIndex);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -163,59 +138,6 @@ export default function CateringAIClient() {
       style={{ height: "100dvh", minHeight: 560 }}
     >
       <div className="swift-chat-page-shell">
-        <AnimatePresence initial={false}>
-          {hasLeftContent && (
-            <motion.aside
-              key="left-aside"
-              initial={
-                prefersReducedMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, x: -48, width: 0 }
-              }
-              animate={
-                prefersReducedMotion
-                  ? { opacity: 1 }
-                  : { opacity: 1, x: 0, width: "auto" }
-              }
-              exit={
-                prefersReducedMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, x: -48, width: 0 }
-              }
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="swift-chat-page-aside"
-              style={{ overflow: "hidden" }}
-            >
-              <div
-                style={{
-                  flex: 1,
-                  minHeight: 0,
-                  overflowY: "auto",
-                  padding: "20px 24px 24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 18,
-                }}
-              >
-                {latestDraft && (
-                  <RestaurantStrip
-                    draft={latestDraft}
-                    onPick={(id) => void pickRestaurant(id)}
-                  />
-                )}
-                {latestDraft && (
-                  <MenuDraftPanel
-                    draft={latestDraft}
-                    onSwap={handleSwap}
-                    onRemove={(id) => void remove(id)}
-                    onQtyChange={(id, qty) => void setQuantity(id, qty)}
-                  />
-                )}
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
-
         <motion.main
           layout
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -228,10 +150,9 @@ export default function CateringAIClient() {
               minHeight: 0,
               display: "flex",
               flexDirection: "column",
-              maxWidth: hasLeftContent ? "none" : 760,
+              maxWidth: 760,
               width: "100%",
               margin: "0 auto",
-              transition: "max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           >
             <div
@@ -365,22 +286,16 @@ export default function CateringAIClient() {
         }}
         onSave={handleEditSave}
       />
-      <SwapModal
-        open={swapTarget !== null}
-        sessionId={sessionId ?? ""}
-        itemId={swapTarget?.id ?? null}
-        itemName={swapTarget?.name ?? ""}
-        onClose={() => setSwapTarget(null)}
-        onPick={handleSwapPick}
-      />
     </div>
   );
 }
 
 /**
  * Filter parts so the chat thread only carries text, clarifier, and
- * conversational `send_text` chips. Form state (summary_card,
- * menu_draft) and action chips are owned by the left column.
+ * conversational `send_text` chips. Summary cards render as a sticky
+ * header at the top of the chat column; action chips render in the
+ * strip above the input. Inline rendering inside the thread would
+ * pollute the conversation flow.
  */
 function chatPartsOnly(parts: MessagePart[]): MessagePart[] {
   const result: MessagePart[] = [];

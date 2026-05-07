@@ -46,7 +46,6 @@ export interface ChatSession {
   swap: (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => Promise<void>;
   remove: (itemId: string, mealSessionIndex?: number) => Promise<void>;
   setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
-  pickRestaurant: (restaurantId: string, mealSessionIndex?: number) => Promise<void>;
   moreVariety: (mealSessionIndex?: number) => Promise<void>;
   placeOrder: () => Promise<void>;
   resetSession: () => Promise<void>;
@@ -70,9 +69,9 @@ export interface UseChatSessionOptions {
 /**
  * Owns the chat session lifecycle: bootstrap from localStorage, send
  * messages, apply server responses, and run refinement actions
- * (swap/remove/qty/edit-field/pick-restaurant/place-order). UI surfaces
- * (floating widget, /catering-AI page) consume this hook and supply
- * their own layout, modals, and input chrome.
+ * (swap/remove/qty/edit-field/place-order). UI surfaces (floating
+ * widget, /catering-AI page) consume this hook and supply their own
+ * layout, modals, and input chrome.
  */
 export function useChatSession(
   options: UseChatSessionOptions = {},
@@ -258,15 +257,6 @@ export function useChatSession(
     [callApiAndApply],
   );
 
-  const pickRestaurant = useCallback(
-    async (restaurantId: string, mealSessionIndex?: number) => {
-      const sid = sessionIdRef.current;
-      if (!sid) return;
-      await callApiAndApply(() => api.pickRestaurant(sid, restaurantId, mealSessionIndex));
-    },
-    [callApiAndApply],
-  );
-
   const moreVariety = useCallback(async (mealSessionIndex?: number) => {
     const sid = sessionIdRef.current;
     if (!sid) return;
@@ -347,12 +337,12 @@ export function useChatSession(
         case "place_order":
           await placeOrder();
           return;
-        case "pick_restaurant": {
-          const restaurantId = chip.payload?.restaurantId as string | undefined;
-          const mealSessionIndex = chip.payload?.mealSessionIndex as number | undefined;
-          if (restaurantId) await pickRestaurant(restaurantId, mealSessionIndex);
+        case "pick_restaurant":
+          // Legacy action — the backend's pick-restaurant endpoint was
+          // removed alongside menu_plan in T7. If the LLM still emits a
+          // chip with this action it's a no-op until the new per-intent
+          // selection is wired through here.
           return;
-        }
         case "edit_field":
           // edit_field opens a modal owned by the consumer; the hook
           // doesn't act on it directly. Consumer reads chip.payload.field
@@ -362,7 +352,7 @@ export function useChatSession(
           return;
       }
     },
-    [sendText, callApiAndApply, moreVariety, placeOrder, pickRestaurant, pickMealSession, confirmInheritance],
+    [sendText, callApiAndApply, moreVariety, placeOrder, pickMealSession, confirmInheritance],
   );
 
   const resetSession = useCallback(async () => {
@@ -412,7 +402,6 @@ export function useChatSession(
     swap,
     remove,
     setQuantity,
-    pickRestaurant,
     moreVariety,
     placeOrder,
     resetSession,
@@ -460,19 +449,13 @@ function taxonomyValueFor(
   return taxonomy[key];
 }
 
-function findActiveDraft(messages: ThreadMessage[]): MenuDraft | null {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const parts = messages[i].parts;
-    for (let j = parts.length - 1; j >= 0; j--) {
-      const p = parts[j];
-      if (p.type === "menu_plan") {
-        const active =
-          p.drafts.find((d) => d.mealSessionIndex === p.activeMealSessionIndex) ??
-          p.drafts[0];
-        return active?.draft ?? null;
-      }
-    }
-  }
+function findActiveDraft(_messages: ThreadMessage[]): MenuDraft | null {
+  // KNOWN GAP (Task 14 follow-up): the legacy `menu_plan` part — which
+  // wrapped per-meal MenuDrafts so the side panel could render them —
+  // was removed in T7. Until the cart panel decides where to source
+  // its draft from (a meal_session sub-part, a dedicated cart part, or
+  // a derived selection), `latestDraft` is always null. Keeping the
+  // helper signature stable so the consumers don't have to change.
   return null;
 }
 
