@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { MessagePart } from "../types";
 import { IntentBlockCard } from "./IntentBlockCard";
+import { MenuDraftPanel } from "../page/MenuDraftPanel";
 import { resolveSelections } from "../cohesion";
 
 type MealSessionPartType = Extract<MessagePart, { type: "meal_session" }>;
@@ -11,6 +12,10 @@ type MealSessionPartType = Extract<MessagePart, { type: "meal_session" }>;
 interface MealSessionStepperProps {
   part: MealSessionPartType;
   onAddItem?: (itemId: string) => void;
+  /** Cart actions, forwarded by MessageThread. When present, the cart renders inline at the bottom of the stepper (used by the floating widget). */
+  onSwapItem?: (itemId: string, itemName: string, mealSessionIndex?: number) => void;
+  onRemoveItem?: (itemId: string, mealSessionIndex?: number) => void;
+  onQtyChange?: (itemId: string, qty: number, mealSessionIndex?: number) => void;
 }
 
 /**
@@ -25,6 +30,9 @@ interface MealSessionStepperProps {
 export function MealSessionStepper({
   part,
   onAddItem,
+  onSwapItem,
+  onRemoveItem,
+  onQtyChange,
 }: MealSessionStepperProps) {
   const [stepMode, setStepMode] = useState(false);
   const [stepIdx, setStepIdx] = useState(0);
@@ -170,6 +178,17 @@ export function MealSessionStepper({
             Next →
           </button>
         </nav>
+      )}
+
+      {part.draft && onSwapItem && onRemoveItem && onQtyChange && (
+        <div style={{ marginTop: 14 }}>
+          <MenuDraftPanel
+            draft={part.draft}
+            onSwap={(id, name) => onSwapItem(id, name, part.mealSessionIndex)}
+            onRemove={(id) => onRemoveItem(id, part.mealSessionIndex)}
+            onQtyChange={(id, qty) => onQtyChange(id, qty, part.mealSessionIndex)}
+          />
+        </div>
       )}
     </div>
   );

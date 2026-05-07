@@ -246,6 +246,8 @@ export type MessagePart =
       eventTime: string | null;
       guestCount: number | null;
       intentBlocks: IntentBlockPart[];
+      /** The cart for this meal — null until the builder produces one. Surfaces that render meal_session inline (the widget) show this below the intent blocks. */
+      draft: MenuDraft | null;
     };
 
 export interface ChatResponse {

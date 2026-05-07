@@ -2,23 +2,28 @@
 
 import "@/lib/components/chatbot/styles.css";
 import { useEffect, useMemo, useRef, useState, FormEvent, KeyboardEvent } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fraunces, geist } from "@/lib/components/chatbot/fonts";
 import { MessageThread, type ThreadMessage } from "@/lib/components/chatbot/MessageThread";
 import { EditFieldModal } from "@/lib/components/chatbot/edit/EditFieldModal";
+import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
 import { SummaryCard } from "@/lib/components/chatbot/parts/SummaryCard";
 import { ChipGroup } from "@/lib/components/chatbot/parts/ChipGroup";
 import { MenuDraftPanel } from "@/lib/components/chatbot/page/MenuDraftPanel";
-import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
-import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
 import type { SwapOption } from "@/lib/components/chatbot/api";
+import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
 
 /**
- * Full-page version of the catering chatbot at /catering-AI. Renders
- * the chat thread on the main column with a sticky summary card and
- * action chips, plus a right-side cart panel sourced from the active
- * meal session's draft.
+ * Full-page version of the catering chatbot at /catering-AI. Routes
+ * message parts to two surfaces:
+ *
+ *   Left column   summary card (event details), menu items (cart),
+ *                 sticky action bar (Confirm / Place order).
+ *   Right column  chat thread — text + clarifier parts only, plus
+ *                 conversational `send_text` chips. Form-state and
+ *                 action chips never appear here, so editing a slot
+ *                 doesn't pollute the conversation.
  */
 export default function CateringAIClient() {
   const [input, setInput] = useState("");
@@ -27,6 +32,13 @@ export default function CateringAIClient() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const prefersReducedMotion = useReducedMotion();
+  const [swapTarget, setSwapTarget] = useState<{
+    id: string;
+    name: string;
+    mealSessionIndex?: number;
+  } | null>(null);
+
   const chat = useChatSession({ enabled: true });
   const {
     messages,
@@ -34,9 +46,9 @@ export default function CateringAIClient() {
     bootstrapping,
     error,
     sessionId,
+    latestDraft,
     latestSummaryCard,
     latestChips,
-    latestDraft,
     editingMealSessionIndex,
     setEditingMealSessionIndex,
     sendText,
@@ -48,8 +60,6 @@ export default function CateringAIClient() {
     resetSession,
     getTaxonomyValueFor,
   } = chat;
-
-  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Filter the chat thread: keep text + clarifier + conversational
   // (send_text) chips. Summary cards render as a sticky header above
@@ -115,6 +125,19 @@ export default function CateringAIClient() {
     inputRef.current?.focus();
   }
 
+  function handleSwap(itemId: string, itemName: string, mealSessionIndex?: number) {
+    setSwapTarget({ id: itemId, name: itemName, mealSessionIndex });
+  }
+
+  async function handleSwapPick(replacement: SwapOption) {
+    const target = swapTarget;
+    if (!target) return;
+    setSwapTarget(null);
+    await swap(target.id, replacement.menuItemId, target.mealSessionIndex);
+  }
+
+  const hasLeftContent = latestDraft !== null;
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (sending) return;
@@ -138,12 +161,58 @@ export default function CateringAIClient() {
       className={`${fontClass} swift-chat-design swift-chat-page`}
       style={{ height: "100dvh", minHeight: 560 }}
     >
-      <div className="swift-chat-page-shell" style={{ display: "flex", height: "100%" }}>
+      <div className="swift-chat-page-shell">
+        <AnimatePresence initial={false}>
+          {hasLeftContent && (
+            <motion.aside
+              key="left-aside"
+              initial={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, x: -48, width: 0 }
+              }
+              animate={
+                prefersReducedMotion
+                  ? { opacity: 1 }
+                  : { opacity: 1, x: 0, width: "auto" }
+              }
+              exit={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, x: -48, width: 0 }
+              }
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="swift-chat-page-aside"
+              style={{ overflow: "hidden" }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: "auto",
+                  padding: "20px 24px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 18,
+                }}
+              >
+                {latestDraft && (
+                  <MenuDraftPanel
+                    draft={latestDraft}
+                    onSwap={handleSwap}
+                    onRemove={(id) => void remove(id)}
+                    onQtyChange={(id, qty) => void setQuantity(id, qty)}
+                  />
+                )}
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
         <motion.main
           layout
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="swift-chat-page-main"
-          style={{ flex: 1, minWidth: 0 }}
         >
           <PageHeader onRefresh={() => void resetSession()} />
           <div
@@ -152,9 +221,10 @@ export default function CateringAIClient() {
               minHeight: 0,
               display: "flex",
               flexDirection: "column",
-              maxWidth: 760,
+              maxWidth: hasLeftContent ? "none" : 760,
               width: "100%",
               margin: "0 auto",
+              transition: "max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           >
             <div
@@ -275,52 +345,7 @@ export default function CateringAIClient() {
             </div>
           </div>
         </motion.main>
-
-        <AnimatePresence>
-          {latestDraft && (
-            <motion.aside
-              key="cart-aside"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              style={{
-                width: 380,
-                flexShrink: 0,
-                borderLeft: "1px solid var(--rule)",
-                background: "var(--paper)",
-                overflowY: "auto",
-                padding: 20,
-              }}
-            >
-              <div className="display" style={{ fontSize: "1.1rem", color: "var(--ink)", marginBottom: 12 }}>
-                Your cart
-              </div>
-              <MenuDraftPanel
-                draft={latestDraft}
-                onSwap={(itemId, itemName) => setSwapTarget({ id: itemId, name: itemName })}
-                onRemove={(itemId) => void remove(itemId)}
-                onQtyChange={(itemId, qty) => void setQuantity(itemId, qty)}
-              />
-            </motion.aside>
-          )}
-        </AnimatePresence>
       </div>
-
-      {sessionId && (
-        <SwapModal
-          open={swapTarget !== null}
-          sessionId={sessionId}
-          itemId={swapTarget?.id ?? null}
-          itemName={swapTarget?.name ?? ""}
-          onClose={() => setSwapTarget(null)}
-          onPick={(replacement: SwapOption) => {
-            if (!swapTarget) return;
-            void swap(swapTarget.id, replacement.menuItemId);
-            setSwapTarget(null);
-          }}
-        />
-      )}
 
       <EditFieldModal
         open={editField !== null}
@@ -332,6 +357,14 @@ export default function CateringAIClient() {
           setEditingMealSessionIndex(undefined);
         }}
         onSave={handleEditSave}
+      />
+      <SwapModal
+        open={swapTarget !== null}
+        sessionId={sessionId ?? ""}
+        itemId={swapTarget?.id ?? null}
+        itemName={swapTarget?.name ?? ""}
+        onClose={() => setSwapTarget(null)}
+        onPick={handleSwapPick}
       />
     </div>
   );

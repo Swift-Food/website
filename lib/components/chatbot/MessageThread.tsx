@@ -19,6 +19,10 @@ interface MessageThreadProps {
   sessionId: string | null;
   onChip: (chip: Chip) => void;
   onEditField: (field: string, mealSessionIndex?: number) => void;
+  /** Cart actions, forwarded to the inline cart inside MealSessionStepper. Surfaces that render the cart elsewhere (e.g. the page's left aside) can omit these. */
+  onSwapItem?: (itemId: string, itemName: string, mealSessionIndex?: number) => void;
+  onRemoveItem?: (itemId: string, mealSessionIndex?: number) => void;
+  onQtyChange?: (itemId: string, qty: number, mealSessionIndex?: number) => void;
 }
 
 /**
@@ -32,6 +36,9 @@ export function MessageThread({
   sessionId,
   onChip,
   onEditField,
+  onSwapItem,
+  onRemoveItem,
+  onQtyChange,
 }: MessageThreadProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -45,6 +52,9 @@ export function MessageThread({
               sessionId={sessionId}
               onChip={onChip}
               onEditField={onEditField}
+              onSwapItem={onSwapItem}
+              onRemoveItem={onRemoveItem}
+              onQtyChange={onQtyChange}
             />
           ))}
         </div>
@@ -59,12 +69,18 @@ function PartRenderer({
   sessionId,
   onChip,
   onEditField,
+  onSwapItem,
+  onRemoveItem,
+  onQtyChange,
 }: {
   part: MessagePart;
   sender: "user" | "bot";
   sessionId: string | null;
   onChip: (chip: Chip) => void;
   onEditField: (field: string, mealSessionIndex?: number) => void;
+  onSwapItem?: (itemId: string, itemName: string, mealSessionIndex?: number) => void;
+  onRemoveItem?: (itemId: string, mealSessionIndex?: number) => void;
+  onQtyChange?: (itemId: string, qty: number, mealSessionIndex?: number) => void;
 }) {
   if (part.type === "text") {
     return <TextBubble sender={sender} text={part.text} />;
@@ -82,7 +98,14 @@ function PartRenderer({
     return <ChipGroup chips={part.chips} onAction={onChip} />;
   }
   if (part.type === "meal_session") {
-    return <MealSessionStepper part={part} />;
+    return (
+      <MealSessionStepper
+        part={part}
+        onSwapItem={onSwapItem}
+        onRemoveItem={onRemoveItem}
+        onQtyChange={onQtyChange}
+      />
+    );
   }
   if (part.type === "intent_block") {
     return <StandaloneIntentBlock part={part} />;
