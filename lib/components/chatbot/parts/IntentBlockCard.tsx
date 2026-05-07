@@ -1,56 +1,41 @@
 "use client";
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type {
-  AlternativeRestaurant,
+  ClientRestaurantPick,
   IntentBlockGroupSection,
   IntentBlockItem,
   IntentBlockPart,
 } from "../types";
-import { swapIntentRestaurant } from "../api";
 
 interface IntentBlockCardProps {
-  sessionId: string;
   part: IntentBlockPart;
-  onBlockReplaced: (updated: IntentBlockPart) => void;
+  /** Restaurant id currently displayed. Parent owns this. */
+  selectedRestaurantId: string;
+  /** Called when the user picks an alternative restaurant chip. */
+  onSelectRestaurant: (restaurantId: string) => void;
   onAddItem?: (itemId: string) => void;
 }
 
 /**
  * One intent block: header, picked-restaurant strip, items grouped by
- * groupTitle into sections, alternative-restaurant chips beneath. Tapping
- * a chip swaps the entire block via the swap-restaurant endpoint.
+ * groupTitle into sections, alternative-restaurant chips beneath. The
+ * card is controlled — selection lives in the parent so cross-block
+ * cohesion can react to it.
  */
 export function IntentBlockCard({
-  sessionId,
   part,
-  onBlockReplaced,
+  selectedRestaurantId,
+  onSelectRestaurant,
   onAddItem,
 }: IntentBlockCardProps) {
-  const [swapping, setSwapping] = useState<string | null>(null);
-
-  const handleSwap = async (newRestaurantId: string) => {
-    setSwapping(newRestaurantId);
-    try {
-      const res = await swapIntentRestaurant(
-        sessionId,
-        part.intentId,
-        newRestaurantId,
-      );
-      const updated = res.parts.find(
-        (p) => p.type === "intent_block" && p.intentId === part.intentId,
-      );
-      if (updated && updated.type === "intent_block") {
-        onBlockReplaced(updated);
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("swap-restaurant failed", err);
-    } finally {
-      setSwapping(null);
-    }
-  };
+  const selectedIdx = Math.max(
+    0,
+    part.restaurantPicks.findIndex((rp) => rp.restaurant.id === selectedRestaurantId),
+  );
+  const selected: ClientRestaurantPick =
+    part.restaurantPicks[selectedIdx] ?? part.restaurantPicks[0];
+  const alts = part.restaurantPicks.filter((rp) => rp.restaurant.id !== selected.restaurant.id);
 
   return (
     <motion.div
@@ -66,82 +51,44 @@ export function IntentBlockCard({
         boxShadow: "var(--shadow-card)",
       }}
     >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          marginBottom: 10,
-        }}
-      >
-        <h3
-          className="display"
-          style={{
-            margin: 0,
-            fontSize: "1.25rem",
-            color: "var(--ink)",
-            textTransform: "capitalize",
-          }}
-        >
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
+        <h3 className="display" style={{ margin: 0, fontSize: "1.25rem", color: "var(--ink)", textTransform: "capitalize" }}>
           {part.intent.phrase}
         </h3>
-        {part.intent.category && (
-          <span className="small-caps">{part.intent.category}</span>
-        )}
+        {part.intent.category && <span className="small-caps">{part.intent.category}</span>}
       </div>
 
-      {/* Picked-restaurant strip */}
-      <div
-        style={{
-          fontSize: "0.85rem",
-          color: "var(--ink-soft)",
-          marginBottom: 14,
-        }}
-      >
+      <div style={{ fontSize: "0.85rem", color: "var(--ink-soft)", marginBottom: 14 }}>
         From{" "}
-        <span style={{ color: "var(--ink)", fontWeight: 600 }}>
-          {part.selectedRestaurant.name}
-        </span>
-        {part.selectedRestaurant.cuisineTags.length > 0 && (
+        <span style={{ color: "var(--ink)", fontWeight: 600 }}>{selected.restaurant.name}</span>
+        {selected.restaurant.cuisineTags.length > 0 && (
           <span style={{ color: "var(--ink-faint)" }}>
-            {" · "}
-            {part.selectedRestaurant.cuisineTags.slice(0, 3).join(" · ")}
+            {" · "}{selected.restaurant.cuisineTags.slice(0, 3).join(" · ")}
           </span>
         )}
-        {part.pickedReason && (
-          <div
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--ink-faint)",
-              marginTop: 2,
-              fontStyle: "italic",
-            }}
-          >
-            {part.pickedReason}
+        {selected.pickedReason && (
+          <div style={{ fontSize: "0.75rem", color: "var(--ink-faint)", marginTop: 2, fontStyle: "italic" }}>
+            {selected.pickedReason}
           </div>
         )}
       </div>
 
-      {/* Group sections */}
       <AnimatePresence mode="popLayout">
-        {part.groupSections.map((section) => (
+        {selected.groupSections.map((section) => (
           <SectionBlock
-            key={`${part.intentId}-${section.title ?? "_null"}`}
+            key={`${part.intentId}-${selected.restaurant.id}-${section.title ?? "_null"}`}
             section={section}
-            items={part.items}
+            items={selected.items}
             onAddItem={onAddItem}
           />
         ))}
       </AnimatePresence>
 
-      {/* Alternative restaurants */}
-      {part.alternativeRestaurants.length >= 3 && (
+      {alts.length > 0 && (
         <AltRestaurantChips
-          alts={part.alternativeRestaurants}
+          alts={alts}
           intentPhrase={part.intent.phrase}
-          swapping={swapping}
-          onSwap={handleSwap}
+          onSelect={onSelectRestaurant}
         />
       )}
     </motion.div>
@@ -165,11 +112,7 @@ function SectionBlock({
       exit={{ opacity: 0, transition: { duration: 0.12 } }}
       style={{ marginBottom: 14 }}
     >
-      {section.title && (
-        <div className="small-caps" style={{ marginBottom: 6 }}>
-          {section.title}
-        </div>
-      )}
+      {section.title && <div className="small-caps" style={{ marginBottom: 6 }}>{section.title}</div>}
       <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
         {section.itemIndexes.map((idx) => {
           const item = items[idx];
@@ -177,9 +120,7 @@ function SectionBlock({
             <li
               key={item.id}
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
                 padding: "8px 10px",
                 backgroundColor: "var(--paper-deep)",
                 border: "1px solid var(--rule)",
@@ -188,57 +129,22 @@ function SectionBlock({
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    color: "var(--ink)",
-                    fontWeight: 500,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <div style={{ color: "var(--ink)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {item.name}
                 </div>
                 {item.description && (
-                  <div
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "var(--ink-faint)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <div style={{ fontSize: "0.75rem", color: "var(--ink-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {item.description}
                   </div>
                 )}
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  flexShrink: 0,
-                  marginLeft: 12,
-                }}
-              >
-                <span style={{ fontVariantNumeric: "tabular-nums", fontSize: "0.85rem" }}>
-                  £{item.price.toFixed(2)}
-                </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, marginLeft: 12 }}>
+                <span style={{ fontVariantNumeric: "tabular-nums", fontSize: "0.85rem" }}>£{item.price.toFixed(2)}</span>
                 {onAddItem && (
                   <button
                     type="button"
                     onClick={() => onAddItem(item.id)}
-                    style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 500,
-                      padding: "4px 10px",
-                      borderRadius: 6,
-                      border: "none",
-                      backgroundColor: "var(--ink)",
-                      color: "var(--paper)",
-                      cursor: "pointer",
-                    }}
+                    style={{ fontSize: "0.75rem", fontWeight: 500, padding: "4px 10px", borderRadius: 6, border: "none", backgroundColor: "var(--ink)", color: "var(--paper)", cursor: "pointer" }}
                   >
                     Add
                   </button>
@@ -255,48 +161,29 @@ function SectionBlock({
 function AltRestaurantChips({
   alts,
   intentPhrase,
-  swapping,
-  onSwap,
+  onSelect,
 }: {
-  alts: AlternativeRestaurant[];
+  alts: ClientRestaurantPick[];
   intentPhrase: string;
-  swapping: string | null;
-  onSwap: (id: string) => void;
+  onSelect: (restaurantId: string) => void;
 }) {
   return (
-    <div
-      style={{
-        borderTop: "1px solid var(--rule)",
-        paddingTop: 10,
-        marginTop: 4,
-      }}
-    >
-      <div className="small-caps" style={{ marginBottom: 6 }}>
-        Other options for {intentPhrase}
-      </div>
+    <div style={{ borderTop: "1px solid var(--rule)", paddingTop: 10, marginTop: 4 }}>
+      <div className="small-caps" style={{ marginBottom: 6 }}>Other options for {intentPhrase}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {alts.map((alt) => (
+        {alts.map((rp) => (
           <button
-            key={alt.id}
+            key={rp.restaurant.id}
             type="button"
-            onClick={() => onSwap(alt.id)}
-            disabled={swapping === alt.id}
-            title={alt.reason ?? ""}
+            onClick={() => onSelect(rp.restaurant.id)}
             style={{
-              fontSize: "0.75rem",
-              padding: "5px 12px",
-              borderRadius: 999,
+              fontSize: "0.75rem", padding: "5px 12px", borderRadius: 999,
               border: "1px solid var(--rule)",
-              backgroundColor: "var(--paper)",
-              color: "var(--ink)",
-              cursor: swapping === alt.id ? "wait" : "pointer",
-              opacity: swapping === alt.id ? 0.5 : 1,
+              backgroundColor: "var(--paper)", color: "var(--ink)", cursor: "pointer",
             }}
           >
-            {alt.name}
-            <span style={{ marginLeft: 4, color: "var(--ink-faint)" }}>
-              · {alt.candidateCount}
-            </span>
+            {rp.restaurant.name}
+            <span style={{ marginLeft: 4, color: "var(--ink-faint)" }}>· {rp.candidateCount}</span>
           </button>
         ))}
       </div>
