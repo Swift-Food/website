@@ -44,6 +44,8 @@ export interface ChatMealSessionView {
   mealTime: string | null; // "Breakfast" | "Lunch" | "Dinner"
   hasDraft: boolean;
   ready: boolean; // hasDraft AND guestCount !== null
+  /** The cart for this meal. Null until the builder runs and produces one. */
+  draft: MenuDraft | null;
   /** Resolved override-vs-shared, ready for UI display. */
   effectiveTaxonomy: {
     dietaryRestrictions: string[];

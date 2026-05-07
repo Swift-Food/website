@@ -7,6 +7,7 @@ import type { ThreadMessage } from "./MessageThread";
 import type {
   ChatResponse,
   ChatStatus,
+  ChatMealSessionView,
   Chip,
   SharedTaxonomyView,
   MenuDraft,
@@ -85,6 +86,9 @@ export function useChatSession(
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [status, setStatus] = useState<ChatStatus | null>(null);
   const [editingMealSessionIndex, setEditingMealSessionIndex] = useState<number | undefined>(undefined);
+  /** Latest formatted meal-session views from the response. The active meal's draft renders as the cart. */
+  const [latestMealSessions, setLatestMealSessions] = useState<ChatMealSessionView[]>([]);
+  const [latestActiveMealSessionIndex, setLatestActiveMealSessionIndex] = useState(0);
 
   const sessionIdRef = useRef<string | null>(null);
   const lastTaxonomyRef = useRef<Record<string, unknown>>({});
@@ -93,6 +97,8 @@ export function useChatSession(
     const parts = data.parts ?? legacyToParts(data);
     captureTaxonomy(parts, lastTaxonomyRef);
     setStatus(data.status ?? null);
+    setLatestMealSessions(data.mealSessions ?? []);
+    setLatestActiveMealSessionIndex(data.activeMealSessionIndex ?? 0);
     if (asReply) {
       setMessages((prev) => [
         ...prev,
@@ -376,7 +382,10 @@ export function useChatSession(
     return taxonomyValueFor(field, lastTaxonomyRef.current);
   }, []);
 
-  const latestDraft = useMemo(() => findActiveDraft(messages), [messages]);
+  const latestDraft = useMemo(
+    () => latestMealSessions[latestActiveMealSessionIndex]?.draft ?? null,
+    [latestMealSessions, latestActiveMealSessionIndex],
+  );
   const latestSummaryCard = useMemo(
     () => findLatestSummaryCard(messages),
     [messages],
@@ -449,15 +458,6 @@ function taxonomyValueFor(
   return taxonomy[key];
 }
 
-function findActiveDraft(_messages: ThreadMessage[]): MenuDraft | null {
-  // KNOWN GAP (Task 14 follow-up): the legacy `menu_plan` part — which
-  // wrapped per-meal MenuDrafts so the side panel could render them —
-  // was removed in T7. Until the cart panel decides where to source
-  // its draft from (a meal_session sub-part, a dedicated cart part, or
-  // a derived selection), `latestDraft` is always null. Keeping the
-  // helper signature stable so the consumers don't have to change.
-  return null;
-}
 
 function findLatestSummaryCard(
   messages: ThreadMessage[],

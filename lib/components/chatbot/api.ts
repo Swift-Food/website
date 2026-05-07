@@ -1,5 +1,5 @@
 import type { ChatResponse } from "./types";
-import type { OrderDraftHandoff } from "@/lib/types/order-draft-handoff";
+import type { HandoffItem, OrderDraftHandoff } from "@/lib/types/order-draft-handoff";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -156,18 +156,86 @@ export async function placeOrder(
 /**
  * Single boundary transform: chat-API response → neutral handoff. The
  * order form never sees chat types; CateringContext never sees backend
- * types. Both sides depend only on OrderDraftHandoff.
- *
- * KNOWN GAP (Task 14 follow-up): the legacy `menu_plan` part — which
- * carried the draft this transform read from — was removed in T7. The
- * cart now lives on the meal session, but no frontend renderer is
- * wired yet (see also `useChatSession.findActiveDraft`). Until that
- * cart panel lands and decides where the draft is sourced for handoff,
- * this transform always returns null and the order page surfaces the
- * "draft isn't ready" message.
+ * types. Both sides depend only on OrderDraftHandoff. Returns null when
+ * the session isn't handoff-ready (no draft on the active meal).
  */
 export function chatSessionToHandoff(
-  _response: ChatResponse,
+  response: ChatResponse,
 ): OrderDraftHandoff | null {
-  return null;
+  if (response.status !== "complete") return null;
+
+  const activeMeal =
+    response.mealSessions[response.activeMealSessionIndex] ??
+    response.mealSessions[0];
+  const draft = activeMeal?.draft;
+  if (!draft) return null;
+
+  const headcount = activeMeal?.guestCount ?? draft.feedsPeople ?? 1;
+  const rawDateTime = activeMeal?.sessionDate
+    ? activeMeal.eventTime
+      ? `${activeMeal.sessionDate} at ${activeMeal.eventTime}`
+      : activeMeal.sessionDate
+    : null;
+  const { date, time } = splitEventDateTime(rawDateTime);
+
+  const t = response.taxonomy;
+  const noteParts: string[] = [];
+  if (t.dietaryRestrictions.length > 0) noteParts.push(`Dietary: ${t.dietaryRestrictions.join(", ")}`);
+  if (t.cuisinePreference && t.cuisinePreference.length > 0) noteParts.push(`Cuisine: ${t.cuisinePreference.join(", ")}`);
+  if (t.occasion) noteParts.push(`Occasion: ${t.occasion}`);
+
+  const items: HandoffItem[] = draft.items.map((d) => ({
+    menuItemId: d.menuItemId,
+    name: d.name,
+    description: d.description,
+    imageUrl: d.imageUrl,
+    groupTitle: d.groupTitle,
+    price: d.unitPrice.toFixed(2),
+    feedsPerUnit: d.feedsPerUnit,
+    cateringQuantityUnit: d.cateringQuantityUnit,
+    quantity: d.quantity,
+    allergens: d.allergens ?? [],
+    dietaryFilters: d.dietaryFilters ?? [],
+    restaurantId: d.restaurantId,
+  }));
+
+  return {
+    source: "chatbot",
+    event: {
+      date,
+      time,
+      headcount,
+      address: "",
+      specialRequests: noteParts.join(" · "),
+    },
+    restaurants: draft.restaurants.map((r) => ({
+      id: r.id,
+      name: r.name,
+      imageUrl: r.imageUrl,
+    })),
+    items,
+  };
+}
+
+function splitEventDateTime(formatted: string | null): { date: string; time: string } {
+  if (!formatted) return { date: "", time: "" };
+  const candidates = [
+    formatted,
+    formatted.replace(/\s+at\s+/gi, " "),
+    formatted.replace(/[,]/g, ""),
+    formatted.replace(/\s+at\s+/gi, " ").replace(/[,]/g, ""),
+  ];
+  for (const c of candidates) {
+    const parsed = new Date(c);
+    if (Number.isNaN(parsed.getTime())) continue;
+    const yyyy = parsed.getFullYear();
+    const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+    const dd = String(parsed.getDate()).padStart(2, "0");
+    const hh = String(parsed.getHours()).padStart(2, "0");
+    const mi = String(parsed.getMinutes()).padStart(2, "0");
+    const date = `${yyyy}-${mm}-${dd}`;
+    const time = formatted.match(/\d{1,2}[:.]\d{2}/) ? `${hh}:${mi}` : "";
+    return { date, time };
+  }
+  return { date: "", time: "" };
 }

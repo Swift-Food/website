@@ -2,28 +2,23 @@
 
 import "@/lib/components/chatbot/styles.css";
 import { useEffect, useMemo, useRef, useState, FormEvent, KeyboardEvent } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { fraunces, geist } from "@/lib/components/chatbot/fonts";
 import { MessageThread, type ThreadMessage } from "@/lib/components/chatbot/MessageThread";
 import { EditFieldModal } from "@/lib/components/chatbot/edit/EditFieldModal";
 import { SummaryCard } from "@/lib/components/chatbot/parts/SummaryCard";
 import { ChipGroup } from "@/lib/components/chatbot/parts/ChipGroup";
+import { MenuDraftPanel } from "@/lib/components/chatbot/page/MenuDraftPanel";
+import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
 import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
+import type { SwapOption } from "@/lib/components/chatbot/api";
 
 /**
  * Full-page version of the catering chatbot at /catering-AI. Renders
- * the chat thread (text + clarifier + conversational send_text chips)
- * as a single column with a sticky summary card at the top and an
- * action-chip strip + input above the message form. Form state and
- * action chips never appear inline in the thread, so editing a slot
- * doesn't pollute the conversation.
- *
- * KNOWN GAP (Task 14 follow-up): the legacy left-column cart panel
- * (RestaurantStrip + MenuDraftPanel) was removed when menu_plan parts
- * stopped being emitted in T7. The new cart UI will live inside the
- * active meal_session part (or a dedicated panel). Until then there is
- * no user-visible cart on /catering-AI.
+ * the chat thread on the main column with a sticky summary card and
+ * action chips, plus a right-side cart panel sourced from the active
+ * meal session's draft.
  */
 export default function CateringAIClient() {
   const [input, setInput] = useState("");
@@ -41,14 +36,20 @@ export default function CateringAIClient() {
     sessionId,
     latestSummaryCard,
     latestChips,
+    latestDraft,
     editingMealSessionIndex,
     setEditingMealSessionIndex,
     sendText,
     handleChip,
     applyEditField,
+    swap,
+    remove,
+    setQuantity,
     resetSession,
     getTaxonomyValueFor,
   } = chat;
+
+  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Filter the chat thread: keep text + clarifier + conversational
   // (send_text) chips. Summary cards render as a sticky header above
@@ -137,11 +138,12 @@ export default function CateringAIClient() {
       className={`${fontClass} swift-chat-design swift-chat-page`}
       style={{ height: "100dvh", minHeight: 560 }}
     >
-      <div className="swift-chat-page-shell">
+      <div className="swift-chat-page-shell" style={{ display: "flex", height: "100%" }}>
         <motion.main
           layout
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="swift-chat-page-main"
+          style={{ flex: 1, minWidth: 0 }}
         >
           <PageHeader onRefresh={() => void resetSession()} />
           <div
@@ -273,7 +275,52 @@ export default function CateringAIClient() {
             </div>
           </div>
         </motion.main>
+
+        <AnimatePresence>
+          {latestDraft && (
+            <motion.aside
+              key="cart-aside"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                width: 380,
+                flexShrink: 0,
+                borderLeft: "1px solid var(--rule)",
+                background: "var(--paper)",
+                overflowY: "auto",
+                padding: 20,
+              }}
+            >
+              <div className="display" style={{ fontSize: "1.1rem", color: "var(--ink)", marginBottom: 12 }}>
+                Your cart
+              </div>
+              <MenuDraftPanel
+                draft={latestDraft}
+                onSwap={(itemId, itemName) => setSwapTarget({ id: itemId, name: itemName })}
+                onRemove={(itemId) => void remove(itemId)}
+                onQtyChange={(itemId, qty) => void setQuantity(itemId, qty)}
+              />
+            </motion.aside>
+          )}
+        </AnimatePresence>
       </div>
+
+      {sessionId && (
+        <SwapModal
+          open={swapTarget !== null}
+          sessionId={sessionId}
+          itemId={swapTarget?.id ?? null}
+          itemName={swapTarget?.name ?? ""}
+          onClose={() => setSwapTarget(null)}
+          onPick={(replacement: SwapOption) => {
+            if (!swapTarget) return;
+            void swap(swapTarget.id, replacement.menuItemId);
+            setSwapTarget(null);
+          }}
+        />
+      )}
 
       <EditFieldModal
         open={editField !== null}

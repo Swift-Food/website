@@ -6,7 +6,10 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fraunces, geist } from "./fonts";
 import { MessageThread } from "./MessageThread";
 import { EditFieldModal } from "./edit/EditFieldModal";
+import { MenuDraftPanel } from "./page/MenuDraftPanel";
+import { SwapModal } from "./items/SwapModal";
 import type { Chip } from "./types";
+import type { SwapOption } from "./api";
 import { useChatSession } from "./useChatSession";
 
 /**
@@ -34,12 +37,18 @@ export default function ChatbotWidget() {
     bootstrapping,
     error,
     sessionId,
+    latestDraft,
     sendText,
     handleChip,
     applyEditField,
+    swap,
+    remove,
+    setQuantity,
     resetSession,
     getTaxonomyValueFor,
   } = chat;
+
+  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Auto-scroll to newest message
   useEffect(() => {
@@ -170,6 +179,26 @@ export default function ChatbotWidget() {
                 onEditField={handleEditField}
               />
 
+              {latestDraft && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    paddingTop: 12,
+                    borderTop: "1px solid var(--rule)",
+                  }}
+                >
+                  <div className="display" style={{ fontSize: "0.95rem", color: "var(--ink)", marginBottom: 8 }}>
+                    Your cart
+                  </div>
+                  <MenuDraftPanel
+                    draft={latestDraft}
+                    onSwap={(itemId, itemName) => setSwapTarget({ id: itemId, name: itemName })}
+                    onRemove={(itemId) => void remove(itemId)}
+                    onQtyChange={(itemId, qty) => void setQuantity(itemId, qty)}
+                  />
+                </div>
+              )}
+
               {sending && <TypingIndicator />}
 
               {error && (
@@ -213,6 +242,21 @@ export default function ChatbotWidget() {
               onClose={() => setEditField(null)}
               onSave={handleEditSave}
             />
+
+            {sessionId && (
+              <SwapModal
+                open={swapTarget !== null}
+                sessionId={sessionId}
+                itemId={swapTarget?.id ?? null}
+                itemName={swapTarget?.name ?? ""}
+                onClose={() => setSwapTarget(null)}
+                onPick={(replacement: SwapOption) => {
+                  if (!swapTarget) return;
+                  void swap(swapTarget.id, replacement.menuItemId);
+                  setSwapTarget(null);
+                }}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
