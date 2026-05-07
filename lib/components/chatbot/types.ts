@@ -210,14 +210,6 @@ export interface PlanDraft {
 
 // ── Intent-block types (catering chat v3) ───────────────────────────────────
 
-export interface AlternativeRestaurant {
-  id: string;
-  name: string;
-  cuisineTags: string[];
-  reason: string | null;
-  candidateCount: number;
-}
-
 export interface ClientIntent {
   intentId: string;
   phrase: string;
@@ -245,10 +237,19 @@ export interface IntentBlockItem {
   reason: string | null;
 }
 
-export interface IntentBlockSelectedRestaurant {
-  id: string;
-  name: string;
-  cuisineTags: string[];
+/** One restaurant's curated picks for an intent. Up to 5 per IntentBlockPart, ranked by candidate count. */
+export interface ClientRestaurantPick {
+  restaurant: {
+    id: string;
+    name: string;
+    cuisineTags: string[];
+    imageUrl: string | null;
+    rating: number;
+  };
+  items: IntentBlockItem[];
+  groupSections: IntentBlockGroupSection[];
+  candidateCount: number;
+  pickedReason: string | null;
 }
 
 /** Named shape for an intent-block message part, reused inside meal_session.intentBlocks. */
@@ -257,11 +258,8 @@ export interface IntentBlockPart {
   intentId: string;
   mealSessionIndex: number; // -1 for exploration mode
   intent: ClientIntent;
-  selectedRestaurant: IntentBlockSelectedRestaurant;
-  items: IntentBlockItem[];
-  groupSections: IntentBlockGroupSection[];
-  alternativeRestaurants: AlternativeRestaurant[];
-  pickedReason: string | null;
+  /** Top-5 ranked restaurants. [0] is the default selection; the parent applies cohesion to choose which to display. */
+  restaurantPicks: ClientRestaurantPick[];
 }
 
 export type MessagePart =
