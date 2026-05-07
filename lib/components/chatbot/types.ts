@@ -44,6 +44,11 @@ export interface ChatMealSessionView {
   mealTime: string | null; // "Breakfast" | "Lunch" | "Dinner"
   hasDraft: boolean;
   ready: boolean; // hasDraft AND guestCount !== null
+  /**
+   * Per-meal cart draft. Backend hydrates this so the page's left aside
+   * can render the cart without a separate menu_plan part.
+   */
+  draft: MenuDraft | null;
   /** Resolved override-vs-shared, ready for UI display. */
   effectiveTaxonomy: {
     dietaryRestrictions: string[];
@@ -235,6 +240,9 @@ export interface IntentBlockItem {
   description: string | null;
   imageUrl: string | null;
   reason: string | null;
+  allergens: string[];
+  dietaryFilters: string[];
+  feedsPerUnit: number;
 }
 
 /** One restaurant's curated picks for an intent. Up to 5 per IntentBlockPart, ranked by candidate count. */
@@ -290,15 +298,25 @@ export type MessagePart =
       state: "pending" | "thumbs_up" | "thumbs_down";
     }
   | IntentBlockPart
-  | {
-      type: "meal_session";
-      mealSessionIndex: number;
-      sessionName: string;
-      sessionDate: string | null;
-      eventTime: string | null;
-      guestCount: number | null;
-      intentBlocks: IntentBlockPart[];
-    };
+  | MealSessionPart;
+
+/**
+ * Aggregator part — one per meal session, intent blocks pre-sorted by
+ * mealCategory. Mirrors the backend's `MealSessionPart`. Carries both
+ * the per-intent restaurant picks (browse) and the committed draft
+ * (cart) so the page-aside can render either without a separate part.
+ */
+export interface MealSessionPart {
+  type: "meal_session";
+  mealSessionIndex: number;
+  sessionName: string;
+  sessionDate: string | null;
+  eventTime: string | null;
+  guestCount: number | null;
+  intentBlocks: IntentBlockPart[];
+  /** The cart for this meal — null until the builder produces one. */
+  draft: MenuDraft | null;
+}
 
 export interface ChatResponse {
   sessionId: string;

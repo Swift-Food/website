@@ -62,8 +62,20 @@ export function DraftItemRow({
         {restaurantName && (
           <span className="item-restaurant-badge">from {restaurantName}</span>
         )}
+        {item.description && (
+          <div
+            style={{
+              fontSize: "0.78rem",
+              color: "var(--ink-soft)",
+              lineHeight: 1.4,
+              marginTop: 4,
+            }}
+          >
+            {item.description}
+          </div>
+        )}
         {item.reason && (
-          <div style={{ marginTop: 2 }}>
+          <div style={{ marginTop: 4 }}>
             <Reason>{item.reason}</Reason>
           </div>
         )}

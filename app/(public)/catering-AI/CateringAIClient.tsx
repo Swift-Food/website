@@ -9,8 +9,8 @@ import { EditFieldModal } from "@/lib/components/chatbot/edit/EditFieldModal";
 import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
 import { SummaryCard } from "@/lib/components/chatbot/parts/SummaryCard";
 import { ChipGroup } from "@/lib/components/chatbot/parts/ChipGroup";
-import { MenuDraftPanel } from "@/lib/components/chatbot/page/MenuDraftPanel";
-import { RestaurantStrip } from "@/lib/components/chatbot/page/RestaurantStrip";
+import { MealSessionTabs } from "@/lib/components/chatbot/parts/MealSessionTabs";
+import { IntentStepper } from "@/lib/components/chatbot/parts/IntentStepper";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
 import type { SwapOption } from "@/lib/components/chatbot/api";
 import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
@@ -47,6 +47,9 @@ export default function CateringAIClient() {
     error,
     sessionId,
     latestDraft,
+    latestMealSessions,
+    latestActiveMealSessionIndex,
+    latestMealSessionParts,
     latestSummaryCard,
     latestChips,
     editingMealSessionIndex,
@@ -57,10 +60,10 @@ export default function CateringAIClient() {
     swap,
     remove,
     setQuantity,
-    pickRestaurant,
+    pickMealSession,
+    placeOrder,
     resetSession,
     getTaxonomyValueFor,
-    replaceIntentBlock,
   } = chat;
 
   // Filter the chat thread: keep text + clarifier + conversational
@@ -102,7 +105,13 @@ export default function CateringAIClient() {
     el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
   }, [input]);
 
-  const hasLeftContent = latestDraft !== null;
+  // Keep the left panel mounted as long as we have any meal sessions —
+  // refinement actions (swap, qty, etc.) round-trip through the server
+  // and the active meal's `draft` can briefly land null while the
+  // backend rebuilds. Tying the aside to mealSessions keeps the
+  // AnimatePresence exit from collapsing the column mid-action.
+  const hasLeftContent =
+    latestMealSessions.length > 0 || latestDraft !== null;
 
   function handleChipClick(chip: Chip) {
     if (chip.action === "edit_field") {
@@ -198,18 +207,25 @@ export default function CateringAIClient() {
                   gap: 18,
                 }}
               >
-                {latestDraft && (
-                  <RestaurantStrip
-                    draft={latestDraft}
-                    onPick={(id) => void pickRestaurant(id)}
+                {latestMealSessions.length > 0 && (
+                  <MealSessionTabs
+                    mealSessions={latestMealSessions}
+                    activeIndex={latestActiveMealSessionIndex}
+                    onPick={(idx) => void pickMealSession(idx)}
                   />
                 )}
-                {latestDraft && (
-                  <MenuDraftPanel
-                    draft={latestDraft}
+                {latestMealSessionParts.length > 0 && (
+                  <IntentStepper
+                    mealSessionParts={latestMealSessionParts}
+                    activeMealSessionIndex={latestActiveMealSessionIndex}
+                    onPickMealSession={(idx) => void pickMealSession(idx)}
+                    onPlaceOrder={() => void placeOrder()}
                     onSwap={handleSwap}
-                    onRemove={(id) => void remove(id)}
-                    onQtyChange={(id, qty) => void setQuantity(id, qty)}
+                    onRemove={(id, idx) => void remove(id, idx)}
+                    onQtyChange={(id, qty, idx) =>
+                      void setQuantity(id, qty, idx)
+                    }
+                    sending={sending}
                   />
                 )}
               </div>
@@ -300,7 +316,6 @@ export default function CateringAIClient() {
                 sessionId={sessionId}
                 onChip={handleChipClick}
                 onEditField={handleEditField}
-                onIntentBlockReplaced={replaceIntentBlock}
               />
 
               {sending && <TypingIndicator />}

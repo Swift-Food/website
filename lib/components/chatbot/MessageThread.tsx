@@ -24,7 +24,6 @@ interface MessageThreadProps {
   onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
   onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
   onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
-  onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
 }
 
 /**
@@ -41,7 +40,6 @@ export function MessageThread({
   onSwapItem,
   onRemoveItem,
   onQtyChange,
-  onPickRestaurant,
 }: MessageThreadProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -58,7 +56,6 @@ export function MessageThread({
               onSwapItem={onSwapItem}
               onRemoveItem={onRemoveItem}
               onQtyChange={onQtyChange}
-              onPickRestaurant={onPickRestaurant}
             />
           ))}
         </div>
@@ -76,7 +73,6 @@ function PartRenderer({
   onSwapItem,
   onRemoveItem,
   onQtyChange,
-  onPickRestaurant,
 }: {
   part: MessagePart;
   sender: "user" | "bot";
@@ -86,7 +82,6 @@ function PartRenderer({
   onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
   onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
   onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
-  onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
 }) {
   if (part.type === "text") {
     return <TextBubble sender={sender} text={part.text} />;
@@ -114,7 +109,6 @@ function PartRenderer({
         onSwapItem={onSwapItem}
         onRemoveItem={onRemoveItem}
         onQtyChange={onQtyChange}
-        onPickRestaurant={onPickRestaurant}
       />
     );
   }

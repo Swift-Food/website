@@ -42,10 +42,8 @@ export default function ChatbotWidget() {
     swap,
     remove,
     setQuantity,
-    pickRestaurant,
     resetSession,
     getTaxonomyValueFor,
-    replaceIntentBlock,
   } = chat;
 
   // Auto-scroll to newest message
@@ -189,8 +187,6 @@ export default function ChatbotWidget() {
                 onSwapItem={handleSwap}
                 onRemoveItem={(id) => void remove(id)}
                 onQtyChange={(id, qty) => void setQuantity(id, qty)}
-                onPickRestaurant={(id) => void pickRestaurant(id)}
-                onIntentBlockReplaced={replaceIntentBlock}
               />
 
               {sending && <TypingIndicator />}

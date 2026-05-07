@@ -3,7 +3,6 @@
 import { motion } from "motion/react";
 import { DraftItemRow } from "../items/DraftItemRow";
 import { Reason } from "../ui/Reason";
-import { RestaurantSwitcher } from "../restaurant/RestaurantSwitcher";
 import type { MenuDraft, DraftItem, MealCategory, RestaurantSummary, RestaurantSubtotal } from "../types";
 
 interface MenuDraftCardProps {
@@ -11,7 +10,6 @@ interface MenuDraftCardProps {
   onSwap?: (itemId: string) => void;
   onRemove?: (itemId: string) => void;
   onQtyChange?: (itemId: string, qty: number) => void;
-  onPickRestaurant?: (restaurantId: string) => void;
 }
 
 const CATEGORY_LABELS: Record<MealCategory, string> = {
@@ -98,7 +96,6 @@ export function MenuDraftCard({
   onSwap,
   onRemove,
   onQtyChange,
-  onPickRestaurant,
 }: MenuDraftCardProps) {
   const isMultiRestaurant = draft.restaurants.length > 1;
 
@@ -187,13 +184,6 @@ export function MenuDraftCard({
         />
       </div>
     </motion.div>
-    {onPickRestaurant && (
-      <RestaurantSwitcher
-        current={draft.restaurants[0]}
-        alternatives={draft.alternatives}
-        onPick={onPickRestaurant}
-      />
-    )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import type {
   ChatMealSessionView,
   Chip,
   SharedTaxonomyView,
+  MealSessionPart,
   MenuDraft,
   MessagePart,
 } from "./types";
@@ -30,6 +31,12 @@ export interface ChatSession {
   sessionId: string | null;
   status: ChatStatus | null;
   latestDraft: MenuDraft | null;
+  latestMealSessions: ChatMealSessionView[];
+  latestActiveMealSessionIndex: number;
+  /** Most-recent `meal_session` part per mealSessionIndex, derived from
+   * the message thread. The page-aside intent stepper consumes this to
+   * render per-intent restaurant picks (intentBlocks) for the active meal. */
+  latestMealSessionParts: MealSessionPart[];
   latestSummaryCard: SummaryCardSnapshot | null;
   latestChips: Chip[] | null;
 
@@ -47,7 +54,6 @@ export interface ChatSession {
   swap: (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => Promise<void>;
   remove: (itemId: string, mealSessionIndex?: number) => Promise<void>;
   setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
-  pickRestaurant: (restaurantId: string, mealSessionIndex?: number) => Promise<void>;
   moreVariety: (mealSessionIndex?: number) => Promise<void>;
   placeOrder: () => Promise<void>;
   resetSession: () => Promise<void>;
@@ -57,12 +63,6 @@ export interface ChatSession {
   // helpers
   getSwapOptions: (itemId: string, mealSessionIndex?: number) => Promise<SwapOption[]>;
   getTaxonomyValueFor: (field: string) => unknown;
-
-  /** Replace one intent block (after a swap-restaurant call). */
-  replaceIntentBlock: (
-    mealSessionIndex: number,
-    updated: { intentId: string },
-  ) => void;
 }
 
 export interface UseChatSessionOptions {
@@ -77,7 +77,7 @@ export interface UseChatSessionOptions {
 /**
  * Owns the chat session lifecycle: bootstrap from localStorage, send
  * messages, apply server responses, and run refinement actions
- * (swap/remove/qty/edit-field/pick-restaurant/place-order). UI surfaces
+ * (swap/remove/qty/edit-field/place-order). UI surfaces
  * (floating widget, /catering-AI page) consume this hook and supply
  * their own layout, modals, and input chrome.
  */
@@ -270,15 +270,6 @@ export function useChatSession(
     [callApiAndApply],
   );
 
-  const pickRestaurant = useCallback(
-    async (restaurantId: string, mealSessionIndex?: number) => {
-      const sid = sessionIdRef.current;
-      if (!sid) return;
-      await callApiAndApply(() => api.pickRestaurant(sid, restaurantId, mealSessionIndex));
-    },
-    [callApiAndApply],
-  );
-
   const moreVariety = useCallback(async (mealSessionIndex?: number) => {
     const sid = sessionIdRef.current;
     if (!sid) return;
@@ -359,12 +350,12 @@ export function useChatSession(
         case "place_order":
           await placeOrder();
           return;
-        case "pick_restaurant": {
-          const restaurantId = chip.payload?.restaurantId as string | undefined;
-          const mealSessionIndex = chip.payload?.mealSessionIndex as number | undefined;
-          if (restaurantId) await pickRestaurant(restaurantId, mealSessionIndex);
+        case "pick_restaurant":
+          // pick_restaurant chip is legacy — the new per-intent block UI
+          // handles restaurant switching client-side via cohesion. Backend
+          // no longer emits this chip (T7 cleanup), but if a stale session
+          // surfaces one, ignore rather than 404.
           return;
-        }
         case "edit_field":
           // edit_field opens a modal owned by the consumer; the hook
           // doesn't act on it directly. Consumer reads chip.payload.field
@@ -374,7 +365,7 @@ export function useChatSession(
           return;
       }
     },
-    [sendText, callApiAndApply, moreVariety, placeOrder, pickRestaurant, pickMealSession, confirmInheritance],
+    [sendText, callApiAndApply, moreVariety, placeOrder, pickMealSession, confirmInheritance],
   );
 
   const resetSession = useCallback(async () => {
@@ -394,45 +385,6 @@ export function useChatSession(
     return api.getSwapOptions(sid, itemId, mealSessionIndex);
   }, []);
 
-  /**
-   * Replace one intent block in place (after a swap-restaurant call).
-   * Targets the latest bot message that contains the matching intent block,
-   * either standalone (mealSessionIndex === -1, exploration mode) or nested
-   * inside a meal_session part.
-   */
-  const replaceIntentBlock = useCallback(
-    (mealSessionIndex: number, updated: { intentId: string }) => {
-      setMessages((prev) =>
-        prev.map((msg) => ({
-          ...msg,
-          parts: msg.parts.map((p) => {
-            if (
-              p.type === "meal_session" &&
-              p.mealSessionIndex === mealSessionIndex
-            ) {
-              return {
-                ...p,
-                intentBlocks: p.intentBlocks.map((b) =>
-                  b.intentId === updated.intentId
-                    ? (updated as typeof b)
-                    : b,
-                ),
-              };
-            }
-            if (
-              p.type === "intent_block" &&
-              p.intentId === updated.intentId
-            ) {
-              return updated as typeof p;
-            }
-            return p;
-          }),
-        })),
-      );
-    },
-    [],
-  );
-
   const getTaxonomyValueFor = useCallback((field: string) => {
     return taxonomyValueFor(field, lastTaxonomyRef.current);
   }, []);
@@ -446,6 +398,10 @@ export function useChatSession(
     [messages],
   );
   const latestChips = useMemo(() => findLatestChips(messages), [messages]);
+  const latestMealSessionParts = useMemo(
+    () => findLatestMealSessionParts(messages),
+    [messages],
+  );
 
   return {
     messages,
@@ -455,6 +411,9 @@ export function useChatSession(
     sessionId,
     status,
     latestDraft,
+    latestMealSessions,
+    latestActiveMealSessionIndex,
+    latestMealSessionParts,
     latestSummaryCard,
     latestChips,
     editingMealSessionIndex,
@@ -466,7 +425,6 @@ export function useChatSession(
     swap,
     remove,
     setQuantity,
-    pickRestaurant,
     moreVariety,
     placeOrder,
     resetSession,
@@ -474,7 +432,6 @@ export function useChatSession(
     confirmInheritance,
     getSwapOptions,
     getTaxonomyValueFor,
-    replaceIntentBlock,
   };
 }
 
@@ -541,3 +498,25 @@ function findLatestChips(messages: ThreadMessage[]): Chip[] | null {
   }
   return null;
 }
+
+/**
+ * Walk the thread newest-first and keep the first `meal_session` part
+ * seen for each mealSessionIndex — that is the freshest intentBlocks
+ * data for that meal. Returned sorted by mealSessionIndex ascending.
+ */
+function findLatestMealSessionParts(
+  messages: ThreadMessage[],
+): MealSessionPart[] {
+  const byIndex = new Map<number, MealSessionPart>();
+  for (let i = messages.length - 1; i >= 0; i--) {
+    for (const p of messages[i].parts) {
+      if (p.type === "meal_session" && !byIndex.has(p.mealSessionIndex)) {
+        byIndex.set(p.mealSessionIndex, p);
+      }
+    }
+  }
+  return [...byIndex.values()].sort(
+    (a, b) => a.mealSessionIndex - b.mealSessionIndex,
+  );
+}
+

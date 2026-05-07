@@ -11,7 +11,6 @@ interface MenuPlanCardProps {
   onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
   onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
   onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
-  onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
 }
 
 /**
@@ -27,7 +26,6 @@ export function MenuPlanCard({
   onSwapItem,
   onRemoveItem,
   onQtyChange,
-  onPickRestaurant,
 }: MenuPlanCardProps) {
   if (drafts.length === 0) return null;
 
@@ -52,11 +50,6 @@ export function MenuPlanCard({
         onQtyChange={
           onQtyChange
             ? (itemId, qty) => onQtyChange(itemId, qty, d.mealSessionIndex)
-            : undefined
-        }
-        onPickRestaurant={
-          onPickRestaurant
-            ? (rid) => onPickRestaurant(rid, d.mealSessionIndex)
             : undefined
         }
       />
@@ -110,11 +103,6 @@ export function MenuPlanCard({
               onQtyChange={
                 isActive && onQtyChange
                   ? (itemId, qty) => onQtyChange(itemId, qty, d.mealSessionIndex)
-                  : undefined
-              }
-              onPickRestaurant={
-                isActive && onPickRestaurant
-                  ? (rid) => onPickRestaurant(rid, d.mealSessionIndex)
                   : undefined
               }
             />
