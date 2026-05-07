@@ -25,10 +25,6 @@ interface MessageThreadProps {
   onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
   onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
   onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
-  onIntentBlockReplaced?: (
-    mealSessionIndex: number,
-    updated: IntentBlockPart,
-  ) => void;
 }
 
 /**
@@ -46,7 +42,6 @@ export function MessageThread({
   onRemoveItem,
   onQtyChange,
   onPickRestaurant,
-  onIntentBlockReplaced,
 }: MessageThreadProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -64,7 +59,6 @@ export function MessageThread({
               onRemoveItem={onRemoveItem}
               onQtyChange={onQtyChange}
               onPickRestaurant={onPickRestaurant}
-              onIntentBlockReplaced={onIntentBlockReplaced}
             />
           ))}
         </div>
@@ -83,7 +77,6 @@ function PartRenderer({
   onRemoveItem,
   onQtyChange,
   onPickRestaurant,
-  onIntentBlockReplaced,
 }: {
   part: MessagePart;
   sender: "user" | "bot";
@@ -94,10 +87,6 @@ function PartRenderer({
   onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
   onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
   onPickRestaurant?: (restaurantId: string, mealSessionIndex: number) => void;
-  onIntentBlockReplaced?: (
-    mealSessionIndex: number,
-    updated: IntentBlockPart,
-  ) => void;
 }) {
   if (part.type === "text") {
     return <TextBubble sender={sender} text={part.text} />;

@@ -56,12 +56,6 @@ export interface ChatSession {
   // helpers
   getSwapOptions: (itemId: string, mealSessionIndex?: number) => Promise<SwapOption[]>;
   getTaxonomyValueFor: (field: string) => unknown;
-
-  /** Replace one intent block (after a swap-restaurant call). */
-  replaceIntentBlock: (
-    mealSessionIndex: number,
-    updated: { intentId: string },
-  ) => void;
 }
 
 export interface UseChatSessionOptions {
@@ -388,45 +382,6 @@ export function useChatSession(
     return api.getSwapOptions(sid, itemId, mealSessionIndex);
   }, []);
 
-  /**
-   * Replace one intent block in place (after a swap-restaurant call).
-   * Targets the latest bot message that contains the matching intent block,
-   * either standalone (mealSessionIndex === -1, exploration mode) or nested
-   * inside a meal_session part.
-   */
-  const replaceIntentBlock = useCallback(
-    (mealSessionIndex: number, updated: { intentId: string }) => {
-      setMessages((prev) =>
-        prev.map((msg) => ({
-          ...msg,
-          parts: msg.parts.map((p) => {
-            if (
-              p.type === "meal_session" &&
-              p.mealSessionIndex === mealSessionIndex
-            ) {
-              return {
-                ...p,
-                intentBlocks: p.intentBlocks.map((b) =>
-                  b.intentId === updated.intentId
-                    ? (updated as typeof b)
-                    : b,
-                ),
-              };
-            }
-            if (
-              p.type === "intent_block" &&
-              p.intentId === updated.intentId
-            ) {
-              return updated as typeof p;
-            }
-            return p;
-          }),
-        })),
-      );
-    },
-    [],
-  );
-
   const getTaxonomyValueFor = useCallback((field: string) => {
     return taxonomyValueFor(field, lastTaxonomyRef.current);
   }, []);
@@ -465,7 +420,6 @@ export function useChatSession(
     confirmInheritance,
     getSwapOptions,
     getTaxonomyValueFor,
-    replaceIntentBlock,
   };
 }
 
