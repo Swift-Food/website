@@ -17,9 +17,15 @@ interface IntentStepperProps {
   activeMealSessionIndex: number;
   /** Switch the active meal — round-trips through the backend. */
   onPickMealSession: (mealSessionIndex: number) => void;
-  /** Pick a different restaurant for every intent in this meal — backend
-   * scopes each intent to that restaurant and rebuilds the draft. */
-  onPickRestaurant: (restaurantId: string, mealSessionIndex: number) => void;
+  /** Pick a different restaurant for the CURRENT intent only. The
+   * backend scopes that one intent to the picked restaurant and
+   * rebuilds the draft; other intents in the meal keep their existing
+   * restaurants. */
+  onPickRestaurant: (
+    restaurantId: string,
+    mealSessionIndex: number,
+    intentId: string,
+  ) => void;
   /** Open the SwapModal in the parent. */
   onSwap: (itemId: string, itemName: string, mealSessionIndex: number) => void;
   /** Remove a draft item. */
@@ -131,7 +137,7 @@ export function IntentStepper({
 
   const handlePickAlt = (restaurantId: string) => {
     if (sending) return;
-    onPickRestaurant(restaurantId, activeMealSessionIndex);
+    onPickRestaurant(restaurantId, activeMealSessionIndex, block.intentId);
   };
 
   const handlePrev = () => {

@@ -54,7 +54,11 @@ export interface ChatSession {
   swap: (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => Promise<void>;
   remove: (itemId: string, mealSessionIndex?: number) => Promise<void>;
   setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
-  pickRestaurant: (restaurantId: string, mealSessionIndex?: number) => Promise<void>;
+  pickRestaurant: (
+    restaurantId: string,
+    mealSessionIndex?: number,
+    intentId?: string,
+  ) => Promise<void>;
   moreVariety: (mealSessionIndex?: number) => Promise<void>;
   placeOrder: () => Promise<void>;
   resetSession: () => Promise<void>;
@@ -272,11 +276,15 @@ export function useChatSession(
   );
 
   const pickRestaurant = useCallback(
-    async (restaurantId: string, mealSessionIndex?: number) => {
+    async (
+      restaurantId: string,
+      mealSessionIndex?: number,
+      intentId?: string,
+    ) => {
       const sid = sessionIdRef.current;
       if (!sid) return;
       await callApiAndApply(() =>
-        api.pickRestaurant(sid, restaurantId, mealSessionIndex),
+        api.pickRestaurant(sid, restaurantId, mealSessionIndex, intentId),
       );
     },
     [callApiAndApply],

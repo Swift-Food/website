@@ -106,9 +106,11 @@ export async function pickRestaurant(
   sid: string,
   restaurantId: string,
   mealSessionIndex?: number,
+  intentId?: string,
 ): Promise<ChatResponse> {
   const body: Record<string, unknown> = { restaurantId };
   if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
+  if (intentId !== undefined) body.intentId = intentId;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/pick-restaurant`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
