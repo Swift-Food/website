@@ -243,6 +243,8 @@ export interface IntentBlockItem {
   allergens: string[];
   dietaryFilters: string[];
   feedsPerUnit: number;
+  /** Catering pack size (default 1). Client uses for default-qty rounding. */
+  cateringQuantityUnit: number;
 }
 
 /** One restaurant's curated picks for an intent. Up to 5 per IntentBlockPart, ranked by candidate count. */
@@ -253,6 +255,8 @@ export interface ClientRestaurantPick {
     cuisineTags: string[];
     imageUrl: string | null;
     rating: number;
+    /** From restaurant.cateringMinOrderSettings.required.minQuantity. 0 = no minimum. */
+    minQuantity: number;
   };
   items: IntentBlockItem[];
   groupSections: IntentBlockGroupSection[];

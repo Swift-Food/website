@@ -60,7 +60,15 @@ export interface ChatSession {
     intentId?: string,
   ) => Promise<void>;
   moreVariety: (mealSessionIndex?: number) => Promise<void>;
-  placeOrder: () => Promise<void>;
+  /**
+   * Place the order with the user's client-side cart picks. Backend
+   * verifies items + min-order, persists the resulting draft, and
+   * returns redirect URL + warnings. Returns null on transport error
+   * (the hook also surfaces it via `error`).
+   */
+  placeOrder: (
+    body: import("./api").PlaceOrderRequest,
+  ) => Promise<import("./api").PlaceOrderResponse | null>;
   resetSession: () => Promise<void>;
   pickMealSession: (mealSessionIndex: number) => Promise<void>;
   confirmInheritance: (mealSessionIndex: number, accept: boolean) => Promise<void>;
@@ -322,21 +330,31 @@ export function useChatSession(
     [callApiAndApply],
   );
 
-  const placeOrder = useCallback(async () => {
-    const sid = sessionIdRef.current;
-    if (!sid) return;
-    // Hand off to /event-order with the chat session id. The page
-    // resolves the draft and prefills CateringContext before mounting.
-    // Use the FRONTEND's origin so this works in dev and prod
-    // identically — the backend's place-order response is a hand-off
-    // confirmation; the URL is the frontend's job.
-    try {
-      await api.placeOrder(sid);
-      window.location.href = `/event-order?draftSessionId=${encodeURIComponent(sid)}`;
-    } catch {
-      setError("Couldn't move to checkout — try again in a moment.");
-    }
-  }, []);
+  const placeOrder = useCallback(
+    async (
+      body: import("./api").PlaceOrderRequest,
+    ): Promise<import("./api").PlaceOrderResponse | null> => {
+      const sid = sessionIdRef.current;
+      if (!sid) return null;
+      try {
+        const resp = await api.placeOrder(sid, body);
+        // Hand off to /event-order. We use the frontend's origin so this
+        // works in dev and prod identically — backend's redirectUrl
+        // points at swiftfood.uk which is correct for prod but wrong
+        // for local dev.
+        window.location.href = `/event-order?draftSessionId=${encodeURIComponent(sid)}`;
+        return resp;
+      } catch (e) {
+        setError(
+          e instanceof Error
+            ? e.message
+            : "Couldn't move to checkout — try again in a moment.",
+        );
+        return null;
+      }
+    },
+    [],
+  );
 
   const handleChip = useCallback(
     async (chip: Chip) => {
@@ -368,7 +386,11 @@ export function useChatSession(
           await moreVariety();
           return;
         case "place_order":
-          await placeOrder();
+          // Bot-emitted place_order chip — not the cart's "Add to basket".
+          // The chip carries no picks, so we send an empty cart and let
+          // the backend reject. Real "Add to basket" goes through the
+          // IntentStepper -> CateringAIClient path with picks.
+          await placeOrder({ picks: [] });
           return;
         case "pick_restaurant":
           // pick_restaurant chip is legacy — the new per-intent block UI

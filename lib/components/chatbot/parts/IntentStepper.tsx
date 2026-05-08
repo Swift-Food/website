@@ -6,9 +6,22 @@ import { DraftItemRow } from "../items/DraftItemRow";
 import type {
   ClientRestaurantPick,
   DraftItem,
+  IntentBlockItem,
   IntentBlockPart,
   MealSessionPart,
 } from "../types";
+import type { UseCart } from "../cart/useCart";
+import { computeDefaultQty } from "../cart/computeQty";
+
+export interface IntentStepperSwapTarget {
+  intentId: string;
+  itemId: string;
+  itemName: string;
+  restaurantId: string;
+  category: string;
+  intentPhrase: string;
+  intentExcludes: string[] | null;
+}
 
 interface IntentStepperProps {
   /** All meal_session parts (one per meal). */
@@ -17,48 +30,37 @@ interface IntentStepperProps {
   activeMealSessionIndex: number;
   /** Switch the active meal — round-trips through the backend. */
   onPickMealSession: (mealSessionIndex: number) => void;
-  /** Pick a different restaurant for the CURRENT intent only. The
-   * backend scopes that one intent to the picked restaurant and
-   * rebuilds the draft; other intents in the meal keep their existing
-   * restaurants. */
-  onPickRestaurant: (
-    restaurantId: string,
-    mealSessionIndex: number,
-    intentId: string,
-  ) => void;
-  /** Open the SwapModal in the parent. */
-  onSwap: (itemId: string, itemName: string, mealSessionIndex: number) => void;
-  /** Remove a draft item. */
-  onRemove: (itemId: string, mealSessionIndex: number) => void;
-  /** Adjust a draft item's quantity. */
-  onQtyChange: (itemId: string, qty: number, mealSessionIndex: number) => void;
-  /** Commit the order — round-trips through /place-order. */
+  /** "Add all to basket" — the parent gathers picks from `cart` and POSTs them. */
   onPlaceOrder: () => void;
+  /** Open the SwapModal in the parent. The parent fetches options via the
+   *  stateless /swap-options-by-restaurant endpoint and then applies the
+   *  chosen replacement to `cart` directly. */
+  onSwap: (target: IntentStepperSwapTarget) => void;
+  /** Cart hook handle from the parent. Restaurant switching, qty changes,
+   *  removals, and swap-applies are all client mutations through this. */
+  cart: UseCart;
   sending: boolean;
 }
 
 /**
- * Walks the user through the active meal session's intent blocks one at
- * a time. Always renders the cart's draft items for the current intent
- * via the rich DraftItemRow. The "Or try" alt-restaurant chips call
- * onPickRestaurant which round-trips through the backend; the new
- * response replaces the meal's draft and intent blocks for that
- * restaurant. There is no separate "browse" mode — the cart is the
- * source of truth for what's currently picked.
+ * Walks the user through the active meal's intent blocks one at a time.
+ * Renders the items for the cart-selected restaurant per intent. Chip
+ * switches are pure client state changes — no backend round-trip — so
+ * the user can flip between alternatives instantly. Quantities default
+ * via computeDefaultQty (mirroring the backend re-portion math) and can
+ * be overridden per item.
  *
- * Linear progress strip at the top, prev/next at the bottom. Chains
- * across meal sessions: Next at the last intent of the last meal
- * becomes "Add all to basket" (calls /place-order).
+ * The `Add all to basket` button at the end of the last intent of the
+ * last meal calls onPlaceOrder, which posts the full cart to the
+ * backend's /place-order for verification.
  */
 export function IntentStepper({
   mealSessionParts,
   activeMealSessionIndex,
   onPickMealSession,
-  onPickRestaurant,
-  onSwap,
-  onRemove,
-  onQtyChange,
   onPlaceOrder,
+  onSwap,
+  cart,
   sending,
 }: IntentStepperProps) {
   const [intentIndex, setIntentIndex] = useState(0);
@@ -89,27 +91,57 @@ export function IntentStepper({
   const safeIntentIdx = Math.min(intentIndex, blocks.length - 1);
   const block = blocks[safeIntentIdx];
 
-  const draftItemsForIntent: DraftItem[] = (
-    activeMeal.draft?.items ?? []
-  ).filter(
-    (it) => normalize(it.intentPhrase) === normalize(block.intent.phrase),
+  // Cart-derived selection. null fallback → use the IntentBlock's default
+  // pick (restaurantPicks[0]). Once the user clicks an alt chip, the cart
+  // remembers it.
+  const selectedRestaurantId =
+    cart.getSelectedRestaurantId(block.intentId) ??
+    block.restaurantPicks[0]?.restaurant.id ??
+    null;
+  const pickIdx = Math.max(
+    0,
+    block.restaurantPicks.findIndex(
+      (rp) => rp.restaurant.id === selectedRestaurantId,
+    ),
   );
+  const selected: ClientRestaurantPick | undefined = block.restaurantPicks[pickIdx];
 
-  // Picked restaurant for this intent = the restaurant the draft items
-  // come from. Falls back to intent block's first ranked pick when the
-  // draft hasn't been built yet (e.g. headcount missing).
-  const draftRestaurantId = draftItemsForIntent[0]?.restaurantId ?? null;
-  const fallbackPick: ClientRestaurantPick | undefined =
-    block.restaurantPicks[0];
-  const pickedFromDraft =
-    draftRestaurantId !== null
-      ? activeMeal.draft?.restaurants.find((r) => r.id === draftRestaurantId) ??
-        null
-      : null;
-  const pickedName =
-    pickedFromDraft?.name ?? fallbackPick?.restaurant.name ?? "—";
-  const pickedId = draftRestaurantId ?? fallbackPick?.restaurant.id ?? "";
+  // For the qty share calc: how many other intents in this meal share
+  // the same mealCategory? 3 mains for 50 people → 17 each.
+  const intentsInSameCategory = activeMeal.intentBlocks.filter(
+    (b) => b.intent.category === block.intent.category,
+  ).length;
 
+  const cartIntent = cart.cart[block.intentId];
+  const removedSet = new Set(cartIntent?.removedItemIds ?? []);
+
+  // Compose the items to render. Source = picked restaurant's items,
+  // minus removed, plus swapped-in (each swap-in keyed under the OLD
+  // item's id so it occupies the slot of the item it replaced — but
+  // when we render we use the new item's content).
+  const displayedItems = useMemo(() => {
+    if (!selected) return [];
+    const headcount = activeMeal.guestCount ?? 1;
+    const fromBlock = selected.items.filter((it) => !removedSet.has(it.id));
+    const swappedIn = Object.values(cartIntent?.swappedIn ?? {});
+    const all: IntentBlockItem[] = [...fromBlock, ...swappedIn];
+    return all.map((it) => {
+      const overrideQty = cartIntent?.qtyOverrides[it.id];
+      const qty =
+        overrideQty ??
+        computeDefaultQty(
+          headcount,
+          Math.max(1, intentsInSameCategory),
+          it.feedsPerUnit,
+          it.cateringQuantityUnit,
+        );
+      const totalPrice = Number((it.price * qty).toFixed(2));
+      return { ...it, quantity: qty, totalPrice };
+    });
+  }, [selected, cartIntent, activeMeal, intentsInSameCategory, removedSet]);
+
+  const pickedName = selected?.restaurant.name ?? "—";
+  const pickedId = selected?.restaurant.id ?? "";
   const alts = block.restaurantPicks.filter(
     (rp) => rp.restaurant.id !== pickedId,
   );
@@ -136,8 +168,8 @@ export function IntentStepper({
       : null;
 
   const handlePickAlt = (restaurantId: string) => {
-    if (sending) return;
-    onPickRestaurant(restaurantId, activeMealSessionIndex, block.intentId);
+    // Pure client-side mutation — instant. No round-trip.
+    cart.setRestaurant(block.intentId, restaurantId);
   };
 
   const handlePrev = () => {
@@ -165,18 +197,44 @@ export function IntentStepper({
     onPickMealSession(orderedMeals[myPos + 1].mealSessionIndex);
   };
 
+  // Total across ALL meals — derived from cart picks instead of draft.
   const totalIntentCount = orderedMeals.reduce(
     (sum, m) => sum + m.intentBlocks.length,
     0,
   );
-  const allMealsTotal = orderedMeals.reduce(
-    (sum, m) => sum + (m.draft?.pricing.subtotal ?? 0),
-    0,
-  );
   const totalFeeds = orderedMeals.reduce(
-    (sum, m) => sum + (m.draft?.feedsPeople ?? 0),
+    (sum, m) => sum + (m.guestCount ?? 0),
     0,
   );
+  const allMealsTotal = useMemo(() => {
+    let total = 0;
+    for (const meal of orderedMeals) {
+      const head = meal.guestCount ?? 1;
+      for (const b of meal.intentBlocks) {
+        const sel =
+          cart.getSelectedRestaurantId(b.intentId) ??
+          b.restaurantPicks[0]?.restaurant.id;
+        const pick = b.restaurantPicks.find((rp) => rp.restaurant.id === sel);
+        if (!pick) continue;
+        const ci = cart.cart[b.intentId];
+        const rs = new Set(ci?.removedItemIds ?? []);
+        const inCat = meal.intentBlocks.filter(
+          (other) => other.intent.category === b.intent.category,
+        ).length;
+        const items = [
+          ...pick.items.filter((it) => !rs.has(it.id)),
+          ...Object.values(ci?.swappedIn ?? {}),
+        ];
+        for (const it of items) {
+          const qty =
+            ci?.qtyOverrides[it.id] ??
+            computeDefaultQty(head, Math.max(1, inCat), it.feedsPerUnit, it.cateringQuantityUnit);
+          total += it.price * qty;
+        }
+      }
+    }
+    return Number(total.toFixed(2));
+  }, [orderedMeals, cart]);
 
   return (
     <div
@@ -247,7 +305,7 @@ export function IntentStepper({
                     name={rp.restaurant.name}
                     imageUrl={rp.restaurant.imageUrl}
                     candidateCount={rp.candidateCount}
-                    disabled={sending}
+                    disabled={false}
                     onClick={() => handlePickAlt(rp.restaurant.id)}
                   />
                 ))}
@@ -255,18 +313,35 @@ export function IntentStepper({
             </div>
           )}
 
-          {draftItemsForIntent.length > 0 ? (
+          {displayedItems.length > 0 ? (
             <ul style={{ margin: "16px 0 0", padding: 0, listStyle: "none" }}>
-              {draftItemsForIntent.map((item) => (
+              {displayedItems.map((item) => (
                 <DraftItemRow
                   key={item.id}
-                  item={item}
-                  onSwap={() =>
-                    onSwap(item.id, item.name, activeMealSessionIndex)
+                  item={
+                    {
+                      ...item,
+                      unitPrice: item.price,
+                      menuItemId: item.id,
+                      restaurantId: selected!.restaurant.id,
+                      intentPhrase: block.intent.phrase,
+                      reason: item.reason ?? "",
+                    } as unknown as DraftItem
                   }
-                  onRemove={() => onRemove(item.id, activeMealSessionIndex)}
+                  onSwap={() =>
+                    onSwap({
+                      intentId: block.intentId,
+                      itemId: item.id,
+                      itemName: item.name,
+                      restaurantId: selected!.restaurant.id,
+                      category: item.mealCategory,
+                      intentPhrase: block.intent.phrase,
+                      intentExcludes: block.intent.excludes,
+                    })
+                  }
+                  onRemove={() => cart.removeItem(block.intentId, item.id)}
                   onQtyChange={(q) =>
-                    onQtyChange(item.id, q, activeMealSessionIndex)
+                    cart.setQty(block.intentId, item.id, q)
                   }
                 />
               ))}
@@ -328,10 +403,6 @@ export function IntentStepper({
 function capitalize(s: string): string {
   if (!s) return s;
   return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function normalize(s: string | null | undefined): string {
-  return (s ?? "").trim().toLowerCase();
 }
 
 // ---------- subcomponents ----------

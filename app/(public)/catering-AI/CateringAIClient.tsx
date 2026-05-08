@@ -10,10 +10,20 @@ import { SwapModal } from "@/lib/components/chatbot/items/SwapModal";
 import { SummaryCard } from "@/lib/components/chatbot/parts/SummaryCard";
 import { ChipGroup } from "@/lib/components/chatbot/parts/ChipGroup";
 import { MealSessionTabs } from "@/lib/components/chatbot/parts/MealSessionTabs";
-import { IntentStepper } from "@/lib/components/chatbot/parts/IntentStepper";
+import {
+  IntentStepper,
+  type IntentStepperSwapTarget,
+} from "@/lib/components/chatbot/parts/IntentStepper";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
-import type { SwapOption } from "@/lib/components/chatbot/api";
-import type { Chip, MessagePart } from "@/lib/components/chatbot/types";
+import { useCart } from "@/lib/components/chatbot/cart/useCart";
+import { computeDefaultQty } from "@/lib/components/chatbot/cart/computeQty";
+import type { SwapOption, PlaceOrderPick } from "@/lib/components/chatbot/api";
+import type {
+  Chip,
+  IntentBlockItem,
+  MealSessionPart,
+  MessagePart,
+} from "@/lib/components/chatbot/types";
 
 /**
  * Full-page version of the catering chatbot at /catering-AI. Routes
@@ -30,11 +40,7 @@ export default function CateringAIClient() {
   const [input, setInput] = useState("");
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<unknown>(undefined);
-  const [swapTarget, setSwapTarget] = useState<{
-    id: string;
-    name: string;
-    mealSessionIndex?: number;
-  } | null>(null);
+  const [swapTarget, setSwapTarget] = useState<IntentStepperSwapTarget | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -57,15 +63,12 @@ export default function CateringAIClient() {
     sendText,
     handleChip,
     applyEditField,
-    swap,
-    remove,
-    setQuantity,
-    pickRestaurant,
     pickMealSession,
     placeOrder,
     resetSession,
     getTaxonomyValueFor,
   } = chat;
+  const cart = useCart(sessionId);
 
   // Filter the chat thread: keep text + clarifier + conversational
   // (send_text) chips. Drop summary, draft, and action chips — those
@@ -139,15 +142,40 @@ export default function CateringAIClient() {
     inputRef.current?.focus();
   }
 
-  function handleSwap(itemId: string, itemName: string, mealSessionIndex?: number) {
-    setSwapTarget({ id: itemId, name: itemName, mealSessionIndex });
+  function handleSwap(target: IntentStepperSwapTarget) {
+    setSwapTarget(target);
   }
 
-  async function handleSwapPick(replacement: SwapOption) {
+  function handleSwapPick(replacement: SwapOption) {
     const target = swapTarget;
     if (!target) return;
     setSwapTarget(null);
-    await swap(target.id, replacement.menuItemId, target.mealSessionIndex);
+    // Convert SwapOption -> IntentBlockItem so the cart state stays
+    // shape-consistent with restaurantPicks items. SwapOption doesn't
+    // carry cateringQuantityUnit; default to 1 (the user can adjust qty).
+    const ibItem: IntentBlockItem = {
+      id: replacement.menuItemId,
+      name: replacement.name,
+      price: replacement.unitPrice,
+      groupTitle: replacement.groupTitle,
+      displayOrder: 0,
+      mealCategory: replacement.mealCategory as IntentBlockItem["mealCategory"],
+      description: replacement.description,
+      imageUrl: replacement.imageUrl,
+      reason: replacement.reason,
+      allergens: replacement.allergens,
+      dietaryFilters: replacement.dietaryFilters,
+      feedsPerUnit: replacement.feedsPerUnit,
+      cateringQuantityUnit: 1,
+    };
+    cart.swap(target.intentId, target.itemId, ibItem);
+  }
+
+  function handlePlaceOrder() {
+    void placeOrder({
+      mealSessionIndex: latestActiveMealSessionIndex,
+      picks: buildPicksFromCart(latestMealSessionParts, cart),
+    });
   }
 
   function handleSubmit(e: FormEvent) {
@@ -220,15 +248,9 @@ export default function CateringAIClient() {
                     mealSessionParts={latestMealSessionParts}
                     activeMealSessionIndex={latestActiveMealSessionIndex}
                     onPickMealSession={(idx) => void pickMealSession(idx)}
-                    onPickRestaurant={(rid, idx, iid) =>
-                      void pickRestaurant(rid, idx, iid)
-                    }
-                    onPlaceOrder={() => void placeOrder()}
+                    onPlaceOrder={handlePlaceOrder}
                     onSwap={handleSwap}
-                    onRemove={(id, idx) => void remove(id, idx)}
-                    onQtyChange={(id, qty, idx) =>
-                      void setQuantity(id, qty, idx)
-                    }
+                    cart={cart}
                     sending={sending}
                   />
                 )}
@@ -389,13 +411,78 @@ export default function CateringAIClient() {
       <SwapModal
         open={swapTarget !== null}
         sessionId={sessionId ?? ""}
-        itemId={swapTarget?.id ?? null}
-        itemName={swapTarget?.name ?? ""}
+        restaurantId={swapTarget?.restaurantId ?? null}
+        category={swapTarget?.category ?? null}
+        excludeIds={
+          swapTarget
+            ? [
+                swapTarget.itemId,
+                ...Object.keys(cart.cart[swapTarget.intentId]?.swappedIn ?? {}),
+              ]
+            : []
+        }
+        intentPhrase={swapTarget?.intentPhrase ?? ""}
+        intentExcludes={swapTarget?.intentExcludes ?? null}
+        itemName={swapTarget?.itemName ?? ""}
         onClose={() => setSwapTarget(null)}
         onPick={handleSwapPick}
       />
     </div>
   );
+}
+
+/**
+ * Walk every meal session's intent blocks and assemble the cart's current
+ * picks into the `/place-order` payload shape. For each intent, we pick
+ * the cart-selected restaurant (or default to restaurantPicks[0]), drop
+ * removed items, include swapped-in ones, and apply qty overrides on top
+ * of the default share. Empty intents (everything removed) are skipped.
+ */
+function buildPicksFromCart(
+  mealSessionParts: MealSessionPart[],
+  cart: ReturnType<typeof useCart>,
+): PlaceOrderPick[] {
+  const picks: PlaceOrderPick[] = [];
+  for (const ms of mealSessionParts) {
+    const headcount = ms.guestCount ?? 1;
+    for (const block of ms.intentBlocks) {
+      const selectedRestaurantId =
+        cart.getSelectedRestaurantId(block.intentId) ??
+        block.restaurantPicks[0]?.restaurant.id;
+      if (!selectedRestaurantId) continue;
+      const pick = block.restaurantPicks.find(
+        (rp) => rp.restaurant.id === selectedRestaurantId,
+      );
+      if (!pick) continue;
+      const cartIntent = cart.cart[block.intentId];
+      const removedSet = new Set(cartIntent?.removedItemIds ?? []);
+      const intentsInSameCategory = ms.intentBlocks.filter(
+        (b) => b.intent.category === block.intent.category,
+      ).length;
+      const items = [
+        ...pick.items.filter((it) => !removedSet.has(it.id)),
+        ...Object.values(cartIntent?.swappedIn ?? {}),
+      ].map((it) => ({
+        menuItemId: it.id,
+        quantity:
+          cartIntent?.qtyOverrides[it.id] ??
+          computeDefaultQty(
+            headcount,
+            Math.max(1, intentsInSameCategory),
+            it.feedsPerUnit,
+            it.cateringQuantityUnit,
+          ),
+      }));
+      if (items.length === 0) continue;
+      picks.push({
+        intentId: block.intentId,
+        restaurantId: selectedRestaurantId,
+        intentPhrase: block.intent.phrase,
+        items,
+      });
+    }
+  }
+  return picks;
 }
 
 /**

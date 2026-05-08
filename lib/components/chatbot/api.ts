@@ -163,12 +163,66 @@ export async function moreVariety(
   return handle(res);
 }
 
+export interface PlaceOrderPick {
+  intentId: string;
+  restaurantId: string;
+  intentPhrase: string;
+  items: Array<{ menuItemId: string; quantity: number }>;
+}
+
+export interface PlaceOrderRequest {
+  mealSessionIndex?: number;
+  picks: PlaceOrderPick[];
+}
+
+export interface PlaceOrderResponse {
+  orderId: string | null;
+  redirectUrl: string;
+  warnings: string[];
+}
+
 export async function placeOrder(
   sid: string,
-): Promise<{ orderId: string | null; redirectUrl: string }> {
+  body: PlaceOrderRequest,
+): Promise<PlaceOrderResponse> {
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/place-order`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try {
+      const j = await res.json();
+      if (typeof j?.message === "string") msg = j.message;
+    } catch {
+      // leave default
+    }
+    throw new ChatApiError(msg, res.status);
+  }
+  return res.json();
+}
+
+export interface SwapOptionsByRestaurantRequest {
+  restaurantId: string;
+  category: string;
+  excludeMenuItemIds: string[];
+  intentPhrase?: string;
+  intentExcludes?: string[];
+}
+
+export async function getSwapOptionsByRestaurant(
+  sid: string,
+  body: SwapOptionsByRestaurantRequest,
+): Promise<SwapOption[]> {
+  const res = await fetch(
+    `${API_BASE}/catering-chat/${sid}/swap-options-by-restaurant`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
   if (!res.ok) throw new ChatApiError(`HTTP ${res.status}`, res.status);
   return res.json();
 }

@@ -10,7 +10,16 @@ import type { SwapOption } from "../api";
 interface SwapModalProps {
   open: boolean;
   sessionId: string;
-  itemId: string | null;
+  /** Restaurant the item being swapped belongs to (from cart state). */
+  restaurantId: string | null;
+  /** Meal category to scope the alternatives ('main' | 'snack' | etc.). */
+  category: string | null;
+  /** Item ids to exclude (the one being swapped out + already-swapped slots). */
+  excludeIds: string[];
+  /** Intent context for ranking alternatives. */
+  intentPhrase: string;
+  intentExcludes: string[] | null;
+  /** Display label — the name of the item being swapped. */
   itemName: string;
   onClose: () => void;
   onPick: (replacement: SwapOption) => void;
@@ -26,7 +35,11 @@ interface SwapModalProps {
 export function SwapModal({
   open,
   sessionId,
-  itemId,
+  restaurantId,
+  category,
+  excludeIds,
+  intentPhrase,
+  intentExcludes,
   itemName,
   onClose,
   onPick,
@@ -37,7 +50,7 @@ export function SwapModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open || !itemId) {
+    if (!open || !restaurantId || !category) {
       setOptions(null);
       setError(null);
       return;
@@ -46,7 +59,15 @@ export function SwapModal({
     setLoading(true);
     setError(null);
     api
-      .getSwapOptions(sessionId, itemId)
+      .getSwapOptionsByRestaurant(sessionId, {
+        restaurantId,
+        category,
+        excludeMenuItemIds: excludeIds,
+        ...(intentPhrase ? { intentPhrase } : {}),
+        ...(intentExcludes && intentExcludes.length > 0
+          ? { intentExcludes }
+          : {}),
+      })
       .then((opts) => {
         if (!cancelled) setOptions(opts);
       })
@@ -59,7 +80,9 @@ export function SwapModal({
     return () => {
       cancelled = true;
     };
-  }, [open, sessionId, itemId]);
+    // excludeIds is an array; stringify in the dep list to avoid spurious refetches.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, sessionId, restaurantId, category, excludeIds.join(","), intentPhrase]);
 
   return (
     <AnimatePresence>
