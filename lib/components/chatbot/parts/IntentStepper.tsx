@@ -12,6 +12,7 @@ import type {
 } from "../types";
 import type { UseCart } from "../cart/useCart";
 import { buildCategoryView, effectiveQty } from "../cart/computeQty";
+import { checkMinOrders } from "../cart/minOrder";
 
 export interface IntentStepperSwapTarget {
   intentId: string;
@@ -211,6 +212,15 @@ export function IntentStepper({
   // categoryView buildEffectiveQty uses, so the displayed footer total
   // can't drift from per-item totals. O(intents × items) per render —
   // fine for catering-scale carts (~10s of items).
+  // Per-restaurant min-order shortfalls — surfaces "Tea Knows needs 5
+  // more items" inline above the totals when a restaurant the user has
+  // picked doesn't yet meet its minimum. Recomputes reactively as cart
+  // state changes.
+  const minOrderShortfalls = useMemo(
+    () => checkMinOrders(orderedMeals, cart),
+    [orderedMeals, cart],
+  );
+
   const allMealsTotal = useMemo(() => {
     let total = 0;
     for (const meal of orderedMeals) {
@@ -354,6 +364,27 @@ export function IntentStepper({
           )}
         </motion.div>
       </AnimatePresence>
+
+      {atFinal && minOrderShortfalls.length > 0 && (
+        <div
+          style={{
+            background: "var(--ember-soft, rgba(255, 200, 80, 0.18))",
+            border: "1px solid var(--ember, #c08a30)",
+            color: "var(--ember, #8a5d00)",
+            borderTop: "1px solid var(--rule)",
+            padding: "10px 18px",
+            fontSize: "0.8rem",
+            lineHeight: 1.5,
+          }}
+        >
+          {minOrderShortfalls.map((s) => (
+            <div key={s.restaurantId}>
+              <strong>{s.restaurantName}</strong> needs {s.missing} more item
+              {s.missing === 1 ? "" : "s"} ({s.current} of {s.required} minimum).
+            </div>
+          ))}
+        </div>
+      )}
 
       {atFinal && (
         <div
