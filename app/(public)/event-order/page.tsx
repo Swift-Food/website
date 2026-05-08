@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import EventOrderClient from "./EventOrderClient";
 
 export const metadata: Metadata = {
@@ -27,5 +28,19 @@ export const metadata: Metadata = {
 };
 
 export default function CateringPage() {
-  return <EventOrderClient />;
+  // EventOrderClient calls useSearchParams() to read ?draftSessionId=,
+  // which Next.js 16 requires be inside a Suspense boundary so the page
+  // can statically pre-render the surrounding chrome and bail to client
+  // rendering only for the search-params-dependent subtree.
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-sm text-base-content/60">Loading…</div>
+        </div>
+      }
+    >
+      <EventOrderClient />
+    </Suspense>
+  );
 }
