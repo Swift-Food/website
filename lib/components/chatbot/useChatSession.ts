@@ -48,7 +48,15 @@ export interface ChatSession {
   setEditingMealSessionIndex: (idx: number | undefined) => void;
 
   // actions
-  sendText: (text: string) => Promise<void>;
+  /**
+   * Send a chat message. The optional `cartSnapshot` is forwarded to
+   * the backend and rendered into the LLM prompt's <current_cart>
+   * block, so follow-ups like "more pizza" land on the right intents.
+   */
+  sendText: (
+    text: string,
+    cartSnapshot?: import("./cart/snapshot").CartSnapshot | null,
+  ) => Promise<void>;
   handleChip: (chip: Chip) => Promise<void>;
   applyEditField: (field: string, value: unknown, mealSessionIndex?: number) => Promise<void>;
   swap: (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => Promise<void>;
@@ -200,7 +208,10 @@ export function useChatSession(
   );
 
   const sendText = useCallback(
-    async (text: string) => {
+    async (
+      text: string,
+      cartSnapshot?: import("./cart/snapshot").CartSnapshot | null,
+    ) => {
       const sid = sessionIdRef.current;
       const trimmed = text.trim();
       if (!sid || !trimmed) return;
@@ -217,7 +228,7 @@ export function useChatSession(
       setError(null);
 
       try {
-        const data = await api.sendMessage(sid, trimmed);
+        const data = await api.sendMessage(sid, trimmed, cartSnapshot ?? null);
         applyResponse(data, true);
       } catch (e) {
         setError(

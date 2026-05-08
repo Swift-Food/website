@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { IntentBlockItem } from "../types";
+import type { IntentBlockItem, MealSessionPart } from "../types";
 
 const STORAGE_KEY_PREFIX = "swift-food-cart-";
 
@@ -56,6 +56,18 @@ export interface UseCart {
   ) => void;
   /** Reset the entire cart for this session (called on Start fresh). */
   reset: () => void;
+  /**
+   * After a chat response, match old cart entries to the new intent
+   * lineup by (phrase, category). Keeps cart state for surviving
+   * intents, drops state for vanished intents, leaves new intents
+   * empty (defaults will compute fresh). When an intent's count
+   * changed turn-over-turn (LLM emitted a new explicit count), drop
+   * its qtyOverrides — the user just verbally re-set the ratio.
+   */
+  reconcile: (args: {
+    prevMealSessions: MealSessionPart[];
+    nextMealSessions: MealSessionPart[];
+  }) => void;
 }
 
 export function useCart(sessionId: string | null): UseCart {
@@ -171,6 +183,53 @@ export function useCart(sessionId: string | null): UseCart {
     }
   }, [sessionId]);
 
+  const reconcile = useCallback(
+    (args: {
+      prevMealSessions: MealSessionPart[];
+      nextMealSessions: MealSessionPart[];
+    }) => {
+      const { prevMealSessions, nextMealSessions } = args;
+
+      // Map every prev intent's stable identity (phrase + category)
+      // → its UUID + count. The validator regenerates intentIds on
+      // every LLM turn, so phrase+category is the only stable signal.
+      type PrevHit = { oldIntentId: string; oldCount: number | null };
+      const prevByKey = new Map<string, PrevHit>();
+      for (const ms of prevMealSessions) {
+        for (const b of ms.intentBlocks) {
+          prevByKey.set(matchKey(b.intent.phrase, b.intent.category), {
+            oldIntentId: b.intentId,
+            oldCount: b.intent.count,
+          });
+        }
+      }
+
+      setCart((prev) => {
+        const next: CartState = {};
+        for (const ms of nextMealSessions) {
+          for (const b of ms.intentBlocks) {
+            const matched = prevByKey.get(matchKey(b.intent.phrase, b.intent.category));
+            if (!matched) continue; // brand-new intent — fresh defaults will compute
+            const prevEntry = prev[matched.oldIntentId];
+            if (!prevEntry) continue;
+            // If the LLM just emitted a NEW count for this intent
+            // (count was null before OR a different number), the user
+            // is verbally re-setting the ratio — drop their per-item
+            // qty overrides so the new count actually drives display.
+            // Restaurant selection + removed items + swaps stay.
+            const llmReSetCount =
+              b.intent.count != null && b.intent.count !== matched.oldCount;
+            next[b.intentId] = llmReSetCount
+              ? { ...prevEntry, qtyOverrides: {} }
+              : prevEntry;
+          }
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
   return useMemo(
     () => ({
       cart,
@@ -180,9 +239,14 @@ export function useCart(sessionId: string | null): UseCart {
       removeItem,
       swap,
       reset,
+      reconcile,
     }),
-    [cart, getSelectedRestaurantId, setRestaurant, setQty, removeItem, swap, reset],
+    [cart, getSelectedRestaurantId, setRestaurant, setQty, removeItem, swap, reset, reconcile],
   );
+}
+
+function matchKey(phrase: string, category: string | null): string {
+  return `${category ?? "null"}::${phrase.trim().toLowerCase()}`;
 }
 
 function omitKey<T extends object>(obj: T, key: string): T {

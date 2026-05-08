@@ -50,14 +50,19 @@ export async function getSession(sid: string): Promise<ChatResponse> {
   return handle(res);
 }
 
+import type { CartSnapshot } from "./cart/snapshot";
+
 export async function sendMessage(
   sid: string,
   message: string,
+  cartSnapshot?: CartSnapshot | null,
 ): Promise<ChatResponse> {
+  const body: Record<string, unknown> = { message };
+  if (cartSnapshot) body.cartSnapshot = cartSnapshot;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/message`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify(body),
   });
   return handle(res);
 }

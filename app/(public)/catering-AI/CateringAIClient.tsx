@@ -17,6 +17,7 @@ import {
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
 import { useCart } from "@/lib/components/chatbot/cart/useCart";
 import { buildCategoryView, effectiveQty } from "@/lib/components/chatbot/cart/computeQty";
+import { buildCartSnapshot } from "@/lib/components/chatbot/cart/snapshot";
 import type { SwapOption, BasketPick } from "@/lib/components/chatbot/api";
 import type {
   Chip,
@@ -91,6 +92,23 @@ export default function CateringAIClient() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, sending]);
+
+  // Reconcile cart with new mealSessions after every chat response.
+  // The validator regenerates intentIds on every LLM turn, so we match
+  // by (phrase, category) and discard cart entries for intents that
+  // vanished. Manual qty overrides drop when the LLM emits a new
+  // explicit count for that intent — the user just verbally re-set the
+  // ratio, so respect that.
+  const prevMealSessionPartsRef = useRef<MealSessionPart[]>(latestMealSessionParts);
+  useEffect(() => {
+    if (prevMealSessionPartsRef.current === latestMealSessionParts) return;
+    cart.reconcile({
+      prevMealSessions: prevMealSessionPartsRef.current,
+      nextMealSessions: latestMealSessionParts,
+    });
+    prevMealSessionPartsRef.current = latestMealSessionParts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latestMealSessionParts]);
 
   // Focus input on mount
   useEffect(() => {
@@ -181,7 +199,12 @@ export default function CateringAIClient() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (sending) return;
-    void sendText(input);
+    const snapshot = buildCartSnapshot(
+      latestMealSessionParts,
+      latestActiveMealSessionIndex,
+      cart,
+    );
+    void sendText(input, snapshot);
     setInput("");
   }
 
@@ -189,7 +212,12 @@ export default function CateringAIClient() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (sending) return;
-      void sendText(input);
+      const snapshot = buildCartSnapshot(
+        latestMealSessionParts,
+        latestActiveMealSessionIndex,
+        cart,
+      );
+      void sendText(input, snapshot);
       setInput("");
     }
   }
