@@ -24,7 +24,13 @@ export default function ChatbotWidget() {
   const [input, setInput] = useState("");
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<unknown>(undefined);
-  const [swapTarget, setSwapTarget] = useState<{ id: string; name: string } | null>(null);
+  const [swapTarget, setSwapTarget] = useState<{
+    id: string;
+    name: string;
+    restaurantId: string;
+    category: string;
+    intentPhrase: string;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -36,6 +42,7 @@ export default function ChatbotWidget() {
     bootstrapping,
     error,
     sessionId,
+    latestDraft,
     sendText,
     handleChip,
     applyEditField,
@@ -91,7 +98,15 @@ export default function ChatbotWidget() {
   }
 
   function handleSwap(itemId: string, itemName: string) {
-    setSwapTarget({ id: itemId, name: itemName });
+    const item = latestDraft?.items.find((i) => i.id === itemId);
+    if (!item) return;
+    setSwapTarget({
+      id: itemId,
+      name: itemName,
+      restaurantId: item.restaurantId,
+      category: item.mealCategory,
+      intentPhrase: item.intentPhrase,
+    });
   }
 
   async function handleSwapPick(replacement: SwapOption) {
@@ -235,7 +250,11 @@ export default function ChatbotWidget() {
             <SwapModal
               open={swapTarget !== null}
               sessionId={sessionId ?? ""}
-              itemId={swapTarget?.id ?? null}
+              restaurantId={swapTarget?.restaurantId ?? null}
+              category={swapTarget?.category ?? null}
+              excludeIds={swapTarget ? [swapTarget.id] : []}
+              intentPhrase={swapTarget?.intentPhrase ?? ""}
+              intentExcludes={null}
               itemName={swapTarget?.name ?? ""}
               onClose={() => setSwapTarget(null)}
               onPick={handleSwapPick}

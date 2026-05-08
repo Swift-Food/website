@@ -63,7 +63,6 @@ export type ChipAction =
   | "edit_field"
   | "confirm"
   | "menu_action"
-  | "pick_restaurant"
   | "place_order"
   | "more_variety"
   | "pick_meal_session"

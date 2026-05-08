@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as api from "./api";
-import { ChatApiError, type SwapOption } from "./api";
+import { ChatApiError } from "./api";
 import type { ThreadMessage } from "./MessageThread";
 import type {
   ChatResponse,
@@ -54,11 +54,6 @@ export interface ChatSession {
   swap: (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => Promise<void>;
   remove: (itemId: string, mealSessionIndex?: number) => Promise<void>;
   setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
-  pickRestaurant: (
-    restaurantId: string,
-    mealSessionIndex?: number,
-    intentId?: string,
-  ) => Promise<void>;
   moreVariety: (mealSessionIndex?: number) => Promise<void>;
   /**
    * Place the order with the user's client-side cart picks. Backend
@@ -74,7 +69,6 @@ export interface ChatSession {
   confirmInheritance: (mealSessionIndex: number, accept: boolean) => Promise<void>;
 
   // helpers
-  getSwapOptions: (itemId: string, mealSessionIndex?: number) => Promise<SwapOption[]>;
   getTaxonomyValueFor: (field: string) => unknown;
 }
 
@@ -283,21 +277,6 @@ export function useChatSession(
     [callApiAndApply],
   );
 
-  const pickRestaurant = useCallback(
-    async (
-      restaurantId: string,
-      mealSessionIndex?: number,
-      intentId?: string,
-    ) => {
-      const sid = sessionIdRef.current;
-      if (!sid) return;
-      await callApiAndApply(() =>
-        api.pickRestaurant(sid, restaurantId, mealSessionIndex, intentId),
-      );
-    },
-    [callApiAndApply],
-  );
-
   const moreVariety = useCallback(async (mealSessionIndex?: number) => {
     const sid = sessionIdRef.current;
     if (!sid) return;
@@ -392,12 +371,6 @@ export function useChatSession(
           // IntentStepper -> CateringAIClient path with picks.
           await placeOrder({ picks: [] });
           return;
-        case "pick_restaurant":
-          // pick_restaurant chip is legacy — the new per-intent block UI
-          // handles restaurant switching client-side via cohesion. Backend
-          // no longer emits this chip (T7 cleanup), but if a stale session
-          // surfaces one, ignore rather than 404.
-          return;
         case "edit_field":
           // edit_field opens a modal owned by the consumer; the hook
           // doesn't act on it directly. Consumer reads chip.payload.field
@@ -420,12 +393,6 @@ export function useChatSession(
     lastTaxonomyRef.current = {};
     await createSession();
   }, [createSession]);
-
-  const getSwapOptions = useCallback(async (itemId: string, mealSessionIndex?: number) => {
-    const sid = sessionIdRef.current;
-    if (!sid) return [];
-    return api.getSwapOptions(sid, itemId, mealSessionIndex);
-  }, []);
 
   const getTaxonomyValueFor = useCallback((field: string) => {
     return taxonomyValueFor(field, lastTaxonomyRef.current);
@@ -467,13 +434,11 @@ export function useChatSession(
     swap,
     remove,
     setQuantity,
-    pickRestaurant,
     moreVariety,
     placeOrder,
     resetSession,
     pickMealSession,
     confirmInheritance,
-    getSwapOptions,
     getTaxonomyValueFor,
   };
 }
