@@ -359,6 +359,7 @@ export default function CateringOrderBuilder() {
         groupTitle: item.groupTitle,
         cateringQuantityUnit: item.cateringQuantityUnit,
         feedsPerUnit: item.feedsPerUnit,
+        minOrderQuantity: item.minOrderQuantity,
         itemDisplayOrder: item.itemDisplayOrder,
         addons: item.addons,
         selectedAddons: item.selectedAddons,

@@ -71,13 +71,18 @@ export default function MenuItemModal({
   const displayPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
   const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 1;
   const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 1;
+  const MIN_PORTIONS =
+    item.minOrderQuantity && item.minOrderQuantity > 0 ? item.minOrderQuantity : 1;
 
   // Single useEffect: initialize everything when modal opens
   useEffect(() => {
     if (!isOpen) return;
 
-    // 1. Calculate portions
-    const portions = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 1;
+    // 1. Calculate portions — default to the item's minimum when no prior cart quantity
+    const existingPortions = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 0;
+    const portions = existingPortions > 0
+      ? Math.max(existingPortions, MIN_PORTIONS)
+      : MIN_PORTIONS;
     setItemQuantity(portions);
     setItemQuantityInput(portions.toString());
     setInitialModalQuantity(portions);
@@ -148,7 +153,7 @@ export default function MenuItemModal({
     setSelectedAddons(selections);
     setAddonQuantities(quantities);
     setAddonQuantityInputs(quantityInputs);
-  }, [isOpen, item, quantity, BACKEND_QUANTITY_UNIT, isEditMode]);
+  }, [isOpen, item, quantity, BACKEND_QUANTITY_UNIT, MIN_PORTIONS, isEditMode]);
 
   // Calculate total price when quantity or selected addons change
   useEffect(() => {
@@ -733,13 +738,20 @@ export default function MenuItemModal({
               {/* Quantity Selector - Hidden in viewOnly mode */}
               {!viewOnly && (
                 <div className="bg-base-200 p-3 md:p-4 rounded-lg">
-                  <h3 className="font-semibold text-xs md:text-sm text-base-content mb-2 md:mb-3">
-                    Number of Portions
-                  </h3>
+                  <div className="flex items-center justify-between mb-2 md:mb-3 gap-2">
+                    <h3 className="font-semibold text-xs md:text-sm text-base-content">
+                      Number of Portions
+                    </h3>
+                    {MIN_PORTIONS > 1 && (
+                      <span className="text-[10px] md:text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
+                        Min {MIN_PORTIONS}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between gap-3">
                     <button
                       onClick={() => {
-                        const newQty = Math.max(1, itemQuantity - 1);
+                        const newQty = Math.max(MIN_PORTIONS, itemQuantity - 1);
                         setItemQuantity(newQty);
                         setItemQuantityInput(newQty.toString());
                         if (
@@ -749,7 +761,8 @@ export default function MenuItemModal({
                           setHasModifiedQuantity(newQty !== initialModalQuantity);
                         }
                       }}
-                      className="w-8 h-8 md:w-10 md:h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-base md:text-lg font-medium flex-shrink-0"
+                      disabled={itemQuantity <= MIN_PORTIONS}
+                      className="w-8 h-8 md:w-10 md:h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-base md:text-lg font-medium flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-base-100"
                     >
                       −
                     </button>
@@ -764,7 +777,7 @@ export default function MenuItemModal({
                           if (val === "" || /^\d+$/.test(val)) {
                             setItemQuantityInput(val);
                             if (val !== "" && !isNaN(parseInt(val))) {
-                              const newQty = Math.max(1, parseInt(val));
+                              const newQty = Math.max(MIN_PORTIONS, parseInt(val));
                               setItemQuantity(newQty);
                               if (
                                 quantity > 0 &&
@@ -780,23 +793,27 @@ export default function MenuItemModal({
                         onBlur={(e) => {
                           if (
                             e.target.value === "" ||
-                            parseInt(e.target.value) < 1
+                            parseInt(e.target.value) < MIN_PORTIONS
                           ) {
-                            setItemQuantity(1);
-                            setItemQuantityInput("1");
+                            setItemQuantity(MIN_PORTIONS);
+                            setItemQuantityInput(MIN_PORTIONS.toString());
                             if (
                               quantity > 0 &&
                               (!item.addons || item.addons.length === 0)
                             ) {
-                              setHasModifiedQuantity(1 !== initialModalQuantity);
+                              setHasModifiedQuantity(
+                                MIN_PORTIONS !== initialModalQuantity
+                              );
                             }
                           }
                         }}
                         className="w-16 md:w-20 text-center font-bold text-base md:text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
                       />
-                      {/* <p className="text-xs text-base-content/60">
-                        Feeds {itemQuantity * DISPLAY_FEEDS_PER_UNIT} people
-                      </p> */}
+                      {MIN_PORTIONS > 1 && (
+                        <p className="text-[10px] md:text-xs text-base-content/60">
+                          Minimum {MIN_PORTIONS} portion{MIN_PORTIONS > 1 ? "s" : ""}
+                        </p>
+                      )}
                     </div>
                     <button
                       onClick={() => {

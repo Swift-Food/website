@@ -11,7 +11,7 @@ import type {
   MealSessionPart,
 } from "../types";
 import type { UseCart } from "../cart/useCart";
-import { computeDefaultQty } from "../cart/computeQty";
+import { buildCategoryView, effectiveQty } from "../cart/computeQty";
 
 export interface IntentStepperSwapTarget {
   intentId: string;
@@ -106,39 +106,40 @@ export function IntentStepper({
   );
   const selected: ClientRestaurantPick | undefined = block.restaurantPicks[pickIdx];
 
-  // For the qty share calc: how many other intents in this meal share
-  // the same mealCategory? 3 mains for 50 people → 17 each.
-  const intentsInSameCategory = activeMeal.intentBlocks.filter(
-    (b) => b.intent.category === block.intent.category,
-  ).length;
-
   const cartIntent = cart.cart[block.intentId];
   const removedSet = new Set(cartIntent?.removedItemIds ?? []);
 
-  // Compose the items to render. Source = picked restaurant's items,
-  // minus removed, plus swapped-in (each swap-in keyed under the OLD
-  // item's id so it occupies the slot of the item it replaced — but
-  // when we render we use the new item's content).
+  // Compose displayed items via the category-aware effectiveQty math.
+  // This makes overrides + LLM counts on OTHER intents in the same
+  // category re-flow this intent's items so the per-category total
+  // stays at headcount × 1.0. e.g. user sets pizza intent #1 to 25 →
+  // intent #2 + #3 auto-shrink to share the remaining 25.
   const displayedItems = useMemo(() => {
     if (!selected) return [];
     const headcount = activeMeal.guestCount ?? 1;
     const fromBlock = selected.items.filter((it) => !removedSet.has(it.id));
     const swappedIn = Object.values(cartIntent?.swappedIn ?? {});
-    const all: IntentBlockItem[] = [...fromBlock, ...swappedIn];
-    return all.map((it) => {
-      const overrideQty = cartIntent?.qtyOverrides[it.id];
-      const qty =
-        overrideQty ??
-        computeDefaultQty(
-          headcount,
-          Math.max(1, intentsInSameCategory),
-          it.feedsPerUnit,
-          it.cateringQuantityUnit,
-        );
+    const liveItems: IntentBlockItem[] = [...fromBlock, ...swappedIn];
+
+    const categoryView = buildCategoryView(
+      block.intent.category,
+      activeMeal,
+      cart.cart,
+      cart.getSelectedRestaurantId,
+    );
+
+    return liveItems.map((it) => {
+      const qty = effectiveQty({
+        targetItem: it,
+        targetIntent: { intentId: block.intentId, count: block.intent.count },
+        itemsInTargetPick: liveItems.length,
+        categoryView,
+        headcount,
+      });
       const totalPrice = Number((it.price * qty).toFixed(2));
       return { ...it, quantity: qty, totalPrice };
     });
-  }, [selected, cartIntent, activeMeal, intentsInSameCategory, removedSet]);
+  }, [selected, cartIntent, activeMeal, removedSet, cart, block]);
 
   const pickedName = selected?.restaurant.name ?? "—";
   const pickedId = selected?.restaurant.id ?? "";
@@ -206,30 +207,32 @@ export function IntentStepper({
     (sum, m) => sum + (m.guestCount ?? 0),
     0,
   );
+  // Walk every meal × every category exactly once via the same
+  // categoryView buildEffectiveQty uses, so the displayed footer total
+  // can't drift from per-item totals. O(intents × items) per render —
+  // fine for catering-scale carts (~10s of items).
   const allMealsTotal = useMemo(() => {
     let total = 0;
     for (const meal of orderedMeals) {
       const head = meal.guestCount ?? 1;
-      for (const b of meal.intentBlocks) {
-        const sel =
-          cart.getSelectedRestaurantId(b.intentId) ??
-          b.restaurantPicks[0]?.restaurant.id;
-        const pick = b.restaurantPicks.find((rp) => rp.restaurant.id === sel);
-        if (!pick) continue;
-        const ci = cart.cart[b.intentId];
-        const rs = new Set(ci?.removedItemIds ?? []);
-        const inCat = meal.intentBlocks.filter(
-          (other) => other.intent.category === b.intent.category,
-        ).length;
-        const items = [
-          ...pick.items.filter((it) => !rs.has(it.id)),
-          ...Object.values(ci?.swappedIn ?? {}),
-        ];
-        for (const it of items) {
-          const qty =
-            ci?.qtyOverrides[it.id] ??
-            computeDefaultQty(head, Math.max(1, inCat), it.feedsPerUnit, it.cateringQuantityUnit);
-          total += it.price * qty;
+      const categoriesSeen = new Set<string | null>();
+      for (const b of meal.intentBlocks) categoriesSeen.add(b.intent.category);
+      for (const category of categoriesSeen) {
+        const view = buildCategoryView(
+          category,
+          meal,
+          cart.cart,
+          cart.getSelectedRestaurantId,
+        );
+        for (const entry of view) {
+          const qty = effectiveQty({
+            targetItem: entry.item,
+            targetIntent: entry.intent,
+            itemsInTargetPick: entry.itemsInPick,
+            categoryView: view,
+            headcount: head,
+          });
+          total += entry.item.price * qty;
         }
       }
     }

@@ -16,7 +16,7 @@ import {
 } from "@/lib/components/chatbot/parts/IntentStepper";
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
 import { useCart } from "@/lib/components/chatbot/cart/useCart";
-import { computeDefaultQty } from "@/lib/components/chatbot/cart/computeQty";
+import { buildCategoryView, effectiveQty } from "@/lib/components/chatbot/cart/computeQty";
 import type { SwapOption, BasketPick } from "@/lib/components/chatbot/api";
 import type {
   Chip,
@@ -446,6 +446,31 @@ function buildPicksFromCart(
   const picks: BasketPick[] = [];
   for (const ms of mealSessionParts) {
     const headcount = ms.guestCount ?? 1;
+
+    // Pre-compute every item's qty under the category-aware
+    // distribution so we use the same numbers IntentStepper shows.
+    const qtyByItemKey = new Map<string, number>(); // `${intentId}::${itemId}` → qty
+    const categoriesSeen = new Set<string | null>();
+    for (const b of ms.intentBlocks) categoriesSeen.add(b.intent.category);
+    for (const category of categoriesSeen) {
+      const view = buildCategoryView(
+        category,
+        ms,
+        cart.cart,
+        cart.getSelectedRestaurantId,
+      );
+      for (const entry of view) {
+        const qty = effectiveQty({
+          targetItem: entry.item,
+          targetIntent: entry.intent,
+          itemsInTargetPick: entry.itemsInPick,
+          categoryView: view,
+          headcount,
+        });
+        qtyByItemKey.set(`${entry.intent.intentId}::${entry.item.id}`, qty);
+      }
+    }
+
     for (const block of ms.intentBlocks) {
       const selectedRestaurantId =
         cart.getSelectedRestaurantId(block.intentId) ??
@@ -457,23 +482,16 @@ function buildPicksFromCart(
       if (!pick) continue;
       const cartIntent = cart.cart[block.intentId];
       const removedSet = new Set(cartIntent?.removedItemIds ?? []);
-      const intentsInSameCategory = ms.intentBlocks.filter(
-        (b) => b.intent.category === block.intent.category,
-      ).length;
-      const items = [
+      const liveItems = [
         ...pick.items.filter((it) => !removedSet.has(it.id)),
         ...Object.values(cartIntent?.swappedIn ?? {}),
-      ].map((it) => ({
-        menuItemId: it.id,
-        quantity:
-          cartIntent?.qtyOverrides[it.id] ??
-          computeDefaultQty(
-            headcount,
-            Math.max(1, intentsInSameCategory),
-            it.feedsPerUnit,
-            it.cateringQuantityUnit,
-          ),
-      }));
+      ];
+      const items = liveItems
+        .map((it) => ({
+          menuItemId: it.id,
+          quantity: qtyByItemKey.get(`${block.intentId}::${it.id}`) ?? 0,
+        }))
+        .filter((i) => i.quantity > 0);
       if (items.length === 0) continue;
       picks.push({
         intentId: block.intentId,
