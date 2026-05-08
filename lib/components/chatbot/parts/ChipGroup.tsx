@@ -12,7 +12,7 @@ interface ChipGroupProps {
 /**
  * Quick-reply chip strip. Renders horizontally with wrap; chips
  * stagger in 40ms apart. Variant is determined by the chip's action:
- * primary actions like `confirm` and `place_order` get the brand
+ * primary actions like `confirm` and `add_to_basket` get the brand
  * treatment, everything else stays neutral.
  */
 export function ChipGroup({ chips, onAction }: ChipGroupProps) {
@@ -54,7 +54,7 @@ export function ChipGroup({ chips, onAction }: ChipGroupProps) {
 }
 
 function variantFor(action: ChipAction): "default" | "primary" | "brand" {
-  if (action === "confirm" || action === "place_order") return "brand";
+  if (action === "confirm" || action === "add_to_basket") return "brand";
   if (action === "more_variety") return "primary";
   return "default";
 }

@@ -132,29 +132,34 @@ export async function moreVariety(
   return handle(res);
 }
 
-export interface PlaceOrderPick {
+export interface BasketPick {
   intentId: string;
   restaurantId: string;
   intentPhrase: string;
   items: Array<{ menuItemId: string; quantity: number }>;
 }
 
-export interface PlaceOrderRequest {
+export interface AddToBasketRequest {
   mealSessionIndex?: number;
-  picks: PlaceOrderPick[];
+  picks: BasketPick[];
 }
 
-export interface PlaceOrderResponse {
+export interface AddToBasketResponse {
   orderId: string | null;
   redirectUrl: string;
   warnings: string[];
 }
 
-export async function placeOrder(
+/**
+ * Hand the cart off to the basket / event-order page. The actual order
+ * is placed later on /event-order's checkout flow — this just verifies
+ * picks, applies promotions, persists the draft, and returns a redirect.
+ */
+export async function addToBasket(
   sid: string,
-  body: PlaceOrderRequest,
-): Promise<PlaceOrderResponse> {
-  const res = await fetch(`${API_BASE}/catering-chat/${sid}/place-order`, {
+  body: AddToBasketRequest,
+): Promise<AddToBasketResponse> {
+  const res = await fetch(`${API_BASE}/catering-chat/${sid}/add-to-basket`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

@@ -17,7 +17,7 @@ import {
 import { useChatSession } from "@/lib/components/chatbot/useChatSession";
 import { useCart } from "@/lib/components/chatbot/cart/useCart";
 import { computeDefaultQty } from "@/lib/components/chatbot/cart/computeQty";
-import type { SwapOption, PlaceOrderPick } from "@/lib/components/chatbot/api";
+import type { SwapOption, BasketPick } from "@/lib/components/chatbot/api";
 import type {
   Chip,
   IntentBlockItem,
@@ -64,7 +64,7 @@ export default function CateringAIClient() {
     handleChip,
     applyEditField,
     pickMealSession,
-    placeOrder,
+    addToBasket,
     resetSession,
     getTaxonomyValueFor,
   } = chat;
@@ -171,8 +171,8 @@ export default function CateringAIClient() {
     cart.swap(target.intentId, target.itemId, ibItem);
   }
 
-  function handlePlaceOrder() {
-    void placeOrder({
+  function handleAddToBasket() {
+    void addToBasket({
       mealSessionIndex: latestActiveMealSessionIndex,
       picks: buildPicksFromCart(latestMealSessionParts, cart),
     });
@@ -248,7 +248,7 @@ export default function CateringAIClient() {
                     mealSessionParts={latestMealSessionParts}
                     activeMealSessionIndex={latestActiveMealSessionIndex}
                     onPickMealSession={(idx) => void pickMealSession(idx)}
-                    onPlaceOrder={handlePlaceOrder}
+                    onAddToBasket={handleAddToBasket}
                     onSwap={handleSwap}
                     cart={cart}
                     sending={sending}
@@ -433,16 +433,17 @@ export default function CateringAIClient() {
 
 /**
  * Walk every meal session's intent blocks and assemble the cart's current
- * picks into the `/place-order` payload shape. For each intent, we pick
- * the cart-selected restaurant (or default to restaurantPicks[0]), drop
- * removed items, include swapped-in ones, and apply qty overrides on top
- * of the default share. Empty intents (everything removed) are skipped.
+ * picks into the `/add-to-basket` payload shape. For each intent, we
+ * pick the cart-selected restaurant (or default to restaurantPicks[0]),
+ * drop removed items, include swapped-in ones, and apply qty overrides
+ * on top of the default share. Empty intents (everything removed) are
+ * skipped.
  */
 function buildPicksFromCart(
   mealSessionParts: MealSessionPart[],
   cart: ReturnType<typeof useCart>,
-): PlaceOrderPick[] {
-  const picks: PlaceOrderPick[] = [];
+): BasketPick[] {
+  const picks: BasketPick[] = [];
   for (const ms of mealSessionParts) {
     const headcount = ms.guestCount ?? 1;
     for (const block of ms.intentBlocks) {

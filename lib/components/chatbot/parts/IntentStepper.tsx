@@ -31,7 +31,7 @@ interface IntentStepperProps {
   /** Switch the active meal — round-trips through the backend. */
   onPickMealSession: (mealSessionIndex: number) => void;
   /** "Add all to basket" — the parent gathers picks from `cart` and POSTs them. */
-  onPlaceOrder: () => void;
+  onAddToBasket: () => void;
   /** Open the SwapModal in the parent. The parent fetches options via the
    *  stateless /swap-options-by-restaurant endpoint and then applies the
    *  chosen replacement to `cart` directly. */
@@ -51,14 +51,14 @@ interface IntentStepperProps {
  * be overridden per item.
  *
  * The `Add all to basket` button at the end of the last intent of the
- * last meal calls onPlaceOrder, which posts the full cart to the
- * backend's /place-order for verification.
+ * last meal calls onAddToBasket, which posts the full cart to the
+ * backend's /add-to-basket for verification + promotion application.
  */
 export function IntentStepper({
   mealSessionParts,
   activeMealSessionIndex,
   onPickMealSession,
-  onPlaceOrder,
+  onAddToBasket,
   onSwap,
   cart,
   sending,
@@ -187,7 +187,7 @@ export function IntentStepper({
   const handleNext = () => {
     if (sending) return;
     if (atFinal) {
-      onPlaceOrder();
+      onAddToBasket();
       return;
     }
     if (!isLastIntent) {

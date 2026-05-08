@@ -56,14 +56,14 @@ export interface ChatSession {
   setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
   moreVariety: (mealSessionIndex?: number) => Promise<void>;
   /**
-   * Place the order with the user's client-side cart picks. Backend
-   * verifies items + min-order, persists the resulting draft, and
-   * returns redirect URL + warnings. Returns null on transport error
-   * (the hook also surfaces it via `error`).
+   * Hand the client-side cart off to the basket. Backend verifies items +
+   * applies promotions + persists the draft and returns a redirect URL
+   * to /event-order where the user actually places the order. Returns
+   * null on transport error (the hook also surfaces it via `error`).
    */
-  placeOrder: (
-    body: import("./api").PlaceOrderRequest,
-  ) => Promise<import("./api").PlaceOrderResponse | null>;
+  addToBasket: (
+    body: import("./api").AddToBasketRequest,
+  ) => Promise<import("./api").AddToBasketResponse | null>;
   resetSession: () => Promise<void>;
   pickMealSession: (mealSessionIndex: number) => Promise<void>;
   confirmInheritance: (mealSessionIndex: number, accept: boolean) => Promise<void>;
@@ -84,7 +84,7 @@ export interface UseChatSessionOptions {
 /**
  * Owns the chat session lifecycle: bootstrap from localStorage, send
  * messages, apply server responses, and run refinement actions
- * (swap/remove/qty/edit-field/place-order). UI surfaces
+ * (swap/remove/qty/edit-field/add-to-basket). UI surfaces
  * (floating widget, /catering-AI page) consume this hook and supply
  * their own layout, modals, and input chrome.
  */
@@ -309,15 +309,15 @@ export function useChatSession(
     [callApiAndApply],
   );
 
-  const placeOrder = useCallback(
+  const addToBasket = useCallback(
     async (
-      body: import("./api").PlaceOrderRequest,
-    ): Promise<import("./api").PlaceOrderResponse | null> => {
+      body: import("./api").AddToBasketRequest,
+    ): Promise<import("./api").AddToBasketResponse | null> => {
       const sid = sessionIdRef.current;
       if (!sid) return null;
       try {
-        const resp = await api.placeOrder(sid, body);
-        // Hand off to /event-order. We use the frontend's origin so this
+        const resp = await api.addToBasket(sid, body);
+        // Redirect to /event-order. We use the frontend's origin so this
         // works in dev and prod identically — backend's redirectUrl
         // points at swiftfood.uk which is correct for prod but wrong
         // for local dev.
@@ -327,7 +327,7 @@ export function useChatSession(
         setError(
           e instanceof Error
             ? e.message
-            : "Couldn't move to checkout — try again in a moment.",
+            : "Couldn't add to basket — try again in a moment.",
         );
         return null;
       }
@@ -364,12 +364,13 @@ export function useChatSession(
         case "more_variety":
           await moreVariety();
           return;
-        case "place_order":
-          // Bot-emitted place_order chip — not the cart's "Add to basket".
-          // The chip carries no picks, so we send an empty cart and let
-          // the backend reject. Real "Add to basket" goes through the
-          // IntentStepper -> CateringAIClient path with picks.
-          await placeOrder({ picks: [] });
+        case "add_to_basket":
+          // Bot-emitted add_to_basket chip — not the cart's "Add all to
+          // basket" button. Bot chip carries no picks, so we send an
+          // empty cart and let the backend reject. Real "Add all to
+          // basket" goes through the IntentStepper -> CateringAIClient
+          // path with the full picks payload.
+          await addToBasket({ picks: [] });
           return;
         case "edit_field":
           // edit_field opens a modal owned by the consumer; the hook
@@ -380,7 +381,7 @@ export function useChatSession(
           return;
       }
     },
-    [sendText, callApiAndApply, moreVariety, placeOrder, pickMealSession, confirmInheritance],
+    [sendText, callApiAndApply, moreVariety, addToBasket, pickMealSession, confirmInheritance],
   );
 
   const resetSession = useCallback(async () => {
@@ -435,7 +436,7 @@ export function useChatSession(
     remove,
     setQuantity,
     moreVariety,
-    placeOrder,
+    addToBasket,
     resetSession,
     pickMealSession,
     confirmInheritance,
