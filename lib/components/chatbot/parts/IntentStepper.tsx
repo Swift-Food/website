@@ -3,11 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { DraftItemRow } from "../items/DraftItemRow";
-import { resolveSelections } from "../cohesion";
 import type {
   ClientRestaurantPick,
   DraftItem,
-  IntentBlockItem,
   IntentBlockPart,
   MealSessionPart,
 } from "../types";
@@ -15,37 +13,32 @@ import type {
 interface IntentStepperProps {
   /** All meal_session parts (one per meal). */
   mealSessionParts: MealSessionPart[];
-  /** Currently active mealSessionIndex. */
+  /** Currently active mealSessionIndex from the backend response. */
   activeMealSessionIndex: number;
   /** Switch the active meal — round-trips through the backend. */
   onPickMealSession: (mealSessionIndex: number) => void;
-  /** Commit the order — round-trips through /place-order. */
-  onPlaceOrder: () => void;
-  /** Swap a draft item — opens the SwapModal in the parent. */
+  /** Pick a different restaurant for every intent in this meal — backend
+   * scopes each intent to that restaurant and rebuilds the draft. */
+  onPickRestaurant: (restaurantId: string, mealSessionIndex: number) => void;
+  /** Open the SwapModal in the parent. */
   onSwap: (itemId: string, itemName: string, mealSessionIndex: number) => void;
   /** Remove a draft item. */
   onRemove: (itemId: string, mealSessionIndex: number) => void;
   /** Adjust a draft item's quantity. */
   onQtyChange: (itemId: string, qty: number, mealSessionIndex: number) => void;
+  /** Commit the order — round-trips through /place-order. */
+  onPlaceOrder: () => void;
   sending: boolean;
 }
 
 /**
  * Walks the user through the active meal session's intent blocks one at
- * a time. Per-intent restaurant selection is purely client-side via the
- * cohesion-driven `resolveSelections` map (no backend roundtrip).
- *
- * Render mode depends on whether the user-selected restaurant matches
- * the cart's restaurant for that intent:
- *
- *   - default (selected === draft restaurant): render the rich
- *     DraftItemRow — image, description, dietary/allergen pills,
- *     quantity stepper, Swap, Remove.
- *
- *   - alt (selected !== draft restaurant): render the alt restaurant's
- *     IntentBlockItems in browse mode — image, description, price.
- *     The cart still holds the original picked restaurant's items;
- *     switching is exploratory.
+ * a time. Always renders the cart's draft items for the current intent
+ * via the rich DraftItemRow. The "Or try" alt-restaurant chips call
+ * onPickRestaurant which round-trips through the backend; the new
+ * response replaces the meal's draft and intent blocks for that
+ * restaurant. There is no separate "browse" mode — the cart is the
+ * source of truth for what's currently picked.
  *
  * Linear progress strip at the top, prev/next at the bottom. Chains
  * across meal sessions: Next at the last intent of the last meal
@@ -55,16 +48,14 @@ export function IntentStepper({
   mealSessionParts,
   activeMealSessionIndex,
   onPickMealSession,
-  onPlaceOrder,
+  onPickRestaurant,
   onSwap,
   onRemove,
   onQtyChange,
+  onPlaceOrder,
   sending,
 }: IntentStepperProps) {
   const [intentIndex, setIntentIndex] = useState(0);
-  const [explicit, setExplicit] = useState<Map<string, string>>(
-    () => new Map(),
-  );
   const pendingPrevRef = useRef(false);
 
   const activeMeal = useMemo(
@@ -76,13 +67,6 @@ export function IntentStepper({
   );
   const blocks: IntentBlockPart[] = activeMeal?.intentBlocks ?? [];
 
-  const resolved = useMemo(
-    () => resolveSelections(blocks, explicit),
-    [blocks, explicit],
-  );
-
-  // When active meal changes, land on intent 0 — unless we got here via
-  // Previous-from-meal-start, in which case land on the last intent.
   useEffect(() => {
     if (pendingPrevRef.current) {
       pendingPrevRef.current = false;
@@ -99,27 +83,30 @@ export function IntentStepper({
   const safeIntentIdx = Math.min(intentIndex, blocks.length - 1);
   const block = blocks[safeIntentIdx];
 
-  const selectedId =
-    resolved.get(block.intentId) ??
-    block.restaurantPicks[0]?.restaurant.id ??
-    "";
-  const selectedPick: ClientRestaurantPick | undefined =
-    block.restaurantPicks.find((rp) => rp.restaurant.id === selectedId) ??
-    block.restaurantPicks[0];
-  const alts = block.restaurantPicks.filter(
-    (rp) => rp.restaurant.id !== (selectedPick?.restaurant.id ?? ""),
-  );
-
-  // The cart's restaurant for this intent — derived from draft items.
-  const draftItemsForIntent: DraftItem[] = (activeMeal.draft?.items ?? []).filter(
+  const draftItemsForIntent: DraftItem[] = (
+    activeMeal.draft?.items ?? []
+  ).filter(
     (it) => normalize(it.intentPhrase) === normalize(block.intent.phrase),
   );
-  const draftRestaurantId = draftItemsForIntent[0]?.restaurantId ?? null;
 
-  const showingDraft =
-    !!selectedPick &&
-    draftRestaurantId !== null &&
-    selectedPick.restaurant.id === draftRestaurantId;
+  // Picked restaurant for this intent = the restaurant the draft items
+  // come from. Falls back to intent block's first ranked pick when the
+  // draft hasn't been built yet (e.g. headcount missing).
+  const draftRestaurantId = draftItemsForIntent[0]?.restaurantId ?? null;
+  const fallbackPick: ClientRestaurantPick | undefined =
+    block.restaurantPicks[0];
+  const pickedFromDraft =
+    draftRestaurantId !== null
+      ? activeMeal.draft?.restaurants.find((r) => r.id === draftRestaurantId) ??
+        null
+      : null;
+  const pickedName =
+    pickedFromDraft?.name ?? fallbackPick?.restaurant.name ?? "—";
+  const pickedId = draftRestaurantId ?? fallbackPick?.restaurant.id ?? "";
+
+  const alts = block.restaurantPicks.filter(
+    (rp) => rp.restaurant.id !== pickedId,
+  );
 
   const orderedMeals = mealSessionParts;
   const myPos = orderedMeals.findIndex(
@@ -144,11 +131,7 @@ export function IntentStepper({
 
   const handlePickAlt = (restaurantId: string) => {
     if (sending) return;
-    setExplicit((prev) => {
-      const next = new Map(prev);
-      next.set(block.intentId, restaurantId);
-      return next;
-    });
+    onPickRestaurant(restaurantId, activeMealSessionIndex);
   };
 
   const handlePrev = () => {
@@ -210,7 +193,7 @@ export function IntentStepper({
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={`${activeMealSessionIndex}-${block.intentId}-${selectedPick?.restaurant.id ?? ""}`}
+          key={`${activeMealSessionIndex}-${block.intentId}-${pickedId}`}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
@@ -238,9 +221,9 @@ export function IntentStepper({
               marginTop: 4,
             }}
           >
-            {showingDraft ? "picked from " : "showing "}
+            picked from{" "}
             <strong style={{ color: "var(--ink)", fontStyle: "normal" }}>
-              {selectedPick?.restaurant.name ?? "—"}
+              {pickedName}
             </strong>
             {activeMeal.guestCount !== null &&
               ` · feeds ${activeMeal.guestCount}`}
@@ -266,46 +249,24 @@ export function IntentStepper({
             </div>
           )}
 
-          {showingDraft ? (
-            draftItemsForIntent.length > 0 ? (
-              <ul style={{ margin: "16px 0 0", padding: 0, listStyle: "none" }}>
-                {draftItemsForIntent.map((item) => (
-                  <DraftItemRow
-                    key={item.id}
-                    item={item}
-                    onSwap={() =>
-                      onSwap(item.id, item.name, activeMealSessionIndex)
-                    }
-                    onRemove={() => onRemove(item.id, activeMealSessionIndex)}
-                    onQtyChange={(q) =>
-                      onQtyChange(item.id, q, activeMealSessionIndex)
-                    }
-                  />
-                ))}
-              </ul>
-            ) : (
-              <EmptyIntentState message="No items in this intent yet — keep chatting on the right." />
-            )
-          ) : (
+          {draftItemsForIntent.length > 0 ? (
             <ul style={{ margin: "16px 0 0", padding: 0, listStyle: "none" }}>
-              {(selectedPick?.items ?? []).map((item) => (
-                <BrowseItemRow
+              {draftItemsForIntent.map((item) => (
+                <DraftItemRow
                   key={item.id}
                   item={item}
-                  share={
-                    activeMeal.guestCount && selectedPick
-                      ? Math.ceil(
-                          activeMeal.guestCount /
-                            Math.max(1, selectedPick.items.length),
-                        )
-                      : null
+                  onSwap={() =>
+                    onSwap(item.id, item.name, activeMealSessionIndex)
+                  }
+                  onRemove={() => onRemove(item.id, activeMealSessionIndex)}
+                  onQtyChange={(q) =>
+                    onQtyChange(item.id, q, activeMealSessionIndex)
                   }
                 />
               ))}
-              {(selectedPick?.items ?? []).length === 0 && (
-                <EmptyIntentState message={`No items here from ${selectedPick?.restaurant.name ?? "this restaurant"} yet.`} />
-              )}
             </ul>
+          ) : (
+            <EmptyIntentState message="No items in this intent yet — keep chatting on the right." />
           )}
         </motion.div>
       </AnimatePresence>
@@ -415,161 +376,6 @@ function ProgressStrip({
         {currentIdx + 1} of {total} · {mealName}
       </span>
     </div>
-  );
-}
-
-function BrowseItemRow({
-  item,
-  share,
-}: {
-  item: IntentBlockItem;
-  /** People this item should feed if the user committed to this restaurant.
-   * Backend re-portions by category at commit; we approximate here as
-   * `guestCount / itemsInThisPick`. Null = unknown headcount yet. */
-  share: number | null;
-}) {
-  const initial = (item.name?.trim()[0] ?? "?").toUpperCase();
-  const dietary = (item.dietaryFilters ?? []).filter(Boolean);
-  const allergens = (item.allergens ?? []).filter(
-    (a) => a && a.toLowerCase() !== "no specific allergens",
-  );
-  const feedsPerUnit = item.feedsPerUnit > 0 ? item.feedsPerUnit : 1;
-  const qty = share !== null ? Math.ceil(share / feedsPerUnit) : null;
-  const total = qty !== null ? qty * item.price : null;
-  return (
-    <li
-      style={{
-        display: "flex",
-        gap: 12,
-        padding: "12px 0",
-        borderBottom: "1px solid var(--rule)",
-        listStyle: "none",
-      }}
-    >
-      <div
-        aria-hidden="true"
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: 10,
-          flexShrink: 0,
-          background: item.imageUrl
-            ? `url(${item.imageUrl}) center/cover`
-            : "linear-gradient(135deg, var(--paper-deep) 0%, var(--rule) 100%)",
-          border: "1px solid var(--rule)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {!item.imageUrl && (
-          <span
-            className="display-italic"
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.6rem",
-              color: "var(--ink-faint)",
-            }}
-          >
-            {initial}
-          </span>
-        )}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          className="display"
-          style={{ fontSize: "0.98rem", fontWeight: 600, color: "var(--ink)" }}
-        >
-          {item.name}
-        </div>
-        {item.description && (
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--ink-soft)",
-              lineHeight: 1.4,
-              marginTop: 4,
-            }}
-          >
-            {item.description}
-          </div>
-        )}
-        {item.reason && (
-          <div className="reason" style={{ marginTop: 4 }}>
-            {item.reason}
-          </div>
-        )}
-        {(dietary.length > 0 || allergens.length > 0) && (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 4,
-              marginTop: 6,
-            }}
-          >
-            {dietary.map((d) => (
-              <span key={`d-${d}`} className="dietary-pill">
-                {d.replace(/_/g, " ")}
-              </span>
-            ))}
-            {allergens.slice(0, 3).map((a) => (
-              <span key={`a-${a}`} className="allergen-pill">
-                {a.toLowerCase()}
-              </span>
-            ))}
-            {allergens.length > 3 && (
-              <span className="allergen-pill">+{allergens.length - 3}</span>
-            )}
-          </div>
-        )}
-      </div>
-      <div
-        style={{
-          textAlign: "right",
-          flexShrink: 0,
-          alignSelf: "flex-start",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          gap: 4,
-        }}
-      >
-        <div
-          className="display"
-          style={{
-            fontWeight: 600,
-            color: "var(--ink)",
-            fontVariantNumeric: "tabular-nums",
-            fontSize: "0.95rem",
-          }}
-        >
-          £{(total ?? item.price).toFixed(2)}
-        </div>
-        <div
-          style={{
-            fontSize: "0.7rem",
-            color: "var(--ink-faint)",
-          }}
-        >
-          £{item.price.toFixed(2)} ea · feeds {feedsPerUnit}
-        </div>
-        {qty !== null && (
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--ink-soft)",
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            ×{qty}
-          </div>
-        )}
-      </div>
-    </li>
   );
 }
 

@@ -102,6 +102,21 @@ export async function menuAction(
   return handle(res);
 }
 
+export async function pickRestaurant(
+  sid: string,
+  restaurantId: string,
+  mealSessionIndex?: number,
+): Promise<ChatResponse> {
+  const body: Record<string, unknown> = { restaurantId };
+  if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
+  const res = await fetch(`${API_BASE}/catering-chat/${sid}/pick-restaurant`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return handle(res);
+}
+
 export interface SwapOption {
   menuItemId: string;
   name: string;

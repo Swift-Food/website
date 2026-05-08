@@ -60,6 +60,7 @@ export default function CateringAIClient() {
     swap,
     remove,
     setQuantity,
+    pickRestaurant,
     pickMealSession,
     placeOrder,
     resetSession,
@@ -219,6 +220,9 @@ export default function CateringAIClient() {
                     mealSessionParts={latestMealSessionParts}
                     activeMealSessionIndex={latestActiveMealSessionIndex}
                     onPickMealSession={(idx) => void pickMealSession(idx)}
+                    onPickRestaurant={(rid, idx) =>
+                      void pickRestaurant(rid, idx)
+                    }
                     onPlaceOrder={() => void placeOrder()}
                     onSwap={handleSwap}
                     onRemove={(id, idx) => void remove(id, idx)}
