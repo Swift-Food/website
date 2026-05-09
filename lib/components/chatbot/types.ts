@@ -167,10 +167,28 @@ export interface PreviewItem {
   imageUrl: string | null;
   groupTitle: string | null;
   mealCategory: MealCategory;
+  /** When during the day this item is offered ("breakfast", "lunch", "all", …). */
+  mealTime: string;
   allergens: string[];
   dietaryFilters: string[];
+  /** Free-text ingredient list pulled from the menu_item record. */
+  ingredients: string[];
   unitPrice: number;
+  /** Sale price when isDiscount=true; null otherwise. */
+  discountPrice: number | null;
+  isDiscount: boolean;
+  /** How many people one pack feeds. */
   feedsPerUnit: number;
+  /** Pack size — how many physical units make one orderable pack. */
+  cateringQuantityUnit: number;
+  /** Restaurant's per-item minimum order. */
+  minOrderQuantity: number;
+  /** Estimated prep time in minutes. */
+  prepTime: number;
+  /** Surfaced because it's been ordered more than peers. */
+  popular: boolean;
+  /** Average rating out of 5 from past orders. 0 = unrated. */
+  averageRating: number;
   restaurant: RestaurantSummary;
   /** One-line "shown because…" copy. e.g. "Top vector match for 'spicy'". */
   matchReason: string;
@@ -218,7 +236,12 @@ export interface ClientIntent {
   intentId: string;
   phrase: string;
   category: 'main' | 'snack' | 'drink' | 'dessert' | null;
-  count: number | null;
+  /** Pack count of THE matched dish (e.g. "10 marinara pizzas" → 10).
+   *  When set, the builder pins one item to this quantity. */
+  quantity: number | null;
+  /** Number of DIFFERENT items to surface ("3 different pizzas" → 3).
+   *  When set, the builder slices top-N retrieval results. */
+  variety: number | null;
   restaurantScope: string[] | null;
   excludes: string[] | null;
 }

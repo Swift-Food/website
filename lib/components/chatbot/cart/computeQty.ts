@@ -15,15 +15,16 @@ import type { CartState } from "./useCart";
  * sum equals headcount exactly:
  *   50 ppl across 3 intents = 17, 17, 16 (not 17, 17, 17 = 51).
  *
- * Manual user overrides + LLM-emitted intent.count are "explicit
- * claims" — they consume a slice of the category target. Non-explicit
- * items split the remainder evenly. Stable sort by (intentId, itemId)
- * keeps the +1-remainder allocation deterministic across re-renders.
+ * Manual user overrides + LLM-emitted intent.quantity are "explicit
+ * claims" — they consume a slice of the category target. intent.variety
+ * just controls how many distinct items are shown, not packs. Non-
+ * explicit items split the remainder evenly. Stable sort by
+ * (intentId, itemId) keeps +1-remainder allocation deterministic.
  */
 
 export interface CategoryViewEntry {
   item: IntentBlockItem;
-  intent: { intentId: string; count: number | null };
+  intent: { intentId: string; quantity: number | null };
   /** How many items are currently displayed in this entry's intent's
    *  pick (post-removal/swap). Cached so distribution math doesn't
    *  re-derive it per item. */
@@ -66,7 +67,7 @@ export function buildCategoryView(
     for (const item of liveItems) {
       view.push({
         item,
-        intent: { intentId: block.intentId, count: block.intent.count },
+        intent: { intentId: block.intentId, quantity: block.intent.quantity },
         itemsInPick,
         overrideQty: cartIntent?.qtyOverrides[item.id],
       });
@@ -81,7 +82,7 @@ export function buildCategoryView(
  */
 export function effectiveQty(args: {
   targetItem: IntentBlockItem;
-  targetIntent: { intentId: string; count: number | null };
+  targetIntent: { intentId: string; quantity: number | null };
   itemsInTargetPick: number;
   /** Every visible item from every intent in the SAME mealCategory. */
   categoryView: CategoryViewEntry[];
@@ -95,12 +96,16 @@ export function effectiveQty(args: {
   );
   if (targetEntry?.overrideQty !== undefined) return targetEntry.overrideQty;
 
-  // 2) LLM hard count — split evenly across this intent's items-in-pick.
-  if (targetIntent.count != null) {
-    const sharePerItem = Math.ceil(
-      targetIntent.count / Math.max(1, itemsInTargetPick),
+  // 2) LLM-emitted intent.quantity = pack count for the named dish.
+  //    Split evenly across this intent's items-in-pick (in the typical
+  //    quantity-pinned case there's exactly one item, so each item gets
+  //    the full pack count).
+  if (targetIntent.quantity != null) {
+    const packsPerItem = Math.ceil(
+      targetIntent.quantity / Math.max(1, itemsInTargetPick),
     );
-    return packsFromServings(sharePerItem * targetItem.feedsPerUnit, targetItem);
+    const minOrder = Math.max(1, targetItem.minOrderQuantity ?? 1);
+    return Math.max(packsPerItem, minOrder);
   }
 
   // 3) Default share — floor + remainder distribution. Compute claims
@@ -115,10 +120,10 @@ export function effectiveQty(args: {
       explicitClaimsServings += entry.overrideQty * entry.item.feedsPerUnit;
       continue;
     }
-    if (entry.intent.count != null) {
-      // Each item in an LLM-counted intent claims (count / itemsInPick) packs.
+    if (entry.intent.quantity != null) {
+      // Each item in a quantity-pinned intent claims its split.
       const perItemPacks = Math.ceil(
-        entry.intent.count / Math.max(1, entry.itemsInPick),
+        entry.intent.quantity / Math.max(1, entry.itemsInPick),
       );
       explicitClaimsServings += perItemPacks * entry.item.feedsPerUnit;
       continue;

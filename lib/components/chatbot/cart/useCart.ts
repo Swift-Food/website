@@ -193,13 +193,13 @@ export function useCart(sessionId: string | null): UseCart {
       // Map every prev intent's stable identity (phrase + category)
       // → its UUID + count. The validator regenerates intentIds on
       // every LLM turn, so phrase+category is the only stable signal.
-      type PrevHit = { oldIntentId: string; oldCount: number | null };
+      type PrevHit = { oldIntentId: string; oldQuantity: number | null };
       const prevByKey = new Map<string, PrevHit>();
       for (const ms of prevMealSessions) {
         for (const b of ms.intentBlocks) {
           prevByKey.set(matchKey(b.intent.phrase, b.intent.category), {
             oldIntentId: b.intentId,
-            oldCount: b.intent.count,
+            oldQuantity: b.intent.quantity,
           });
         }
       }
@@ -212,14 +212,14 @@ export function useCart(sessionId: string | null): UseCart {
             if (!matched) continue; // brand-new intent — fresh defaults will compute
             const prevEntry = prev[matched.oldIntentId];
             if (!prevEntry) continue;
-            // If the LLM just emitted a NEW count for this intent
-            // (count was null before OR a different number), the user
-            // is verbally re-setting the ratio — drop their per-item
-            // qty overrides so the new count actually drives display.
+            // If the LLM just emitted a NEW quantity for this intent
+            // (was null before OR a different number), the user just
+            // verbally re-set their pack count — drop per-item qty
+            // overrides so the new quantity actually drives display.
             // Restaurant selection + removed items + swaps stay.
-            const llmReSetCount =
-              b.intent.count != null && b.intent.count !== matched.oldCount;
-            next[b.intentId] = llmReSetCount
+            const llmReSetQuantity =
+              b.intent.quantity != null && b.intent.quantity !== matched.oldQuantity;
+            next[b.intentId] = llmReSetQuantity
               ? { ...prevEntry, qtyOverrides: {} }
               : prevEntry;
           }

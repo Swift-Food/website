@@ -132,7 +132,7 @@ export function IntentStepper({
     return liveItems.map((it) => {
       const qty = effectiveQty({
         targetItem: it,
-        targetIntent: { intentId: block.intentId, count: block.intent.count },
+        targetIntent: { intentId: block.intentId, quantity: block.intent.quantity },
         itemsInTargetPick: liveItems.length,
         categoryView,
         headcount,
