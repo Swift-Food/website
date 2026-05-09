@@ -537,14 +537,17 @@ function buildPicksFromCart(
 }
 
 /**
- * Filter parts so the chat thread only carries text, clarifier, and
- * conversational `send_text` chips. Form state (summary_card,
- * menu_draft) and action chips are owned by the left column.
+ * Filter parts so the chat thread only carries text, clarifier, browse-mode
+ * menu previews, and conversational `send_text` chips. Form state
+ * (summary_card, menu_draft, meal_session) and committed-mode intent_block
+ * parts are owned by the left column. Browse-mode `menu_preview` parts
+ * have no home in the left column — they MUST render inline in the chat
+ * thread or the user sees nothing for "show me X".
  */
 function chatPartsOnly(parts: MessagePart[]): MessagePart[] {
   const result: MessagePart[] = [];
   for (const p of parts) {
-    if (p.type === "text" || p.type === "clarifier") {
+    if (p.type === "text" || p.type === "clarifier" || p.type === "menu_preview") {
       result.push(p);
       continue;
     }
