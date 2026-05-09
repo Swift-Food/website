@@ -244,6 +244,10 @@ export interface IntentBlockItem {
   feedsPerUnit: number;
   /** Catering pack size (default 1). Client uses for default-qty rounding. */
   cateringQuantityUnit: number;
+  /** Restaurant-set minimum packs per order for this item. effectiveQty
+   *  clamps default-share computations up to this floor so the cart
+   *  doesn't under-order below the restaurant's per-item minimum. */
+  minOrderQuantity: number;
 }
 
 /** One restaurant's curated picks for an intent. Up to 5 per IntentBlockPart, ranked by candidate count. */

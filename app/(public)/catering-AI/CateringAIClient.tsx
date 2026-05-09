@@ -185,6 +185,10 @@ export default function CateringAIClient() {
       dietaryFilters: replacement.dietaryFilters,
       feedsPerUnit: replacement.feedsPerUnit,
       cateringQuantityUnit: 1,
+      // SwapOption doesn't carry minOrderQuantity (the legacy
+      // /swap-options endpoint predates this field). Default to 1
+      // — backend's /add-to-basket clamp will catch any violation.
+      minOrderQuantity: 1,
     };
     cart.swap(target.intentId, target.itemId, ibItem);
   }

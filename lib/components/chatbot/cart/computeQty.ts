@@ -156,7 +156,13 @@ function packsFromServings(servings: number, item: IntentBlockItem): number {
   if (servings <= 0) return 0;
   const fpu = Math.max(1, item.feedsPerUnit);
   const cqu = Math.max(1, item.cateringQuantityUnit);
-  return Math.ceil(servings / fpu) * cqu;
+  const minOrder = Math.max(1, item.minOrderQuantity ?? 1);
+  // Default-share path: round up servings → packs, then clamp up to
+  // the restaurant's per-item minimum. Manual qty stepper overrides
+  // bypass this (path 1 in effectiveQty) — explicit user choice wins
+  // and the backend's /add-to-basket clamp is the last line of defense.
+  const packs = Math.ceil(servings / fpu) * cqu;
+  return Math.max(packs, minOrder);
 }
 
 /**
