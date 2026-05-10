@@ -247,7 +247,7 @@ export function chatSessionToHandoff(
   // is a backend retrieval signal (raw dish/ingredient terms the LLM
   // extracted for vector search), not a user-authored note — don't
   // surface it on the order form.
-  const t = response.taxonomy;
+  const t = response.summary.taxonomy;
   const noteParts: string[] = [];
   if (t.dietaryRestrictions.length > 0) {
     noteParts.push(`Dietary: ${t.dietaryRestrictions.join(", ")}`);

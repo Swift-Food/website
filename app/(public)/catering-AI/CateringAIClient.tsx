@@ -57,7 +57,7 @@ export default function CateringAIClient() {
     latestMealSessions,
     latestActiveMealSessionIndex,
     latestMealSessionParts,
-    latestSummaryCard,
+    latestSummary,
     latestChips,
     editingMealSessionIndex,
     setEditingMealSessionIndex,
@@ -316,7 +316,7 @@ export default function CateringAIClient() {
                 position: "relative",
               }}
             >
-              {latestSummaryCard && (
+              {latestSummary && (
                 <div
                   style={{
                     position: "absolute",
@@ -330,8 +330,8 @@ export default function CateringAIClient() {
                 >
                   <div style={{ pointerEvents: "auto" }}>
                     <SummaryCard
-                      taxonomy={latestSummaryCard.taxonomy}
-                      editable={latestSummaryCard.editable}
+                      taxonomy={latestSummary.taxonomy}
+                      editable={latestSummary.editable}
                       onEdit={handleEditField}
                       collapsible
                     />
@@ -350,7 +350,7 @@ export default function CateringAIClient() {
                   paddingLeft: 24,
                   paddingRight: 24,
                   paddingBottom: 16,
-                  paddingTop: latestSummaryCard ? 76 : 16,
+                  paddingTop: latestSummary ? 76 : 16,
                   display: "flex",
                   flexDirection: "column",
                   gap: 14,
@@ -539,9 +539,10 @@ function buildPicksFromCart(
 /**
  * Filter parts so the chat thread only carries text, clarifier, browse-mode
  * menu previews, and conversational `send_text` chips. Form state
- * (summary_card, menu_draft, meal_session) and committed-mode intent_block
- * parts are owned by the left column. Browse-mode `menu_preview` parts
- * have no home in the left column — they MUST render inline in the chat
+ * (menu_draft, meal_session) and committed-mode intent_block parts are
+ * owned by the left column; the "Your Event" panel reads from
+ * response.summary at top level. Browse-mode `menu_preview` parts have
+ * no home in the left column — they MUST render inline in the chat
  * thread or the user sees nothing for "show me X".
  */
 function chatPartsOnly(parts: MessagePart[]): MessagePart[] {

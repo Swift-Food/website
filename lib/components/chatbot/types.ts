@@ -302,12 +302,6 @@ export interface IntentBlockPart {
 
 export type MessagePart =
   | { type: "text"; text: string }
-  | {
-      type: "summary_card";
-      taxonomy: SharedTaxonomyView;
-      editable: string[];
-      tags: SummaryTag[];
-    }
   | { type: "chips"; chips: Chip[] }
   | {
       type: "menu_plan";
@@ -331,6 +325,19 @@ export type MessagePart =
   | MealSessionPart;
 
 /**
+ * Top-level "Your Event" panel snapshot. Replaces the legacy
+ * summary_card MessagePart — that part was filtered out of the chat
+ * thread anyway and required walking history to find, which produced
+ * stale UI after a clear ("delete everything"). `response.summary`
+ * always reflects current state.
+ */
+export interface SessionSummary {
+  taxonomy: SharedTaxonomyView;
+  editable: string[];
+  tags: SummaryTag[];
+}
+
+/**
  * Aggregator part — one per meal session, intent blocks pre-sorted by
  * mealCategory. Mirrors the backend's `MealSessionPart`. Carries both
  * the per-intent restaurant picks (browse) and the committed draft
@@ -352,8 +359,9 @@ export interface ChatResponse {
   sessionId: string;
   status: ChatStatus;
   parts: MessagePart[];
-  /** Display-formatted view of the shared (event-wide) taxonomy. */
-  taxonomy: SharedTaxonomyView;
+  /** "Your Event" panel snapshot — taxonomy, editable fields, derived tags.
+   *  Always present and always reflects current state. */
+  summary: SessionSummary;
   /** Per-meal display views — one per planned meal. */
   mealSessions: ChatMealSessionView[];
   /** Which meal the user is currently focused on. */

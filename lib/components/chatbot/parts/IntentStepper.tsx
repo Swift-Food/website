@@ -356,6 +356,7 @@ export function IntentStepper({
                   onQtyChange={(q) =>
                     cart.setQty(block.intentId, item.id, q)
                   }
+                  minQuantity={item.minOrderQuantity}
                 />
               ))}
             </ul>

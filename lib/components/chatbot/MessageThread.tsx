@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { TextBubble } from "./parts/TextBubble";
 import { ChipGroup } from "./parts/ChipGroup";
-import { SummaryCard } from "./parts/SummaryCard";
 import { MenuPlanCard } from "./parts/MenuPlanCard";
 import { MenuPreviewCard } from "./parts/MenuPreviewCard";
 import { IntentBlockCard } from "./parts/IntentBlockCard";
@@ -85,15 +84,6 @@ function PartRenderer({
 }) {
   if (part.type === "text") {
     return <TextBubble sender={sender} text={part.text} />;
-  }
-  if (part.type === "summary_card") {
-    return (
-      <SummaryCard
-        taxonomy={part.taxonomy}
-        editable={part.editable}
-        onEdit={onEditField}
-      />
-    );
   }
   if (part.type === "chips") {
     return <ChipGroup chips={part.chips} onAction={onChip} />;

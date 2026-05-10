@@ -9,18 +9,13 @@ import type {
   ChatStatus,
   ChatMealSessionView,
   Chip,
-  SharedTaxonomyView,
   MealSessionPart,
   MenuDraft,
   MessagePart,
+  SessionSummary,
 } from "./types";
 
 const STORAGE_KEY = "swift-food-chat-session";
-
-export interface SummaryCardSnapshot {
-  taxonomy: SharedTaxonomyView;
-  editable: string[];
-}
 
 export interface ChatSession {
   // state
@@ -37,7 +32,7 @@ export interface ChatSession {
    * the message thread. The page-aside intent stepper consumes this to
    * render per-intent restaurant picks (intentBlocks) for the active meal. */
   latestMealSessionParts: MealSessionPart[];
-  latestSummaryCard: SummaryCardSnapshot | null;
+  latestSummary: SessionSummary | null;
   latestChips: Chip[] | null;
 
   // setters the consumer needs
@@ -111,16 +106,26 @@ export function useChatSession(
   /** Latest formatted meal-session views from the response. The active meal's draft is the cart that renders in the left aside. */
   const [latestMealSessions, setLatestMealSessions] = useState<ChatMealSessionView[]>([]);
   const [latestActiveMealSessionIndex, setLatestActiveMealSessionIndex] = useState(0);
+  const [latestSummary, setLatestSummary] = useState<SessionSummary | null>(null);
 
   const sessionIdRef = useRef<string | null>(null);
   const lastTaxonomyRef = useRef<Record<string, unknown>>({});
 
   const applyResponse = useCallback((data: ChatResponse, asReply: boolean) => {
     const parts = data.parts ?? legacyToParts(data);
-    captureTaxonomy(parts, lastTaxonomyRef);
     setStatus(data.status ?? null);
     setLatestMealSessions(data.mealSessions ?? []);
     setLatestActiveMealSessionIndex(data.activeMealSessionIndex ?? 0);
+    // SessionSummary lives at top level — never walk message history.
+    // Always replace, even with a "cleared" summary, so the panel mirrors
+    // current state after a reset / "delete everything".
+    if (data.summary) {
+      setLatestSummary(data.summary);
+      lastTaxonomyRef.current = data.summary.taxonomy as unknown as Record<string, unknown>;
+    } else {
+      setLatestSummary(null);
+      lastTaxonomyRef.current = {};
+    }
     if (asReply) {
       setMessages((prev) => [
         ...prev,
@@ -414,10 +419,6 @@ export function useChatSession(
     () => latestMealSessions[latestActiveMealSessionIndex]?.draft ?? null,
     [latestMealSessions, latestActiveMealSessionIndex],
   );
-  const latestSummaryCard = useMemo(
-    () => findLatestSummaryCard(messages),
-    [messages],
-  );
   const latestChips = useMemo(() => findLatestChips(messages), [messages]);
   const latestMealSessionParts = useMemo(
     () => findLatestMealSessionParts(messages),
@@ -435,7 +436,7 @@ export function useChatSession(
     latestMealSessions,
     latestActiveMealSessionIndex,
     latestMealSessionParts,
-    latestSummaryCard,
+    latestSummary,
     latestChips,
     editingMealSessionIndex,
     setEditingMealSessionIndex,
@@ -456,17 +457,6 @@ export function useChatSession(
 }
 
 // ---------------- helpers ----------------
-
-function captureTaxonomy(
-  parts: MessagePart[],
-  ref: { current: Record<string, unknown> },
-) {
-  for (const p of parts) {
-    if (p.type === "summary_card") {
-      ref.current = p.taxonomy as unknown as Record<string, unknown>;
-    }
-  }
-}
 
 function legacyToParts(data: ChatResponse): MessagePart[] {
   if (data.message) return [{ type: "text", text: data.message }];
@@ -492,21 +482,6 @@ function taxonomyValueFor(
   return taxonomy[key];
 }
 
-
-function findLatestSummaryCard(
-  messages: ThreadMessage[],
-): SummaryCardSnapshot | null {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const parts = messages[i].parts;
-    for (let j = parts.length - 1; j >= 0; j--) {
-      const p = parts[j];
-      if (p.type === "summary_card") {
-        return { taxonomy: p.taxonomy, editable: p.editable };
-      }
-    }
-  }
-  return null;
-}
 
 function findLatestChips(messages: ThreadMessage[]): Chip[] | null {
   for (let i = messages.length - 1; i >= 0; i--) {

@@ -10,6 +10,10 @@ interface DraftItemRowProps {
   onSwap?: () => void;
   onRemove?: () => void;
   onQtyChange?: (next: number) => void;
+  /** Restaurant's per-item minimum pack count. The qty stepper clamps
+   *  the minus button at this floor instead of 1, matching the
+   *  /add-to-basket clamp the backend applies at handoff. */
+  minQuantity?: number;
 }
 
 const PLACEHOLDER_BG =
@@ -28,6 +32,7 @@ export function DraftItemRow({
   onSwap,
   onRemove,
   onQtyChange,
+  minQuantity,
 }: DraftItemRowProps) {
   const dietary = (item.dietaryFilters ?? []).filter(Boolean);
   const allergens = (item.allergens ?? []).filter(
@@ -137,7 +142,11 @@ export function DraftItemRow({
           £{item.unitPrice.toFixed(2)} ea · feeds {item.feedsPerUnit}
         </div>
         {onQtyChange ? (
-          <QtyStepper value={item.quantity} onChange={onQtyChange} />
+          <QtyStepper
+            value={item.quantity}
+            onChange={onQtyChange}
+            min={Math.max(1, minQuantity ?? 1)}
+          />
         ) : (
           <div style={{ fontSize: "0.78rem", color: "var(--ink-soft)" }}>
             ×{item.quantity}
@@ -193,10 +202,13 @@ function ItemPhoto({
 function QtyStepper({
   value,
   onChange,
+  min,
 }: {
   value: number;
   onChange: (v: number) => void;
+  min: number;
 }) {
+  const atMin = value <= min;
   return (
     <motion.div
       key={value}
@@ -213,9 +225,15 @@ function QtyStepper({
     >
       <button
         type="button"
-        onClick={() => onChange(Math.max(1, value - 1))}
-        aria-label="Decrease quantity"
-        style={qtyBtnStyle}
+        onClick={() => onChange(Math.max(min, value - 1))}
+        aria-label={atMin ? `Already at minimum order (${min})` : "Decrease quantity"}
+        disabled={atMin}
+        title={atMin && min > 1 ? `Restaurant minimum: ${min} per item` : undefined}
+        style={{
+          ...qtyBtnStyle,
+          opacity: atMin ? 0.4 : 1,
+          cursor: atMin ? "not-allowed" : "pointer",
+        }}
       >
         −
       </button>
