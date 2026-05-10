@@ -26,7 +26,11 @@ import {
 } from "@/types/catering.types";
 import { ALLERGENS, PREP_TIMES, DIETARY_FILTERS } from "@/lib/constants/allergens";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
-import { groupAddonsForApi } from "@/lib/utils/addon-helpers";
+import {
+  groupAddonsForApi,
+  reorderAddonGroup,
+  reorderAddonInGroup,
+} from "@/lib/utils/addon-helpers";
 
 const NewMenuItemPage = () => {
   const params = useParams();
@@ -481,71 +485,11 @@ const NewMenuItemPage = () => {
     setEditingAddonIndex(null);
   };
 
-  // Renumber displayOrder so a sort by displayOrder matches flat-array index.
-  // Customer-facing menu reads groups in API insertion order; the restaurant
-  // edit view sorts groups by firstAddon.displayOrder. Renumbering keeps both
-  // views consistent after a reorder.
-  const renumberDisplayOrders = (list: MenuItemAddon[]): MenuItemAddon[] =>
-    list.map((a, i) => ({ ...a, displayOrder: i }));
+  const handleReorderGroup = (grpTitle: string, direction: -1 | 1) =>
+    setAddons((prev) => reorderAddonGroup(prev || [], grpTitle, direction));
 
-  // Returns groups in the same order they're displayed on the page:
-  // grouped by title, then sorted by firstAddon.displayOrder (mirrors
-  // the sortedGroups logic below).
-  const getGroupOrderFromList = (list: MenuItemAddon[]): string[] => {
-    const buckets: Record<string, MenuItemAddon[]> = {};
-    const insertionOrder: string[] = [];
-    for (const a of list) {
-      const t = a.groupTitle || "Other";
-      if (!buckets[t]) { buckets[t] = []; insertionOrder.push(t); }
-      buckets[t].push(a);
-    }
-    return insertionOrder.slice().sort((a, b) => {
-      const aOrder = buckets[a][0]?.displayOrder ?? 999;
-      const bOrder = buckets[b][0]?.displayOrder ?? 999;
-      return aOrder - bOrder;
-    });
-  };
-
-  const reorderGroup = (grpTitle: string, direction: -1 | 1) => {
-    setAddons((prev) => {
-      const list = prev || [];
-      const order = getGroupOrderFromList(list);
-      const idx = order.indexOf(grpTitle);
-      const swapIdx = idx + direction;
-      if (idx < 0 || swapIdx < 0 || swapIdx >= order.length) return list;
-      [order[idx], order[swapIdx]] = [order[swapIdx], order[idx]];
-      const buckets: Record<string, MenuItemAddon[]> = {};
-      for (const a of list) {
-        const t = a.groupTitle || "Other";
-        if (!buckets[t]) buckets[t] = [];
-        buckets[t].push(a);
-      }
-      return renumberDisplayOrders(order.flatMap((t) => buckets[t] || []));
-    });
-  };
-
-  const reorderAddon = (idx: number, direction: -1 | 1) => {
-    setAddons((prev) => {
-      const list = prev || [];
-      const target = list[idx];
-      if (!target) return list;
-      const grp = target.groupTitle || "Other";
-      let swapIdx = -1;
-      if (direction === -1) {
-        for (let i = idx - 1; i >= 0; i--) {
-          if ((list[i].groupTitle || "Other") === grp) { swapIdx = i; break; }
-        }
-      } else {
-        for (let i = idx + 1; i < list.length; i++) {
-          if ((list[i].groupTitle || "Other") === grp) { swapIdx = i; break; }
-        }
-      }
-      if (swapIdx === -1) return list;
-      const next = [...list];
-      [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
-      return renumberDisplayOrders(next);
-    });
-  };
+  const handleReorderAddon = (idx: number, direction: -1 | 1) =>
+    setAddons((prev) => reorderAddonInGroup(prev || [], idx, direction));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1141,10 +1085,12 @@ const NewMenuItemPage = () => {
 
               return sortedGroups.length > 0 ? (
                 <div className="space-y-6">
-                  {sortedGroups.map(([grpTitle, groupAddons]) => {
+                  {sortedGroups.map(([grpTitle, groupAddons], grpIdx) => {
                     const firstAddon = groupAddons[0];
                     const groupMin = firstAddon?.minSelections;
                     const groupMax = firstAddon?.maxSelections;
+                    const isFirstGroup = grpIdx === 0;
+                    const isLastGroup = grpIdx === sortedGroups.length - 1;
                     const handleRenameGroup = (newTitle: string) => {
                       setAddons((prev) =>
                         (prev || []).map((addon) =>
@@ -1194,34 +1140,26 @@ const NewMenuItemPage = () => {
                       >
                         {/* Group Header */}
                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
-                          {(() => {
-                            const groupOrder = getGroupOrderFromList(addons || []);
-                            const groupIdx = groupOrder.indexOf(grpTitle);
-                            const isFirst = groupIdx <= 0;
-                            const isLast = groupIdx === groupOrder.length - 1;
-                            return (
-                              <div className="flex flex-col -my-1" title="Reorder group">
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); reorderGroup(grpTitle, -1); }}
-                                  disabled={isFirst}
-                                  className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed leading-none p-0.5"
-                                  aria-label="Move group up"
-                                >
-                                  <ArrowUp size={12} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); reorderGroup(grpTitle, 1); }}
-                                  disabled={isLast}
-                                  className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed leading-none p-0.5"
-                                  aria-label="Move group down"
-                                >
-                                  <ArrowDown size={12} />
-                                </button>
-                              </div>
-                            );
-                          })()}
+                          <div className="flex flex-col -my-1" title="Reorder group">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleReorderGroup(grpTitle, -1); }}
+                              disabled={isFirstGroup}
+                              className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed leading-none p-0.5"
+                              aria-label="Move group up"
+                            >
+                              <ArrowUp size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleReorderGroup(grpTitle, 1); }}
+                              disabled={isLastGroup}
+                              className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed leading-none p-0.5"
+                              aria-label="Move group down"
+                            >
+                              <ArrowDown size={12} />
+                            </button>
+                          </div>
                           <input
                             type="text"
                             value={editingGroupTitle[grpTitle] !== undefined ? editingGroupTitle[grpTitle] : grpTitle}
@@ -1396,20 +1334,14 @@ const NewMenuItemPage = () => {
 
                         {/* Addon Rows */}
                         <div>
-                          {groupAddons.map((addon) => {
+                          {groupAddons.map((addon, innerIdx) => {
                             const addonIdx = addon._idx;
                             const isExpanded = expandedAddonIndex === addonIdx;
                             const limitsStr = (groupMin != null || groupMax != null)
                               ? `${groupMin ?? 0}\u2013${groupMax ?? "\u221e"}`
                               : null;
-
-                            const sameGroupIndices = (addons || [])
-                              .map((a, i) => ({ a, i }))
-                              .filter(({ a }) => (a.groupTitle || "Other") === grpTitle)
-                              .map(({ i }) => i);
-                            const positionInGroup = sameGroupIndices.indexOf(addonIdx);
-                            const isFirstInGroup = positionInGroup <= 0;
-                            const isLastInGroup = positionInGroup === sameGroupIndices.length - 1;
+                            const isFirstInGroup = innerIdx === 0;
+                            const isLastInGroup = innerIdx === groupAddons.length - 1;
 
                             return (
                               <div key={addonIdx}>
@@ -1421,7 +1353,7 @@ const NewMenuItemPage = () => {
                                   <div className="flex items-center gap-0.5" title="Reorder option">
                                     <button
                                       type="button"
-                                      onClick={(e) => { e.stopPropagation(); reorderAddon(addonIdx, -1); }}
+                                      onClick={(e) => { e.stopPropagation(); handleReorderAddon(addonIdx, -1); }}
                                       disabled={isFirstInGroup}
                                       className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed p-1"
                                       aria-label="Move option up"
@@ -1430,7 +1362,7 @@ const NewMenuItemPage = () => {
                                     </button>
                                     <button
                                       type="button"
-                                      onClick={(e) => { e.stopPropagation(); reorderAddon(addonIdx, 1); }}
+                                      onClick={(e) => { e.stopPropagation(); handleReorderAddon(addonIdx, 1); }}
                                       disabled={isLastInGroup}
                                       className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed p-1"
                                       aria-label="Move option down"

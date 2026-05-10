@@ -65,3 +65,70 @@ export function ensureFlatAddons(addons: any[]): MenuItemAddon[] {
   if (addons[0]?.items) return flattenAddonGroups(addons as MenuItemAddonGroup[]);
   return addons as MenuItemAddon[];
 }
+
+// Renumber displayOrder so a sort by displayOrder matches flat-array index.
+// Customer-facing menu reads groups in API insertion order; the restaurant
+// edit view sorts groups by firstAddon.displayOrder. Renumbering keeps both
+// views consistent after a reorder.
+export function renumberDisplayOrders(list: MenuItemAddon[]): MenuItemAddon[] {
+  return list.map((a, i) => ({ ...a, displayOrder: i }));
+}
+
+/** Bucket addons by groupTitle and return the group order users see. */
+export function groupAddonsByTitle(list: MenuItemAddon[]): {
+  groupOrder: string[];
+  buckets: Record<string, MenuItemAddon[]>;
+} {
+  const buckets: Record<string, MenuItemAddon[]> = {};
+  const insertionOrder: string[] = [];
+  for (const a of list) {
+    const t = a.groupTitle || "Other";
+    if (!buckets[t]) { buckets[t] = []; insertionOrder.push(t); }
+    buckets[t].push(a);
+  }
+  const groupOrder = insertionOrder.slice().sort((a, b) => {
+    const aOrder = buckets[a][0]?.displayOrder ?? 999;
+    const bOrder = buckets[b][0]?.displayOrder ?? 999;
+    return aOrder - bOrder;
+  });
+  return { groupOrder, buckets };
+}
+
+/** Move a whole group up (-1) or down (+1) in the displayed order. */
+export function reorderAddonGroup(
+  list: MenuItemAddon[],
+  grpTitle: string,
+  direction: -1 | 1
+): MenuItemAddon[] {
+  const { groupOrder, buckets } = groupAddonsByTitle(list);
+  const idx = groupOrder.indexOf(grpTitle);
+  const swapIdx = idx + direction;
+  if (idx < 0 || swapIdx < 0 || swapIdx >= groupOrder.length) return list;
+  [groupOrder[idx], groupOrder[swapIdx]] = [groupOrder[swapIdx], groupOrder[idx]];
+  return renumberDisplayOrders(groupOrder.flatMap((t) => buckets[t] || []));
+}
+
+/** Move an addon up (-1) or down (+1) within its group. */
+export function reorderAddonInGroup(
+  list: MenuItemAddon[],
+  idx: number,
+  direction: -1 | 1
+): MenuItemAddon[] {
+  const target = list[idx];
+  if (!target) return list;
+  const grp = target.groupTitle || "Other";
+  let swapIdx = -1;
+  if (direction === -1) {
+    for (let i = idx - 1; i >= 0; i--) {
+      if ((list[i].groupTitle || "Other") === grp) { swapIdx = i; break; }
+    }
+  } else {
+    for (let i = idx + 1; i < list.length; i++) {
+      if ((list[i].groupTitle || "Other") === grp) { swapIdx = i; break; }
+    }
+  }
+  if (swapIdx === -1) return list;
+  const next = [...list];
+  [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+  return renumberDisplayOrders(next);
+}

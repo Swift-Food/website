@@ -78,11 +78,10 @@ export default function MenuItemModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // 1. Calculate portions — default to the item's minimum when no prior cart quantity
+    // 1. Calculate portions — default to the item's minimum when no prior cart quantity,
+    // and bump up if a stale cart entry somehow sits below the current minimum.
     const existingPortions = quantity > 0 ? quantity / BACKEND_QUANTITY_UNIT : 0;
-    const portions = existingPortions > 0
-      ? Math.max(existingPortions, MIN_PORTIONS)
-      : MIN_PORTIONS;
+    const portions = Math.max(existingPortions, MIN_PORTIONS);
     setItemQuantity(portions);
     setItemQuantityInput(portions.toString());
     setInitialModalQuantity(portions);
