@@ -153,6 +153,7 @@ export default function Menu() {
           restaurantId: item.restaurantId || "",
           cateringQuantityUnit: item.cateringQuantityUnit || 7,
           feedsPerUnit: item.feedsPerUnit || 10,
+          minOrderQuantity: item.minOrderQuantity,
           groupTitle: item.groupTitle,
           status: item.status,
           itemDisplayOrder: item.itemDisplayOrder,
