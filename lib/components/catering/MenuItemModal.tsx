@@ -55,8 +55,19 @@ export default function MenuItemModal({
   viewOnly = false,
   onAddToOrder,
 }: MenuItemModalProps) {
-  const [itemQuantity, setItemQuantity] = useState(1);
-  const [itemQuantityInput, setItemQuantityInput] = useState("1");
+  const price = parseFloat(item.price?.toString() || "0");
+  const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+  const displayPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 1;
+  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 1;
+  const MIN_PORTIONS =
+    item.minOrderQuantity && item.minOrderQuantity > 0 ? item.minOrderQuantity : 1;
+
+  // Initial state derives from the item's MOQ so the picker opens at the
+  // floor; useState's initializer runs only on mount, and the useEffect below
+  // re-syncs whenever the modal reopens or the item changes.
+  const [itemQuantity, setItemQuantity] = useState(MIN_PORTIONS);
+  const [itemQuantityInput, setItemQuantityInput] = useState(MIN_PORTIONS.toString());
   const [selectedAddons, setSelectedAddons] = useState<Record<string, Record<string, boolean>>>({});
   const [addonQuantities, setAddonQuantities] = useState<Record<string, Record<string, number>>>({});
   const [addonQuantityInputs, setAddonQuantityInputs] = useState<Record<string, Record<string, string>>>({});
@@ -65,14 +76,6 @@ export default function MenuItemModal({
   const [isAllergenExpanded, setIsAllergenExpanded] = useState(false);
   const [hasModifiedQuantity, setHasModifiedQuantity] = useState(false);
   const [initialModalQuantity, setInitialModalQuantity] = useState(0);
-
-  const price = parseFloat(item.price?.toString() || "0");
-  const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-  const displayPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
-  const BACKEND_QUANTITY_UNIT = item.cateringQuantityUnit || 1;
-  const DISPLAY_FEEDS_PER_UNIT = item.feedsPerUnit || 1;
-  const MIN_PORTIONS =
-    item.minOrderQuantity && item.minOrderQuantity > 0 ? item.minOrderQuantity : 1;
 
   // Single useEffect: initialize everything when modal opens
   useEffect(() => {

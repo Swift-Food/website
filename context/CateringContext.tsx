@@ -320,7 +320,21 @@ export function CateringProvider({ children }: { children: ReactNode }) {
   // ============================================================================
 
   const addMenuItem = (sessionIndex: number, newItem: SelectedMenuItem) => {
-    const validQuantity = Math.max(newItem.quantity, 1);
+    // Single chokepoint that floors the cart quantity at the item's per-item
+    // minimum. Stored quantity is in backend units (portions × cateringQuantityUnit),
+    // so the floor must be expressed in the same scale. Callers that already
+    // enforce the minimum (e.g. MenuItemModal) pass through unchanged; bundle
+    // and programmatic adds get corrected here so we never persist a sub-min cart.
+    const minPortions =
+      (newItem.item as any).minOrderQuantity && (newItem.item as any).minOrderQuantity > 0
+        ? (newItem.item as any).minOrderQuantity
+        : 1;
+    const cateringUnit =
+      (newItem.item as any).cateringQuantityUnit && (newItem.item as any).cateringQuantityUnit > 0
+        ? (newItem.item as any).cateringQuantityUnit
+        : 1;
+    const minBackendQty = minPortions * cateringUnit;
+    const validQuantity = Math.max(newItem.quantity, minBackendQty);
 
     setMealSessionsState((prev) => {
       if (sessionIndex < 0 || sessionIndex >= prev.length) return prev;
