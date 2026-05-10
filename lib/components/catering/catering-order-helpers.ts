@@ -142,6 +142,7 @@ export function mapToMenuItem(item: MenuItemDetails): MenuItem {
     itemDisplayOrder: item.itemDisplayOrder || 0,
     cateringQuantityUnit: (item as any).cateringQuantityUnit,
     feedsPerUnit: (item as any).feedsPerUnit,
+    minOrderQuantity: (item as any).minOrderQuantity,
     dietaryFilters: (item as any).dietaryFilters,
     categoryId: (item as any).categories?.[0]?.id || (item as any).categoryId,
     categoryName:
