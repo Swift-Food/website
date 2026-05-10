@@ -36,6 +36,7 @@ import MenuItemCard from "./MenuItemCard";
 import BundleCard from "./BundleCard";
 import BundleDetailModal from "./modals/BundleDetailModal";
 import { mapToMenuItem } from "./catering-order-helpers";
+import { getRequiredMinForSection } from "@/lib/utils/catering-min-order-validation";
 
 function haversineDistanceMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 3958.8;
@@ -1963,6 +1964,13 @@ export default function RestaurantMenuBrowser({
                   group.type === "bundles"
                     ? group.bundles.length
                     : group.items.length;
+                const sectionMin =
+                  group.type === "items"
+                    ? getRequiredMinForSection(
+                        restaurants.find((r) => r.id === selectedRestaurantId),
+                        group.name,
+                      )
+                    : null;
                 return (
                   <div
                     key={group.name}
@@ -1981,6 +1989,11 @@ export default function RestaurantMenuBrowser({
                       <span className="text-xs text-gray-400 font-normal">
                         ({groupCount})
                       </span>
+                      {sectionMin !== null && sectionMin > 1 && (
+                        <span className="text-[10px] md:text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
+                          Min {sectionMin} in this section
+                        </span>
+                      )}
                     </div>
 
                     {group.type === "items" && group.information && (

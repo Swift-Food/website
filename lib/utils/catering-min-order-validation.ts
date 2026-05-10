@@ -121,6 +121,25 @@ export function validateRestaurantMinOrders(
 }
 
 /**
+ * Highest required minQuantity that applies to a given menu section, or
+ * null if no required rule names this section. Used to surface the rule
+ * on section headers so customers see it before opening any item.
+ */
+export function getRequiredMinForSection(
+  restaurant: Pick<Restaurant, "cateringMinOrderSettings"> | null | undefined,
+  sectionName: string
+): number | null {
+  const required = restaurant?.cateringMinOrderSettings?.required;
+  if (!required?.length) return null;
+  let max: number | null = null;
+  for (const rule of required) {
+    if (!rule.applicableSections?.includes(sectionName)) continue;
+    if (max === null || rule.minQuantity > max) max = rule.minQuantity;
+  }
+  return max;
+}
+
+/**
  * Validate all restaurants in a session
  */
 export function validateSessionMinOrders(
