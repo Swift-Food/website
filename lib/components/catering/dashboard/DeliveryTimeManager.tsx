@@ -161,8 +161,6 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
     const bDate = new Date(`${b.sessionDate || order.eventDate}T${b.eventTime || order.eventTime}`);
     return aDate.getTime() - bDate.getTime();
   });
-  const hasMultipleSessions = sessions.length > 1;
-
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6">
       <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
@@ -170,7 +168,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
         Delivery Time
       </h3>
 
-      {hasMultipleSessions ? (
+      {sessions.length > 0 ? (
         <div className="space-y-3">
           {sessions.map((session: any) => {
             const dateStr = session.sessionDate || order.eventDate;
@@ -198,7 +196,6 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
           sessionName=""
           eventTime={order.eventTime}
           eventDate={order.eventDate}
-
           deliveryTimeChangedAt={order.deliveryTimeChangedAt}
           orderId={order.id}
           accessToken={accessToken}
