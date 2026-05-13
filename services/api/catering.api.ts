@@ -470,12 +470,16 @@ class CateringService {
   async calculateCateringPricing(
     orderItems: CateringRestaurantOrderRequest[],
     promoCodes?: string[],
-    deliveryLocation?: { latitude: number; longitude: number }
+    deliveryLocation?: { latitude: number; longitude: number },
+    // Optional — when supplied the backend enforces `maxUsesPerUser` for any
+    // promo codes before quoting a discount.
+    userId?: string
   ): Promise<CateringPricingResult> {
     const pricingData = {
       orderItems,
       promoCodes,
       ...(deliveryLocation && { deliveryLocation }),
+      ...(userId && { userId }),
     };
 
     try {
@@ -514,7 +518,8 @@ class CateringService {
   async calculateCateringPricingWithMealSessions(
     mealSessions: MealSessionState[],
     promoCodes?: string[],
-    deliveryLocation?: { latitude: number; longitude: number }
+    deliveryLocation?: { latitude: number; longitude: number },
+    userId?: string
   ): Promise<CateringPricingResult> {
     // Helper function to group items by restaurant for a single session
     const groupItemsByRestaurant = (
@@ -575,6 +580,7 @@ class CateringService {
       mealSessions: mealSessionRequests,
       promoCodes,
       ...(deliveryLocation && { deliveryLocation }),
+      ...(userId && { userId }),
     };
 
     try {
@@ -621,7 +627,8 @@ class CateringService {
 
   async validatePromoCode(
     promoCode: string,
-    orderItems: CateringRestaurantOrderRequest[]
+    orderItems: CateringRestaurantOrderRequest[],
+    userId?: string
   ): Promise<PromoCodeValidation> {
     // Use POST request with body instead of GET with query params
     try {
@@ -633,6 +640,7 @@ class CateringService {
           body: JSON.stringify({
             code: promoCode,
             orderItems,
+            ...(userId && { userId }),
           }),
         }
       );
@@ -656,7 +664,8 @@ class CateringService {
    */
   async validatePromoCodeWithMealSessions(
     promoCode: string,
-    mealSessions: MealSessionState[]
+    mealSessions: MealSessionState[],
+    userId?: string
   ): Promise<PromoCodeValidation> {
     // Helper function to group items by restaurant for a single session
     const groupItemsByRestaurant = (
@@ -706,7 +715,7 @@ class CateringService {
       groupItemsByRestaurant(session.orderItems)
     );
 
-    return this.validatePromoCode(promoCode, allOrderItems);
+    return this.validatePromoCode(promoCode, allOrderItems, userId);
   }
 
   async getDeliveryTracking(mealSessionId: string): Promise<DeliveryTrackingDto> {
