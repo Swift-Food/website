@@ -30,11 +30,6 @@ export default function Footer() {
             </h4>
             <ul className="space-y-4 text-sm text-gray-500 font-light">
               <li>
-                <Link href="/menu" className="hover:text-black transition-colors">
-                  Our Menus
-                </Link>
-              </li>
-              <li>
                 <Link href="/event-order" className="hover:text-black transition-colors">
                   Event Ordering
                 </Link>
