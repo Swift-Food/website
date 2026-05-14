@@ -6,7 +6,21 @@ import { UpdateDeliveryTimeDto } from '@/types/catering.types';
 import { CateringOrderResponse } from '@/types/api';
 import { cateringService } from '@/services/api/catering.api';
 import { Clock, AlertCircle, CalendarDays } from 'lucide-react';
-import { formatTimeDisplay } from '../catering-order-helpers';
+function formatTimeDisplay(eventTime: string | undefined): string {
+  if (!eventTime) return "Set time";
+  const [hours, minutes] = eventTime.split(":");
+  const hour = parseInt(hours);
+  const minute = parseInt(minutes);
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 || 12;
+  const start = `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
+  const totalEnd = hour * 60 + minute + 30;
+  const endHour = Math.floor(totalEnd / 60) % 24;
+  const endMinute = totalEnd % 60;
+  const endPeriod = endHour >= 12 ? "PM" : "AM";
+  const endHour12 = endHour % 12 || 12;
+  return `${start} – ${endHour12}:${String(endMinute).padStart(2, "0")} ${endPeriod}`;
+}
 
 interface DeliveryTimeManagerProps {
   order: CateringOrderResponse;
@@ -147,8 +161,6 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
     const bDate = new Date(`${b.sessionDate || order.eventDate}T${b.eventTime || order.eventTime}`);
     return aDate.getTime() - bDate.getTime();
   });
-  const hasMultipleSessions = sessions.length > 1;
-
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6">
       <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
@@ -156,7 +168,7 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
         Delivery Time
       </h3>
 
-      {hasMultipleSessions ? (
+      {sessions.length > 0 ? (
         <div className="space-y-3">
           {sessions.map((session: any) => {
             const dateStr = session.sessionDate || order.eventDate;
@@ -184,7 +196,6 @@ export default function DeliveryTimeManager({ order, onUpdate, accessToken }: De
           sessionName=""
           eventTime={order.eventTime}
           eventDate={order.eventDate}
-
           deliveryTimeChangedAt={order.deliveryTimeChangedAt}
           orderId={order.id}
           accessToken={accessToken}

@@ -1,7 +1,11 @@
 "use client";
 
 import { FileText, Users, DollarSign } from "lucide-react";
-import { PdfDownloadModalProps } from "../types";
+interface PdfDownloadModalProps {
+  onDownload: (withPrices: boolean) => void;
+  onClose: () => void;
+  isGenerating?: boolean;
+}
 
 export default function PdfDownloadModal({
   onDownload,

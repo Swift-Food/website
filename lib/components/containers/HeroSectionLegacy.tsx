@@ -116,11 +116,6 @@ export default function HeroSection() {
                 <div className="absolute inset-0 bg-[#e03a9a] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
               </button>
             </Link>
-            <Link href="/menu" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto bg-transparent border border-black text-black px-8 md:px-12 py-5 md:py-6 font-bold tracking-widest text-[10px] md:text-xs uppercase hover:bg-black hover:text-white transition-all duration-300 active:scale-95">
-                View Menus
-              </button>
-            </Link>
           </div>
         </div>
       </div>

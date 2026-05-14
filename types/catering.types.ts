@@ -16,9 +16,69 @@
  * See: /types/api/README.md for migration guide
  */
 
-import { MenuItem } from "@/lib/components/catering/Step2MenuItems";
 import { PricingMenuItem } from "./api";
 import { deprecate } from "util";
+
+interface Addon {
+  name: string;
+  price: string;
+  allergens: string;
+  dietaryRestrictions?: string[];
+  isDefault?: boolean;
+  displayOrder?: number;
+}
+
+interface AddonGroup {
+  groupTitle: string;
+  selectionType: "single" | "multiple" | "multiple_no_repeat" | "multiple_repeat";
+  isRequired: boolean;
+  minSelections?: number;
+  maxSelections?: number;
+  items: Addon[];
+}
+
+export interface MenuItem {
+  id: string;
+  menuItemName: string;
+  description?: string;
+  price: string;
+  discountPrice?: string;
+  allergens?: string[];
+  isDiscount: boolean;
+  image?: string;
+  averageRating?: string;
+  cateringQuantityUnit?: number;
+  feedsPerUnit?: number;
+  minOrderQuantity?: number;
+  restaurantId: string;
+  restaurantName?: string;
+  groupTitle?: string;
+  status?: string;
+  itemDisplayOrder: number;
+  addons: AddonGroup[];
+  selectedAddons?: {
+    name: string;
+    price: number;
+    quantity: number;
+    groupTitle: string;
+    allergens?: string | string[];
+    dietaryRestrictions?: string[];
+  }[];
+  addonPrice?: number;
+  portionQuantity?: number;
+  restaurant?: {
+    id: string;
+    name: string;
+    restaurantId: string;
+    menuGroupSettings?: Record<string, any>;
+    images?: string[];
+  };
+  dietaryFilters?: string[];
+  categoryId?: string;
+  categoryName?: string;
+  subcategoryId?: string;
+  subcategoryName?: string;
+}
 
 export interface SelectedAddon {
   name: string;
