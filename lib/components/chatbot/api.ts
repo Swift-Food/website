@@ -6,6 +6,17 @@ import type {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+// Swift's own /catering-AI page authenticates to the partner-gated chat
+// endpoints with an internal publishable key. Set NEXT_PUBLIC_SWIFT_INTERNAL_PARTNER_KEY
+// in the website's Netlify env to the publishable key of the partner space
+// seeded for first-party use (aiChatEnabled=true, allowedOrigins locked to
+// Swift's own domains). Same security model as Stripe pk_live_* — origin
+// allowlist on the partner record is what enforces the boundary.
+const partnerHeaders = (): Record<string, string> => {
+  const key = process.env.NEXT_PUBLIC_SWIFT_INTERNAL_PARTNER_KEY;
+  return key ? { "X-Partner-Key": key } : {};
+};
+
 export class ChatApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -41,12 +52,17 @@ async function handle(res: Response): Promise<ChatResponse> {
 }
 
 export async function createSession(): Promise<ChatResponse> {
-  const res = await fetch(`${API_BASE}/catering-chat/session`, { method: "POST" });
+  const res = await fetch(`${API_BASE}/catering-chat/session`, {
+    method: "POST",
+    headers: partnerHeaders(),
+  });
   return handle(res);
 }
 
 export async function getSession(sid: string): Promise<ChatResponse> {
-  const res = await fetch(`${API_BASE}/catering-chat/${sid}`);
+  const res = await fetch(`${API_BASE}/catering-chat/${sid}`, {
+    headers: partnerHeaders(),
+  });
   return handle(res);
 }
 
@@ -61,7 +77,7 @@ export async function sendMessage(
   if (cartSnapshot) body.cartSnapshot = cartSnapshot;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/message`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...partnerHeaders() },
     body: JSON.stringify(body),
   });
   return handle(res);
@@ -77,7 +93,7 @@ export async function editField(
   if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/edit-field`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...partnerHeaders() },
     body: JSON.stringify(body),
   });
   return handle(res);
@@ -86,6 +102,7 @@ export async function editField(
 export async function confirm(sid: string): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/confirm`, {
     method: "POST",
+    headers: partnerHeaders(),
   });
   return handle(res);
 }
@@ -101,7 +118,7 @@ export async function menuAction(
 ): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/menu-action`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...partnerHeaders() },
     body: JSON.stringify(payload),
   });
   return handle(res);
@@ -131,7 +148,7 @@ export async function moreVariety(
   if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/more-variety`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...partnerHeaders() },
     body: JSON.stringify(body),
   });
   return handle(res);
@@ -166,7 +183,7 @@ export async function addToBasket(
 ): Promise<AddToBasketResponse> {
   const res = await fetch(`${API_BASE}/catering-chat/${sid}/add-to-basket`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...partnerHeaders() },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -198,7 +215,7 @@ export async function getSwapOptionsByRestaurant(
     `${API_BASE}/catering-chat/${sid}/swap-options-by-restaurant`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...partnerHeaders() },
       body: JSON.stringify(body),
     },
   );
