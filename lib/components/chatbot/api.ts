@@ -7,13 +7,13 @@ import type {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 // Swift's own /catering-AI page authenticates to the partner-gated chat
-// endpoints with an internal publishable key. Set NEXT_PUBLIC_SWIFT_INTERNAL_PARTNER_KEY
-// in the website's Netlify env to the publishable key of the partner space
-// seeded for first-party use (aiChatEnabled=true, allowedOrigins locked to
-// Swift's own domains). Same security model as Stripe pk_live_* — origin
-// allowlist on the partner record is what enforces the boundary.
+// endpoints with its own publishable key. The "Swift Food" PartnerSpace
+// (slug: swift-food) is treated as Swift's first-party caller — its key
+// lives in NEXT_PUBLIC_SWIFT_CATERING_PUBLISHABLE_KEY. Same security model
+// as Stripe pk_live_* — the partner's allowedOrigins allowlist is what
+// enforces the boundary, not the key's secrecy.
 const partnerHeaders = (): Record<string, string> => {
-  const key = process.env.NEXT_PUBLIC_SWIFT_INTERNAL_PARTNER_KEY;
+  const key = process.env.NEXT_PUBLIC_SWIFT_CATERING_PUBLISHABLE_KEY;
   return key ? { "X-Partner-Key": key } : {};
 };
 
