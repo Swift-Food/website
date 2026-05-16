@@ -68,8 +68,16 @@ export default function HomeV2Client() {
                 Catering for big events,{" "}
                 <span className="font-medium text-[#fa43ad]">zero&nbsp;effort.</span>
               </h1>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#ffeaf4] px-3.5 py-1.5 text-[12.5px] font-semibold tracking-[-0.005em] text-[#c9277f]">
-                <span aria-hidden="true">✨</span>
+              <div className="mb-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c9277f]">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3.5 w-3.5"
+                  aria-hidden="true"
+                >
+                  <path d="M12 0 L13.4 9.6 L24 12 L13.4 14.4 L12 24 L10.6 14.4 L0 12 L10.6 9.6 Z" />
+                </svg>
                 AI-assisted from start to finish
               </div>
               <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:text-[17px]">
