@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
+import PartnersSection from "@/lib/components/containers/PartnersSection";
 import "./home-v2.css";
 
 type Audience = "b2c" | "b2b";
@@ -62,22 +64,24 @@ export default function HomeV2Client() {
 
           {audience === "b2c" ? (
             <div key="b2c" role="tabpanel" className="hv2-tab-fade">
-              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-medium leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
-                Catering, planned{" "}
-                <span className="font-medium text-[#fa43ad]">in&nbsp;a&nbsp;chat.</span>
+              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
+                Catering for big events,{" "}
+                <span className="font-medium text-[#fa43ad]">zero&nbsp;effort.</span>
               </h1>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#ffeaf4] px-3.5 py-1.5 text-[12.5px] font-semibold tracking-[-0.005em] text-[#c9277f]">
+                <span aria-hidden="true">✨</span>
+                AI-assisted from start to finish
+              </div>
               <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:text-[17px]">
-                Tell Swift what you&apos;re hosting. We&apos;ll suggest the menu, price the
-                order, and deliver — no email threads, no spreadsheets, no waiting on quotes.
+                Tell us what you&apos;re hosting — we&apos;ll suggest the menu, price it, and
+                deliver.
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <a className={BTN_PRIMARY} href="/event-order">
                   Plan your event
                 </a>
-                <a className={BTN_GHOST} href="#how">
-                  See how it works
-                </a>
               </div>
+              {/* Hero meta stats — commented out
               <div className="mt-9 flex flex-wrap gap-7 text-[13.5px] text-[#8a8580]">
                 <div>
                   <strong className={META_NUM}>~5 min</strong>
@@ -92,17 +96,17 @@ export default function HomeV2Client() {
                   avg host rating
                 </div>
               </div>
+              */}
             </div>
           ) : (
             <div key="b2b" role="tabpanel" className="hv2-tab-fade">
-              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-medium leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
+              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
                 Add AI catering to{" "}
                 <span className="font-medium text-[#fa43ad]">your&nbsp;site.</span>
               </h1>
               <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:text-[17px]">
-                Drop the Swift widget into your coworking space, office, or venue website.
-                Your members order team lunches in a chat — fulfilled by our network of
-                local kitchens. Branded to match. One line to install.
+                Drop our widget into your site — members order team lunches in a chat,
+                fulfilled by local kitchens.
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <a className={BTN_PRIMARY} href="#book-demo">
@@ -244,6 +248,11 @@ export default function HomeV2Client() {
         </div>
       </section>
 
+      {/* ────────────── FEATURE DEMOS (reused) ────────────── */}
+      <div className="relative z-10">
+        <FeatureDemosSection />
+      </div>
+
       {/* ────────────── B2B BAND ────────────── */}
       <div className="relative z-10 border-y border-[#e8e2da] bg-white">
         <section
@@ -367,6 +376,11 @@ export default function HomeV2Client() {
             </div>
           </div>
         </section>
+      </div>
+
+      {/* ────────────── PARTNERS (reused — real-partner proof) ────────────── */}
+      <div className="relative z-10">
+        <PartnersSection />
       </div>
 
       {/* ────────────── STATS ────────────── */}
