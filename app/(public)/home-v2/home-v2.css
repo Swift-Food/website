@@ -186,3 +186,114 @@
   95%      { transform: translateX(100%); }
   100%     { transform: translateX(100%); }
 }
+
+/* ── AI chat micro-sequence inside the widget ─────────────── */
+
+/* Input field: visible while user is typing, dims after "send" */
+.hv2-chat-input {
+  opacity: 0;
+  animation: hv2-chat-input 9s ease infinite;
+}
+@keyframes hv2-chat-input {
+  0%, 42% { opacity: 0; }
+  46%     { opacity: 1; }
+  60%     { opacity: 1; background: white; }
+  62%     { opacity: 0.55; background: #f4efe8; }
+  100%    { opacity: 0.55; background: #f4efe8; }
+}
+
+/* Typewriter text inside the input — width grows letter-by-letter */
+.hv2-typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: middle;
+  width: 0;
+  animation: hv2-typewriter 9s steps(18, end) infinite;
+}
+@keyframes hv2-typewriter {
+  0%, 46% { width: 0; }
+  58%     { width: 102px; }
+  61%     { width: 0; }
+  100%    { width: 0; }
+}
+
+/* Blinking caret after the typewriter text */
+.hv2-caret {
+  display: inline-block;
+  width: 1px;
+  height: 0.85em;
+  background: #1a1a1a;
+  vertical-align: middle;
+  margin-left: 1px;
+  animation: hv2-caret-blink 0.7s steps(2, end) infinite, hv2-caret-show 9s ease infinite;
+}
+@keyframes hv2-caret-blink {
+  50% { opacity: 0; }
+}
+@keyframes hv2-caret-show {
+  0%, 45%  { opacity: 0; }
+  47%, 60% { opacity: 1; }
+  62%, 100% { opacity: 0; }
+}
+
+/* User bubble fades in after the "send" */
+.hv2-user-bubble {
+  opacity: 0;
+  animation: hv2-user-bubble-in 9s ease infinite;
+}
+@keyframes hv2-user-bubble-in {
+  0%, 60% { opacity: 0; transform: translateX(6px); }
+  64%     { opacity: 1; transform: translateX(0); }
+  92%     { opacity: 1; transform: translateX(0); }
+  96%     { opacity: 0; transform: translateX(6px); }
+  100%    { opacity: 0; transform: translateX(6px); }
+}
+
+/* "AI is thinking" typing-dots bubble */
+.hv2-typing-dots {
+  opacity: 0;
+  animation: hv2-typing-dots-show 9s ease infinite;
+}
+@keyframes hv2-typing-dots-show {
+  0%, 64% { opacity: 0; }
+  66%     { opacity: 1; }
+  71%     { opacity: 1; }
+  72%     { opacity: 0; }
+  100%    { opacity: 0; }
+}
+.hv2-typing-dots span {
+  animation: hv2-typing-dot 1s ease-in-out infinite;
+}
+.hv2-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.hv2-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes hv2-typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-3px); opacity: 1; }
+}
+
+/* AI response bubble fades in after the typing dots */
+.hv2-ai-bubble {
+  opacity: 0;
+  animation: hv2-ai-bubble-in 9s ease infinite;
+}
+@keyframes hv2-ai-bubble-in {
+  0%, 72% { opacity: 0; transform: translateY(4px); }
+  76%     { opacity: 1; transform: translateY(0); }
+  92%     { opacity: 1; transform: translateY(0); }
+  96%     { opacity: 0; transform: translateY(4px); }
+  100%    { opacity: 0; transform: translateY(4px); }
+}
+
+/* Menu-preview card fades in last */
+.hv2-menu-preview {
+  opacity: 0;
+  animation: hv2-menu-preview-in 9s ease infinite;
+}
+@keyframes hv2-menu-preview-in {
+  0%, 77% { opacity: 0; transform: translateY(6px); }
+  81%     { opacity: 1; transform: translateY(0); }
+  92%     { opacity: 1; transform: translateY(0); }
+  96%     { opacity: 0; transform: translateY(6px); }
+  100%    { opacity: 0; transform: translateY(6px); }
+}

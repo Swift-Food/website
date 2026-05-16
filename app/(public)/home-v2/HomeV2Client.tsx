@@ -390,18 +390,25 @@ export default function HomeV2Client() {
                         </div>
                       </div>
 
-                      {/* User message */}
-                      <div className="ml-auto rounded-lg bg-[#fa43ad] px-2.5 py-1 text-[9.5px] text-white">
+                      {/* User message — fades in after the "send" */}
+                      <div className="hv2-user-bubble ml-auto rounded-lg bg-[#fa43ad] px-2.5 py-1 text-[9.5px] text-white">
                         suggest some pizza
                       </div>
 
-                      {/* AI reply */}
-                      <div className="rounded-lg bg-white px-2.5 py-1.5 text-[9.5px] leading-snug text-[#1a1a1a] shadow-sm">
+                      {/* "AI is typing…" dots — brief */}
+                      <div className="hv2-typing-dots flex w-fit items-center gap-1 rounded-lg bg-white px-2.5 py-2 shadow-sm">
+                        <span className="block h-1 w-1 rounded-full bg-[#8a8580]" />
+                        <span className="block h-1 w-1 rounded-full bg-[#8a8580]" />
+                        <span className="block h-1 w-1 rounded-full bg-[#8a8580]" />
+                      </div>
+
+                      {/* AI reply — fades in after the dots */}
+                      <div className="hv2-ai-bubble rounded-lg bg-white px-2.5 py-1.5 text-[9.5px] leading-snug text-[#1a1a1a] shadow-sm">
                         Here are some pizza options. Do any of these look good?
                       </div>
 
                       {/* Menu preview — horizontal scrollable card row */}
-                      <div className="rounded-lg border border-[#e8e2da] bg-white px-2.5 py-2">
+                      <div className="hv2-menu-preview rounded-lg border border-[#e8e2da] bg-white px-2.5 py-2">
                         <div className="mb-1 text-[8px] font-semibold uppercase tracking-wider text-[#8a8580]">
                           Menu Preview
                         </div>
@@ -426,8 +433,19 @@ export default function HomeV2Client() {
                         </div>
                       </div>
 
+                      {/* Chat input — pinned just above Checkout */}
+                      <div className="hv2-chat-input mt-auto flex items-center gap-1.5 rounded-full border border-[#e8e2da] bg-white px-2.5 py-1.5">
+                        <span className="overflow-hidden text-[10px] leading-none text-[#1a1a1a]">
+                          <span className="hv2-typewriter">suggest some pizza</span>
+                          <span className="hv2-caret" />
+                        </span>
+                        <span className="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-[#fa43ad] text-[9px] leading-none text-white">
+                          ▸
+                        </span>
+                      </div>
+
                       {/* Checkout — pinned to the bottom */}
-                      <button className="mt-auto rounded-full bg-[#fa43ad] py-1.5 text-[10px] font-semibold text-white">
+                      <button className="rounded-full bg-[#fa43ad] py-1.5 text-[10px] font-semibold text-white">
                         Checkout
                       </button>
                     </div>
