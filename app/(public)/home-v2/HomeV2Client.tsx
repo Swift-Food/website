@@ -23,7 +23,7 @@ export default function HomeV2Client() {
   return (
     <div className="hv2-page-glow relative overflow-x-hidden bg-[#fbf7f4] text-[#1a1a1a]">
       {/* ────────────── HERO (B2C) ────────────── */}
-      <section className="relative z-10 mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-10 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:gap-4 max-md:pt-20 max-md:pb-16 lg:grid-cols-[1fr_auto] lg:gap-[72px]">
+      <section className="relative z-10 mx-auto grid min-h-screen max-w-[1280px] grid-cols-1 content-center items-center gap-10 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:gap-4 max-md:pt-20 max-md:pb-16 lg:grid-cols-[1fr_auto] lg:gap-[72px]">
         <div className="max-md:text-center">
           <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:mb-4 max-md:text-[34px] max-md:leading-[1.1]">
             Catering for big events,{" "}
