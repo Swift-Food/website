@@ -293,14 +293,24 @@ export default function HomeV2Client() {
                 Read the docs
               </a>
             </div>
-            <pre className="mt-7 max-w-[500px] overflow-x-auto rounded-xl bg-[#1a1a1a] px-[18px] py-3.5 font-mono text-[12.5px] leading-[1.55] tracking-[-0.005em] text-[#f4efe8]">
-              <span className="text-[#8db4e8]">&lt;script</span>{" "}
-              <span className="text-[#f8b1da]">src</span>=
-              <span className="text-[#aed68a]">&quot;https://swift.food/widget.js&quot;</span>
-              {"\n        "}
-              <span className="text-[#f8b1da]">data-partner</span>=
-              <span className="text-[#aed68a]">&quot;atlas-workspace&quot;</span>
-              <span className="text-[#8db4e8]">&gt;&lt;/script&gt;</span>
+            <pre className="mt-7 max-w-[560px] overflow-x-auto rounded-xl bg-[#1a1a1a] px-[18px] py-3.5 font-mono text-[12.5px] leading-[1.55] tracking-[-0.005em] text-[#f4efe8]">
+              <span className="text-[#8db4e8]">import</span>
+              {" { "}CateringWidget{" } "}
+              <span className="text-[#8db4e8]">from</span>{" "}
+              <span className="text-[#aed68a]">
+                &quot;@swift-food-services/catering-widget&quot;
+              </span>
+              ;{"\n\n"}
+              <span className="text-[#8db4e8]">&lt;CateringWidget</span>
+              {"\n  "}
+              <span className="text-[#f8b1da]">publishableKey</span>=
+              <span className="text-[#aed68a]">&quot;pk_…&quot;</span>
+              {"\n  "}
+              <span className="text-[#f8b1da]">theme</span>={"{{ "}
+              <span className="text-[#f8b1da]">primary</span>:{" "}
+              <span className="text-[#aed68a]">&quot;#fa43ad&quot;</span>
+              {" }}\n"}
+              <span className="text-[#8db4e8]">/&gt;</span>
             </pre>
           </div>
 
