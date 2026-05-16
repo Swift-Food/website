@@ -160,8 +160,7 @@ export default function HomeV2Client() {
             </h2>
             <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
               Give members, teams, or guests a way to order catering right from your
-              coworking space, office, or venue website. Chat, suggest, confirm — branded
-              to match, powered by our network of local kitchens.
+              coworking space, office, or venue website.
             </p>
             <ul className="mb-9 flex flex-col gap-3.5">
               {[
