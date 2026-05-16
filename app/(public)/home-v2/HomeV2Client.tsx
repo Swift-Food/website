@@ -1,27 +1,16 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
 import PartnersSection from "@/lib/components/containers/PartnersSection";
 import "./home-v2.css";
 
-type Audience = "b2c" | "b2b";
-
 // ── Reusable class strings ────────────────────────────────────────
 const BTN_PRIMARY =
-  "hv2-btn-arrow inline-flex items-center gap-1.5 rounded-full bg-[#fa43ad] px-6 py-[13px] text-[14.5px] font-semibold tracking-[-0.005em] text-white shadow-[0_4px_14px_rgba(250,67,173,0.32)] transition-all hover:-translate-y-px hover:shadow-[0_10px_24px_rgba(250,67,173,0.42)]";
+  "hv2-btn-arrow inline-flex items-center gap-1.5 rounded-full bg-[#fa43ad] px-6 py-[13px] text-[14.5px] font-semibold tracking-[-0.005em] text-white shadow-[0_4px_14px_rgba(250,67,173,0.32)] transition-all hover:-translate-y-px hover:shadow-[0_10px_24px_rgba(250,67,173,0.42)] max-md:px-5 max-md:py-2.5 max-md:text-[13px]";
 
 const BTN_GHOST =
-  "inline-flex items-center gap-1.5 rounded-full border border-[#e8e2da] bg-transparent px-6 py-[13px] text-[14.5px] font-semibold text-[#1a1a1a] transition-all hover:border-[#8a8580] hover:bg-white";
-
-const TAB_BASE =
-  "whitespace-nowrap rounded-full px-[18px] py-[9px] text-[13.5px] font-semibold tracking-[-0.005em] transition-all cursor-pointer";
-
-const TAB_ACTIVE = "bg-[#fa43ad] text-white shadow-[0_2px_10px_rgba(250,67,173,0.28)]";
-const TAB_IDLE = "text-[#4a4845] hover:text-[#1a1a1a]";
-
-const META_NUM =
-  "mb-0.5 block text-[22px] font-semibold tracking-[-0.015em] text-[#1a1a1a]";
+  "inline-flex items-center gap-1.5 rounded-full border border-[#e8e2da] bg-transparent px-6 py-[13px] text-[14.5px] font-semibold text-[#1a1a1a] transition-all hover:border-[#8a8580] hover:bg-white max-md:px-5 max-md:py-2.5 max-md:text-[13px]";
 
 const SECTION_EYEBROW =
   "mb-3.5 text-[13px] font-semibold uppercase tracking-[0.14em] text-[#c9277f]";
@@ -31,115 +20,45 @@ const STEP_CARD =
 
 // ── Component ─────────────────────────────────────────────────────
 export default function HomeV2Client() {
-  const [audience, setAudience] = useState<Audience>("b2c");
-
   return (
     <div className="hv2-page-glow relative overflow-x-hidden bg-[#fbf7f4] text-[#1a1a1a]">
-      {/* ────────────── HERO ────────────── */}
-      <section className="relative z-10 mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-10 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:pt-20 max-md:pb-16 lg:grid-cols-[1fr_auto] lg:gap-[72px]">
+      {/* ────────────── HERO (B2C) ────────────── */}
+      <section className="relative z-10 mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-10 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:gap-4 max-md:pt-20 max-md:pb-16 lg:grid-cols-[1fr_auto] lg:gap-[72px]">
         <div className="max-md:text-center">
-          {/* Audience switcher */}
-          <div
-            role="tablist"
-            aria-label="Choose audience"
-            className="mb-8 inline-flex rounded-full border border-[#e8e2da] bg-white p-1 shadow-[0_2px_6px_rgba(60,30,50,0.04)]"
-          >
-            <button
-              role="tab"
-              aria-selected={audience === "b2c"}
-              onClick={() => setAudience("b2c")}
-              className={`${TAB_BASE} ${audience === "b2c" ? TAB_ACTIVE : TAB_IDLE}`}
+          <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:mb-4 max-md:text-[34px] max-md:leading-[1.1]">
+            Catering for big events,{" "}
+            <span className="font-medium text-[#fa43ad]">zero&nbsp;effort.</span>
+          </h1>
+          <div className="mb-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c9277f] max-md:mb-4 max-md:text-[10px]">
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-3.5 w-3.5"
+              aria-hidden="true"
             >
-              Host an event
-            </button>
-            <button
-              role="tab"
-              aria-selected={audience === "b2b"}
-              onClick={() => setAudience("b2b")}
-              className={`${TAB_BASE} ${audience === "b2b" ? TAB_ACTIVE : TAB_IDLE}`}
-            >
-              Embed widget
-            </button>
+              <path d="M12 0 L13.4 9.6 L24 12 L13.4 14.4 L12 24 L10.6 14.4 L0 12 L10.6 9.6 Z" />
+            </svg>
+            AI-assisted from start to finish
           </div>
-
-          {audience === "b2c" ? (
-            <div key="b2c" role="tabpanel" className="hv2-tab-fade">
-              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[34px]">
-                Catering for big events,{" "}
-                <span className="font-medium text-[#fa43ad]">zero&nbsp;effort.</span>
-              </h1>
-              <div className="mb-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c9277f]">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-3.5 w-3.5"
-                  aria-hidden="true"
-                >
-                  <path d="M12 0 L13.4 9.6 L24 12 L13.4 14.4 L12 24 L10.6 14.4 L0 12 L10.6 9.6 Z" />
-                </svg>
-                AI-assisted from start to finish
-              </div>
-              <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:mx-auto max-md:text-[15px]">
-                Tell us what you&apos;re hosting — we&apos;ll suggest the menu, price it, and
-                deliver.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
-                <a className={BTN_PRIMARY} href="/event-order">
-                  Plan your event
-                </a>
-              </div>
-              {/* Hero meta stats — commented out
-              <div className="mt-9 flex flex-wrap gap-7 text-[13.5px] text-[#8a8580]">
-                <div>
-                  <strong className={META_NUM}>~5 min</strong>
-                  chat to confirmed
-                </div>
-                <div>
-                  <strong className={META_NUM}>500+</strong>
-                  local kitchens
-                </div>
-                <div>
-                  <strong className={META_NUM}>4.9★</strong>
-                  avg host rating
-                </div>
-              </div>
-              */}
-            </div>
-          ) : (
-            <div key="b2b" role="tabpanel" className="hv2-tab-fade">
-              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[34px]">
-                Add AI catering to{" "}
-                <span className="font-medium text-[#fa43ad]">your&nbsp;site.</span>
-              </h1>
-              <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:mx-auto max-md:text-[15px]">
-                Drop our widget into your site — members order team lunches in a chat,
-                fulfilled by local kitchens.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
-                <a className={BTN_PRIMARY} href="#book-demo">
-                  Install Now
-                </a>
-                <a className={BTN_GHOST} href="#docs">
-                  Read the docs
-                </a>
-              </div>
-              <div className="mt-9 flex flex-wrap gap-7 text-[13.5px] text-[#8a8580]">
-                <div>
-                  <strong className={META_NUM}>1-line</strong>
-                  install
-                </div>
-                <div>
-                  <strong className={META_NUM}>50+</strong>
-                  partner sites
-                </div>
-                <div>
-                  <strong className={META_NUM}>No</strong>
-                  setup fee
-                </div>
-              </div>
-            </div>
-          )}
+          <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:mx-auto max-md:mb-4 max-md:text-[13.5px]">
+            Tell us what you&apos;re hosting — we&apos;ll suggest the menu, price it, and
+            deliver.
+          </p>
+          <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
+            <a className={BTN_PRIMARY} href="/event-order">
+              Plan your event
+            </a>
+          </div>
+          <div className="mt-5 text-[14px] text-[#4a4845] max-md:hidden">
+            Running a workspace, office, or venue?{" "}
+            <a
+              href="#business"
+              className="font-semibold text-[#c9277f] underline-offset-4 hover:underline"
+            >
+              Embed our widget →
+            </a>
+          </div>
         </div>
 
         {/* ── Hero animation + floating decorations ── */}
@@ -378,33 +297,6 @@ export default function HomeV2Client() {
         </div>
       </section>
 
-      {/* ────────────── FINAL CTA ────────────── */}
-      <section className="relative z-10 mx-auto max-w-[880px] px-8 pt-[140px] pb-24 text-center max-md:px-6 max-md:pt-20 max-md:pb-16">
-        <h2 className="mb-[22px] text-[clamp(40px,5.2vw,68px)] font-medium leading-[1.04] tracking-[-0.025em] max-md:text-[30px]">
-          Catering, <em className="italic text-[#fa43ad]">handled.</em>
-        </h2>
-        <p className="mx-auto mb-10 max-w-[540px] text-[19px] leading-[1.5] text-[#4a4845]">
-          Whether you&apos;re ordering lunch for fifty or adding catering to your own
-          workspace, office, or venue site — Swift makes it a conversation.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3.5">
-          <a className={`${BTN_PRIMARY} !px-7 !py-4 !text-[15.5px]`} href="/event-order">
-            Plan your event
-          </a>
-          <a className={`${BTN_GHOST} !px-7 !py-4 !text-[15.5px]`} href="#business">
-            Embed the widget
-          </a>
-        </div>
-        <div className="mt-6.5 text-[13.5px] text-[#8a8580]">
-          Run a workspace, office, or venue?{" "}
-          <a
-            href="#book-demo"
-            className="border-b border-dashed border-[#c9277f] font-semibold text-[#c9277f]"
-          >
-            Book a 15-min demo →
-          </a>
-        </div>
-      </section>
     </div>
   );
 }
