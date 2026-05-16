@@ -224,8 +224,9 @@ export default function HomeV2Client() {
                 </span>
               </div>
               {/* Site content */}
-              <div className="relative min-h-[520px] bg-[#f9f4ee] max-md:min-h-[460px]">
-                <div className="flex items-center justify-between border-b border-[#ece7df] bg-white px-6 py-3.5">
+              <div className="relative min-h-[520px] overflow-hidden bg-[#f9f4ee] max-md:min-h-[460px]">
+                {/* Atlas header — always visible */}
+                <div className="relative z-30 flex items-center justify-between border-b border-[#ece7df] bg-white px-6 py-3.5">
                   <span className="hv2-site-logo text-[20px] font-semibold tracking-[-0.015em] text-[#1f2937]">
                     Atlas
                   </span>
@@ -235,36 +236,202 @@ export default function HomeV2Client() {
                     <span>Lunch</span>
                   </span>
                 </div>
-                <div className="hv2-site-hero relative flex h-80 items-end overflow-hidden bg-[linear-gradient(160deg,rgba(15,25,35,0.55),rgba(15,25,35,0.15)),linear-gradient(135deg,#2d4a5e,#1a2e3e)] p-8 text-white max-md:h-[260px]">
-                  <div className="relative z-10 max-w-[80%]">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] opacity-85">
-                      MEMBERS-FIRST · 12 LOCATIONS
+
+                {/* Slider area: atlas hero ↔ catering widget */}
+                <div className="relative h-[465px] overflow-hidden max-md:h-[405px]">
+                  {/* Atlas hero page */}
+                  <div className="hv2-atlas-page absolute inset-0">
+                    <div className="hv2-site-hero relative flex h-full items-end overflow-hidden bg-[linear-gradient(160deg,rgba(15,25,35,0.55),rgba(15,25,35,0.15)),linear-gradient(135deg,#2d4a5e,#1a2e3e)] p-8 text-white">
+                      <div className="relative z-10 max-w-[80%]">
+                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] opacity-85">
+                          MEMBERS-FIRST · 12 LOCATIONS
+                        </div>
+                        <div className="mb-1.5 text-[32px] font-medium italic leading-[1.05] tracking-[-0.015em] max-md:text-2xl">
+                          Where work
+                          <br />
+                          feels like home.
+                        </div>
+                        <div className="mb-4 max-w-[280px] text-[13px] leading-[1.4] opacity-90">
+                          Hot desks, meeting rooms, and now — team lunches on demand.
+                        </div>
+                        {/* Animated "Get catering now" CTA */}
+                        <button className="hv2-atlas-cta cursor-default inline-flex items-center gap-2 rounded-full bg-[#fa43ad] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_4px_14px_rgba(250,67,173,0.4)]">
+                          Get catering now →
+                        </button>
+                      </div>
                     </div>
-                    <div className="mb-1.5 text-[32px] font-medium italic leading-[1.05] tracking-[-0.015em] max-md:text-2xl">
-                      Where work
-                      <br />
-                      feels like home.
-                    </div>
-                    <div className="max-w-[280px] text-[13px] leading-[1.4] opacity-90">
-                      Hot desks, meeting rooms, and now — team lunches on demand. Chat with
-                      our catering AI below.
+
+                    {/* Animated cursor — scoped to the atlas page */}
+                    <div className="hv2-atlas-cursor" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="block h-full w-full">
+                        <path
+                          d="M5 2 L19 14 L11.5 14.5 L8 22 Z"
+                          fill="white"
+                          stroke="#1a1a1a"
+                          strokeWidth="1.5"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                     </div>
                   </div>
-                </div>
-                {/* Floating embedded widget */}
-                <div
-                  className="hv2-widget-stage absolute right-5 bottom-5 overflow-hidden rounded-[18px] bg-white shadow-[0_24px_50px_rgba(0,0,0,0.35),0_1px_3px_rgba(0,0,0,0.15)] max-md:right-3.5 max-md:bottom-3.5"
-                  aria-hidden="true"
-                >
-                  <div className="absolute -top-2.5 -left-2.5 z-[2] rounded-full bg-[#1a1a1a] px-2.5 py-[5px] text-[10px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
-                    <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#fa43ad] align-middle" />
-                    Swift inside
+
+                  {/* Catering widget page — slides in from the right after the click */}
+                  <div
+                    className="hv2-widget-page absolute inset-0 grid grid-cols-[1fr_220px] bg-white max-md:grid-cols-1"
+                    aria-hidden="true"
+                  >
+                    {/* LEFT: catalogue */}
+                    <div className="flex flex-col gap-2.5 overflow-hidden p-4 max-md:p-3">
+                      {/* Day / session pill */}
+                      <div className="flex items-center gap-2">
+                        <div className="overflow-hidden rounded border border-[#e8e2da] text-[9px] leading-none">
+                          <div className="bg-[#fa43ad] px-2 py-0.5 font-bold tracking-wider text-white">THU</div>
+                          <div className="px-2 py-1 text-center text-[13px] font-semibold text-[#1a1a1a]">28</div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-[12px] font-semibold text-[#1a1a1a]">Lunch Day 1</div>
+                          <div className="text-[10px] text-[#8a8580]">12:00 – 12:30 PM</div>
+                        </div>
+                      </div>
+
+                      {/* Search */}
+                      <div className="flex items-center gap-2 rounded-lg border border-[#e8e2da] bg-[#fafafa] px-3 py-2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5 text-[#8a8580]">
+                          <circle cx="11" cy="11" r="7" />
+                          <path d="m21 21-4.3-4.3" strokeLinecap="round" />
+                        </svg>
+                        <span className="text-[11px] text-[#8a8580]">Search restaurants and menu items…</span>
+                      </div>
+
+                      {/* "Don't know" banner */}
+                      <div className="flex items-center justify-between gap-2 rounded-lg bg-[#ffeaf4] px-3 py-2">
+                        <div className="text-[10.5px] leading-tight">
+                          <div className="font-semibold text-[#1a1a1a]">Don&apos;t know what to get?</div>
+                          <div className="text-[#8a8580]">Look at our bundles.</div>
+                        </div>
+                        <button className="shrink-0 rounded-full bg-[#fa43ad] px-3 py-1 text-[9.5px] font-semibold text-white">
+                          Browse
+                        </button>
+                      </div>
+
+                      {/* Category icons */}
+                      <div className="flex gap-2 overflow-hidden">
+                        {[
+                          ["🍳", "Breakfast"],
+                          ["🥪", "Sandwiches"],
+                          ["🍕", "Pizzas"],
+                          ["🥡", "Wraps"],
+                          ["🥤", "Drinks"],
+                          ["🥗", "Healthy"],
+                        ].map(([emoji, label]) => (
+                          <div key={label} className="flex flex-col items-center gap-1">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f4efe8] text-[14px]">
+                              {emoji}
+                            </div>
+                            <span className="text-[8px] text-[#4a4845]">{label}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Diet chips */}
+                      <div className="flex flex-wrap gap-1">
+                        {["Halal", "Vegetarian", "Vegan", "Pescatarian"].map((d) => (
+                          <span
+                            key={d}
+                            className="rounded-full border border-[#e8e2da] px-2 py-0.5 text-[9px] text-[#4a4845]"
+                          >
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Restaurant cards (2x2) */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { name: "Asian Delights", rating: "4.0", from: "from-[#fa43ad]", to: "to-[#ff80c7]" },
+                          { name: "B Bagel", rating: "4.9", from: "from-[#d4a574]", to: "to-[#e8c89d]" },
+                          { name: "Baked Bird", rating: "4.8", from: "from-[#4a6fa5]", to: "to-[#82a6d0]" },
+                          { name: "Pho Time", rating: "4.7", from: "from-[#6b7a4c]", to: "to-[#a3b07e]" },
+                        ].map((r) => (
+                          <div
+                            key={r.name}
+                            className="overflow-hidden rounded-lg border border-[#e8e2da] bg-white"
+                          >
+                            <div className={`h-14 bg-gradient-to-br ${r.from} ${r.to}`} />
+                            <div className="px-2 py-1.5">
+                              <div className="truncate text-[10px] font-semibold text-[#1a1a1a]">
+                                {r.name}
+                              </div>
+                              <div className="text-[9px] text-[#8a8580]">★ {r.rating}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* RIGHT: AI chat panel */}
+                    <div className="flex flex-col gap-2 border-l border-[#f4efe8] bg-[#fafafa] p-3 max-md:hidden">
+                      {/* tabs */}
+                      <div className="flex gap-1 rounded-md bg-[#f4efe8] p-0.5 text-[9.5px] font-semibold">
+                        <button className="flex-1 rounded-md py-1 text-[#8a8580]">Cart</button>
+                        <button className="flex-1 rounded-md bg-white py-1 text-[#1a1a1a] shadow-sm">
+                          ✨ AI Chat
+                        </button>
+                      </div>
+
+                      {/* AI header */}
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#fa43ad] text-[11px] text-white">
+                          ✨
+                        </span>
+                        <div className="leading-tight">
+                          <div className="text-[10px] font-semibold text-[#1a1a1a]">AI Assistant</div>
+                          <div className="text-[8.5px] text-[#8a8580]">Get menu suggestions</div>
+                        </div>
+                      </div>
+
+                      {/* User message */}
+                      <div className="ml-auto rounded-lg bg-[#fa43ad] px-2.5 py-1 text-[9.5px] text-white">
+                        suggest some pizza
+                      </div>
+
+                      {/* AI reply */}
+                      <div className="rounded-lg bg-white px-2.5 py-1.5 text-[9.5px] leading-snug text-[#1a1a1a] shadow-sm">
+                        Here are some pizza options. Do any of these look good?
+                      </div>
+
+                      {/* Menu preview — horizontal scrollable card row */}
+                      <div className="rounded-lg border border-[#e8e2da] bg-white px-2.5 py-2">
+                        <div className="mb-1 text-[8px] font-semibold uppercase tracking-wider text-[#8a8580]">
+                          Menu Preview
+                        </div>
+                        <div className="mb-2 text-[11px] font-semibold text-[#1a1a1a]">Pizza</div>
+                        <div className="-mx-0.5 flex gap-1.5 overflow-x-auto px-0.5 pb-0.5">
+                          {[
+                            ["🍕", "Margherita"],
+                            ["🌶️", "Diavola"],
+                            ["🧀", "4-Cheese"],
+                            ["🍅", "Marinara"],
+                          ].map(([emoji, name]) => (
+                            <div
+                              key={name}
+                              className="flex w-[52px] shrink-0 flex-col items-center justify-center rounded-md bg-[#fafafa] px-1 py-1.5"
+                            >
+                              <span className="text-[18px] leading-none">{emoji}</span>
+                              <span className="mt-1 w-full truncate text-center text-[8px] text-[#4a4845]">
+                                {name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Checkout — pinned to the bottom */}
+                      <button className="mt-auto rounded-full bg-[#fa43ad] py-1.5 text-[10px] font-semibold text-white">
+                        Checkout
+                      </button>
+                    </div>
                   </div>
-                  <iframe
-                    src="/animations/home-hero.html"
-                    title="Embedded Swift widget on atlas.work"
-                    loading="lazy"
-                  />
                 </div>
               </div>
             </div>

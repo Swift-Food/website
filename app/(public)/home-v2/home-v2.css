@@ -86,35 +86,6 @@
   .hv2-iframe-stage { --scale: 0.42; }
 }
 
-/* ── Embedded widget inside B2B browser mockup ──────────── */
-.hv2-widget-stage {
-  --widget-scale: 0.36;
-  width: calc(720px * var(--widget-scale));
-  height: calc(720px * var(--widget-scale));
-  animation: hv2-widget-bob 4s ease-in-out infinite;
-}
-.hv2-widget-stage iframe {
-  width: 720px;
-  height: 720px;
-  border: none;
-  display: block;
-  transform: scale(var(--widget-scale));
-  transform-origin: top left;
-}
-@keyframes hv2-widget-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
-}
-@media (max-width: 1100px) {
-  .hv2-widget-stage { --widget-scale: 0.4; }
-}
-@media (max-width: 720px) {
-  .hv2-widget-stage { --widget-scale: 0.32; }
-}
-@media (max-width: 420px) {
-  .hv2-widget-stage { --widget-scale: 0.28; }
-}
-
 /* ── Floating decorations: gentle bob + per-element rotation/timing ─ */
 .hv2-deco {
   animation: hv2-bob var(--bob-dur, 5s) ease-in-out infinite;
@@ -146,4 +117,72 @@
 @keyframes hv2-fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   Atlas demo — click + mini-widget reveal sequence
+   ============================================================ */
+:root {
+  --t-atlas: 9s;
+}
+
+/* "Get catering now" button on the Atlas hero — flickers on click */
+.hv2-atlas-cta {
+  animation: hv2-atlas-click 9s ease-in-out infinite;
+  will-change: transform, background-color, box-shadow;
+}
+@keyframes hv2-atlas-click {
+  0%, 27%   { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
+  28%       { transform: scale(0.94); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201, 39, 127, 0.4); }
+  31%       { transform: scale(0.97); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201, 39, 127, 0.4); }
+  33%       { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
+  100%      { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
+}
+
+/* Animated cursor — enters frame, moves to button, click flick, fades out.
+   Positions are relative to the .hv2-atlas-page wrapper (the slider hero). */
+.hv2-atlas-cursor {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  z-index: 20;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  animation: hv2-atlas-cursor 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes hv2-atlas-cursor {
+  0%, 10%   { opacity: 0; left: 65%; top: 65%; transform: scale(1); }
+  14%       { opacity: 1; left: 65%; top: 65%; transform: scale(1); }
+  25%       { opacity: 1; left: 11%; top: 87%; transform: scale(1); }
+  28%       { opacity: 1; left: 11%; top: 87%; transform: scale(0.82); }
+  31%       { opacity: 1; left: 11%; top: 87%; transform: scale(1); }
+  35%       { opacity: 0; left: 11%; top: 87%; transform: scale(1); }
+  100%      { opacity: 0; left: 65%; top: 65%; transform: scale(1); }
+}
+
+/* Page slider — atlas hero slides out to the left, widget slides in from the right */
+.hv2-atlas-page,
+.hv2-widget-page {
+  will-change: transform;
+}
+.hv2-atlas-page {
+  animation: hv2-atlas-page-slide 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.hv2-widget-page {
+  transform: translateX(100%);
+  animation: hv2-widget-page-slide 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes hv2-atlas-page-slide {
+  0%, 33%  { transform: translateX(0); }
+  43%      { transform: translateX(-100%); }
+  88%      { transform: translateX(-100%); }
+  95%      { transform: translateX(0); }
+  100%     { transform: translateX(0); }
+}
+@keyframes hv2-widget-page-slide {
+  0%, 33%  { transform: translateX(100%); }
+  43%      { transform: translateX(0); }
+  88%      { transform: translateX(0); }
+  95%      { transform: translateX(100%); }
+  100%     { transform: translateX(100%); }
 }
