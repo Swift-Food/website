@@ -142,39 +142,6 @@ export default function HomeV2Client() {
             loading="lazy"
           />
 
-          {/* Calendar — top-left */}
-          <div
-            className="hv2-deco pointer-events-none absolute -top-7 -left-[52px] z-[2] w-[78px] overflow-hidden rounded-xl border border-[#e8e2da] bg-white text-center drop-shadow-[0_12px_24px_rgba(60,30,50,0.14)]"
-            style={{ "--rot": "-8deg", "--bob-dur": "5.6s", "--bob-delay": "0s" } as CSSProperties}
-          >
-            <div className="bg-[#fa43ad] py-1.5 text-[10.5px] font-bold tracking-[0.14em] text-white">
-              FRI · JUN
-            </div>
-            <div className="pt-1.5 pb-2.5 text-[34px] font-semibold leading-none tracking-[-0.02em] text-[#1a1a1a]">
-              14
-            </div>
-          </div>
-
-          {/* Sparkle — top-right */}
-          <div className="hv2-deco-sparkle pointer-events-none absolute top-12 -right-10 z-[2] h-11 w-11 text-[#fa43ad] drop-shadow-[0_6px_14px_rgba(250,67,173,0.35)]">
-            <svg
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-              className="block h-full w-full"
-            >
-              <path d="M12 0 L13.4 9.6 L24 12 L13.4 14.4 L12 24 L10.6 14.4 L0 12 L10.6 9.6 Z" />
-            </svg>
-          </div>
-
-          {/* ~5 min pill — mid-left */}
-          <div
-            className="hv2-deco pointer-events-none absolute bottom-[165px] -left-14 z-[2] inline-flex items-center gap-1.5 rounded-full bg-[#ffeaf4] px-4 py-2 text-[13px] font-semibold text-[#c9277f] drop-shadow-[0_12px_24px_rgba(60,30,50,0.14)]"
-            style={{ "--rot": "7deg", "--bob-dur": "4.4s", "--bob-delay": "0.9s" } as CSSProperties}
-          >
-            <span className="h-[7px] w-[7px] rounded-full bg-[#fa43ad]" />~5 min
-          </div>
-
           {/* Truck — bottom-right */}
           <div
             className="hv2-deco pointer-events-none absolute -bottom-2.5 -right-[52px] z-[2] w-[124px] text-[#fa43ad] drop-shadow-[0_14px_28px_rgba(250,67,173,0.28)]"
