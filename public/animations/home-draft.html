@@ -390,17 +390,15 @@
       width: calc(720px * var(--scale));
       height: calc(720px * var(--scale));
       position: relative;
-      border-radius: 28px;
-      overflow: hidden;
-      box-shadow:
-        0 40px 90px rgba(60, 30, 50, .20),
-        0 1px 2px rgba(0, 0, 0, .04);
     }
     .hero-animation iframe {
       width: 720px;
       height: 720px;
       border: none;
       display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
       transform: scale(var(--scale));
       transform-origin: top left;
     }

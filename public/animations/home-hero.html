@@ -46,7 +46,7 @@
       body {
         margin: 0;
         padding: 0;
-        background: #2a1f24;
+        background: transparent;
         font-family: var(--body);
         color: var(--ink);
         -webkit-font-smoothing: antialiased;
@@ -60,29 +60,12 @@
       .stage {
         width: 720px;
         height: 720px;
-        background: var(--paper);
+        background: transparent;
         position: relative;
         overflow: hidden;
-        box-shadow:
-          0 30px 80px rgba(0, 0, 0, 0.4),
-          0 0 0 1px rgba(255, 255, 255, 0.04);
       }
       .stage::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background:
-          radial-gradient(
-            ellipse at 30% 0%,
-            rgba(250, 67, 173, 0.06),
-            transparent 55%
-          ),
-          radial-gradient(
-            ellipse at 80% 100%,
-            rgba(107, 122, 76, 0.05),
-            transparent 55%
-          );
+        display: none;
       }
 
       .brand-mark {
