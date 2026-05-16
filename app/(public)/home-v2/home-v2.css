@@ -123,20 +123,20 @@
    Atlas demo — click + mini-widget reveal sequence
    ============================================================ */
 :root {
-  --t-atlas: 9s;
+  --t-atlas: 11s;
 }
 
 /* "Get catering now" button on the Atlas hero — flickers on click */
 .hv2-atlas-cta {
-  animation: hv2-atlas-click 9s ease-in-out infinite;
+  animation: hv2-atlas-click 11s ease-in-out infinite;
   will-change: transform, background-color, box-shadow;
 }
 @keyframes hv2-atlas-click {
-  0%, 27%   { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
-  28%       { transform: scale(0.94); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201, 39, 127, 0.4); }
-  31%       { transform: scale(0.97); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201, 39, 127, 0.4); }
-  33%       { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
-  100%      { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
+  0%, 22% { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
+  23%     { transform: scale(0.94); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201, 39, 127, 0.4); }
+  25%     { transform: scale(0.97); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201, 39, 127, 0.4); }
+  27%     { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
+  100%    { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250, 67, 173, 0.4); }
 }
 
 /* Animated cursor — enters frame, moves to button, click flick, fades out.
@@ -148,16 +148,16 @@
   z-index: 20;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  animation: hv2-atlas-cursor 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: hv2-atlas-cursor 11s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 @keyframes hv2-atlas-cursor {
-  0%, 10%   { opacity: 0; left: 65%; top: 65%; transform: scale(1); }
-  14%       { opacity: 1; left: 65%; top: 65%; transform: scale(1); }
-  25%       { opacity: 1; left: 11%; top: 87%; transform: scale(1); }
-  28%       { opacity: 1; left: 11%; top: 87%; transform: scale(0.82); }
-  31%       { opacity: 1; left: 11%; top: 87%; transform: scale(1); }
-  35%       { opacity: 0; left: 11%; top: 87%; transform: scale(1); }
-  100%      { opacity: 0; left: 65%; top: 65%; transform: scale(1); }
+  0%, 8%  { opacity: 0; left: 65%; top: 65%; transform: scale(1); }
+  12%     { opacity: 1; left: 65%; top: 65%; transform: scale(1); }
+  21%     { opacity: 1; left: 11%; top: 87%; transform: scale(1); }
+  23%     { opacity: 1; left: 11%; top: 87%; transform: scale(0.82); }
+  25%     { opacity: 1; left: 11%; top: 87%; transform: scale(1); }
+  29%     { opacity: 0; left: 11%; top: 87%; transform: scale(1); }
+  100%    { opacity: 0; left: 65%; top: 65%; transform: scale(1); }
 }
 
 /* Page slider — atlas hero slides out to the left, widget slides in from the right */
@@ -166,25 +166,25 @@
   will-change: transform;
 }
 .hv2-atlas-page {
-  animation: hv2-atlas-page-slide 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  animation: hv2-atlas-page-slide 11s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 .hv2-widget-page {
   transform: translateX(100%);
-  animation: hv2-widget-page-slide 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  animation: hv2-widget-page-slide 11s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 @keyframes hv2-atlas-page-slide {
-  0%, 33%  { transform: translateX(0); }
-  43%      { transform: translateX(-100%); }
-  88%      { transform: translateX(-100%); }
-  95%      { transform: translateX(0); }
-  100%     { transform: translateX(0); }
+  0%, 27% { transform: translateX(0); }
+  35%     { transform: translateX(-100%); }
+  81%     { transform: translateX(-100%); }
+  87%     { transform: translateX(0); }
+  100%    { transform: translateX(0); }
 }
 @keyframes hv2-widget-page-slide {
-  0%, 33%  { transform: translateX(100%); }
-  43%      { transform: translateX(0); }
-  88%      { transform: translateX(0); }
-  95%      { transform: translateX(100%); }
-  100%     { transform: translateX(100%); }
+  0%, 27% { transform: translateX(100%); }
+  35%     { transform: translateX(0); }
+  81%     { transform: translateX(0); }
+  87%     { transform: translateX(100%); }
+  100%    { transform: translateX(100%); }
 }
 
 /* ── AI chat micro-sequence inside the widget ─────────────── */
@@ -193,15 +193,15 @@
 .hv2-chat-input {
   opacity: 0;
   background: white;
-  animation: hv2-chat-input 9s ease infinite;
+  animation: hv2-chat-input 11s ease infinite;
 }
 @keyframes hv2-chat-input {
-  0%, 42% { opacity: 0; background: white; }
-  44%     { opacity: 1; background: white; }
-  62%     { opacity: 1; background: white; }
-  64%     { opacity: 0.55; background: #f4efe8; }
-  88%     { opacity: 0.55; background: #f4efe8; }
-  92%     { opacity: 0; }
+  0%, 34% { opacity: 0; background: white; }
+  36%     { opacity: 1; background: white; }
+  51%     { opacity: 1; background: white; }
+  53%     { opacity: 0.55; background: #f4efe8; }
+  81%     { opacity: 0.55; background: #f4efe8; }
+  85%     { opacity: 0; }
   100%    { opacity: 0; }
 }
 
@@ -213,13 +213,13 @@
   white-space: nowrap;
   vertical-align: middle;
   width: 0;
-  animation: hv2-typewriter 9s steps(18, end) infinite;
+  animation: hv2-typewriter 11s steps(18, end) infinite;
 }
 @keyframes hv2-typewriter {
-  0%, 47% { width: 0; }
-  56%     { width: 116px; }
-  62%     { width: 116px; }
-  63%     { width: 0; }
+  0%, 38% { width: 0; }
+  45%     { width: 116px; }
+  51%     { width: 116px; }
+  52%     { width: 0; }
   100%    { width: 0; }
 }
 
@@ -233,15 +233,15 @@
   margin-left: 1px;
   animation:
     hv2-caret-blink 0.7s steps(2, end) infinite,
-    hv2-caret-show 9s ease infinite;
+    hv2-caret-show 11s ease infinite;
 }
 @keyframes hv2-caret-blink {
   50% { opacity: 0; }
 }
 @keyframes hv2-caret-show {
-  0%, 44%  { opacity: 0; }
-  46%, 62% { opacity: 1; }
-  63%, 100% { opacity: 0; }
+  0%, 36%   { opacity: 0; }
+  37%, 51%  { opacity: 1; }
+  52%, 100% { opacity: 0; }
 }
 
 /* User bubble — appears at the input's vertical position the instant
@@ -250,27 +250,27 @@
    input row, giving the illusion of the typed text being "sent" up. */
 .hv2-user-bubble {
   opacity: 0;
-  animation: hv2-user-bubble-in 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: hv2-user-bubble-in 11s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 @keyframes hv2-user-bubble-in {
-  0%, 62% { opacity: 0; transform: translateY(170px) scale(0.85); }
-  63%     { opacity: 1; transform: translateY(170px) scale(0.85); }
-  68%     { opacity: 1; transform: translateY(0)    scale(1); }
-  88%     { opacity: 1; transform: translateY(0)    scale(1); }
-  92%     { opacity: 0; transform: translateY(0); }
+  0%, 51% { opacity: 0; transform: translateY(170px) scale(0.85); }
+  52%     { opacity: 1; transform: translateY(170px) scale(0.85); }
+  55%     { opacity: 1; transform: translateY(0)    scale(1); }
+  81%     { opacity: 1; transform: translateY(0)    scale(1); }
+  85%     { opacity: 0; transform: translateY(0); }
   100%    { opacity: 0; transform: translateY(170px) scale(0.85); }
 }
 
 /* "AI is thinking" typing-dots bubble */
 .hv2-typing-dots {
   opacity: 0;
-  animation: hv2-typing-dots-show 9s ease infinite;
+  animation: hv2-typing-dots-show 11s ease infinite;
 }
 @keyframes hv2-typing-dots-show {
-  0%, 68% { opacity: 0; }
-  70%     { opacity: 1; }
-  73%     { opacity: 1; }
-  74%     { opacity: 0; }
+  0%, 55% { opacity: 0; }
+  57%     { opacity: 1; }
+  60%     { opacity: 1; }
+  61%     { opacity: 0; }
   100%    { opacity: 0; }
 }
 .hv2-typing-dots span {
@@ -286,25 +286,25 @@
 /* AI response bubble — fades in after the typing dots */
 .hv2-ai-bubble {
   opacity: 0;
-  animation: hv2-ai-bubble-in 9s ease infinite;
+  animation: hv2-ai-bubble-in 11s ease infinite;
 }
 @keyframes hv2-ai-bubble-in {
-  0%, 74% { opacity: 0; transform: translateY(4px); }
-  78%     { opacity: 1; transform: translateY(0); }
-  88%     { opacity: 1; transform: translateY(0); }
-  92%     { opacity: 0; transform: translateY(4px); }
+  0%, 61% { opacity: 0; transform: translateY(4px); }
+  64%     { opacity: 1; transform: translateY(0); }
+  81%     { opacity: 1; transform: translateY(0); }
+  85%     { opacity: 0; transform: translateY(4px); }
   100%    { opacity: 0; transform: translateY(4px); }
 }
 
 /* Menu-preview card — last to appear */
 .hv2-menu-preview {
   opacity: 0;
-  animation: hv2-menu-preview-in 9s ease infinite;
+  animation: hv2-menu-preview-in 11s ease infinite;
 }
 @keyframes hv2-menu-preview-in {
-  0%, 79% { opacity: 0; transform: translateY(6px); }
-  83%     { opacity: 1; transform: translateY(0); }
-  88%     { opacity: 1; transform: translateY(0); }
-  92%     { opacity: 0; transform: translateY(6px); }
+  0%, 65% { opacity: 0; transform: translateY(6px); }
+  68%     { opacity: 1; transform: translateY(0); }
+  81%     { opacity: 1; transform: translateY(0); }
+  85%     { opacity: 0; transform: translateY(6px); }
   100%    { opacity: 0; transform: translateY(6px); }
 }
