@@ -59,17 +59,6 @@
   opacity: 0.22;
 }
 
-/* ── Stats card glow ────────────────────────────────────── */
-.hv2-stats-glow::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 10% 0%, rgba(250, 67, 173, 0.18), transparent 50%),
-    radial-gradient(ellipse at 95% 100%, rgba(250, 67, 173, 0.10), transparent 55%);
-}
-
 /* ── Main iframe stage (scale + responsive) ─────────────── */
 .hv2-iframe-stage {
   --scale: 0.833;

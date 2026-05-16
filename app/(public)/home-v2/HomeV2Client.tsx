@@ -186,8 +186,8 @@ export default function HomeV2Client() {
               <a className={BTN_PRIMARY} href="#book-demo">
                 Install Now
               </a>
-              <a className={BTN_GHOST} href="#docs">
-                Read the docs
+              <a className={BTN_GHOST} href="/contact">
+                Enquire Now
               </a>
             </div>
             <pre className="mt-7 max-w-[560px] overflow-x-auto rounded-xl bg-[#1a1a1a] px-[18px] py-3.5 font-mono text-[12.5px] leading-[1.55] tracking-[-0.005em] text-[#f4efe8]">
@@ -276,26 +276,6 @@ export default function HomeV2Client() {
       <div className="relative z-10">
         <PartnersSection />
       </div>
-
-      {/* ────────────── STATS ────────────── */}
-      <section className="relative z-10 mx-auto max-w-[1280px] px-8 pt-24">
-        <div className="hv2-stats-glow relative grid grid-cols-2 gap-8 overflow-hidden rounded-[28px] bg-[#1a1a1a] p-14 text-white lg:grid-cols-4 max-md:p-8">
-          {[
-            ["~5", "m", "avg chat-to-confirmed time"],
-            ["500", "+", "independent kitchens, 14 cities"],
-            ["4.9", "★", "avg event rating from hosts"],
-            ["1", "-line", "to embed on your own site"],
-          ].map(([num, accent, label]) => (
-            <div key={label} className="relative z-10">
-              <div className="mb-2.5 text-[56px] font-medium leading-none tracking-[-0.025em] max-md:text-[42px]">
-                {num}
-                <span className="italic text-[#fa43ad]">{accent}</span>
-              </div>
-              <div className="text-[13.5px] leading-[1.4] text-white/65">{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
 
     </div>
   );
