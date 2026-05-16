@@ -5,28 +5,17 @@
    ============================================================ */
 
 /* ── Page ambient glow ──────────────────────────────────── */
+/* `fixed` so the gradient is viewport-sized and fades quickly, instead of
+   stretching across the whole tall page (which makes the pink linger). */
 .hv2-page-glow::before {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
   background:
     radial-gradient(ellipse at 15% -10%, rgba(250, 67, 173, 0.08), transparent 50%),
     radial-gradient(ellipse at 95% 110%, rgba(107, 122, 76, 0.07), transparent 50%);
-}
-
-/* ── Eyebrow pill icons (B2C sparkle / B2B </>) ─────────── */
-.hv2-eyebrow-b2c::before {
-  content: "✨";
-  margin-right: 4px;
-}
-.hv2-eyebrow-b2b::before {
-  content: "</>";
-  font-family: ui-monospace, "SF Mono", monospace;
-  font-size: 11px;
-  font-weight: 700;
-  margin-right: 4px;
 }
 
 /* ── Primary CTA trailing arrow ─────────────────────────── */

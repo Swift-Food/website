@@ -62,9 +62,6 @@ export default function HomeV2Client() {
 
           {audience === "b2c" ? (
             <div key="b2c" role="tabpanel" className="hv2-tab-fade">
-              <div className="hv2-eyebrow-b2c mb-7 inline-flex items-center gap-2 rounded-full bg-[#ffeaf4] py-[6px] pr-[14px] pl-[12px] text-[13px] font-semibold text-[#c9277f]">
-                AI-planned catering, on demand
-              </div>
               <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-medium leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
                 Catering, planned{" "}
                 <span className="font-medium text-[#fa43ad]">in&nbsp;a&nbsp;chat.</span>
@@ -98,9 +95,6 @@ export default function HomeV2Client() {
             </div>
           ) : (
             <div key="b2b" role="tabpanel" className="hv2-tab-fade">
-              <div className="hv2-eyebrow-b2b mb-7 inline-flex items-center gap-2 rounded-full bg-[#e9eef5] py-[6px] pr-[14px] pl-[12px] text-[13px] font-semibold text-[#2c4a7a]">
-                Catering widget for your space
-              </div>
               <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-medium leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
                 Add AI catering to{" "}
                 <span className="font-medium text-[#fa43ad]">your&nbsp;site.</span>
@@ -112,7 +106,7 @@ export default function HomeV2Client() {
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <a className={BTN_PRIMARY} href="#book-demo">
-                  Book a demo
+                  Install Now
                 </a>
                 <a className={BTN_GHOST} href="#docs">
                   Read the docs
@@ -287,7 +281,7 @@ export default function HomeV2Client() {
             </ul>
             <div className="flex flex-wrap items-center gap-3">
               <a className={BTN_PRIMARY} href="#book-demo">
-                Book a demo
+                Install Now
               </a>
               <a className={BTN_GHOST} href="#docs">
                 Read the docs
