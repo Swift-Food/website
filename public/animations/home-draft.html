@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Swift Food — Catering, planned in a chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap"
+  />
+
+  <style>
+    /* ============================================================
+       Brand fonts
+       ============================================================ */
+    @font-face {
+      font-family: 'Mont';
+      src: url('../fonts/Mont-HeavyDEMO.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --paper: #fbf7f4;
+      --paper-deep: #f4efe8;
+      --ink: #1a1a1a;
+      --ink-soft: #4a4845;
+      --ink-faint: #8a8580;
+      --rule: #e8e2da;
+      --brand: #fa43ad;
+      --brand-soft: #ffeaf4;
+      --brand-deep: #c9277f;
+      --brand-hover: #e03a9a;
+      --olive: #6b7a4c;
+      --olive-soft: #edefe3;
+      --display: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --body: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --mont: "Mont", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    body { position: relative; overflow-x: hidden; }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 15% -10%, rgba(250,67,173,.08), transparent 50%),
+        radial-gradient(ellipse at 95% 110%, rgba(107,122,76,.07), transparent 50%);
+    }
+    main, nav, footer { position: relative; z-index: 1; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+
+    /* ============================================================
+       NAVBAR  (mirrors lib/components/navbar.tsx)
+       ============================================================ */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      padding: 20px 0;
+      transition: background .3s ease, backdrop-filter .3s ease, border-color .3s ease;
+      background: transparent;
+      border-bottom: 1px solid transparent;
+    }
+    .nav.scrolled {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom-color: rgba(232, 226, 218, .8);
+    }
+    .nav-inner {
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    @media (min-width: 768px) {
+      .nav-inner { padding: 0 24px; }
+    }
+
+    /* Logo with ticker hover effect */
+    .logo-link {
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .logo {
+      font-family: var(--mont);
+      color: var(--brand);
+      font-weight: bold;
+      font-size: 24px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    @media (min-width: 768px) {
+      .logo { font-size: 36px; }
+    }
+    .logo-ticker {
+      display: inline-block;
+      overflow: hidden;
+      vertical-align: middle;
+      line-height: 1;
+      height: 1em;
+    }
+    .logo-track {
+      display: block;
+      transition: transform 480ms cubic-bezier(.2, .9, .2, 1);
+      transform: translateY(0%);
+      will-change: transform;
+    }
+    .logo-track > span { display: block; }
+    .logo-track .tagline {
+      font-size: 0.55em;
+      text-align: center;
+      letter-spacing: .02em;
+    }
+    @media (min-width: 768px) {
+      .logo-track .tagline { font-size: 0.55em; }
+    }
+    .logo-link:hover .logo-track { transform: translateY(-50%); }
+
+    /* Desktop nav links */
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: 40px;
+      font-family: var(--body);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: .06em;
+      color: var(--ink);
+      text-transform: uppercase;
+    }
+    @media (min-width: 768px) {
+      .nav-links { display: flex; }
+    }
+    .nav-links a { transition: color .15s; }
+    .nav-links a:hover { color: var(--brand); }
+
+    .nav-order-btn {
+      background: var(--brand);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 12px;
+      font-family: var(--body);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .05);
+      transition: background .25s ease, transform .12s ease;
+    }
+    .nav-order-btn:hover { background: var(--brand-hover); }
+    .nav-order-btn:active { transform: scale(.96); }
+
+    /* Mobile nav */
+    .nav-mobile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    @media (min-width: 768px) {
+      .nav-mobile { display: none; }
+    }
+    .nav-mobile-order {
+      background: var(--brand);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-family: var(--body);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .nav-mobile-toggle {
+      background: transparent;
+      border: none;
+      color: var(--ink);
+      padding: 4px;
+      cursor: pointer;
+    }
+    .nav-mobile-toggle svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* ============================================================
+       Reusable buttons (used in hero, B2B, final CTA)
+       ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 13px 24px;
+      border-radius: 999px;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 14.5px;
+      letter-spacing: -.005em;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+      cursor: pointer;
+      border: none;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--brand);
+      color: white;
+      box-shadow: 0 4px 14px rgba(250, 67, 173, .32);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(250, 67, 173, .42);
+    }
+    .btn-primary::after { content: "→"; font-weight: 500; margin-left: 2px; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--rule);
+    }
+    .btn-ghost:hover { background: white; border-color: var(--ink-faint); }
+
+    /* ============================================================
+       Section primitives
+       ============================================================ */
+    .section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 96px 32px;
+    }
+    .section-eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand-deep);
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(36px, 4.2vw, 56px);
+      line-height: 1.06;
+      letter-spacing: -.022em;
+      max-width: 720px;
+      margin-bottom: 72px;
+    }
+    .section-title em { font-style: italic; color: var(--brand); }
+
+    /* ============================================================
+       HERO  (B2C: order catering)
+       ============================================================ */
+    .hero {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 132px 32px 100px; /* top padding clears the fixed nav */
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 72px;
+      align-items: center;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px 6px 12px;
+      background: var(--brand-soft);
+      color: var(--brand-deep);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 28px;
+    }
+    .hero-eyebrow::before { content: "✨"; }
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(48px, 6.2vw, 84px);
+      line-height: 1.02;
+      letter-spacing: -.028em;
+      margin-bottom: 28px;
+    }
+    .hero h1 em {
+      font-style: italic;
+      font-weight: 500;
+      color: var(--brand);
+    }
+    .hero p.sub {
+      font-size: 19px;
+      line-height: 1.5;
+      color: var(--ink-soft);
+      max-width: 490px;
+      margin-bottom: 36px;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .hero-meta {
+      margin-top: 36px;
+      display: flex;
+      gap: 28px;
+      font-size: 13.5px;
+      color: var(--ink-faint);
+      flex-wrap: wrap;
+    }
+    .hero-meta strong {
+      display: block;
+      color: var(--ink);
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: -.015em;
+      margin-bottom: 2px;
+    }
+
+    /* Audience tabs (B2C / B2B switcher) */
+    .audience-tabs {
+      display: inline-flex;
+      background: white;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      padding: 4px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 6px rgba(60, 30, 50, .04);
+    }
+    .audience-tabs .tab {
+      padding: 9px 18px;
+      border: none;
+      background: transparent;
+      border-radius: 999px;
+      font-family: var(--body);
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: color .2s, background .2s, box-shadow .2s;
+      letter-spacing: -.005em;
+      white-space: nowrap;
+    }
+    .audience-tabs .tab:hover { color: var(--ink); }
+    .audience-tabs .tab.is-active {
+      background: var(--brand);
+      color: white;
+      box-shadow: 0 2px 10px rgba(250, 67, 173, .28);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.is-active {
+      display: block;
+      animation: heroFadeIn .35s ease;
+    }
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-eyebrow-b2b {
+      background: #e9eef5;
+      color: #2c4a7a;
+    }
+    .hero-eyebrow-b2b::before {
+      content: "</>";
+      font-family: ui-monospace, "SF Mono", monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .hero-animation {
+      --scale: 0.833;
+      width: calc(720px * var(--scale));
+      height: calc(720px * var(--scale));
+      position: relative;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 90px rgba(60, 30, 50, .20),
+        0 1px 2px rgba(0, 0, 0, .04);
+    }
+    .hero-animation iframe {
+      width: 720px;
+      height: 720px;
+      border: none;
+      display: block;
+      transform: scale(var(--scale));
+      transform-origin: top left;
+    }
+
+    /* ============================================================
+       HOW IT WORKS
+       ============================================================ */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .step {
+      padding: 40px 32px 36px;
+      background: white;
+      border: 1px solid var(--rule);
+      border-radius: 22px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .step:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 40px rgba(60, 30, 50, .08);
+    }
+    .step-num {
+      font-family: var(--display);
+      font-style: italic;
+      font-size: 56px;
+      font-weight: 500;
+      line-height: 1;
+      color: var(--brand);
+      letter-spacing: -.03em;
+      margin-bottom: 24px;
+      opacity: .92;
+    }
+    .step h3 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 23px;
+      letter-spacing: -.012em;
+      margin-bottom: 12px;
+    }
+    .step p {
+      font-size: 15px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       B2B  (Embed Swift on your own site)
+       ============================================================ */
+    .b2b-band {
+      background: white;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .b2b {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 96px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      gap: 72px;
+      align-items: center;
+    }
+    .b2b-copy h2 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(36px, 4.5vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -.022em;
+      margin-bottom: 22px;
+    }
+    .b2b-copy h2 em { font-style: italic; color: var(--brand); }
+    .b2b-copy p.sub {
+      font-size: 17px;
+      line-height: 1.55;
+      color: var(--ink-soft);
+      margin-bottom: 32px;
+      max-width: 500px;
+    }
+    .b2b-features {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+    .b2b-features li {
+      position: relative;
+      padding-left: 32px;
+      font-size: 15px;
+      color: var(--ink-soft);
+      line-height: 1.5;
+    }
+    .b2b-features li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      line-height: 1;
+    }
+    .b2b-features li strong {
+      color: var(--ink);
+      font-weight: 600;
+      font-family: var(--display);
+      margin-right: 4px;
+    }
+    .b2b-ctas {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .b2b-snippet {
+      margin-top: 28px;
+      background: #1a1a1a;
+      color: #f4efe8;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+      font-size: 12.5px;
+      line-height: 1.55;
+      letter-spacing: -.005em;
+      overflow-x: auto;
+      max-width: 500px;
+    }
+    .b2b-snippet .c-key { color: #f8b1da; }
+    .b2b-snippet .c-str { color: #aed68a; }
+    .b2b-snippet .c-tag { color: #8db4e8; }
+
+    /* Browser frame mockup with the widget embedded */
+    .b2b-visual {
+      position: relative;
+    }
+    .browser {
+      background: white;
+      border-radius: 16px;
+      box-shadow:
+        0 40px 90px rgba(60, 30, 50, .22),
+        0 1px 3px rgba(0, 0, 0, .06);
+      overflow: hidden;
+      border: 1px solid var(--rule);
+    }
+    .browser-bar {
+      background: linear-gradient(180deg, #f4efe8, #ece7df);
+      border-bottom: 1px solid var(--rule);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .browser-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: #28c941; }
+    .browser-url {
+      margin-left: auto;
+      margin-right: auto;
+      transform: translateX(-12px);
+      font-size: 12px;
+      color: var(--ink-faint);
+      background: white;
+      padding: 5px 22px;
+      border-radius: 6px;
+      border: 1px solid var(--rule);
+      font-family: var(--body);
+      letter-spacing: -.005em;
+    }
+    .browser-content {
+      position: relative;
+      min-height: 520px;
+      background: #f9f4ee;
+    }
+    .site-header {
+      background: white;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #ece7df;
+    }
+    .site-logo {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 20px;
+      letter-spacing: -.015em;
+      color: #1f2937;
+    }
+    .site-logo::before {
+      content: "◇ ";
+      color: #3b82f6;
+      font-weight: 700;
+    }
+    .site-nav-links {
+      display: flex;
+      gap: 18px;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #6b5946;
+      font-weight: 500;
+    }
+    .site-hero {
+      position: relative;
+      height: 320px;
+      background:
+        linear-gradient(160deg, rgba(15, 25, 35, .55), rgba(15, 25, 35, .15)),
+        linear-gradient(135deg, #2d4a5e, #1a2e3e);
+      display: flex;
+      align-items: flex-end;
+      padding: 32px;
+      color: white;
+      overflow: hidden;
+    }
+    .site-hero::before {
+      content: "☕";
+      position: absolute;
+      top: 40%; right: -10px;
+      transform: translateY(-50%);
+      font-size: 200px;
+      opacity: .22;
+    }
+    .site-hero-text {
+      position: relative;
+      z-index: 1;
+      max-width: 80%;
+    }
+    .site-eyebrow {
+      font-size: 11px;
+      letter-spacing: .16em;
+      font-weight: 600;
+      opacity: .85;
+      margin-bottom: 8px;
+    }
+    .site-title {
+      font-family: var(--display);
+      font-style: italic;
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: -.015em;
+      margin-bottom: 6px;
+    }
+    .site-sub {
+      font-size: 13px;
+      opacity: .9;
+      line-height: 1.4;
+      max-width: 280px;
+    }
+
+    /* Embedded widget = floating panel */
+    .embedded-widget {
+      --widget-scale: 0.36;
+      --widget-w: calc(720px * var(--widget-scale));
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: var(--widget-w);
+      height: var(--widget-w);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow:
+        0 24px 50px rgba(0, 0, 0, .35),
+        0 1px 3px rgba(0, 0, 0, .15);
+      background: white;
+      animation: widget-bob 4s ease-in-out infinite;
+    }
+    @keyframes widget-bob {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+    .embedded-widget iframe {
+      width: 720px;
+      height: 720px;
+      border: none;
+      display: block;
+      transform: scale(var(--widget-scale));
+      transform-origin: top left;
+    }
+    .embedded-badge {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      z-index: 2;
+      background: var(--ink);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      padding: 5px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+    }
+    .embedded-badge .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand);
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* ============================================================
+       STATS STRIP
+       ============================================================ */
+    .stats-wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    .stats {
+      background: var(--ink);
+      color: white;
+      border-radius: 28px;
+      padding: 56px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stats::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 10% 0%, rgba(250,67,173,.18), transparent 50%),
+        radial-gradient(ellipse at 95% 100%, rgba(250,67,173,.10), transparent 55%);
+    }
+    .stats > div { position: relative; z-index: 1; }
+    .stat-num {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: 56px;
+      letter-spacing: -.025em;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .stat-num .accent { color: var(--brand); font-style: italic; }
+    .stat-label {
+      font-size: 13.5px;
+      color: rgba(255, 255, 255, .65);
+      line-height: 1.4;
+    }
+
+    /* ============================================================
+       FINAL CTA  (dual audience)
+       ============================================================ */
+    .final-cta {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 140px 32px 100px;
+      text-align: center;
+    }
+    .final-cta h2 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(40px, 5.2vw, 68px);
+      line-height: 1.04;
+      letter-spacing: -.025em;
+      margin-bottom: 22px;
+    }
+    .final-cta h2 em { font-style: italic; color: var(--brand); }
+    .final-cta p {
+      font-size: 19px;
+      color: var(--ink-soft);
+      max-width: 540px;
+      margin: 0 auto 40px;
+      line-height: 1.5;
+    }
+    .final-cta-buttons {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .final-cta .btn { padding: 16px 28px; font-size: 15.5px; }
+    .final-cta-split {
+      margin-top: 26px;
+      font-size: 13.5px;
+      color: var(--ink-faint);
+    }
+    .final-cta-split a {
+      color: var(--brand-deep);
+      font-weight: 600;
+      border-bottom: 1px dashed var(--brand-deep);
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    footer { border-top: 1px solid var(--rule); }
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 36px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--ink-faint);
+    }
+    .footer-links { display: flex; gap: 26px; }
+    .footer-links a:hover { color: var(--ink); }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1100px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 56px;
+        padding: 120px 32px 80px;
+      }
+      .hero-animation { --scale: 0.78; margin: 0 auto; }
+      .steps { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); padding: 44px 36px; }
+      .b2b { grid-template-columns: 1fr; gap: 56px; padding: 72px 32px; }
+      .embedded-widget { --widget-scale: 0.4; }
+    }
+    @media (max-width: 720px) {
+      .hero h1 { font-size: 44px; }
+      .hero p.sub { font-size: 17px; }
+      .hero-animation { --scale: 0.5; }
+      .section { padding: 64px 24px; }
+      .stats { padding: 32px 24px; }
+      .stat-num { font-size: 42px; }
+      .final-cta { padding: 80px 24px 64px; }
+      .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+      .site-title { font-size: 24px; }
+      .site-hero { height: 260px; }
+      .browser-content { min-height: 460px; }
+      .embedded-widget { --widget-scale: 0.32; bottom: 14px; right: 14px; }
+    }
+    @media (max-width: 420px) {
+      .hero-animation { --scale: 0.42; }
+      .embedded-widget { --widget-scale: 0.28; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ── NAVBAR ──────────────────────────────────────────── -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a class="logo-link" href="#">
+        <div class="logo">
+          <span class="logo-ticker">
+            <span class="logo-track">
+              <span>SWIFT FOOD</span>
+              <span class="tagline">SIMPLE, LOCAL, RELIABLE</span>
+            </span>
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop -->
+      <div class="nav-links">
+        <a href="#menu">Menus</a>
+        <a href="#contact">Contact Us</a>
+        <a href="#order"><button class="nav-order-btn">Order Now</button></a>
+      </div>
+
+      <!-- Mobile -->
+      <div class="nav-mobile">
+        <a href="#order"><button class="nav-mobile-order">Order</button></a>
+        <button class="nav-mobile-toggle" aria-label="Toggle menu">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- ── HERO (dual audience: B2C + B2B) ────────────── -->
+    <section class="hero">
+      <div class="hero-copy">
+
+        <!-- Audience toggle -->
+        <div class="audience-tabs" role="tablist" aria-label="Choose audience">
+          <button class="tab is-active" data-tab="b2c" role="tab" aria-selected="true">I'm hosting an event</button>
+          <button class="tab" data-tab="b2b" role="tab" aria-selected="false">Add catering to your site</button>
+        </div>
+
+        <!-- B2C tab -->
+        <div class="tab-content is-active" data-content="b2c" role="tabpanel">
+          <div class="hero-eyebrow">AI-planned catering, on demand</div>
+          <h1>Catering, planned <em>in&nbsp;a&nbsp;chat.</em></h1>
+          <p class="sub">
+            Tell Swift what you're hosting. We'll suggest the menu, price the order, and deliver — no email threads, no spreadsheets, no waiting on quotes.
+          </p>
+          <div class="hero-ctas">
+            <a class="btn btn-primary" href="#order">Plan your event</a>
+            <a class="btn btn-ghost" href="#how">See how it works</a>
+          </div>
+          <div class="hero-meta">
+            <div><strong>60 sec</strong>chat to confirmed</div>
+            <div><strong>500+</strong>local kitchens</div>
+            <div><strong>4.9★</strong>avg host rating</div>
+          </div>
+        </div>
+
+        <!-- B2B tab -->
+        <div class="tab-content" data-content="b2b" role="tabpanel">
+          <div class="hero-eyebrow hero-eyebrow-b2b">Catering widget for your space</div>
+          <h1>Add AI catering to <em>your&nbsp;site.</em></h1>
+          <p class="sub">
+            Drop the Swift widget into your coworking space, office, or venue website. Your members order team lunches in a chat — fulfilled by our network of local kitchens. Branded to match. One line to install.
+          </p>
+          <div class="hero-ctas">
+            <a class="btn btn-primary" href="#book-demo">Book a demo</a>
+            <a class="btn btn-ghost" href="#docs">Read the docs</a>
+          </div>
+          <div class="hero-meta">
+            <div><strong>1-line</strong>install</div>
+            <div><strong>50+</strong>partner sites</div>
+            <div><strong>No</strong>setup fee</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="hero-animation" aria-hidden="true">
+        <iframe src="./home-hero.html" title="Swift catering demo" loading="lazy"></iframe>
+      </div>
+    </section>
+
+    <!-- ── HOW IT WORKS ──────────────────────────────── -->
+    <section class="section" id="how">
+      <div class="section-eyebrow">How it works</div>
+      <h2 class="section-title">
+        From <em>"I need lunch for 50"</em> to a confirmed order — in a single conversation.
+      </h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Tell us what you need</h3>
+          <p>Headcount, dietary needs, budget, the vibe. A quick chat — no forms, no menus to scroll, no quote requests.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Get a tailored menu</h3>
+          <p>Swift suggests dishes from real local kitchens, sized and priced for your crowd. Swap, edit, or approve in one tap.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Confirm and we deliver</h3>
+          <p>One tap locks it in. We coordinate the kitchen and the driver — you get on with hosting.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── B2B  (Embed widget on your site) ────────── -->
+    <div class="b2b-band">
+      <section class="b2b" id="business">
+        <div class="b2b-copy">
+          <div class="section-eyebrow">For workspaces, offices & venues</div>
+          <h2>Add AI catering to <em>your</em> site. In one line.</h2>
+          <p class="sub">
+            Give members, teams, or guests a way to order catering right from your coworking space, office, or venue website. Chat, suggest, confirm — branded to match, powered by our network of local kitchens.
+          </p>
+          <ul class="b2b-features">
+            <li><strong>One-line install.</strong> A single script tag — no code, no integrations to write.</li>
+            <li><strong>Your menu, your brand.</strong> Match colours, fonts, dietary tags, even the AI's tone.</li>
+            <li><strong>AI handles the hard parts.</strong> Menu suggestions, sizing for headcount, dietary swaps, pricing.</li>
+            <li><strong>Pay only when you sell.</strong> No setup fee. A small cut on each confirmed order.</li>
+          </ul>
+          <div class="b2b-ctas">
+            <a class="btn btn-primary" href="#book-demo">Book a demo</a>
+            <a class="btn btn-ghost" href="#docs">Read the docs</a>
+          </div>
+          <pre class="b2b-snippet"><span class="c-tag">&lt;script</span> <span class="c-key">src</span>=<span class="c-str">"https://swift.food/widget.js"</span>
+        <span class="c-key">data-partner</span>=<span class="c-str">"atlas-workspace"</span><span class="c-tag">&gt;&lt;/script&gt;</span></pre>
+        </div>
+
+        <div class="b2b-visual">
+          <!-- Browser frame containing a mock coworking site with the widget floating in -->
+          <div class="browser">
+            <div class="browser-bar">
+              <span class="browser-dot dot-r"></span>
+              <span class="browser-dot dot-y"></span>
+              <span class="browser-dot dot-g"></span>
+              <span class="browser-url">atlas.work</span>
+            </div>
+            <div class="browser-content">
+              <div class="site-header">
+                <span class="site-logo">Atlas</span>
+                <span class="site-nav-links">
+                  <span>Spaces</span>
+                  <span>Members</span>
+                  <span>Lunch</span>
+                </span>
+              </div>
+              <div class="site-hero">
+                <div class="site-hero-text">
+                  <div class="site-eyebrow">MEMBERS-FIRST · 12 LOCATIONS</div>
+                  <div class="site-title">Where work<br />feels like home.</div>
+                  <div class="site-sub">Hot desks, meeting rooms, and now — team lunches on demand. Chat with our catering AI below.</div>
+                </div>
+              </div>
+              <div class="embedded-widget" aria-hidden="true">
+                <div class="embedded-badge"><span class="dot"></span>Swift inside</div>
+                <iframe src="./home-hero.html" title="Embedded Swift widget on atlas.work" loading="lazy"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ── STATS STRIP ────────────────────────────────── -->
+    <section class="stats-wrap" style="padding-top: 96px;">
+      <div class="stats">
+        <div>
+          <div class="stat-num">60<span class="accent">s</span></div>
+          <div class="stat-label">avg chat-to-confirmed time</div>
+        </div>
+        <div>
+          <div class="stat-num">500<span class="accent">+</span></div>
+          <div class="stat-label">independent kitchens, 14 cities</div>
+        </div>
+        <div>
+          <div class="stat-num">4.9<span class="accent">★</span></div>
+          <div class="stat-label">avg event rating from hosts</div>
+        </div>
+        <div>
+          <div class="stat-num">1<span class="accent">-line</span></div>
+          <div class="stat-label">to embed on your own site</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FINAL CTA (dual audience) ────────────────── -->
+    <section class="final-cta">
+      <h2>Catering, <em>handled.</em></h2>
+      <p>Whether you're ordering lunch for fifty or adding catering to your own workspace, office, or venue site — Swift makes it a conversation.</p>
+      <div class="final-cta-buttons">
+        <a class="btn btn-primary" href="#order">Plan your event</a>
+        <a class="btn btn-ghost" href="#business">Embed the widget</a>
+      </div>
+      <div class="final-cta-split">
+        Run a workspace, office, or venue? <a href="#book-demo">Book a 15-min demo →</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── FOOTER ────────────────────────────────────── -->
+  <footer>
+    <div class="footer-inner">
+      <div>© Swift Food, 2026 — simple, local, reliable.</div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Contact</a>
+        <a href="#">For workspaces</a>
+        <a href="#">Widget docs</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll-aware nav (matches lib/components/navbar.tsx behaviour)
+    const nav = document.getElementById('nav');
+    const onScroll = () => {
+      if (window.scrollY > 20) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Hero audience tabs (B2C ↔ B2B)
+    const tabs = document.querySelectorAll('.audience-tabs .tab');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        tabs.forEach(t => {
+          const active = t === tab;
+          t.classList.toggle('is-active', active);
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        contents.forEach(c => {
+          c.classList.toggle('is-active', c.dataset.content === target);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
