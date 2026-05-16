@@ -36,8 +36,8 @@ export default function HomeV2Client() {
   return (
     <div className="hv2-page-glow relative overflow-x-hidden bg-[#fbf7f4] text-[#1a1a1a]">
       {/* ────────────── HERO ────────────── */}
-      <section className="relative z-10 mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-14 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:pt-[120px] max-md:pb-20 lg:grid-cols-[1fr_auto] lg:gap-[72px]">
-        <div>
+      <section className="relative z-10 mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-10 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:pt-20 max-md:pb-16 lg:grid-cols-[1fr_auto] lg:gap-[72px]">
+        <div className="max-md:text-center">
           {/* Audience switcher */}
           <div
             role="tablist"
@@ -50,7 +50,7 @@ export default function HomeV2Client() {
               onClick={() => setAudience("b2c")}
               className={`${TAB_BASE} ${audience === "b2c" ? TAB_ACTIVE : TAB_IDLE}`}
             >
-              I&apos;m hosting an event
+              Host an event
             </button>
             <button
               role="tab"
@@ -58,13 +58,13 @@ export default function HomeV2Client() {
               onClick={() => setAudience("b2b")}
               className={`${TAB_BASE} ${audience === "b2b" ? TAB_ACTIVE : TAB_IDLE}`}
             >
-              Add catering to your site
+              Embed widget
             </button>
           </div>
 
           {audience === "b2c" ? (
             <div key="b2c" role="tabpanel" className="hv2-tab-fade">
-              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
+              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[34px]">
                 Catering for big events,{" "}
                 <span className="font-medium text-[#fa43ad]">zero&nbsp;effort.</span>
               </h1>
@@ -80,11 +80,11 @@ export default function HomeV2Client() {
                 </svg>
                 AI-assisted from start to finish
               </div>
-              <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:text-[17px]">
+              <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:mx-auto max-md:text-[15px]">
                 Tell us what you&apos;re hosting — we&apos;ll suggest the menu, price it, and
                 deliver.
               </p>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
                 <a className={BTN_PRIMARY} href="/event-order">
                   Plan your event
                 </a>
@@ -108,15 +108,15 @@ export default function HomeV2Client() {
             </div>
           ) : (
             <div key="b2b" role="tabpanel" className="hv2-tab-fade">
-              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[44px]">
+              <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:text-[34px]">
                 Add AI catering to{" "}
                 <span className="font-medium text-[#fa43ad]">your&nbsp;site.</span>
               </h1>
-              <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:text-[17px]">
+              <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:mx-auto max-md:text-[15px]">
                 Drop our widget into your site — members order team lunches in a chat,
                 fulfilled by local kitchens.
               </p>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
                 <a className={BTN_PRIMARY} href="#book-demo">
                   Install Now
                 </a>
@@ -187,7 +187,7 @@ export default function HomeV2Client() {
         className="relative z-10 mx-auto max-w-[1280px] px-8 py-24 max-md:px-6 max-md:py-16"
       >
         <div className={SECTION_EYEBROW}>How it works</div>
-        <h2 className="mb-[72px] max-w-[720px] text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em]">
+        <h2 className="mb-[72px] max-w-[720px] text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] max-md:mb-12 max-md:text-[26px]">
           From <em className="italic text-[#fa43ad]">&ldquo;I need lunch for 50&rdquo;</em>{" "}
           to a confirmed order — in a single conversation.
         </h2>
@@ -236,7 +236,7 @@ export default function HomeV2Client() {
         >
           <div>
             <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
-            <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em]">
+            <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
               Add AI catering to <em className="italic text-[#fa43ad]">your</em> site. In one line.
             </h2>
             <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
@@ -263,7 +263,7 @@ export default function HomeV2Client() {
                 </li>
               ))}
             </ul>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
               <a className={BTN_PRIMARY} href="#book-demo">
                 Install Now
               </a>
@@ -380,7 +380,7 @@ export default function HomeV2Client() {
 
       {/* ────────────── FINAL CTA ────────────── */}
       <section className="relative z-10 mx-auto max-w-[880px] px-8 pt-[140px] pb-24 text-center max-md:px-6 max-md:pt-20 max-md:pb-16">
-        <h2 className="mb-[22px] text-[clamp(40px,5.2vw,68px)] font-medium leading-[1.04] tracking-[-0.025em]">
+        <h2 className="mb-[22px] text-[clamp(40px,5.2vw,68px)] font-medium leading-[1.04] tracking-[-0.025em] max-md:text-[30px]">
           Catering, <em className="italic text-[#fa43ad]">handled.</em>
         </h2>
         <p className="mx-auto mb-10 max-w-[540px] text-[19px] leading-[1.5] text-[#4a4845]">
