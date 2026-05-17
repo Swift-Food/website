@@ -99,20 +99,9 @@ export async function editField(
   return handle(res);
 }
 
-export async function confirm(sid: string): Promise<ChatResponse> {
-  const res = await fetch(`${API_BASE}/catering-chat/${sid}/confirm`, {
-    method: "POST",
-    headers: partnerHeaders(),
-  });
-  return handle(res);
-}
-
 export async function menuAction(
   sid: string,
   payload:
-    | { action: "swap"; itemId: string; replacementMenuItemId: string; mealSessionIndex?: number }
-    | { action: "remove"; itemId: string; mealSessionIndex?: number }
-    | { action: "set_quantity"; itemId: string; quantity: number; mealSessionIndex?: number }
     | { action: "pick_meal_session"; mealSessionIndex: number }
     | { action: "confirm_inheritance"; mealSessionIndex: number; accept: boolean },
 ): Promise<ChatResponse> {
@@ -138,20 +127,6 @@ export interface SwapOption {
   quantity: number;
   totalPrice: number;
   reason: string;
-}
-
-export async function moreVariety(
-  sid: string,
-  mealSessionIndex?: number,
-): Promise<ChatResponse> {
-  const body: Record<string, unknown> = {};
-  if (mealSessionIndex !== undefined) body.mealSessionIndex = mealSessionIndex;
-  const res = await fetch(`${API_BASE}/catering-chat/${sid}/more-variety`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...partnerHeaders() },
-    body: JSON.stringify(body),
-  });
-  return handle(res);
 }
 
 export interface BasketPick {

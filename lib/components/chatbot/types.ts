@@ -214,22 +214,6 @@ export interface SummaryTag {
   removable: boolean;
 }
 
-/**
- * One meal session's draft, wrapped with the meal-session metadata.
- * Multi-meal orders produce one PlanDraft per meal; single-meal orders
- * produce one. The wrapper carries the meal index so refinement actions
- * (swap/remove/qty/restaurant) know which meal they're acting on.
- */
-export interface PlanDraft {
-  mealSessionIndex: number;
-  sessionName: string;
-  sessionDate: string;
-  eventTime: string;
-  guestCount: number;
-  draft: MenuDraft;
-  ready: boolean;
-}
-
 // ── Intent-block types (catering chat v3) ───────────────────────────────────
 
 export interface ClientIntent {
@@ -303,11 +287,6 @@ export interface IntentBlockPart {
 export type MessagePart =
   | { type: "text"; text: string }
   | { type: "chips"; chips: Chip[] }
-  | {
-      type: "menu_plan";
-      drafts: PlanDraft[];
-      activeMealSessionIndex: number;
-    }
   | { type: "menu_preview"; preview: MenuPreview }
   | {
       type: "clarifier";

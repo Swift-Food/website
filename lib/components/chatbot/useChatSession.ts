@@ -54,10 +54,6 @@ export interface ChatSession {
   ) => Promise<void>;
   handleChip: (chip: Chip) => Promise<void>;
   applyEditField: (field: string, value: unknown, mealSessionIndex?: number) => Promise<void>;
-  swap: (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => Promise<void>;
-  remove: (itemId: string, mealSessionIndex?: number) => Promise<void>;
-  setQuantity: (itemId: string, quantity: number, mealSessionIndex?: number) => Promise<void>;
-  moreVariety: (mealSessionIndex?: number) => Promise<void>;
   /**
    * Hand the client-side cart off to the basket. Backend verifies items +
    * applies promotions + persists the draft and returns a redirect URL
@@ -255,49 +251,10 @@ export function useChatSession(
     [callApiAndApply],
   );
 
-  const swap = useCallback(
-    async (itemId: string, replacementMenuItemId: string, mealSessionIndex?: number) => {
-      const sid = sessionIdRef.current;
-      if (!sid) return;
-      await callApiAndApply(() =>
-        api.menuAction(sid, {
-          action: "swap",
-          itemId,
-          replacementMenuItemId,
-          mealSessionIndex,
-        }),
-      );
-    },
-    [callApiAndApply],
-  );
-
-  const remove = useCallback(
-    async (itemId: string, mealSessionIndex?: number) => {
-      const sid = sessionIdRef.current;
-      if (!sid) return;
-      await callApiAndApply(() =>
-        api.menuAction(sid, { action: "remove", itemId, mealSessionIndex }),
-      );
-    },
-    [callApiAndApply],
-  );
-
-  const setQuantity = useCallback(
-    async (itemId: string, quantity: number, mealSessionIndex?: number) => {
-      const sid = sessionIdRef.current;
-      if (!sid) return;
-      await callApiAndApply(() =>
-        api.menuAction(sid, { action: "set_quantity", itemId, quantity, mealSessionIndex }),
-      );
-    },
-    [callApiAndApply],
-  );
-
-  const moreVariety = useCallback(async (mealSessionIndex?: number) => {
-    const sid = sessionIdRef.current;
-    if (!sid) return;
-    await callApiAndApply(() => api.moreVariety(sid, mealSessionIndex));
-  }, [callApiAndApply]);
+  // swap / remove / set_quantity / more_variety used to round-trip through
+  // /menu-action and /more-variety. Both endpoints are gone now — cart
+  // mutations live entirely client-side in useCart, and /more-variety was
+  // deleted with the picker rewrite.
 
   const pickMealSession = useCallback(
     async (mealSessionIndex: number) => {
@@ -374,12 +331,6 @@ export function useChatSession(
           await sendText(txt);
           return;
         }
-        case "confirm":
-          await callApiAndApply(() => api.confirm(sid));
-          return;
-        case "more_variety":
-          await moreVariety();
-          return;
         case "add_to_basket":
           // Bot-emitted add_to_basket chip — not the cart's "Add all to
           // basket" button. Bot chip carries no picks, so we send an
@@ -397,7 +348,7 @@ export function useChatSession(
           return;
       }
     },
-    [sendText, callApiAndApply, moreVariety, addToBasket, pickMealSession, confirmInheritance],
+    [sendText, addToBasket, pickMealSession, confirmInheritance],
   );
 
   const resetSession = useCallback(async () => {
@@ -444,10 +395,6 @@ export function useChatSession(
     sendText,
     handleChip,
     applyEditField,
-    swap,
-    remove,
-    setQuantity,
-    moreVariety,
     addToBasket,
     resetSession,
     pickMealSession,

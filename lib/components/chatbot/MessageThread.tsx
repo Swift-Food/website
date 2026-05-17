@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { TextBubble } from "./parts/TextBubble";
 import { ChipGroup } from "./parts/ChipGroup";
-import { MenuPlanCard } from "./parts/MenuPlanCard";
 import { MenuPreviewCard } from "./parts/MenuPreviewCard";
 import { IntentBlockCard } from "./parts/IntentBlockCard";
 import { MealSessionStepper } from "./parts/MealSessionStepper";
@@ -20,9 +19,6 @@ interface MessageThreadProps {
   sessionId: string | null;
   onChip: (chip: Chip) => void;
   onEditField: (field: string, mealSessionIndex?: number) => void;
-  onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
-  onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
-  onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
 }
 
 /**
@@ -36,9 +32,6 @@ export function MessageThread({
   sessionId,
   onChip,
   onEditField,
-  onSwapItem,
-  onRemoveItem,
-  onQtyChange,
 }: MessageThreadProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -52,9 +45,6 @@ export function MessageThread({
               sessionId={sessionId}
               onChip={onChip}
               onEditField={onEditField}
-              onSwapItem={onSwapItem}
-              onRemoveItem={onRemoveItem}
-              onQtyChange={onQtyChange}
             />
           ))}
         </div>
@@ -69,38 +59,18 @@ function PartRenderer({
   sessionId,
   onChip,
   onEditField,
-  onSwapItem,
-  onRemoveItem,
-  onQtyChange,
 }: {
   part: MessagePart;
   sender: "user" | "bot";
   sessionId: string | null;
   onChip: (chip: Chip) => void;
   onEditField: (field: string, mealSessionIndex?: number) => void;
-  onSwapItem?: (itemId: string, itemName: string, mealSessionIndex: number) => void;
-  onRemoveItem?: (itemId: string, mealSessionIndex: number) => void;
-  onQtyChange?: (itemId: string, qty: number, mealSessionIndex: number) => void;
 }) {
   if (part.type === "text") {
     return <TextBubble sender={sender} text={part.text} />;
   }
   if (part.type === "chips") {
     return <ChipGroup chips={part.chips} onAction={onChip} />;
-  }
-  if (part.type === "menu_plan") {
-    return (
-      <MenuPlanCard
-        drafts={part.drafts}
-        activeMealSessionIndex={part.activeMealSessionIndex}
-        onPickMealSession={(idx) =>
-          onChip({ label: "", action: "pick_meal_session", payload: { mealSessionIndex: idx } })
-        }
-        onSwapItem={onSwapItem}
-        onRemoveItem={onRemoveItem}
-        onQtyChange={onQtyChange}
-      />
-    );
   }
   if (part.type === "menu_preview") {
     return <MenuPreviewCard preview={part.preview} />;
