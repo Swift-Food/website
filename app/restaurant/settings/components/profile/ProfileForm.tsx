@@ -1,6 +1,7 @@
 "use client";
 
-import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { Save, Loader, AlertCircle, ArrowLeft, X } from "lucide-react";
 import { ImageUploadSection } from "./ImageUploadSection";
 import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
 
@@ -91,6 +92,8 @@ interface ProfileFormProps {
   onMinCapacityChange: (value: string) => void;
   onMaxCapacityChange: (value: string) => void;
   onCateringServiceWindowsChange: (value: string[]) => void;
+  tags?: string[];
+  onTagsChange: (value: string[]) => void;
 }
 
 export const ProfileForm = ({
@@ -130,7 +133,30 @@ export const ProfileForm = ({
   onMinCapacityChange,
   onMaxCapacityChange,
   onCateringServiceWindowsChange,
+  tags = [],
+  onTagsChange,
 }: ProfileFormProps) => {
+  const [tagInput, setTagInput] = useState("");
+
+  const addTag = () => {
+    const trimmed = tagInput.trim();
+    if (trimmed && !tags.includes(trimmed) && tags.length < 5) {
+      onTagsChange([...tags, trimmed]);
+    }
+    setTagInput("");
+  };
+
+  const removeTag = (tag: string) => {
+    onTagsChange(tags.filter((t) => t !== tag));
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
   const toggleArrayValue = (arr: string[], value: string): string[] =>
     arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
   const handleSubmit = (e: React.FormEvent) => {
@@ -343,7 +369,55 @@ export const ProfileForm = ({
                   ))}
                 </div>
               </div>
-      
+
+              {/* Tags */}
+              <div className="mb-6">
+                <label className="block text-lg font-bold text-gray-900 mb-3">
+                  Tags (max 5)
+                </label>
+                <p className="text-sm text-gray-500 mb-3">
+                  Add custom tags to help customers discover your restaurant (e.g. "Street Food", "Family Friendly", "Award Winning")
+                </p>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder={tags.length >= 5 ? "Maximum 5 tags reached" : "Type a tag and press Enter or Add"}
+                    disabled={tags.length >= 5}
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
+                  <button
+                    type="button"
+                    onClick={addTag}
+                    disabled={!tagInput.trim() || tags.length >= 5}
+                    className="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Add
+                  </button>
+                </div>
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-sm font-medium rounded-full"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="hover:text-purple-600 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
 
           {/* Action Buttons */}

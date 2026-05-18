@@ -54,6 +54,11 @@ const MenuListPage = () => {
   const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
+  // Rename group state
+  const [editingGroupName, setEditingGroupName] = useState<string | null>(null);
+  const [groupNameInput, setGroupNameInput] = useState("");
+  const [savingGroupName, setSavingGroupName] = useState(false);
+
   // Sticky group nav state
   const [activeGroup, setActiveGroup] = useState<string>("");
   const groupRefs = useRef<Record<string, HTMLElement>>({});
@@ -204,9 +209,10 @@ const MenuListPage = () => {
 
             // Store group settings if available
             if (responseWithMenuItems.groupSettings) {
-              setRestaurantData({
+              setRestaurantData((prev: any) => ({
+                ...prev,
                 menuGroupSettings: responseWithMenuItems.groupSettings,
-              });
+              }));
             }
           }
         } else {
@@ -239,7 +245,7 @@ const MenuListPage = () => {
       );
       if (response.ok) {
         const data = await response.json();
-        setRestaurantData(data);
+        setRestaurantData((prev: any) => ({ ...prev, ...data }));
       }
     } catch (err) {
       console.error("Failed to fetch restaurant data:", err);
@@ -298,6 +304,25 @@ const MenuListPage = () => {
       setError(err.message || "Failed to update status");
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  const handleRenameGroup = async (oldName: string) => {
+    const newName = groupNameInput.trim();
+    if (!newName || newName === oldName) {
+      setEditingGroupName(null);
+      return;
+    }
+    setSavingGroupName(true);
+    try {
+      await cateringService.renameGroup(restaurantId, oldName, newName);
+      
+    } catch (err: any) {
+      setError(err.message || "Failed to rename group");
+    } finally {
+      await fetchMenuItems();
+      setEditingGroupName(null);
+      setSavingGroupName(false);
     }
   };
 
@@ -733,13 +758,55 @@ const MenuListPage = () => {
                   {groupedItems.map(({ groupName, items }) => (
                     <div key={groupName}>
                       <div className="flex items-center gap-3 mb-4">
-                        <h2
-                          ref={setGroupRef(groupName)}
-                          data-group-name={groupName}
-                          className="text-2xl font-bold text-gray-900"
-                        >
-                          {groupName}
-                        </h2>
+                        {editingGroupName === groupName ? (
+                          <form
+                            className="flex items-center gap-2"
+                            onSubmit={(e) => { e.preventDefault(); handleRenameGroup(groupName); }}
+                          >
+                            <input
+                              autoFocus
+                              value={groupNameInput}
+                              onChange={(e) => setGroupNameInput(e.target.value)}
+                              className="text-2xl font-bold text-gray-900 border-b-2 border-blue-500 bg-transparent outline-none w-48"
+                              disabled={savingGroupName}
+                              onKeyDown={(e) => { if (e.key === "Escape") setEditingGroupName(null); }}
+                            />
+                            <button
+                              type="submit"
+                              disabled={savingGroupName}
+                              className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                              title="Save"
+                            >
+                              <Save size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingGroupName(null)}
+                              disabled={savingGroupName}
+                              className="text-gray-400 hover:text-gray-600 p-1 rounded"
+                              title="Cancel"
+                            >
+                              <X size={16} />
+                            </button>
+                          </form>
+                        ) : (
+                          <>
+                            <h2
+                              ref={setGroupRef(groupName)}
+                              data-group-name={groupName}
+                              className="text-2xl font-bold text-gray-900"
+                            >
+                              {groupName}
+                            </h2>
+                            <button
+                              onClick={() => { setEditingGroupName(groupName); setGroupNameInput(groupName); }}
+                              className="text-gray-400 hover:text-gray-600 p-1 rounded transition-colors hover:bg-gray-100"
+                              title="Rename group"
+                            >
+                              <Edit2 size={15} />
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => enterItemReorderMode(groupName)}
                           className="text-gray-400 hover:text-gray-600 flex items-center gap-1 text-sm font-medium px-2 py-1 rounded transition-colors hover:bg-gray-100"

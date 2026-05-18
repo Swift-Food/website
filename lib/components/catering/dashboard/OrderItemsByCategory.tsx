@@ -492,7 +492,7 @@ export default function OrderItemsByCategory({
           <button
             onClick={onViewMenu}
             disabled={isGeneratingPdf}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-6 py-3 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGeneratingPdf ? (
               <Loader2 className="h-4 w-4 animate-spin" />
