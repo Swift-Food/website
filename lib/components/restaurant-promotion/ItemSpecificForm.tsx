@@ -29,7 +29,8 @@ export function ItemSpecificForm({ onSubmit, onCancel, restaurantId, submitting 
     const fetchMenuItems = async () => {
       try {
         const menuData = await cateringService.getRestaurantMenuItems(restaurantId)
-        setMenuItems(menuData || []);
+        const items = Array.isArray(menuData) ? menuData : menuData?.menuItems;
+        setMenuItems(items || []);
       } catch (error) {
         console.error("Failed to fetch menu items:", error);
       }

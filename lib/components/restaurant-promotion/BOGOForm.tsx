@@ -52,7 +52,8 @@ export function BogoForm({
     const fetchMenuItems = async () => {
       try {
         setLoading(true);
-        const items = await cateringService.getRestaurantMenuItems(restaurantId)
+        const raw = await cateringService.getRestaurantMenuItems(restaurantId)
+        const items = Array.isArray(raw) ? raw : raw.menuItems;
         setMenuItems(items);
       } catch (error) {
         console.error("Failed to fetch menu items:", error);
