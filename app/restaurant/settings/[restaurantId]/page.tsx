@@ -31,6 +31,7 @@ interface FormData {
   minCapacity: string;
   maxCapacity: string;
   cateringServiceWindows: string[];
+  tags: string[];
 }
 
 const RestaurantSettingsPage = () => {
@@ -60,6 +61,7 @@ const RestaurantSettingsPage = () => {
     minCapacity: "",
     maxCapacity: "",
     cateringServiceWindows: [],
+    tags: [],
   });
 
   const [uploadingEventImage, setUploadingEventImage] = useState(false);
@@ -97,6 +99,7 @@ const RestaurantSettingsPage = () => {
           minCapacity: restaurantDetails.minCapacity ? String(restaurantDetails.minCapacity) : "",
           maxCapacity: restaurantDetails.maxCapacity ? String(restaurantDetails.maxCapacity) : "",
           cateringServiceWindows: restaurantDetails.cateringServiceWindows || [],
+          tags: restaurantDetails.tags || [],
         });
         setLoading(false);
         sessionStorage.removeItem("restaurantData");
@@ -131,6 +134,7 @@ const RestaurantSettingsPage = () => {
         minCapacity: restaurantDetails.minCapacity ? String(restaurantDetails.minCapacity) : "",
         maxCapacity: restaurantDetails.maxCapacity ? String(restaurantDetails.maxCapacity) : "",
         cateringServiceWindows: restaurantDetails.cateringServiceWindows || [],
+        tags: restaurantDetails.tags || [],
       });
     } catch (err: any) {
       setError(err.message || "Failed to load restaurant details");
@@ -290,6 +294,7 @@ const RestaurantSettingsPage = () => {
         cateringFormats: formData.cateringFormats,
         dietarySupport: formData.dietarySupport,
         cateringServiceWindows: formData.cateringServiceWindows,
+        tags: formData.tags,
         ...(formData.minCapacity ? { minCapacity: parseInt(formData.minCapacity) } : {}),
         ...(formData.maxCapacity ? { maxCapacity: parseInt(formData.maxCapacity) } : {}),
       };
@@ -387,6 +392,8 @@ const RestaurantSettingsPage = () => {
           onMinCapacityChange={(value) => setFormData((prev) => ({ ...prev, minCapacity: value }))}
           onMaxCapacityChange={(value) => setFormData((prev) => ({ ...prev, maxCapacity: value }))}
           onCateringServiceWindowsChange={(value) => setFormData((prev) => ({ ...prev, cateringServiceWindows: value }))}
+          tags={formData.tags}
+          onTagsChange={(value) => setFormData((prev) => ({ ...prev, tags: value }))}
         />
 
         {showConfirmModal && (
