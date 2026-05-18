@@ -860,7 +860,7 @@ class CateringService {
 
   async getRestaurantMenuItems(
     restaurantId: string
-  ): Promise<MenuItemDetails[]> {
+  ): Promise<MenuItemDetails[] | { menuItems: MenuItemDetails[]; groupSettings?: any }> {
     const url = `${API_BASE_URL}/menu-item/admin/restaurant/${restaurantId}`;
 
     const response = await fetchWithAuth(url);
@@ -873,20 +873,7 @@ class CateringService {
       );
     }
 
-    const data = await response.json();
-
-    // Handle both array and object responses
-    if (Array.isArray(data)) {
-      return data;
-    } else if (
-      data &&
-      typeof data === "object" &&
-      Array.isArray(data.menuItems)
-    ) {
-      return data.menuItems;
-    }
-
-    return [];
+    return response.json();
   }
 
   async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItemDetails> {
@@ -942,7 +929,8 @@ class CateringService {
     restaurantId: string
   ): Promise<MenuItemDetails> {
     // Fetch the original item
-    const items = await this.getRestaurantMenuItems(restaurantId);
+    const raw = await this.getRestaurantMenuItems(restaurantId);
+    const items: MenuItemDetails[] = Array.isArray(raw) ? raw : raw.menuItems;
     const originalItem = items.find((item) => item.id === itemId);
 
     if (!originalItem) {
@@ -991,6 +979,26 @@ class CateringService {
     }
 
     return response.json();
+  }
+
+  async renameGroup(
+    restaurantId: string,
+    oldName: string,
+    newName: string
+  ): Promise<void> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/menu-item/rename-group/${restaurantId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldName, newName }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to rename group");
+    }
   }
 
   async getRestaurant(restaurantId: string): Promise<any> {
