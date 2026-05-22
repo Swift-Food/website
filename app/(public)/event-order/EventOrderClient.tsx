@@ -5,6 +5,7 @@ import { CateringWidget } from "@swift-food-services/catering-widget";
 export default function EventOrderClient() {
   return (
     <CateringWidget
+      aiEnabled
       publishableKey={process.env.NEXT_PUBLIC_SWIFT_CATERING_PUBLISHABLE_KEY!}
       googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
       stickyTopOffset={0}
