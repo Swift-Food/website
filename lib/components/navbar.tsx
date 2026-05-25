@@ -67,7 +67,7 @@ export default function Navbar() {
               Contact Us
             </Link>
             <Link
-              href="/home-v2#business"
+              href="/#business"
               className="hover:text-[#fa43ad] transition-colors uppercase"
             >
               For Business
@@ -176,7 +176,7 @@ export default function Navbar() {
               Event Ordering
             </Link>
             <Link
-              href="/home-v2#business"
+              href="/#business"
               className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
               onClick={closeMobileMenu}
             >
