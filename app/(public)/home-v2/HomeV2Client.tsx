@@ -182,7 +182,7 @@ export default function HomeV2Client() {
               ))}
             </ul>
             <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
-              <a className={BTN_PRIMARY} href="#book-demo">
+              <a className={BTN_PRIMARY} href="https://www.npmjs.com/package/@swift-food-services/catering-widget" target="_blank" rel="noopener noreferrer">
                 Install Now
               </a>
               <a className={BTN_GHOST} href="/contact">
