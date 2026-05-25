@@ -348,7 +348,7 @@ export default function ExploreClient() {
         <div className="text-center">
           <div className={`${SECTION_EYEBROW} text-center`}>For workspaces, offices &amp; venues</div>
           <p className="text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-            Add AI catering to <em className="italic text-[#fa43ad]">your</em> site.
+            Add Nibble to <em className="italic text-[#fa43ad]">your</em> site.
           </p>
         </div>
       </div>
