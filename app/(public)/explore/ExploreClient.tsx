@@ -209,6 +209,10 @@ export default function ExploreClient() {
             <a
               href="#b2b"
               className="font-semibold text-[#c9277f] underline-offset-4 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("b2b")?.scrollIntoView({ behavior: "smooth" });
+              }}
             >
               Embed our widget →
             </a>
