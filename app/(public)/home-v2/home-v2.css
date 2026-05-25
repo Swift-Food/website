@@ -308,3 +308,223 @@
   85%     { opacity: 0; transform: translateY(6px); }
   100%    { opacity: 0; transform: translateY(6px); }
 }
+
+/* ============================================================
+   Mobile phone mockup — 3-page animation (16s cycle)
+   Page 1: Atlas hero  →  Page 2: Order + Ask AI  →  Page 3: AI Chat
+   ============================================================ */
+
+/* ── Page slide animations ───────────────────────────────── */
+.hv2-m-atlas,
+.hv2-m-order,
+.hv2-m-chat {
+  will-change: transform;
+}
+.hv2-m-atlas {
+  animation: hv2-m-atlas-slide 16s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.hv2-m-order {
+  transform: translateX(100%);
+  animation: hv2-m-order-slide 16s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.hv2-m-chat {
+  transform: translateY(100%);
+  z-index: 2;
+  animation: hv2-m-chat-slide 16s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes hv2-m-atlas-slide {
+  0%, 20%  { transform: translateX(0); }
+  25%      { transform: translateX(-100%); }
+  80%      { transform: translateX(-100%); }
+  85%      { transform: translateX(0); }
+  100%     { transform: translateX(0); }
+}
+@keyframes hv2-m-order-slide {
+  0%, 20%  { transform: translateX(100%); }
+  25%      { transform: translateX(0); }
+  80%      { transform: translateX(0); }
+  85%      { transform: translateX(100%); }
+  100%     { transform: translateX(100%); }
+}
+@keyframes hv2-m-chat-slide {
+  0%, 40%  { transform: translateY(100%); }
+  45%      { transform: translateY(0); }
+  75%      { transform: translateY(0); }
+  80%      { transform: translateY(100%); }
+  100%     { transform: translateY(100%); }
+}
+
+/* ── Atlas page — CTA button + cursor ────────────────────── */
+.hv2-m-atlas-cta {
+  animation: hv2-m-atlas-click 16s ease-in-out infinite;
+  will-change: transform, background-color, box-shadow;
+}
+@keyframes hv2-m-atlas-click {
+  0%, 16%  { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250,67,173,0.4); }
+  17%      { transform: scale(0.94); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201,39,127,0.4); }
+  19%      { transform: scale(0.97); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201,39,127,0.4); }
+  21%      { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250,67,173,0.4); }
+  100%     { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250,67,173,0.4); }
+}
+
+.hv2-m-atlas-cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 20;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: hv2-m-atlas-cursor 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes hv2-m-atlas-cursor {
+  0%, 5%   { opacity: 0; left: 65%; top: 55%; transform: scale(1); }
+  8%       { opacity: 1; left: 65%; top: 55%; transform: scale(1); }
+  16%      { opacity: 1; left: 15%; top: 87%; transform: scale(1); }
+  17%      { opacity: 1; left: 15%; top: 87%; transform: scale(0.82); }
+  19%      { opacity: 1; left: 15%; top: 87%; transform: scale(1); }
+  22%      { opacity: 0; left: 15%; top: 87%; transform: scale(1); }
+  100%     { opacity: 0; left: 65%; top: 55%; transform: scale(1); }
+}
+
+/* ── Order page — Ask AI button + cursor ─────────────────── */
+.hv2-m-ask-ai-btn {
+  animation: hv2-m-ask-ai-click 16s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes hv2-m-ask-ai-click {
+  0%, 37%  { transform: scale(1);    background-color: transparent; }
+  38%      { transform: scale(0.95); background-color: #ffeaf4; }
+  40%      { transform: scale(1);    background-color: transparent; }
+  100%     { transform: scale(1);    background-color: transparent; }
+}
+
+.hv2-m-order-cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 20;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: hv2-m-order-cursor 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes hv2-m-order-cursor {
+  0%, 28%  { opacity: 0; left: 55%; top: 45%; transform: scale(1); }
+  31%      { opacity: 1; left: 55%; top: 45%; transform: scale(1); }
+  37%      { opacity: 1; left: 52%; top: 93%; transform: scale(1); }
+  38%      { opacity: 1; left: 52%; top: 93%; transform: scale(0.82); }
+  40%      { opacity: 1; left: 52%; top: 93%; transform: scale(1); }
+  43%      { opacity: 0; left: 52%; top: 93%; transform: scale(1); }
+  100%     { opacity: 0; left: 55%; top: 45%; transform: scale(1); }
+}
+
+/* ── Chat page micro-animations ──────────────────────────── */
+
+/* Chat input — visible while typing, dims after send */
+.hv2-m-chat-input {
+  opacity: 0;
+  background: white;
+  animation: hv2-m-chat-input 16s ease infinite;
+}
+@keyframes hv2-m-chat-input {
+  0%, 46%  { opacity: 0; background: white; }
+  48%      { opacity: 1; background: white; }
+  61%      { opacity: 1; background: white; }
+  62%      { opacity: 0.55; background: #f4efe8; }
+  78%      { opacity: 0.55; background: #f4efe8; }
+  80%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+
+/* Typewriter text inside the input */
+.hv2-m-typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: middle;
+  width: 0;
+  animation: hv2-m-typewriter 16s steps(18, end) infinite;
+}
+@keyframes hv2-m-typewriter {
+  0%, 49%  { width: 0; }
+  56%      { width: 116px; }
+  61%      { width: 116px; }
+  62%      { width: 0; }
+  100%     { width: 0; }
+}
+
+/* Blinking caret — only visible while typing */
+.hv2-m-caret {
+  display: inline-block;
+  width: 1px;
+  height: 0.85em;
+  background: #1a1a1a;
+  vertical-align: middle;
+  margin-left: 1px;
+  animation:
+    hv2-caret-blink 0.7s steps(2, end) infinite,
+    hv2-m-caret-show 16s ease infinite;
+}
+@keyframes hv2-m-caret-show {
+  0%, 48%    { opacity: 0; }
+  49%, 61%   { opacity: 1; }
+  62%, 100%  { opacity: 0; }
+}
+
+/* User bubble — flies up from input position on send */
+.hv2-m-user-bubble {
+  opacity: 0;
+  animation: hv2-m-user-bubble 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes hv2-m-user-bubble {
+  0%, 61%  { opacity: 0; transform: translateY(200px) scale(0.85); }
+  62%      { opacity: 1; transform: translateY(200px) scale(0.85); }
+  65%      { opacity: 1; transform: translateY(0) scale(1); }
+  78%      { opacity: 1; transform: translateY(0) scale(1); }
+  80%      { opacity: 0; transform: translateY(0); }
+  100%     { opacity: 0; transform: translateY(200px) scale(0.85); }
+}
+
+/* "AI is thinking" typing dots */
+.hv2-m-typing-dots {
+  opacity: 0;
+  animation: hv2-m-typing-dots 16s ease infinite;
+}
+@keyframes hv2-m-typing-dots {
+  0%, 66%  { opacity: 0; }
+  67%      { opacity: 1; }
+  70%      { opacity: 1; }
+  71%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+.hv2-m-typing-dots span {
+  animation: hv2-typing-dot 1s ease-in-out infinite;
+}
+.hv2-m-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.hv2-m-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+/* AI response bubble */
+.hv2-m-ai-bubble {
+  opacity: 0;
+  animation: hv2-m-ai-bubble 16s ease infinite;
+}
+@keyframes hv2-m-ai-bubble {
+  0%, 71%  { opacity: 0; transform: translateY(4px); }
+  73%      { opacity: 1; transform: translateY(0); }
+  78%      { opacity: 1; transform: translateY(0); }
+  80%      { opacity: 0; transform: translateY(4px); }
+  100%     { opacity: 0; transform: translateY(4px); }
+}
+
+/* Menu preview card — last to appear */
+.hv2-m-menu-preview {
+  opacity: 0;
+  animation: hv2-m-menu-preview 16s ease infinite;
+}
+@keyframes hv2-m-menu-preview {
+  0%, 74%  { opacity: 0; transform: translateY(6px); }
+  76%      { opacity: 1; transform: translateY(0); }
+  78%      { opacity: 1; transform: translateY(0); }
+  80%      { opacity: 0; transform: translateY(6px); }
+  100%     { opacity: 0; transform: translateY(6px); }
+}
