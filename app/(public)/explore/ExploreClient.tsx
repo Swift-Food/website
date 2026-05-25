@@ -311,7 +311,7 @@ export default function ExploreClient() {
           <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-white">
             That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
           </p>
-          <p className="mt-3 text-[18px] text-[#a8a4a0]">But what if your members want it too?</p>
+          <p className="mt-3 text-[18px] text-[#a8a4a0]">But what if ordering was built into your site?</p>
         </div>
       </div>
 
