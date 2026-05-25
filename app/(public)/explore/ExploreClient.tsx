@@ -146,26 +146,31 @@ export default function ExploreClient() {
       const floatIsOverDark = sRect.bottom > floatY;
       float.style.color = floatIsOverDark ? "white" : "#1a1a1a";
 
-      if (moveP >= 0.95) {
+      const phCenterX = phRect.left + phRect.width / 2;
+      const phCenterY = phRect.top + phRect.height / 2;
+      const screenCenterX = window.innerWidth / 2;
+      const screenCenterY = viewportH / 2;
+
+      // How close is the placeholder to viewport center vertically (0 = far, 1 = there)
+      const distY = Math.abs(phCenterY - screenCenterY);
+      const approachP = Math.max(0, Math.min(1, 1 - distY / (viewportH * 0.8)));
+
+      // Float moves from screen center toward placeholder position as it approaches
+      const curX = screenCenterX + (phCenterX - screenCenterX) * approachP;
+      float.style.left = `${curX}px`;
+      float.style.top = `${screenCenterY}px`;
+      float.style.transform = "translate(-50%, -50%)";
+      float.style.textAlign = approachP > 0.5 ? "left" : "center";
+
+      // Hard swap when placeholder reaches viewport center
+      const placeholderPassedCenter = phCenterY <= screenCenterY;
+
+      if (placeholderPassedCenter) {
         float.style.opacity = "0";
         placeholder.style.opacity = "1";
       } else {
         placeholder.style.opacity = "0";
         float.style.opacity = String(b2bFade);
-
-        const startX = window.innerWidth / 2;
-        const startY = viewportH / 2;
-        const endX = phRect.left + phRect.width / 2;
-        const endY = phRect.top + phRect.height / 2;
-
-        const easedMove = moveP * moveP;
-        const curX = startX + (endX - startX) * easedMove;
-        const curY = startY + (endY - startY) * easedMove;
-
-        float.style.left = `${curX}px`;
-        float.style.top = `${curY}px`;
-        float.style.transform = "translate(-50%, -50%)";
-        float.style.textAlign = easedMove > 0.4 ? "left" : "center";
       }
 
       // Hide float entirely before B2C is fully gone
