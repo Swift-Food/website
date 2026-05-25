@@ -123,12 +123,13 @@ export default function ExploreClient() {
       const scrollRange = sRect.height - viewportH;
       const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
 
-      // B2C: fully visible 0–0.5, fades out 0.5–0.7
-      const b2cFade = Math.max(0, Math.min(1, 1 - (transitionP - 0.5) * 5));
-      b2c.style.opacity = String(b2cFade);
-      b2c.style.transform = `translateY(${-Math.max(0, transitionP - 0.5) * 40}px)`;
+      // B2C: only visible while dark section is on screen
+      const darkOnScreen = sRect.top < viewportH && sRect.bottom > 0;
+      const b2cIn = Math.min(1, transitionP * 10);
+      const b2cOut = Math.max(0, 1 - (transitionP - 0.5) * 5);
+      b2c.style.opacity = String(darkOnScreen ? Math.min(b2cIn, b2cOut) : 0);
 
-      // B2B float: fades in 0.65–0.85
+      // B2B float: fades in 0.65–0.85, stays centered until hero approaches
       const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.65) * 5));
 
       // Movement: driven by how close the hero section is to viewport
@@ -298,17 +299,21 @@ export default function ExploreClient() {
         className="relative z-10 bg-[#3a3a3a] px-8 max-md:px-6"
         style={{ minHeight: "200vh" }}
       >
-        <div className="sticky top-0 flex h-screen items-center justify-center">
-          <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform">
-            <div className="text-center">
-              <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-white">
-                That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
-              </p>
-              <p className="mt-3 text-[18px] text-[#a8a4a0]">But what if your members want it too?</p>
-            </div>
-          </div>
-        </div>
+        <div className="sticky top-0 h-screen" />
       </section>
+
+      {/* Fixed B2C text — stays centered in viewport */}
+      <div
+        ref={b2cRef}
+        className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-0"
+      >
+        <div className="text-center">
+          <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-white">
+            That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
+          </p>
+          <p className="mt-3 text-[18px] text-[#a8a4a0]">But what if your members want it too?</p>
+        </div>
+      </div>
 
       {/* Floating B2B heading — single element that moves from center to hero */}
       <div
