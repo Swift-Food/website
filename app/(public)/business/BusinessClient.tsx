@@ -437,12 +437,12 @@ export default function BusinessClient() {
       </section>
 
       {/* ────────────── CTA ────────────── */}
-      <section className="relative z-10 border-t border-[#e8e2da] bg-white">
-        <div className="mx-auto max-w-[1280px] px-8 py-24 text-center max-md:px-6 max-md:py-16">
-          <h2 className="mb-4 text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] max-md:text-[26px]">
+      <section className="relative z-10 border-t border-[#e8e2da] bg-[#3a3a3a]">
+        <div className="mx-auto max-w-[1280px] px-8 py-28 text-center max-md:px-6 max-md:py-20">
+          <h2 className="mb-4 text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] text-white max-md:text-[26px]">
             Ready to add catering to your site?
           </h2>
-          <p className="mx-auto mb-9 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
+          <p className="mx-auto mb-9 max-w-[500px] text-[17px] leading-[1.55] text-[#a8a4a0]">
             Free to set up. Live in minutes.
             <br />
             No commitments.
@@ -451,7 +451,7 @@ export default function BusinessClient() {
             <a className={BTN_PRIMARY} href="https://www.npmjs.com/package/@swift-food-services/catering-widget" target="_blank" rel="noopener noreferrer">
               Install Now
             </a>
-            <a className={BTN_GHOST} href="/contact">
+            <a className="inline-flex items-center gap-1.5 rounded-full border border-white bg-white px-6 py-[13px] text-[14.5px] font-semibold text-[#1a1a1a] transition-all hover:bg-[#f0f0f0] max-md:px-5 max-md:py-2.5 max-md:text-[13px]" href="/contact">
               Talk to us
             </a>
           </div>
