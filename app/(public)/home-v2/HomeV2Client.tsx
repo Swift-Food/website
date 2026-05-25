@@ -164,13 +164,13 @@ export default function HomeV2Client() {
             </p>
             <ul className="mb-9 flex flex-col gap-3.5">
               {[
-                ["One-line install.", "A single script tag — no code, no integrations to write."],
-                ["Your menu, your brand.", "Match colours, fonts, dietary tags, even the AI's tone."],
+                ["Easy to integrate.", "Install the package, drop in the component — minimal code, no complex setup."],
+                ["Your brand, your colours.", "Customise the widget to match your site's look and feel."],
                 [
                   "AI handles the hard parts.",
-                  "Menu suggestions, sizing for headcount, dietary swaps, pricing.",
+                  "Menu suggestions, sizing for headcount, and real-time pricing.",
                 ],
-                ["Pay only when you sell.", "No setup fee. A small cut on each confirmed order."],
+                ["Free to get started.", "No setup fee, no monthly cost. Get up and running in minutes."],
               ].map(([lead, rest]) => (
                 <li
                   key={lead}
