@@ -13,7 +13,7 @@ export default function Navbar() {
   const { navbarDark } = useScroll();
 
   // Check if we're on the homepage for transparent navbar
-  const isHomePage = pathname === "/" || pathname === "/home-v2" || pathname === "/business";
+  const isHomePage = pathname === "/" || pathname === "/home-v2" || pathname === "/business" || pathname === "/explore";
   // Check if we're on pages that should have sticky navbar
 
   useEffect(() => {
