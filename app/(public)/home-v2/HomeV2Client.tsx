@@ -36,6 +36,7 @@ export default function HomeV2Client() {
   const paused = useRef(false);
   const dragStartX = useRef(0);
   const dragStartOffset = useRef(0);
+  const didDrag = useRef(false);
   const rafId = useRef<number>(0);
   const lastTime = useRef(0);
   const speed = 80;
@@ -64,24 +65,29 @@ export default function HomeV2Client() {
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0) return;
     dragging.current = true;
+    didDrag.current = false;
     dragStartX.current = e.clientX;
     dragStartOffset.current = offset.current;
     lastTime.current = 0;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }, []);
 
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging.current) return;
-    offset.current = dragStartOffset.current + (e.clientX - dragStartX.current);
-    if (marqueeRef.current) {
-      marqueeRef.current.style.transform = `translateX(${offset.current}px)`;
-    }
-  }, []);
-
-  const onPointerUp = useCallback(() => {
-    dragging.current = false;
-    lastTime.current = 0;
+    const onMove = (ev: PointerEvent) => {
+      if (!dragging.current) return;
+      if (Math.abs(ev.clientX - dragStartX.current) > 5) didDrag.current = true;
+      offset.current = dragStartOffset.current + (ev.clientX - dragStartX.current);
+      if (marqueeRef.current) {
+        marqueeRef.current.style.transform = `translateX(${offset.current}px)`;
+      }
+    };
+    const onUp = () => {
+      dragging.current = false;
+      lastTime.current = 0;
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
   }, []);
 
   return (
@@ -173,9 +179,6 @@ export default function HomeV2Client() {
           <div
             className="marquee-container cursor-grab active:cursor-grabbing select-none group/marquee"
             onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
             onMouseEnter={() => { paused.current = true; lastTime.current = 0; }}
             onMouseLeave={() => { paused.current = false; lastTime.current = 0; }}
           >
@@ -188,7 +191,7 @@ export default function HomeV2Client() {
                     target="_blank"
                     rel="noopener noreferrer"
                     draggable={false}
-                    onClickCapture={(e) => { if (Math.abs(dragStartX.current - e.clientX) > 5) e.preventDefault(); }}
+                    onClickCapture={(e) => { if (didDrag.current) e.preventDefault(); }}
                     className="mx-10 flex shrink-0 items-center transition-opacity duration-200 group-hover/marquee:opacity-30 hover:!opacity-100"
                   >
                     <Image
