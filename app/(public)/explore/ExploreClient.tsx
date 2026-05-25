@@ -368,7 +368,7 @@ export default function ExploreClient() {
               Give members, teams, or guests a way to order catering right from your website. One component, zero backend work.
             </p>
             <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
-              <a className={BTN_PRIMARY} href="/business">Learn more</a>
+              <a className={BTN_PRIMARY} href="https://www.npmjs.com/package/@swift-food-services/catering-widget" target="_blank" rel="noopener noreferrer">Install Now</a>
               <a className={BTN_GHOST} href="/contact">Enquire Now</a>
             </div>
           </div>
