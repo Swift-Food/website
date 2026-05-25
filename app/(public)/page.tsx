@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomeV2Client from "./home-v2/HomeV2Client";
+import ExploreClient from "./explore/ExploreClient";
 
 export const metadata: Metadata = {
   title: "Swift Food | London Event Catering & Food Delivery for Corporate & Tech Events",
@@ -101,7 +101,7 @@ export default function Home() {
           __html: JSON.stringify(websiteJsonLd),
         }}
       />
-      <HomeV2Client />
+      <ExploreClient />
     </>
   );
 }

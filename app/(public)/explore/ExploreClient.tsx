@@ -102,6 +102,7 @@ export default function ExploreClient() {
 
   /* ── Scroll transition state ── */
   const transitionRef = useRef<HTMLDivElement>(null);
+  const b2cCtaRef = useRef<HTMLDivElement>(null);
   const b2cRef = useRef<HTMLDivElement>(null);
   const b2bFloatRef = useRef<HTMLDivElement>(null);
   const heroPlaceholderRef = useRef<HTMLDivElement>(null);
@@ -110,38 +111,41 @@ export default function ExploreClient() {
   useEffect(() => {
     const onScroll = () => {
       const section = transitionRef.current;
+      const b2cCta = b2cCtaRef.current;
       const b2c = b2cRef.current;
       const float = b2bFloatRef.current;
       const placeholder = heroPlaceholderRef.current;
       const heroSection = heroSectionRef.current;
-      if (!section || !b2c || !float || !placeholder) return;
+      if (!section || !b2cCta || !b2c || !float || !placeholder) return;
 
       const viewportH = window.innerHeight;
       const sRect = section.getBoundingClientRect();
 
-      // transitionP: 0 when section top hits viewport top, 1 when section bottom hits viewport bottom
       const scrollRange = sRect.height - viewportH;
       const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
-
-      // B2C: fades in 0–0.08, holds 0.08–0.18, fades out 0.18–0.28
       const darkOnScreen = sRect.top < viewportH && sRect.bottom > 0;
-      const b2cIn = Math.min(1, transitionP * (1 / 0.08));
-      const b2cOut = Math.max(0, 1 - (transitionP - 0.18) * (1 / 0.1));
+
+      // Phase 1 — B2C CTA: fade in 0–0.06, hold 0.06–0.14, fade out 0.14–0.20
+      const ctaIn = Math.min(1, transitionP * (1 / 0.06));
+      const ctaOut = Math.max(0, 1 - (transitionP - 0.14) * (1 / 0.06));
+      const ctaOpacity = darkOnScreen ? Math.min(ctaIn, ctaOut) : 0;
+      b2cCta.style.opacity = String(ctaOpacity);
+      b2cCta.style.pointerEvents = ctaOpacity > 0.5 ? "auto" : "none";
+
+      // Phase 2 — Bridge text: fade in 0.27–0.33, hold 0.33–0.41, fade out 0.41–0.47
+      const b2cIn = Math.max(0, Math.min(1, (transitionP - 0.27) * (1 / 0.06)));
+      const b2cOut = Math.max(0, 1 - (transitionP - 0.41) * (1 / 0.06));
       b2c.style.opacity = String(darkOnScreen ? Math.min(b2cIn, b2cOut) : 0);
 
-      // B2B float: fades in 0.32–0.42, holds 0.42–0.52, then moves to hero
-      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.32) * (1 / 0.1)));
+      // Phase 3 — B2B float: fade in 0.54–0.62
+      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.54) * (1 / 0.08)));
 
-      // Movement: driven by how close the hero section is to viewport
-      let moveP = 0;
       if (heroSection) {
-        const hRect = heroSection.getBoundingClientRect();
-        moveP = Math.max(0, Math.min(1, 1 - hRect.top / viewportH));
+        heroSection.getBoundingClientRect();
       }
 
       const phRect = placeholder.getBoundingClientRect();
 
-      // Always update color: white when text is over dark section, black when over light
       const floatY = parseFloat(float.style.top) || viewportH / 2;
       const floatIsOverDark = sRect.bottom > floatY;
       float.style.color = floatIsOverDark ? "white" : "#1a1a1a";
@@ -151,18 +155,15 @@ export default function ExploreClient() {
       const screenCenterX = window.innerWidth / 2;
       const screenCenterY = viewportH / 2;
 
-      // How close is the placeholder to viewport center vertically (0 = far, 1 = there)
       const distY = Math.abs(phCenterY - screenCenterY);
       const approachP = Math.max(0, Math.min(1, 1 - distY / (viewportH * 0.8)));
 
-      // Float moves from screen center toward placeholder position as it approaches
       const curX = screenCenterX + (phCenterX - screenCenterX) * approachP;
       float.style.left = `${curX}px`;
       float.style.top = `${screenCenterY}px`;
       float.style.transform = "translate(-50%, -50%)";
       float.style.textAlign = approachP > 0.5 ? "left" : "center";
 
-      // Hard swap when placeholder reaches viewport center
       const placeholderPassedCenter = phCenterY <= screenCenterY;
 
       if (placeholderPassedCenter) {
@@ -173,8 +174,7 @@ export default function ExploreClient() {
         float.style.opacity = String(b2bFade);
       }
 
-      // Hide float entirely before B2C is fully gone
-      if (transitionP <= 0.29) {
+      if (transitionP <= 0.51) {
         float.style.opacity = "0";
       }
     };
@@ -303,12 +303,30 @@ export default function ExploreClient() {
       <section
         ref={transitionRef}
         className="relative z-10 bg-[#3a3a3a] px-8 max-md:px-6"
-        style={{ minHeight: "350vh" }}
+        style={{ minHeight: "500vh" }}
       >
         <div className="sticky top-0 h-screen" />
       </section>
 
-      {/* Fixed B2C text — stays centered in viewport */}
+      {/* Fixed B2C CTA — fade in/out during scroll, centered in viewport */}
+      <div
+        ref={b2cCtaRef}
+        className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-8 opacity-0 max-md:px-6"
+      >
+        <div className="text-center">
+          <h2 className="mb-4 text-[clamp(32px,4vw,54px)] font-medium leading-[1.06] tracking-[-0.022em] text-white max-md:text-[26px]">
+            Ready to plan your event?
+          </h2>
+          <p className="mx-auto mb-9 max-w-[460px] text-[17px] leading-[1.55] text-[#a8a4a0]">
+            Tell us what you&apos;re hosting — we&apos;ll handle the menu, pricing, and delivery.
+          </p>
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-3">
+            <a className={BTN_PRIMARY} href="/event-order">Plan your event</a>
+          </div>
+        </div>
+      </div>
+
+      {/* Fixed B2C bridge text — stays centered in viewport */}
       <div
         ref={b2cRef}
         className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-8 opacity-0 max-md:px-6"
@@ -650,17 +668,19 @@ export default function ExploreClient() {
       <section className="relative z-10 border-t border-[#e8e2da] bg-[#3a3a3a]">
         <div className="mx-auto max-w-[1280px] px-8 py-28 text-center max-md:px-6 max-md:py-20">
           <h2 className="mb-4 text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] text-white max-md:text-[26px]">
-            Whether it&apos;s one event or every day —
-            <br />
-            <em className="italic text-[#fa43ad]">Swift handles it.</em>
+            Ready to add catering to your site?
           </h2>
           <p className="mx-auto mb-9 max-w-[500px] text-[17px] leading-[1.55] text-[#a8a4a0]">
-            Order catering for your next event, or embed our widget on your site.
+            Free to set up. Live in minutes.
+            <br />
+            No commitments.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <a className={BTN_PRIMARY} href="/event-order">Plan an event</a>
-            <a className="inline-flex items-center gap-1.5 rounded-full border border-white bg-white px-6 py-[13px] text-[14.5px] font-semibold text-[#1a1a1a] transition-all hover:bg-[#f0f0f0] max-md:px-5 max-md:py-2.5 max-md:text-[13px]" href="/business">
-              For Business
+            <a className={BTN_PRIMARY} href="https://www.npmjs.com/package/@swift-food-services/catering-widget" target="_blank" rel="noopener noreferrer">
+              Install Now
+            </a>
+            <a className="inline-flex items-center gap-1.5 rounded-full border border-white bg-white px-6 py-[13px] text-[14.5px] font-semibold text-[#1a1a1a] transition-all hover:bg-[#f0f0f0] max-md:px-5 max-md:py-2.5 max-md:text-[13px]" href="/contact">
+              Talk to us
             </a>
           </div>
         </div>
