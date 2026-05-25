@@ -103,23 +103,71 @@ export default function ExploreClient() {
   /* ── Scroll transition state ── */
   const transitionRef = useRef<HTMLDivElement>(null);
   const b2cRef = useRef<HTMLDivElement>(null);
-  const b2bRef = useRef<HTMLDivElement>(null);
+  const b2bFloatRef = useRef<HTMLDivElement>(null);
+  const heroPlaceholderRef = useRef<HTMLDivElement>(null);
+  const heroSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const onScroll = () => {
       const section = transitionRef.current;
       const b2c = b2cRef.current;
-      const b2b = b2bRef.current;
-      if (!section || !b2c || !b2b) return;
-      const rect = section.getBoundingClientRect();
+      const float = b2bFloatRef.current;
+      const placeholder = heroPlaceholderRef.current;
+      const heroSection = heroSectionRef.current;
+      if (!section || !b2c || !float || !placeholder) return;
+
       const viewportH = window.innerHeight;
-      // progress hits 0 when section top enters viewport, 1 when section top reaches middle
-      const raw = 1 - rect.top / viewportH;
-      const p = Math.max(0, Math.min(1, raw));
-      b2c.style.opacity = String(Math.max(0, 1 - p * 2.2));
-      b2c.style.transform = `translateY(${-p * 30}px)`;
-      b2b.style.opacity = String(Math.max(0, Math.min(1, (p - 0.35) * 3)));
-      b2b.style.transform = `translateY(${Math.max(0, (1 - p) * 30)}px)`;
+      const sRect = section.getBoundingClientRect();
+
+      // transitionP: 0 when section center is at bottom of viewport, 1 when at top
+      const sCenter = sRect.top + sRect.height / 2;
+      const transitionP = Math.max(0, Math.min(1, 1 - sCenter / viewportH));
+
+      // B2C: fade out as transition section scrolls up
+      const b2cFade = Math.max(0, 1 - transitionP * 2.5);
+      b2c.style.opacity = String(b2cFade);
+      b2c.style.transform = `translateY(${-transitionP * 30}px)`;
+
+      // B2B float: fade in only when transition section is well into view
+      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.45) * 4));
+
+      // Movement: driven by how close the hero section is to viewport
+      let moveP = 0;
+      if (heroSection) {
+        const hRect = heroSection.getBoundingClientRect();
+        // moveP goes 0→1 as hero section top goes from viewport bottom to viewport top
+        moveP = Math.max(0, Math.min(1, 1 - hRect.top / viewportH));
+      }
+
+      const phRect = placeholder.getBoundingClientRect();
+
+      if (moveP >= 0.95) {
+        float.style.opacity = "0";
+        placeholder.style.opacity = "1";
+      } else {
+        placeholder.style.opacity = "0";
+        float.style.opacity = String(b2bFade);
+
+        const startX = window.innerWidth / 2;
+        const startY = viewportH / 2;
+        const endX = phRect.left + phRect.width / 2;
+        const endY = phRect.top + phRect.height / 2;
+
+        // Ease the movement with a curve so it accelerates
+        const easedMove = moveP * moveP;
+        const curX = startX + (endX - startX) * easedMove;
+        const curY = startY + (endY - startY) * easedMove;
+
+        float.style.left = `${curX}px`;
+        float.style.top = `${curY}px`;
+        float.style.transform = "translate(-50%, -50%)";
+        float.style.textAlign = easedMove > 0.4 ? "left" : "center";
+      }
+
+      // Hide float entirely if transition section hasn't entered viewport yet
+      if (transitionP <= 0.1) {
+        float.style.opacity = "0";
+      }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -244,7 +292,7 @@ export default function ExploreClient() {
       {/* ────────────── SCROLL TRANSITION ────────────── */}
       <section
         ref={transitionRef}
-        className="relative z-10 flex min-h-[60vh] items-center justify-center overflow-hidden border-t border-[#e8e2da] px-8 max-md:px-6"
+        className="relative z-10 flex min-h-[80vh] items-center justify-center overflow-hidden border-t border-[#e8e2da] px-8 max-md:px-6"
       >
         <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform">
           <div className="text-center">
@@ -254,26 +302,33 @@ export default function ExploreClient() {
             <p className="mt-3 text-[18px] text-[#8a8580]">But what if your members want it too?</p>
           </div>
         </div>
-        <div ref={b2bRef} className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform">
-          <div className="text-center">
-            <div className={`${SECTION_EYEBROW} text-center`}>For workspaces, offices &amp; venues</div>
-            <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em]">
-              Add AI catering to <em className="italic text-[#fa43ad]">your</em> site.
-            </p>
-            <p className="mt-3 text-[18px] text-[#8a8580]">One component. Zero backend work.</p>
-          </div>
-        </div>
       </section>
 
+      {/* Floating B2B heading — single element that moves from center to hero */}
+      <div
+        ref={b2bFloatRef}
+        className="pointer-events-none fixed z-50 opacity-0 will-change-transform"
+        style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}
+      >
+        <div>
+          <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
+          <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.05] tracking-[-0.022em]">
+            Add AI catering to <em className="italic text-[#fa43ad]">your</em> site.
+          </p>
+        </div>
+      </div>
+
       {/* ────────────── B2B HERO + MOCKUP ────────────── */}
-      <section id="b2b" className="relative z-10">
+      <section id="b2b" ref={heroSectionRef} className="relative z-10">
         <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-14 px-8 py-24 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:py-18 max-md:px-6">
           <div>
-            <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
-            <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-              Add AI catering to{" "}
-              <em className="italic text-[#fa43ad]">your</em> site.
-            </h2>
+            <div ref={heroPlaceholderRef} className="opacity-0">
+              <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
+              <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
+                Add AI catering to{" "}
+                <em className="italic text-[#fa43ad]">your</em> site.
+              </h2>
+            </div>
             <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
               Give members, teams, or guests a way to order catering right from your website. One component, zero backend work.
             </p>
