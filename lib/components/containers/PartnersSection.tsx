@@ -108,7 +108,7 @@ export default function PartnersSection() {
                 >
                   Visit {partner.name} →
                 </a>
-                {partner.bookingLink && (
+                {/* {partner.bookingLink && (
                   <a
                     href={partner.bookingLink}
                     target="_blank"
@@ -117,7 +117,7 @@ export default function PartnersSection() {
                   >
                     Book Space With Catering →
                   </a>
-                )}
+                )} */}
               </div>
             </div>
           </div>
