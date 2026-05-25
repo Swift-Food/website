@@ -33,6 +33,7 @@ export default function HomeV2Client() {
   const marqueeRef = useRef<HTMLDivElement>(null);
   const offset = useRef(0);
   const dragging = useRef(false);
+  const paused = useRef(false);
   const dragStartX = useRef(0);
   const dragStartOffset = useRef(0);
   const rafId = useRef<number>(0);
@@ -42,7 +43,7 @@ export default function HomeV2Client() {
   useEffect(() => {
     const tick = (time: number) => {
       if (lastTime.current) {
-        if (!dragging.current) {
+        if (!dragging.current && !paused.current) {
           const dt = (time - lastTime.current) / 1000;
           offset.current -= speed * dt;
           const el = marqueeRef.current;
@@ -170,11 +171,13 @@ export default function HomeV2Client() {
             Trusted by
           </p>
           <div
-            className="marquee-container cursor-grab active:cursor-grabbing select-none"
+            className="marquee-container cursor-grab active:cursor-grabbing select-none group/marquee"
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
+            onMouseEnter={() => { paused.current = true; lastTime.current = 0; }}
+            onMouseLeave={() => { paused.current = false; lastTime.current = 0; }}
           >
             <div ref={marqueeRef} className="flex items-center will-change-transform">
               {[...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS].map(
@@ -185,8 +188,8 @@ export default function HomeV2Client() {
                     target="_blank"
                     rel="noopener noreferrer"
                     draggable={false}
-                    onClickCapture={(e) => { if (Math.abs(startX.current - e.clientX) > 5) e.preventDefault(); }}
-                    className="mx-10 flex shrink-0 items-center"
+                    onClickCapture={(e) => { if (Math.abs(dragStartX.current - e.clientX) > 5) e.preventDefault(); }}
+                    className="mx-10 flex shrink-0 items-center transition-opacity duration-200 group-hover/marquee:opacity-30 hover:!opacity-100"
                   >
                     <Image
                       src={logo.src}
