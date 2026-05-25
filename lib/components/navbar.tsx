@@ -13,7 +13,7 @@ export default function Navbar() {
   const { navbarDark } = useScroll();
 
   // Check if we're on the homepage for transparent navbar
-  const isHomePage = pathname === "/" || pathname === "/home-v2";
+  const isHomePage = pathname === "/" || pathname === "/home-v2" || pathname === "/business";
   // Check if we're on pages that should have sticky navbar
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function Navbar() {
               Contact Us
             </Link>
             <Link
-              href="/#business"
+              href="/business"
               className="hover:text-[#fa43ad] transition-colors uppercase"
             >
               For Business
@@ -176,7 +176,7 @@ export default function Navbar() {
               Event Ordering
             </Link>
             <Link
-              href="/#business"
+              href="/business"
               className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
               onClick={closeMobileMenu}
             >
