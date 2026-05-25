@@ -3,7 +3,17 @@
 import { type CSSProperties } from "react";
 import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
 import PartnersSection from "@/lib/components/containers/PartnersSection";
+import Image from "next/image";
 import "./home-v2.css";
+
+const SOCIAL_LOGOS: { name: string; src: string; href: string }[] = [
+  { name: "Cursor", src: "/SocialProof/Cursor_logo.svg.png", href: "https://cursor.com/" },
+  { name: "Holistic AI", src: "/SocialProof/holistic_AI_logo.png", href: "https://www.holisticai.com/" },
+  { name: "Cloudflare", src: "/SocialProof/Cloudflare_Logo.svg.png", href: "https://www.cloudflare.com/" },
+  { name: "Cornetto", src: "/SocialProof/Cornetto-Logo.png", href: "#" },
+  { name: "UCL", src: "/SocialProof/University_College_London_logo.svg.png", href: "https://www.ucl.ac.uk/" },
+  { name: "Google Developer Group", src: "/SocialProof/Google_Developer_Group.svg", href: "#" },
+];
 
 // ── Reusable class strings ────────────────────────────────────────
 const BTN_PRIMARY =
@@ -96,6 +106,38 @@ export default function HomeV2Client() {
               <circle cx="20" cy="44" r="2" fill="white" stroke="none" />
               <circle cx="73" cy="44" r="2" fill="white" stroke="none" />
             </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────── SOCIAL PROOF ────────────── */}
+      <section className="relative z-10 border-y border-[#e8e2da] py-10 overflow-hidden">
+        <div className="mx-auto max-w-[1280px] px-8 max-md:px-6">
+          <p className="mb-6 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-[#8a8580]">
+            Trusted by
+          </p>
+          <div className="marquee-container">
+            <div className="marquee-content flex items-center">
+              {[...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS].map(
+                (logo, idx) => (
+                  <a
+                    key={idx}
+                    href={logo.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mx-10 flex shrink-0 items-center"
+                  >
+                    <Image
+                      src={logo.src}
+                      alt={logo.name}
+                      width={120}
+                      height={40}
+                      className="h-8 w-auto object-contain max-md:h-6"
+                    />
+                  </a>
+                ),
+              )}
+            </div>
           </div>
         </div>
       </section>
