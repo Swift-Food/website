@@ -123,14 +123,14 @@ export default function ExploreClient() {
       const scrollRange = sRect.height - viewportH;
       const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
 
-      // B2C: only visible while dark section is on screen
+      // B2C: holds 0–0.5, fades out slowly 0.5–0.7
       const darkOnScreen = sRect.top < viewportH && sRect.bottom > 0;
       const b2cIn = Math.min(1, transitionP * 10);
-      const b2cOut = Math.max(0, 1 - (transitionP - 0.5) * 5);
+      const b2cOut = Math.max(0, 1 - (transitionP - 0.5) * (1 / 0.2));
       b2c.style.opacity = String(darkOnScreen ? Math.min(b2cIn, b2cOut) : 0);
 
-      // B2B float: fades in 0.65–0.85, stays centered until hero approaches
-      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.65) * 5));
+      // B2B float: only after B2C is fully gone (0.75+), fades in slowly
+      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.75) * (1 / 0.15)));
 
       // Movement: driven by how close the hero section is to viewport
       let moveP = 0;
@@ -168,8 +168,8 @@ export default function ExploreClient() {
         float.style.textAlign = easedMove > 0.4 ? "left" : "center";
       }
 
-      // Hide float entirely before its fade-in window
-      if (transitionP <= 0.6) {
+      // Hide float entirely before B2C is fully gone
+      if (transitionP <= 0.72) {
         float.style.opacity = "0";
       }
     };
@@ -297,7 +297,7 @@ export default function ExploreClient() {
       <section
         ref={transitionRef}
         className="relative z-10 bg-[#3a3a3a] px-8 max-md:px-6"
-        style={{ minHeight: "200vh" }}
+        style={{ minHeight: "350vh" }}
       >
         <div className="sticky top-0 h-screen" />
       </section>
