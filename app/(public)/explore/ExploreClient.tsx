@@ -101,45 +101,25 @@ export default function ExploreClient() {
   }, []);
 
   /* ── Scroll transition state ── */
-  const scrollWrapRef = useRef<HTMLDivElement>(null);
+  const transitionRef = useRef<HTMLDivElement>(null);
   const b2cRef = useRef<HTMLDivElement>(null);
-  const b2bTextRef = useRef<HTMLDivElement>(null);
-  const b2bRestRef = useRef<HTMLDivElement>(null);
-  const mockupRef = useRef<HTMLDivElement>(null);
+  const b2bRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => {
-      const wrap = scrollWrapRef.current;
+      const section = transitionRef.current;
       const b2c = b2cRef.current;
-      const b2bText = b2bTextRef.current;
-      const b2bRest = b2bRestRef.current;
-      const mockup = mockupRef.current;
-      if (!wrap || !b2c || !b2bText || !b2bRest || !mockup) return;
-
-      const rect = wrap.getBoundingClientRect();
-      const scrollH = wrap.offsetHeight - window.innerHeight;
-      const raw = -rect.top / scrollH;
+      const b2b = b2bRef.current;
+      if (!section || !b2c || !b2b) return;
+      const rect = section.getBoundingClientRect();
+      const viewportH = window.innerHeight;
+      // progress hits 0 when section top enters viewport, 1 when section top reaches middle
+      const raw = 1 - rect.top / viewportH;
       const p = Math.max(0, Math.min(1, raw));
-
-      // Phase 1 (0–0.35): B2C fades out, B2B text fades in centered
-      const p1 = Math.min(1, p / 0.35);
-      b2c.style.opacity = String(Math.max(0, 1 - p1 * 2));
-      b2c.style.transform = `translateY(${-p1 * 40}px)`;
-      b2bText.style.opacity = String(Math.max(0, Math.min(1, (p1 - 0.3) * 1.8)));
-
-      // Phase 2 (0.35–1): text moves from center to left, mockup + rest appear
-      const p2 = Math.max(0, Math.min(1, (p - 0.35) / 0.65));
-      // text alignment: translateX from 0 (centered) to target left position
-      // scale from centered large to hero size
-      const textX = p2 * -30; // percent shift left (via container)
-      b2bText.style.transform = `translateX(${textX}vw)`;
-      b2bText.style.textAlign = p2 > 0.1 ? "left" : "center";
-
-      mockup.style.opacity = String(Math.max(0, Math.min(1, (p2 - 0.2) * 2)));
-      mockup.style.transform = `translateX(${(1 - p2) * 60}px)`;
-
-      b2bRest.style.opacity = String(Math.max(0, Math.min(1, (p2 - 0.5) * 2.5)));
-      b2bRest.style.transform = `translateY(${(1 - Math.min(1, (p2 - 0.5) * 2)) * 20}px)`;
+      b2c.style.opacity = String(Math.max(0, 1 - p * 2.2));
+      b2c.style.transform = `translateY(${-p * 30}px)`;
+      b2b.style.opacity = String(Math.max(0, Math.min(1, (p - 0.35) * 3)));
+      b2b.style.transform = `translateY(${Math.max(0, (1 - p) * 30)}px)`;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -252,50 +232,50 @@ export default function ExploreClient() {
         <FeatureDemosSection />
       </div>
 
-      {/* ================================================================
-          SCROLL TRANSITION + B2B HERO (sticky scroll-driven)
-          ================================================================ */}
-      <div ref={scrollWrapRef} className="relative z-10 border-t border-[#e8e2da]" style={{ height: "300vh" }}>
-        <div className="sticky top-0 flex min-h-screen items-center overflow-hidden">
-          <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-14 px-8 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:px-6">
+      {/* ────────────── SCROLL TRANSITION ────────────── */}
+      <section
+        ref={transitionRef}
+        className="relative z-10 flex min-h-[60vh] items-center justify-center overflow-hidden border-t border-[#e8e2da] px-8 max-md:px-6"
+      >
+        <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform">
+          <div className="text-center">
+            <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-[#4a4845]">
+              That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
+            </p>
+            <p className="mt-3 text-[18px] text-[#8a8580]">But what if your members want it too?</p>
+          </div>
+        </div>
+        <div ref={b2bRef} className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform">
+          <div className="text-center">
+            <div className={`${SECTION_EYEBROW} text-center`}>For workspaces, offices &amp; venues</div>
+            <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em]">
+              Add AI catering to <em className="italic text-[#fa43ad]">your</em> site.
+            </p>
+            <p className="mt-3 text-[18px] text-[#8a8580]">One component. Zero backend work.</p>
+          </div>
+        </div>
+      </section>
 
-            {/* Left: animated text */}
-            <div className="relative min-h-[300px]">
-              {/* B2C farewell text — fades out */}
-              <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform lg:justify-start">
-                <div className="text-center lg:text-left">
-                  <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-[#4a4845]">
-                    That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
-                  </p>
-                  <p className="mt-3 text-[18px] text-[#8a8580]">But what if your members want it too?</p>
-                </div>
-              </div>
-
-              {/* B2B heading — fades in and stays as the hero heading */}
-              <div ref={b2bTextRef} className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform lg:justify-start">
-                <div>
-                  <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
-                  <h2 className="text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-                    Add AI catering to{" "}
-                    <em className="italic text-[#fa43ad]">your</em> site.
-                  </h2>
-                </div>
-              </div>
-
-              {/* Subtitle + CTA — appears last */}
-              <div ref={b2bRestRef} className="absolute inset-x-0 bottom-0 opacity-0 will-change-transform lg:bottom-auto lg:top-[70%]">
-                <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
-                  Give members, teams, or guests a way to order catering right from your website. One component, zero backend work.
-                </p>
-                <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
-                  <a className={BTN_PRIMARY} href="/business">Learn more</a>
-                  <a className={BTN_GHOST} href="/contact">Enquire Now</a>
-                </div>
-              </div>
+      {/* ────────────── B2B HERO + MOCKUP ────────────── */}
+      <section className="relative z-10">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-14 px-8 py-24 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:py-18 max-md:px-6">
+          <div>
+            <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
+            <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
+              Add AI catering to{" "}
+              <em className="italic text-[#fa43ad]">your</em> site.
+            </h2>
+            <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
+              Give members, teams, or guests a way to order catering right from your website. One component, zero backend work.
+            </p>
+            <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
+              <a className={BTN_PRIMARY} href="/business">Learn more</a>
+              <a className={BTN_GHOST} href="/contact">Enquire Now</a>
             </div>
+          </div>
 
           {/* Browser mockup with animation */}
-          <div ref={mockupRef} className="relative opacity-0 will-change-transform max-md:hidden">
+          <div className="relative max-md:hidden">
             <div className="overflow-hidden rounded-2xl border border-[#e8e2da] bg-white shadow-[0_40px_90px_rgba(60,30,50,0.22),0_1px_3px_rgba(0,0,0,0.06)] max-md:hidden">
               <div className="flex items-center gap-2 border-b border-[#e8e2da] bg-gradient-to-b from-[#f4efe8] to-[#ece7df] px-4 py-3">
                 <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
@@ -422,8 +402,68 @@ export default function ExploreClient() {
 
           </div>
         </div>
-      </div>
-      </div>
+      </section>
+
+      {/* ────────────── WHY SWIFT ────────────── */}
+      <section className="relative z-10 border-y border-[#e8e2da] bg-white">
+        <div className="mx-auto max-w-[1280px] px-8 py-24 max-md:px-6 max-md:py-16">
+          <div className={SECTION_EYEBROW}>Why Swift</div>
+          <h2 className="mb-14 max-w-[600px] text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] max-md:mb-10 max-md:text-[26px]">
+            Built for the people who <em className="italic text-[#fa43ad]">run</em> the space.
+          </h2>
+          <div className="grid grid-cols-1 gap-x-16 gap-y-10 md:grid-cols-2">
+            {[
+              ["Easy to integrate.", "Install the package, drop in the component — minimal code, no complex setup."],
+              ["Your brand, your colours.", "Customise the widget to match your site's look and feel."],
+              ["AI handles the hard parts.", "Menu suggestions, sizing for headcount, and real-time pricing — your users just chat."],
+              ["Free to get started.", "No setup fee, no monthly cost. Get up and running in minutes."],
+              ["Real local kitchens.", "We partner with vetted restaurants across London — no ghost kitchens, no reheated trays."],
+            ].map(([lead, rest]) => (
+              <div key={lead} className="hv2-check relative pl-8 text-[15px] leading-[1.5] text-[#4a4845]">
+                <strong className="mr-1 font-semibold text-[#1a1a1a]">{lead}</strong>
+                {rest}
+              </div>
+            ))}
+          </div>
+          <div className="mt-14 flex items-center gap-8 rounded-2xl border border-[#e8e2da] bg-[#fbf7f4] px-8 py-6 max-md:flex-col max-md:text-center">
+            <img src="/logos/halkin.svg" alt="Halkin" className="h-8 shrink-0 object-contain" />
+            <div>
+              <p className="text-[15px] font-semibold text-[#1a1a1a]">Partnered with Halkin</p>
+              <p className="text-[14px] leading-[1.5] text-[#4a4845]">Trusted by Halkin and other leading workspace operators across London.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────── CODE SNIPPET ────────────── */}
+      <section className="relative z-10 mx-auto max-w-[1280px] px-8 py-24 max-md:px-6 max-md:py-16">
+        <div className="mx-auto max-w-[640px] text-center">
+          <div className={`${SECTION_EYEBROW} text-center`}>Integration</div>
+          <h2 className="mb-4 text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] max-md:text-[26px]">
+            Seriously,<br /><em className="italic text-[#fa43ad]">one line.</em>
+          </h2>
+          <p className="mb-10 text-[17px] leading-[1.55] text-[#4a4845]">
+            Import the component, pass your key and brand colour. That&apos;s the entire integration.
+          </p>
+          <pre className="mx-auto max-w-[560px] overflow-x-auto rounded-xl bg-[#1a1a1a] px-[18px] py-5 text-left font-mono text-[13px] leading-[1.6] tracking-[-0.005em] text-[#f4efe8]">
+            <span className="text-[#8db4e8]">import</span>
+            {" { "}CateringWidget{" } "}
+            <span className="text-[#8db4e8]">from</span>{" "}
+            <span className="text-[#aed68a]">&quot;@swift-food-services/catering-widget&quot;</span>
+            ;{"\n\n"}
+            <span className="text-[#8db4e8]">&lt;CateringWidget</span>
+            {"\n  "}
+            <span className="text-[#f8b1da]">publishableKey</span>=
+            <span className="text-[#aed68a]">&quot;pk_…&quot;</span>
+            {"\n  "}
+            <span className="text-[#f8b1da]">theme</span>={"{{ "}
+            <span className="text-[#f8b1da]">primary</span>:{" "}
+            <span className="text-[#aed68a]">&quot;#fa43ad&quot;</span>
+            {" }}\n"}
+            <span className="text-[#8db4e8]">/&gt;</span>
+          </pre>
+        </div>
+      </section>
 
       {/* ────────────── CTA ────────────── */}
       <section className="relative z-10 border-t border-[#e8e2da] bg-[#3a3a3a]">
