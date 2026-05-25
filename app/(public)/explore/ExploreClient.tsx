@@ -119,27 +119,31 @@ export default function ExploreClient() {
       const viewportH = window.innerHeight;
       const sRect = section.getBoundingClientRect();
 
-      // transitionP: 0 when section center is at bottom of viewport, 1 when at top
-      const sCenter = sRect.top + sRect.height / 2;
-      const transitionP = Math.max(0, Math.min(1, 1 - sCenter / viewportH));
+      // transitionP: 0 when section top hits viewport top, 1 when section bottom hits viewport bottom
+      const scrollRange = sRect.height - viewportH;
+      const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
 
-      // B2C: fade out as transition section scrolls up
-      const b2cFade = Math.max(0, 1 - transitionP * 2.5);
+      // B2C: fully visible 0–0.5, fades out 0.5–0.7
+      const b2cFade = Math.max(0, Math.min(1, 1 - (transitionP - 0.5) * 5));
       b2c.style.opacity = String(b2cFade);
-      b2c.style.transform = `translateY(${-transitionP * 30}px)`;
+      b2c.style.transform = `translateY(${-Math.max(0, transitionP - 0.5) * 40}px)`;
 
-      // B2B float: fade in only when transition section is well into view
-      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.45) * 4));
+      // B2B float: fades in 0.65–0.85
+      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.65) * 5));
 
       // Movement: driven by how close the hero section is to viewport
       let moveP = 0;
       if (heroSection) {
         const hRect = heroSection.getBoundingClientRect();
-        // moveP goes 0→1 as hero section top goes from viewport bottom to viewport top
         moveP = Math.max(0, Math.min(1, 1 - hRect.top / viewportH));
       }
 
       const phRect = placeholder.getBoundingClientRect();
+
+      // Always update color: white when text is over dark section, black when over light
+      const floatY = parseFloat(float.style.top) || viewportH / 2;
+      const floatIsOverDark = sRect.bottom > floatY;
+      float.style.color = floatIsOverDark ? "white" : "#1a1a1a";
 
       if (moveP >= 0.95) {
         float.style.opacity = "0";
@@ -153,7 +157,6 @@ export default function ExploreClient() {
         const endX = phRect.left + phRect.width / 2;
         const endY = phRect.top + phRect.height / 2;
 
-        // Ease the movement with a curve so it accelerates
         const easedMove = moveP * moveP;
         const curX = startX + (endX - startX) * easedMove;
         const curY = startY + (endY - startY) * easedMove;
@@ -164,8 +167,8 @@ export default function ExploreClient() {
         float.style.textAlign = easedMove > 0.4 ? "left" : "center";
       }
 
-      // Hide float entirely if transition section hasn't entered viewport yet
-      if (transitionP <= 0.1) {
+      // Hide float entirely before its fade-in window
+      if (transitionP <= 0.6) {
         float.style.opacity = "0";
       }
     };
@@ -289,17 +292,20 @@ export default function ExploreClient() {
         <FeatureDemosSection />
       </div>
 
-      {/* ────────────── SCROLL TRANSITION ────────────── */}
+      {/* ────────────── SCROLL TRANSITION (dark) ────────────── */}
       <section
         ref={transitionRef}
-        className="relative z-10 flex min-h-[80vh] items-center justify-center overflow-hidden border-t border-[#e8e2da] px-8 max-md:px-6"
+        className="relative z-10 bg-[#3a3a3a] px-8 max-md:px-6"
+        style={{ minHeight: "200vh" }}
       >
-        <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform">
-          <div className="text-center">
-            <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-[#4a4845]">
-              That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
-            </p>
-            <p className="mt-3 text-[18px] text-[#8a8580]">But what if your members want it too?</p>
+        <div className="sticky top-0 flex h-screen items-center justify-center">
+          <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform">
+            <div className="text-center">
+              <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-white">
+                That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
+              </p>
+              <p className="mt-3 text-[18px] text-[#a8a4a0]">But what if your members want it too?</p>
+            </div>
           </div>
         </div>
       </section>
@@ -307,8 +313,8 @@ export default function ExploreClient() {
       {/* Floating B2B heading — single element that moves from center to hero */}
       <div
         ref={b2bFloatRef}
-        className="pointer-events-none fixed z-50 opacity-0 will-change-transform"
-        style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}
+        className="pointer-events-none fixed z-50 opacity-0 will-change-transform transition-colors duration-300"
+        style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)", color: "white" }}
       >
         <div>
           <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
@@ -320,7 +326,7 @@ export default function ExploreClient() {
 
       {/* ────────────── B2B HERO + MOCKUP ────────────── */}
       <section id="b2b" ref={heroSectionRef} className="relative z-10">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-14 px-8 py-24 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:py-18 max-md:px-6">
+        <div className="mx-auto grid min-h-screen max-w-[1440px] grid-cols-1 content-center items-center gap-14 px-8 py-24 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:py-18 max-md:px-6">
           <div>
             <div ref={heroPlaceholderRef} className="opacity-0">
               <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
