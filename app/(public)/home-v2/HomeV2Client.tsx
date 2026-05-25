@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useRef, useCallback } from "react";
+import { type CSSProperties, useRef, useEffect, useCallback } from "react";
 import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
 import PartnersSection from "@/lib/components/containers/PartnersSection";
 import Image from "next/image";
@@ -31,41 +31,56 @@ const STEP_CARD =
 // ── Component ─────────────────────────────────────────────────────
 export default function HomeV2Client() {
   const marqueeRef = useRef<HTMLDivElement>(null);
+  const offset = useRef(0);
   const dragging = useRef(false);
-  const startX = useRef(0);
-  const scrollOffset = useRef(0);
+  const dragStartX = useRef(0);
+  const dragStartOffset = useRef(0);
+  const rafId = useRef<number>(0);
+  const lastTime = useRef(0);
+  const speed = 80;
+
+  useEffect(() => {
+    const tick = (time: number) => {
+      if (lastTime.current) {
+        if (!dragging.current) {
+          const dt = (time - lastTime.current) / 1000;
+          offset.current -= speed * dt;
+          const el = marqueeRef.current;
+          if (el) {
+            const half = el.scrollWidth / 2;
+            if (half > 0 && Math.abs(offset.current) >= half) {
+              offset.current += half;
+            }
+            el.style.transform = `translateX(${offset.current}px)`;
+          }
+        }
+      }
+      lastTime.current = time;
+      rafId.current = requestAnimationFrame(tick);
+    };
+    rafId.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId.current);
+  }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     dragging.current = true;
-    startX.current = e.clientX;
-    const content = marqueeRef.current;
-    if (!content) return;
-    const transform = getComputedStyle(content).transform;
-    const matrix = new DOMMatrixReadOnly(transform);
-    scrollOffset.current = matrix.m41;
-    content.style.animationPlayState = "paused";
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragStartX.current = e.clientX;
+    dragStartOffset.current = offset.current;
+    lastTime.current = 0;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging.current || !marqueeRef.current) return;
-    const dx = e.clientX - startX.current;
-    marqueeRef.current.style.animation = "none";
-    marqueeRef.current.style.transform = `translateX(${scrollOffset.current + dx}px)`;
+    if (!dragging.current) return;
+    offset.current = dragStartOffset.current + (e.clientX - dragStartX.current);
+    if (marqueeRef.current) {
+      marqueeRef.current.style.transform = `translateX(${offset.current}px)`;
+    }
   }, []);
 
   const onPointerUp = useCallback(() => {
-    if (!dragging.current || !marqueeRef.current) return;
     dragging.current = false;
-    const current = new DOMMatrixReadOnly(
-      getComputedStyle(marqueeRef.current).transform
-    ).m41;
-    const totalWidth = marqueeRef.current.scrollWidth / 2;
-    const normalized = ((current % totalWidth) + totalWidth) % totalWidth;
-    marqueeRef.current.style.transform = `translateX(${normalized}px)`;
-    marqueeRef.current.style.animation = "";
-    marqueeRef.current.style.animationPlayState = "";
-    marqueeRef.current.style.animationDelay = `-${((totalWidth - normalized) / totalWidth) * 20}s`;
+    lastTime.current = 0;
   }, []);
 
   return (
@@ -161,7 +176,7 @@ export default function HomeV2Client() {
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
           >
-            <div ref={marqueeRef} className="marquee-content flex items-center">
+            <div ref={marqueeRef} className="flex items-center will-change-transform">
               {[...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS].map(
                 (logo, idx) => (
                   <a
