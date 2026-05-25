@@ -125,20 +125,20 @@ export default function ExploreClient() {
       const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
       const darkOnScreen = sRect.top < viewportH && sRect.bottom > 0;
 
-      // Phase 1 — B2C CTA: fade in 0–0.06, hold 0.06–0.14, fade out 0.14–0.20
-      const ctaIn = Math.min(1, transitionP * (1 / 0.06));
-      const ctaOut = Math.max(0, 1 - (transitionP - 0.14) * (1 / 0.06));
+      // Phase 1 — B2C CTA: fade in 0.10–0.16, hold 0.16–0.24, fade out 0.24–0.30
+      const ctaIn = Math.max(0, Math.min(1, (transitionP - 0.10) * (1 / 0.06)));
+      const ctaOut = Math.max(0, 1 - (transitionP - 0.24) * (1 / 0.06));
       const ctaOpacity = darkOnScreen ? Math.min(ctaIn, ctaOut) : 0;
       b2cCta.style.opacity = String(ctaOpacity);
       b2cCta.style.pointerEvents = ctaOpacity > 0.5 ? "auto" : "none";
 
-      // Phase 2 — Bridge text: fade in 0.27–0.33, hold 0.33–0.41, fade out 0.41–0.47
-      const b2cIn = Math.max(0, Math.min(1, (transitionP - 0.27) * (1 / 0.06)));
-      const b2cOut = Math.max(0, 1 - (transitionP - 0.41) * (1 / 0.06));
+      // Phase 2 — Bridge text: fade in 0.37–0.43, hold 0.43–0.51, fade out 0.51–0.57
+      const b2cIn = Math.max(0, Math.min(1, (transitionP - 0.37) * (1 / 0.06)));
+      const b2cOut = Math.max(0, 1 - (transitionP - 0.51) * (1 / 0.06));
       b2c.style.opacity = String(darkOnScreen ? Math.min(b2cIn, b2cOut) : 0);
 
-      // Phase 3 — B2B float: fade in 0.54–0.62
-      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.54) * (1 / 0.08)));
+      // Phase 3 — B2B float: fade in 0.64–0.72
+      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.64) * (1 / 0.08)));
 
       if (heroSection) {
         heroSection.getBoundingClientRect();
@@ -174,7 +174,7 @@ export default function ExploreClient() {
         float.style.opacity = String(b2bFade);
       }
 
-      if (transitionP <= 0.51) {
+      if (transitionP <= 0.61) {
         float.style.opacity = "0";
       }
     };
@@ -303,7 +303,7 @@ export default function ExploreClient() {
       <section
         ref={transitionRef}
         className="relative z-10 bg-[#3a3a3a] px-8 max-md:px-6"
-        style={{ minHeight: "500vh" }}
+        style={{ minHeight: "400vh" }}
       >
         <div className="sticky top-0 h-screen" />
       </section>
