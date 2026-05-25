@@ -112,7 +112,7 @@ const NewMenuItemPage = () => {
   const [addonSectionOpen, setAddonSectionOpen] = useState({
     basicInfo: true,
     selectionRules: true,
-    allergensDietary: false,
+    allergensDietary: true,
   });
 
   // Addon table redesign state
@@ -439,7 +439,7 @@ const NewMenuItemPage = () => {
       displayOrder: undefined,
     });
     setEditingAddonIndex(null);
-    setAddonSectionOpen({ basicInfo: true, selectionRules: true, allergensDietary: false });
+    setAddonSectionOpen({ basicInfo: true, selectionRules: true, allergensDietary: true });
     setShowAddonModal(true);
   };
 
@@ -451,9 +451,7 @@ const NewMenuItemPage = () => {
     }
     setCurrentAddon(addon);
     setEditingAddonIndex(index);
-    // If allergens/dietary data exists, open that section
-    const hasAllergenData = (addon.allergens && addon.allergens.length > 0) || (addon.dietaryRestrictions && addon.dietaryRestrictions.length > 0);
-    setAddonSectionOpen({ basicInfo: true, selectionRules: true, allergensDietary: !!hasAllergenData });
+    setAddonSectionOpen({ basicInfo: true, selectionRules: true, allergensDietary: true });
     setShowAddonModal(true);
   };
 
