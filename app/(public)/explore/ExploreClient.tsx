@@ -101,25 +101,45 @@ export default function ExploreClient() {
   }, []);
 
   /* ── Scroll transition state ── */
-  const transitionRef = useRef<HTMLDivElement>(null);
+  const scrollWrapRef = useRef<HTMLDivElement>(null);
   const b2cRef = useRef<HTMLDivElement>(null);
-  const b2bRef = useRef<HTMLDivElement>(null);
+  const b2bTextRef = useRef<HTMLDivElement>(null);
+  const b2bRestRef = useRef<HTMLDivElement>(null);
+  const mockupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => {
-      const section = transitionRef.current;
+      const wrap = scrollWrapRef.current;
       const b2c = b2cRef.current;
-      const b2b = b2bRef.current;
-      if (!section || !b2c || !b2b) return;
-      const rect = section.getBoundingClientRect();
-      const sectionHeight = section.offsetHeight;
-      const viewportH = window.innerHeight;
-      const raw = (viewportH - rect.top) / (sectionHeight + viewportH);
-      const progress = Math.max(0, Math.min(1, raw));
-      b2c.style.opacity = String(Math.max(0, 1 - progress * 3));
-      b2c.style.transform = `translateY(${-progress * 50}px)`;
-      b2b.style.opacity = String(Math.max(0, Math.min(1, (progress - 0.25) * 3)));
-      b2b.style.transform = `translateY(${(1 - progress) * 50}px)`;
+      const b2bText = b2bTextRef.current;
+      const b2bRest = b2bRestRef.current;
+      const mockup = mockupRef.current;
+      if (!wrap || !b2c || !b2bText || !b2bRest || !mockup) return;
+
+      const rect = wrap.getBoundingClientRect();
+      const scrollH = wrap.offsetHeight - window.innerHeight;
+      const raw = -rect.top / scrollH;
+      const p = Math.max(0, Math.min(1, raw));
+
+      // Phase 1 (0–0.35): B2C fades out, B2B text fades in centered
+      const p1 = Math.min(1, p / 0.35);
+      b2c.style.opacity = String(Math.max(0, 1 - p1 * 2));
+      b2c.style.transform = `translateY(${-p1 * 40}px)`;
+      b2bText.style.opacity = String(Math.max(0, Math.min(1, (p1 - 0.3) * 1.8)));
+
+      // Phase 2 (0.35–1): text moves from center to left, mockup + rest appear
+      const p2 = Math.max(0, Math.min(1, (p - 0.35) / 0.65));
+      // text alignment: translateX from 0 (centered) to target left position
+      // scale from centered large to hero size
+      const textX = p2 * -30; // percent shift left (via container)
+      b2bText.style.transform = `translateX(${textX}vw)`;
+      b2bText.style.textAlign = p2 > 0.1 ? "left" : "center";
+
+      mockup.style.opacity = String(Math.max(0, Math.min(1, (p2 - 0.2) * 2)));
+      mockup.style.transform = `translateX(${(1 - p2) * 60}px)`;
+
+      b2bRest.style.opacity = String(Math.max(0, Math.min(1, (p2 - 0.5) * 2.5)));
+      b2bRest.style.transform = `translateY(${(1 - Math.min(1, (p2 - 0.5) * 2)) * 20}px)`;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -233,52 +253,49 @@ export default function ExploreClient() {
       </div>
 
       {/* ================================================================
-          SCROLL TRANSITION
+          SCROLL TRANSITION + B2B HERO (sticky scroll-driven)
           ================================================================ */}
-      <section
-        id="transition"
-        ref={transitionRef}
-        className="relative z-10 flex min-h-[80vh] items-center justify-center overflow-hidden border-t border-[#e8e2da] px-8 max-md:px-6"
-      >
-        <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform">
-          <div className="text-center">
-            <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-[#4a4845]">
-              That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
-            </p>
-            <p className="mt-3 text-[18px] text-[#8a8580]">But what if your members want it too?</p>
-          </div>
-        </div>
-        <div ref={b2bRef} className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform">
-          <div className="text-center">
-            <div className={`${SECTION_EYEBROW} text-center`}>For workspaces, offices &amp; venues</div>
-            <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em]">
-              Add AI catering to <em className="italic text-[#fa43ad]">your</em> site.
-            </p>
-            <p className="mt-3 text-[18px] text-[#8a8580]">One component. Zero backend work.</p>
-          </div>
-        </div>
-      </section>
+      <div ref={scrollWrapRef} className="relative z-10 border-t border-[#e8e2da]" style={{ height: "300vh" }}>
+        <div className="sticky top-0 flex min-h-screen items-center overflow-hidden">
+          <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-14 px-8 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:px-6">
 
-      {/* ────────────── B2B HERO + MOCKUP ────────────── */}
-      <section className="relative z-10">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-14 px-8 py-24 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:py-18 max-md:px-6">
-          <div>
-            <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
-            <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-              Add AI catering to{" "}
-              <em className="italic text-[#fa43ad]">your</em> site.
-            </h2>
-            <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
-              Give members, teams, or guests a way to order catering right from your website. One component, zero backend work.
-            </p>
-            <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
-              <a className={BTN_PRIMARY} href="/business">Learn more</a>
-              <a className={BTN_GHOST} href="/contact">Enquire Now</a>
+            {/* Left: animated text */}
+            <div className="relative min-h-[300px]">
+              {/* B2C farewell text — fades out */}
+              <div ref={b2cRef} className="absolute inset-0 flex items-center justify-center will-change-transform lg:justify-start">
+                <div className="text-center lg:text-left">
+                  <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-[#4a4845]">
+                    That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
+                  </p>
+                  <p className="mt-3 text-[18px] text-[#8a8580]">But what if your members want it too?</p>
+                </div>
+              </div>
+
+              {/* B2B heading — fades in and stays as the hero heading */}
+              <div ref={b2bTextRef} className="absolute inset-0 flex items-center justify-center opacity-0 will-change-transform lg:justify-start">
+                <div>
+                  <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
+                  <h2 className="text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
+                    Add AI catering to{" "}
+                    <em className="italic text-[#fa43ad]">your</em> site.
+                  </h2>
+                </div>
+              </div>
+
+              {/* Subtitle + CTA — appears last */}
+              <div ref={b2bRestRef} className="absolute inset-x-0 bottom-0 opacity-0 will-change-transform lg:bottom-auto lg:top-[70%]">
+                <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
+                  Give members, teams, or guests a way to order catering right from your website. One component, zero backend work.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
+                  <a className={BTN_PRIMARY} href="/business">Learn more</a>
+                  <a className={BTN_GHOST} href="/contact">Enquire Now</a>
+                </div>
+              </div>
             </div>
-          </div>
 
           {/* Browser mockup with animation */}
-          <div className="relative">
+          <div ref={mockupRef} className="relative opacity-0 will-change-transform max-md:hidden">
             <div className="overflow-hidden rounded-2xl border border-[#e8e2da] bg-white shadow-[0_40px_90px_rgba(60,30,50,0.22),0_1px_3px_rgba(0,0,0,0.06)] max-md:hidden">
               <div className="flex items-center gap-2 border-b border-[#e8e2da] bg-gradient-to-b from-[#f4efe8] to-[#ece7df] px-4 py-3">
                 <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
@@ -403,108 +420,10 @@ export default function ExploreClient() {
               </div>
             </div>
 
-            {/* Mobile: Phone mockup */}
-            <div className="mx-auto md:hidden" style={{ width: 280 }}>
-              <div className="overflow-hidden rounded-[40px] border-[6px] border-[#1a1a1a] bg-[#1a1a1a] shadow-[0_40px_90px_rgba(60,30,50,0.22),0_1px_3px_rgba(0,0,0,0.06)]">
-                <div className="flex items-center justify-center bg-white px-6 pt-2 pb-1"><div className="h-[7px] w-[80px] rounded-full bg-[#1a1a1a]" /></div>
-                <div className="flex items-center justify-between border-b border-[#ece7df] bg-white px-4 py-2.5">
-                  <span className="hv2-site-logo text-[16px] font-semibold tracking-[-0.015em] text-[#1f2937]">Atlas</span>
-                  <span className="flex gap-3 text-[9px] font-medium uppercase tracking-[0.12em] text-[#6b5946]"><span>Spaces</span><span>Members</span><span>Lunch</span></span>
-                </div>
-                <div className="relative h-[440px] overflow-hidden bg-[#f9f4ee]">
-                  <div className="hv2-m-atlas absolute inset-0">
-                    <div className="hv2-site-hero relative flex h-full items-end overflow-hidden bg-[linear-gradient(160deg,rgba(15,25,35,0.55),rgba(15,25,35,0.15)),linear-gradient(135deg,#2d4a5e,#1a2e3e)] p-6 text-white">
-                      <div className="relative z-10">
-                        <div className="mb-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] opacity-85">MEMBERS-FIRST · 12 LOCATIONS</div>
-                        <div className="mb-1 text-[24px] font-medium italic leading-[1.05] tracking-[-0.015em]">Where work<br />feels like home.</div>
-                        <div className="mb-3 max-w-[200px] text-[11px] leading-[1.4] opacity-90">Hot desks, meeting rooms, and now — team lunches on demand.</div>
-                        <button className="hv2-m-atlas-cta cursor-default inline-flex items-center gap-1.5 rounded-full bg-[#fa43ad] px-4 py-2 text-[11px] font-semibold text-white shadow-[0_4px_14px_rgba(250,67,173,0.4)]">Get catering now →</button>
-                      </div>
-                    </div>
-                    <div className="hv2-m-atlas-cursor" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="block h-full w-full"><path d="M5 2 L19 14 L11.5 14.5 L8 22 Z" fill="white" stroke="#1a1a1a" strokeWidth="1.5" strokeLinejoin="round" /></svg></div>
-                  </div>
-                  <div className="hv2-m-order absolute inset-0 flex flex-col bg-white">
-                    <div className="flex flex-1 flex-col gap-2 overflow-hidden p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="overflow-hidden rounded border border-[#e8e2da] text-[8px] leading-none">
-                          <div className="bg-[#fa43ad] px-1.5 py-0.5 font-bold tracking-wider text-white">THU</div>
-                          <div className="px-1.5 py-0.5 text-center text-[12px] font-semibold text-[#1a1a1a]">28</div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-[11px] font-semibold text-[#1a1a1a]">Lunch Day 1</div>
-                          <div className="text-[9px] text-[#8a8580]">12:00 – 12:30 PM</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 rounded-lg border border-[#e8e2da] bg-[#fafafa] px-2.5 py-1.5">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3 text-[#8a8580]"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" strokeLinecap="round" /></svg>
-                        <span className="text-[10px] text-[#8a8580]">Search restaurants and menu items…</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 rounded-lg bg-[#ffeaf4] px-2.5 py-1.5">
-                        <div className="text-[9.5px] leading-tight"><div className="font-semibold text-[#1a1a1a]">Don&apos;t know what to get?</div><div className="text-[#8a8580]">Look at our bundles.</div></div>
-                        <button className="shrink-0 rounded-full bg-[#fa43ad] px-2.5 py-0.5 text-[8.5px] font-semibold text-white">Browse</button>
-                      </div>
-                      <div className="flex gap-1.5 overflow-hidden">
-                        {[["🍳","Breakfast"],["🥪","Sandwiches"],["🍕","Pizzas"],["🥡","Wraps"],["🥤","Drinks"],["🥗","Healthy"]].map(([emoji,label]) => (
-                          <div key={label} className="flex flex-col items-center gap-0.5"><div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f4efe8] text-[12px]">{emoji}</div><span className="text-[7px] text-[#4a4845]">{label}</span></div>
-                        ))}
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {["Halal","Vegetarian","Vegan","Pescatarian"].map((d) => (<span key={d} className="rounded-full border border-[#e8e2da] px-1.5 py-0.5 text-[8px] text-[#4a4845]">{d}</span>))}
-                      </div>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {[
-                          { name: "Asian Delights", rating: "4.0", from: "from-[#fa43ad]", to: "to-[#ff80c7]" },
-                          { name: "B Bagel", rating: "4.9", from: "from-[#d4a574]", to: "to-[#e8c89d]" },
-                          { name: "Baked Bird", rating: "4.8", from: "from-[#4a6fa5]", to: "to-[#82a6d0]" },
-                          { name: "Pho Time", rating: "4.7", from: "from-[#6b7a4c]", to: "to-[#a3b07e]" },
-                        ].map((r) => (
-                          <div key={r.name} className="overflow-hidden rounded-lg border border-[#e8e2da] bg-white">
-                            <div className={`h-12 bg-gradient-to-br ${r.from} ${r.to}`} />
-                            <div className="px-1.5 py-1"><div className="truncate text-[9px] font-semibold text-[#1a1a1a]">{r.name}</div><div className="text-[8px] text-[#8a8580]">★ {r.rating}</div></div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 border-t border-[#e8e2da] bg-white px-3 py-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#e8e2da] text-[12px] text-[#8a8580]">⋯</span>
-                      <button className="hv2-m-ask-ai-btn flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#e8e2da] py-1.5 text-[11px] font-semibold text-[#1a1a1a]">
-                        <span className="text-[#fa43ad]">✨</span>Ask AI<span className="rounded-full bg-[#fa43ad] px-1.5 py-px text-[8px] font-bold text-white">BETA</span>
-                      </button>
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#e8e2da]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5 text-[#8a8580]"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" strokeLinecap="round" /></svg></span>
-                    </div>
-                    <div className="hv2-m-order-cursor" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="block h-full w-full"><path d="M5 2 L19 14 L11.5 14.5 L8 22 Z" fill="white" stroke="#1a1a1a" strokeWidth="1.5" strokeLinejoin="round" /></svg></div>
-                  </div>
-                  <div className="hv2-m-chat absolute inset-0 flex flex-col gap-2.5 bg-[#fafafa] p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[14px] text-[#8a8580]">←</span>
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#fa43ad] text-[13px] text-white">✨</span>
-                      <div className="leading-tight"><div className="text-[11px] font-semibold text-[#1a1a1a]">AI Assistant</div><div className="text-[9px] text-[#8a8580]">Get menu suggestions</div></div>
-                    </div>
-                    <div className="hv2-m-user-bubble ml-auto rounded-lg bg-[#fa43ad] px-3 py-1.5 text-[11px] text-white">suggest some pizza</div>
-                    <div className="hv2-m-typing-dots flex w-fit items-center gap-1 rounded-lg bg-white px-3 py-2.5 shadow-sm"><span className="block h-1.5 w-1.5 rounded-full bg-[#8a8580]" /><span className="block h-1.5 w-1.5 rounded-full bg-[#8a8580]" /><span className="block h-1.5 w-1.5 rounded-full bg-[#8a8580]" /></div>
-                    <div className="hv2-m-ai-bubble rounded-lg bg-white px-3 py-2 text-[11px] leading-snug text-[#1a1a1a] shadow-sm">Here are some pizza options. Do any of these look good?</div>
-                    <div className="hv2-m-menu-preview rounded-lg border border-[#e8e2da] bg-white px-3 py-2.5">
-                      <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-[#8a8580]">Menu Preview</div>
-                      <div className="mb-2 text-[12px] font-semibold text-[#1a1a1a]">Pizza</div>
-                      <div className="flex gap-2 overflow-x-auto pb-0.5">
-                        {[["🍕","Margherita"],["🌶️","Diavola"],["🧀","4-Cheese"],["🍅","Marinara"]].map(([emoji,name]) => (
-                          <div key={name} className="flex w-[52px] shrink-0 flex-col items-center justify-center rounded-md bg-[#f4efe8] px-1.5 py-2"><span className="text-[20px] leading-none">{emoji}</span><span className="mt-1 w-full truncate text-center text-[9px] text-[#4a4845]">{name}</span></div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="hv2-m-chat-input mt-auto flex items-center gap-2 rounded-full border border-[#e8e2da] bg-white px-3 py-2">
-                      <span className="overflow-hidden text-[11px] leading-none text-[#1a1a1a]"><span className="hv2-m-typewriter">suggest some pizza</span><span className="hv2-m-caret" /></span>
-                      <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#fa43ad] text-[10px] leading-none text-white">▸</span>
-                    </div>
-                    <button className="rounded-full bg-[#fa43ad] py-2 text-[11px] font-semibold text-white">Checkout</button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center bg-white py-2"><div className="h-[4px] w-[100px] rounded-full bg-[#1a1a1a] opacity-20" /></div>
-              </div>
-            </div>
           </div>
         </div>
-      </section>
+      </div>
+      </div>
 
       {/* ────────────── CTA ────────────── */}
       <section className="relative z-10 border-t border-[#e8e2da] bg-[#3a3a3a]">
