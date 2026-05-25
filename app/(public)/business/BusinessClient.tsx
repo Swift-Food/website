@@ -395,13 +395,23 @@ export default function BusinessClient() {
               ["AI handles the hard parts.", "Menu suggestions, sizing for headcount, and real-time pricing — your users just chat."],
               ["Free to get started.", "No setup fee, no monthly cost. Get up and running in minutes."],
               ["Real local kitchens.", "We partner with vetted restaurants across London — no ghost kitchens, no reheated trays."],
-              ["Track every order.", "A dashboard for your team to see what's been ordered, when it's arriving, and how much you've earned."],
             ].map(([lead, rest]) => (
               <div key={lead} className="hv2-check relative pl-8 text-[15px] leading-[1.5] text-[#4a4845]">
                 <strong className="mr-1 font-semibold text-[#1a1a1a]">{lead}</strong>
                 {rest}
               </div>
             ))}
+          </div>
+          <div className="mt-14 flex items-center gap-8 rounded-2xl border border-[#e8e2da] bg-[#fbf7f4] px-8 py-6 max-md:flex-col max-md:text-center">
+            <img src="/logos/halkin.svg" alt="Halkin" className="h-8 shrink-0 object-contain" />
+            <div>
+              <p className="text-[15px] font-semibold text-[#1a1a1a]">
+                Partnered with Halkin
+              </p>
+              <p className="text-[14px] leading-[1.5] text-[#4a4845]">
+                Trusted by Halkin and other leading workspace operators across London.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -411,7 +421,7 @@ export default function BusinessClient() {
         <div className="mx-auto max-w-[640px] text-center">
           <div className={`${SECTION_EYEBROW} text-center`}>Integration</div>
           <h2 className="mb-4 text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] max-md:text-[26px]">
-            Seriously, <em className="italic text-[#fa43ad]">one line.</em>
+            Seriously,<br /><em className="italic text-[#fa43ad]">one line.</em>
           </h2>
           <p className="mb-10 text-[17px] leading-[1.55] text-[#4a4845]">
             Import the component, pass your key and brand colour. That&apos;s the entire integration.
