@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties } from "react";
+import { type CSSProperties, useRef, useCallback } from "react";
 import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
 import PartnersSection from "@/lib/components/containers/PartnersSection";
 import Image from "next/image";
@@ -30,6 +30,44 @@ const STEP_CARD =
 
 // ── Component ─────────────────────────────────────────────────────
 export default function HomeV2Client() {
+  const marqueeRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+  const startX = useRef(0);
+  const scrollOffset = useRef(0);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    dragging.current = true;
+    startX.current = e.clientX;
+    const content = marqueeRef.current;
+    if (!content) return;
+    const transform = getComputedStyle(content).transform;
+    const matrix = new DOMMatrixReadOnly(transform);
+    scrollOffset.current = matrix.m41;
+    content.style.animationPlayState = "paused";
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current || !marqueeRef.current) return;
+    const dx = e.clientX - startX.current;
+    marqueeRef.current.style.animation = "none";
+    marqueeRef.current.style.transform = `translateX(${scrollOffset.current + dx}px)`;
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    if (!dragging.current || !marqueeRef.current) return;
+    dragging.current = false;
+    const current = new DOMMatrixReadOnly(
+      getComputedStyle(marqueeRef.current).transform
+    ).m41;
+    const totalWidth = marqueeRef.current.scrollWidth / 2;
+    const normalized = ((current % totalWidth) + totalWidth) % totalWidth;
+    marqueeRef.current.style.transform = `translateX(${normalized}px)`;
+    marqueeRef.current.style.animation = "";
+    marqueeRef.current.style.animationPlayState = "";
+    marqueeRef.current.style.animationDelay = `-${((totalWidth - normalized) / totalWidth) * 20}s`;
+  }, []);
+
   return (
     <div className="hv2-page-glow relative overflow-x-hidden bg-[#fbf7f4] text-[#1a1a1a]">
       {/* ────────────── HERO (B2C) ────────────── */}
@@ -116,8 +154,14 @@ export default function HomeV2Client() {
           <p className="mb-6 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-[#8a8580]">
             Trusted by
           </p>
-          <div className="marquee-container">
-            <div className="marquee-content flex items-center">
+          <div
+            className="marquee-container cursor-grab active:cursor-grabbing select-none"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
+            <div ref={marqueeRef} className="marquee-content flex items-center">
               {[...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS].map(
                 (logo, idx) => (
                   <a
@@ -125,6 +169,8 @@ export default function HomeV2Client() {
                     href={logo.href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    draggable={false}
+                    onClickCapture={(e) => { if (Math.abs(startX.current - e.clientX) > 5) e.preventDefault(); }}
                     className="mx-10 flex shrink-0 items-center"
                   >
                     <Image
@@ -132,7 +178,8 @@ export default function HomeV2Client() {
                       alt={logo.name}
                       width={120}
                       height={40}
-                      className="h-8 w-auto object-contain max-md:h-6"
+                      draggable={false}
+                      className="pointer-events-none h-8 w-auto object-contain max-md:h-6"
                     />
                   </a>
                 ),
