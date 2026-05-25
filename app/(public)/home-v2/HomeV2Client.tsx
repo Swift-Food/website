@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useRef, useEffect, useCallback } from "react";
+import { type CSSProperties, useRef, useState, useEffect, useCallback } from "react";
 import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
 import PartnersSection from "@/lib/components/containers/PartnersSection";
 import Image from "next/image";
@@ -40,6 +40,26 @@ export default function HomeV2Client() {
   const rafId = useRef<number>(0);
   const lastTime = useRef(0);
   const speed = 80;
+  const [closestIdx, setClosestIdx] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onMarqueeMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = marqueeRef.current;
+    if (!el) return;
+    const links = el.querySelectorAll<HTMLAnchorElement>("a");
+    let best = -1;
+    let bestDist = Infinity;
+    links.forEach((link, i) => {
+      const rect = link.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const dist = Math.abs(e.clientX - cx);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    setClosestIdx(best >= 0 ? best : null);
+  }, []);
 
   useEffect(() => {
     const tick = (time: number) => {
@@ -177,10 +197,12 @@ export default function HomeV2Client() {
             Trusted by
           </p>
           <div
-            className="marquee-container cursor-grab active:cursor-grabbing select-none group/marquee"
+            ref={containerRef}
+            className="marquee-container cursor-grab active:cursor-grabbing select-none"
             onPointerDown={onPointerDown}
+            onMouseMove={onMarqueeMouseMove}
             onMouseEnter={() => { paused.current = true; lastTime.current = 0; }}
-            onMouseLeave={() => { paused.current = false; lastTime.current = 0; }}
+            onMouseLeave={() => { paused.current = false; lastTime.current = 0; setClosestIdx(null); }}
           >
             <div ref={marqueeRef} className="flex items-center will-change-transform">
               {[...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS].map(
@@ -192,7 +214,7 @@ export default function HomeV2Client() {
                     rel="noopener noreferrer"
                     draggable={false}
                     onClickCapture={(e) => { if (didDrag.current) e.preventDefault(); }}
-                    className="mx-10 flex shrink-0 items-center transition-opacity duration-200 group-hover/marquee:opacity-30 hover:!opacity-100"
+                    className={`mx-10 flex shrink-0 items-center transition-opacity duration-200 ${closestIdx !== null ? (closestIdx === idx ? "opacity-100" : "opacity-30") : ""}`}
                   >
                     <Image
                       src={logo.src}
