@@ -308,3 +308,250 @@
   85%     { opacity: 0; transform: translateY(6px); }
   100%    { opacity: 0; transform: translateY(6px); }
 }
+
+/* ============================================================
+   Mobile phone mockup — 3-page animation (17.5s cycle)
+   Page 1: Atlas hero  →  Page 2: Order + Ask AI  →  Page 3: AI Chat
+
+   Timing map (old 16s → new 17.5s):
+   Events ≤12.16s keep their absolute time: new% = seconds / 17.5
+   Events >12.16s shift +1.5s:              new% = (seconds + 1.5) / 17.5
+   ─────────────────────────────────────────────────────────────
+   Atlas visible     0–3.2s       0–18%
+   Atlas→Order       3.2–4.0s     18–23%
+   Order visible     4.0–6.4s     23–37%
+   Chat slides up    6.4–7.2s     37–41%
+   Chat visible      7.2–13.66s   41–78%   (menu hold +1.5s)
+   Chat slides down  13.66–14.46s 78–83%
+   Order→Atlas       14.46–15.26s 83–87%
+   Atlas visible     15.26–17.5s  87–100%
+   ============================================================ */
+
+/* ── Page slide animations ───────────────────────────────── */
+.hv2-m-atlas,
+.hv2-m-order,
+.hv2-m-chat {
+  will-change: transform;
+}
+.hv2-m-atlas {
+  animation: hv2-m-atlas-slide 17.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.hv2-m-order {
+  transform: translateX(100%);
+  animation: hv2-m-order-slide 17.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.hv2-m-chat {
+  transform: translateY(100%);
+  z-index: 2;
+  animation: hv2-m-chat-slide 17.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* 0s→0%  3.2s→18%  4.0s→23%  14.3s→82%  15.1s→86% */
+@keyframes hv2-m-atlas-slide {
+  0%, 18%  { transform: translateX(0); }
+  23%      { transform: translateX(-100%); }
+  83%      { transform: translateX(-100%); }
+  87%      { transform: translateX(0); }
+  100%     { transform: translateX(0); }
+}
+/* same anchors as atlas */
+@keyframes hv2-m-order-slide {
+  0%, 18%  { transform: translateX(100%); }
+  23%      { transform: translateX(0); }
+  83%      { transform: translateX(0); }
+  87%      { transform: translateX(100%); }
+  100%     { transform: translateX(100%); }
+}
+/* 6.4s→37%  7.2s→41%  13.66s→78%  14.46s→83% */
+@keyframes hv2-m-chat-slide {
+  0%, 37%  { transform: translateY(100%); }
+  41%      { transform: translateY(0); }
+  78%      { transform: translateY(0); }
+  83%      { transform: translateY(100%); }
+  100%     { transform: translateY(100%); }
+}
+
+/* ── Atlas page — CTA button + cursor ────────────────────── */
+/* 2.56s→15%  2.72s→16%  3.04s→17%  3.36s→19% */
+.hv2-m-atlas-cta {
+  animation: hv2-m-atlas-click 17.5s ease-in-out infinite;
+  will-change: transform, background-color, box-shadow;
+}
+@keyframes hv2-m-atlas-click {
+  0%, 15%  { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250,67,173,0.4); }
+  16%      { transform: scale(0.94); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201,39,127,0.4); }
+  17%      { transform: scale(0.97); background-color: #c9277f; box-shadow: 0 2px 8px  rgba(201,39,127,0.4); }
+  19%      { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250,67,173,0.4); }
+  100%     { transform: scale(1);    background-color: #fa43ad; box-shadow: 0 4px 14px rgba(250,67,173,0.4); }
+}
+
+/* 0.8s→5%  1.28s→7%  2.56s→15%  2.72s→16%  3.04s→17%  3.52s→20% */
+.hv2-m-atlas-cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 20;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: hv2-m-atlas-cursor 17.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes hv2-m-atlas-cursor {
+  0%, 5%   { opacity: 0; left: 65%; top: 55%; transform: scale(1); }
+  7%       { opacity: 1; left: 65%; top: 55%; transform: scale(1); }
+  15%      { opacity: 1; left: 15%; top: 87%; transform: scale(1); }
+  16%      { opacity: 1; left: 15%; top: 87%; transform: scale(0.82); }
+  17%      { opacity: 1; left: 15%; top: 87%; transform: scale(1); }
+  20%      { opacity: 0; left: 15%; top: 87%; transform: scale(1); }
+  100%     { opacity: 0; left: 65%; top: 55%; transform: scale(1); }
+}
+
+/* ── Order page — Ask AI button + cursor ─────────────────── */
+/* 5.92s→34%  6.08s→35%  6.4s→37% */
+.hv2-m-ask-ai-btn {
+  animation: hv2-m-ask-ai-click 17.5s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes hv2-m-ask-ai-click {
+  0%, 34%  { transform: scale(1);    background-color: transparent; }
+  35%      { transform: scale(0.95); background-color: #ffeaf4; }
+  37%      { transform: scale(1);    background-color: transparent; }
+  100%     { transform: scale(1);    background-color: transparent; }
+}
+
+/* 4.48s→26%  4.96s→28%  5.92s→34%  6.08s→35%  6.4s→37%  6.88s→39% */
+.hv2-m-order-cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 20;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: hv2-m-order-cursor 17.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes hv2-m-order-cursor {
+  0%, 26%  { opacity: 0; left: 55%; top: 45%; transform: scale(1); }
+  28%      { opacity: 1; left: 55%; top: 45%; transform: scale(1); }
+  34%      { opacity: 1; left: 52%; top: 93%; transform: scale(1); }
+  35%      { opacity: 1; left: 52%; top: 93%; transform: scale(0.82); }
+  37%      { opacity: 1; left: 52%; top: 93%; transform: scale(1); }
+  39%      { opacity: 0; left: 52%; top: 93%; transform: scale(1); }
+  100%     { opacity: 0; left: 55%; top: 45%; transform: scale(1); }
+}
+
+/* ── Chat page micro-animations ──────────────────────────── */
+
+/* Chat input — visible while typing, dims after send
+   7.36s→42%  7.68s→44%  9.76s→56%  9.92s→57%  hold→78%  fade→80% */
+.hv2-m-chat-input {
+  opacity: 0;
+  background: white;
+  animation: hv2-m-chat-input 17.5s ease infinite;
+}
+@keyframes hv2-m-chat-input {
+  0%, 42%  { opacity: 0; background: white; }
+  44%      { opacity: 1; background: white; }
+  56%      { opacity: 1; background: white; }
+  57%      { opacity: 0.55; background: #f4efe8; }
+  78%      { opacity: 0.55; background: #f4efe8; }
+  80%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+
+/* Typewriter text inside the input
+   7.84s→45%  8.96s→51%  9.76s→56%  9.92s→57% */
+.hv2-m-typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: middle;
+  width: 0;
+  animation: hv2-m-typewriter 17.5s steps(18, end) infinite;
+}
+@keyframes hv2-m-typewriter {
+  0%, 45%  { width: 0; }
+  51%      { width: 116px; }
+  56%      { width: 116px; }
+  57%      { width: 0; }
+  100%     { width: 0; }
+}
+
+/* Blinking caret — only visible while typing
+   7.68s→44%  7.84s→45%  9.76s→56%  9.92s→57% */
+.hv2-m-caret {
+  display: inline-block;
+  width: 1px;
+  height: 0.85em;
+  background: #1a1a1a;
+  vertical-align: middle;
+  margin-left: 1px;
+  animation:
+    hv2-caret-blink 0.7s steps(2, end) infinite,
+    hv2-m-caret-show 17.5s ease infinite;
+}
+@keyframes hv2-m-caret-show {
+  0%, 44%    { opacity: 0; }
+  45%, 56%   { opacity: 1; }
+  57%, 100%  { opacity: 0; }
+}
+
+/* User bubble — flies up from input position on send
+   9.76s→56%  9.92s→57%  10.4s→59%  hold→78%  fade→80% */
+.hv2-m-user-bubble {
+  opacity: 0;
+  animation: hv2-m-user-bubble 17.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes hv2-m-user-bubble {
+  0%, 56%  { opacity: 0; transform: translateY(200px) scale(0.85); }
+  57%      { opacity: 1; transform: translateY(200px) scale(0.85); }
+  59%      { opacity: 1; transform: translateY(0) scale(1); }
+  78%      { opacity: 1; transform: translateY(0) scale(1); }
+  80%      { opacity: 0; transform: translateY(0); }
+  100%     { opacity: 0; transform: translateY(200px) scale(0.85); }
+}
+
+/* "AI is thinking" typing dots
+   10.56s→60%  10.72s→61%  11.2s→64%  11.36s→65% */
+.hv2-m-typing-dots {
+  opacity: 0;
+  animation: hv2-m-typing-dots 17.5s ease infinite;
+}
+@keyframes hv2-m-typing-dots {
+  0%, 60%  { opacity: 0; }
+  61%      { opacity: 1; }
+  64%      { opacity: 1; }
+  65%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+.hv2-m-typing-dots span {
+  animation: hv2-typing-dot 1s ease-in-out infinite;
+}
+.hv2-m-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.hv2-m-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+/* AI response bubble
+   11.36s→65%  11.68s→67%  hold→78%  fade→80% */
+.hv2-m-ai-bubble {
+  opacity: 0;
+  animation: hv2-m-ai-bubble 17.5s ease infinite;
+}
+@keyframes hv2-m-ai-bubble {
+  0%, 65%  { opacity: 0; transform: translateY(4px); }
+  67%      { opacity: 1; transform: translateY(0); }
+  78%      { opacity: 1; transform: translateY(0); }
+  80%      { opacity: 0; transform: translateY(4px); }
+  100%     { opacity: 0; transform: translateY(4px); }
+}
+
+/* Menu preview card — last to appear, then holds 1.5s before slide-out
+   11.84s→68%  12.16s→70%  hold→78% (13.66s)  fade→80% */
+.hv2-m-menu-preview {
+  opacity: 0;
+  animation: hv2-m-menu-preview 17.5s ease infinite;
+}
+@keyframes hv2-m-menu-preview {
+  0%, 68%  { opacity: 0; transform: translateY(6px); }
+  70%      { opacity: 1; transform: translateY(0); }
+  78%      { opacity: 1; transform: translateY(0); }
+  80%      { opacity: 0; transform: translateY(6px); }
+  100%     { opacity: 0; transform: translateY(6px); }
+}
