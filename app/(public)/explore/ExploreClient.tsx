@@ -206,20 +206,17 @@ export default function ExploreClient() {
           <p className="mb-9 max-w-[490px] text-[19px] leading-[1.5] text-[#4a4845] max-md:mx-auto max-md:mb-4 max-md:text-[13.5px]">
             Tell us what you&apos;re hosting — we&apos;ll suggest the menu, price it, and deliver.
           </p>
-          <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
-            <a className={BTN_PRIMARY} href="/event-order">Plan your event</a>
-          </div>
-          <div className="mt-5 text-[14px] text-[#4a4845] max-md:hidden">
-            Running a workspace, office, or venue?{" "}
+          <div className="flex flex-wrap items-center gap-3 max-md:flex-col max-md:items-stretch max-md:px-4">
+            <a className={`${BTN_PRIMARY} max-md:justify-center`} href="/event-order">Plan your event</a>
             <a
+              className={`${BTN_GHOST} max-md:justify-center`}
               href="#b2b"
-              className="font-semibold text-[#c9277f] underline-offset-4 hover:underline"
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById("b2b")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              Embed our widget →
+              AI catering for your site
             </a>
           </div>
         </div>

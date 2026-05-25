@@ -169,7 +169,7 @@ export default function HomeV2Client() {
               Plan your event
             </a>
             <a className={BTN_GHOST} href="#business">
-              AI catering for your venue
+              AI catering for your site
             </a>
           </div>
         </div>
@@ -300,7 +300,6 @@ export default function HomeV2Client() {
             </div>
           </div>
         </div>
-        , our Catering AI
       </section>
 
       {/* ────────────── HOW IT WORKS ────────────── */}
