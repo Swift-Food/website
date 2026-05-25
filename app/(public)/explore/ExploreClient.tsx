@@ -123,14 +123,14 @@ export default function ExploreClient() {
       const scrollRange = sRect.height - viewportH;
       const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
 
-      // B2C: holds 0–0.5, fades out slowly 0.5–0.7
+      // B2C: fades in 0–0.08, holds 0.08–0.18, fades out 0.18–0.28
       const darkOnScreen = sRect.top < viewportH && sRect.bottom > 0;
-      const b2cIn = Math.min(1, transitionP * 10);
-      const b2cOut = Math.max(0, 1 - (transitionP - 0.5) * (1 / 0.2));
+      const b2cIn = Math.min(1, transitionP * (1 / 0.08));
+      const b2cOut = Math.max(0, 1 - (transitionP - 0.18) * (1 / 0.1));
       b2c.style.opacity = String(darkOnScreen ? Math.min(b2cIn, b2cOut) : 0);
 
-      // B2B float: only after B2C is fully gone (0.75+), fades in slowly
-      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.75) * (1 / 0.15)));
+      // B2B float: fades in 0.32–0.42, holds 0.42–0.52, then moves to hero
+      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.32) * (1 / 0.1)));
 
       // Movement: driven by how close the hero section is to viewport
       let moveP = 0;
@@ -169,7 +169,7 @@ export default function ExploreClient() {
       }
 
       // Hide float entirely before B2C is fully gone
-      if (transitionP <= 0.72) {
+      if (transitionP <= 0.29) {
         float.style.opacity = "0";
       }
     };
