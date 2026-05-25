@@ -152,6 +152,15 @@ export default function ExploreClient() {
           <div className="flex flex-wrap items-center gap-3 max-md:justify-center">
             <a className={BTN_PRIMARY} href="/event-order">Plan your event</a>
           </div>
+          <div className="mt-5 text-[14px] text-[#4a4845] max-md:hidden">
+            Running a workspace, office, or venue?{" "}
+            <a
+              href="#b2b"
+              className="font-semibold text-[#c9277f] underline-offset-4 hover:underline"
+            >
+              Embed our widget →
+            </a>
+          </div>
         </div>
         <div className="hv2-iframe-stage relative" aria-hidden="true">
           <iframe src="/animations/home-hero.html" title="Swift catering demo" loading="lazy" />
@@ -257,7 +266,7 @@ export default function ExploreClient() {
       </section>
 
       {/* ────────────── B2B HERO + MOCKUP ────────────── */}
-      <section className="relative z-10">
+      <section id="b2b" className="relative z-10">
         <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-14 px-8 py-24 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:py-18 max-md:px-6">
           <div>
             <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
