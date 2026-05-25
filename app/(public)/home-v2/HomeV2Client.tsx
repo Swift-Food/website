@@ -288,7 +288,7 @@ export default function HomeV2Client() {
           <div>
             <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
             <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-              Add AI catering to <em className="italic text-[#fa43ad]">your</em> site. In one line.
+              Add Nibble to <em className="italic text-[#fa43ad]">your</em> site. In one line.
             </h2>
             <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
               Give members, teams, or guests a way to order catering right from your
