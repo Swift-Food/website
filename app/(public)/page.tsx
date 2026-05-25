@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import HomeClient from "./HomeClient";
+import HomeV2Client from "./home-v2/HomeV2Client";
 
 export const metadata: Metadata = {
   title: "Swift Food | London Event Catering & Food Delivery for Corporate & Tech Events",
   description:
-    "London's trusted event catering service. Order pizza catering, street food, and corporate catering for events up to 3,000 people. Fast ordering, reliable delivery across London.",
+    "Tell Swift what you're hosting. We'll suggest the menu, price the order, and deliver — no email threads, no spreadsheets, no waiting on quotes.",
   keywords: [
     "catering",
     "London catering",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Swift Food | London Event Catering & Food Delivery",
     description:
-      "Order catering for events up to 3,000 people. Pizza, street food, and corporate catering delivered across London.",
+      "Tell Swift what you're hosting. We'll suggest the menu, price the order, and deliver — no email threads, no spreadsheets, no waiting on quotes.",
     url: "https://swiftfood.uk",
   },
 };
@@ -101,7 +101,7 @@ export default function Home() {
           __html: JSON.stringify(websiteJsonLd),
         }}
       />
-      <HomeClient />
+      <HomeV2Client />
     </>
   );
 }

@@ -1,9 +1,19 @@
 "use client";
 
-import { type CSSProperties } from "react";
+import { type CSSProperties, useRef, useState, useEffect, useCallback } from "react";
 import FeatureDemosSection from "@/lib/components/containers/FeatureDemosSection";
 import PartnersSection from "@/lib/components/containers/PartnersSection";
+import Image from "next/image";
 import "./home-v2.css";
+
+const SOCIAL_LOGOS: { name: string; src: string; href: string }[] = [
+  { name: "Cursor", src: "/SocialProof/Cursor_logo.svg.png", href: "https://cursor.com/" },
+  { name: "Holistic AI", src: "/SocialProof/holistic_AI_logo.png", href: "https://www.holisticai.com/" },
+  { name: "Cloudflare", src: "/SocialProof/Cloudflare_Logo.svg.png", href: "https://www.cloudflare.com/" },
+  { name: "Cornetto", src: "/SocialProof/Cornetto-Logo.png", href: "#" },
+  { name: "UCL", src: "/SocialProof/University_College_London_logo.svg.png", href: "https://www.ucl.ac.uk/" },
+  { name: "Google Developer Group", src: "/SocialProof/Google_Developer_Group.svg", href: "#" },
+];
 
 // ── Reusable class strings ────────────────────────────────────────
 const BTN_PRIMARY =
@@ -20,6 +30,86 @@ const STEP_CARD =
 
 // ── Component ─────────────────────────────────────────────────────
 export default function HomeV2Client() {
+  const marqueeRef = useRef<HTMLDivElement>(null);
+  const offset = useRef(0);
+  const dragging = useRef(false);
+  const paused = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartOffset = useRef(0);
+  const didDrag = useRef(false);
+  const rafId = useRef<number>(0);
+  const lastTime = useRef(0);
+  const speed = 80;
+  const [closestIdx, setClosestIdx] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onMarqueeMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = marqueeRef.current;
+    if (!el) return;
+    const links = el.querySelectorAll<HTMLAnchorElement>("a");
+    let best = -1;
+    let bestDist = Infinity;
+    links.forEach((link, i) => {
+      const rect = link.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const dist = Math.abs(e.clientX - cx);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    setClosestIdx(best >= 0 ? best : null);
+  }, []);
+
+  useEffect(() => {
+    const tick = (time: number) => {
+      if (lastTime.current) {
+        if (!dragging.current && !paused.current) {
+          const dt = (time - lastTime.current) / 1000;
+          offset.current -= speed * dt;
+          const el = marqueeRef.current;
+          if (el) {
+            const half = el.scrollWidth / 2;
+            if (half > 0 && Math.abs(offset.current) >= half) {
+              offset.current += half;
+            }
+            el.style.transform = `translateX(${offset.current}px)`;
+          }
+        }
+      }
+      lastTime.current = time;
+      rafId.current = requestAnimationFrame(tick);
+    };
+    rafId.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId.current);
+  }, []);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    dragging.current = true;
+    didDrag.current = false;
+    dragStartX.current = e.clientX;
+    dragStartOffset.current = offset.current;
+    lastTime.current = 0;
+
+    const onMove = (ev: PointerEvent) => {
+      if (!dragging.current) return;
+      if (Math.abs(ev.clientX - dragStartX.current) > 5) didDrag.current = true;
+      offset.current = dragStartOffset.current + (ev.clientX - dragStartX.current);
+      if (marqueeRef.current) {
+        marqueeRef.current.style.transform = `translateX(${offset.current}px)`;
+      }
+    };
+    const onUp = () => {
+      dragging.current = false;
+      lastTime.current = 0;
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+  }, []);
+
   return (
     <div className="hv2-page-glow relative overflow-x-hidden bg-[#fbf7f4] text-[#1a1a1a]">
       {/* ────────────── HERO (B2C) ────────────── */}
@@ -90,6 +180,48 @@ export default function HomeV2Client() {
               <circle cx="20" cy="44" r="2" fill="white" stroke="none" />
               <circle cx="73" cy="44" r="2" fill="white" stroke="none" />
             </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────── SOCIAL PROOF ────────────── */}
+      <section className="relative z-10 border-y border-[#e8e2da] py-10 overflow-hidden">
+        <div className="mx-auto max-w-[1280px] px-8 max-md:px-6">
+          <p className="mb-6 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-[#8a8580]">
+            Trusted by
+          </p>
+          <div
+            ref={containerRef}
+            className="marquee-container cursor-grab active:cursor-grabbing select-none"
+            onPointerDown={onPointerDown}
+            onMouseMove={onMarqueeMouseMove}
+            onMouseEnter={() => { paused.current = true; lastTime.current = 0; }}
+            onMouseLeave={() => { paused.current = false; lastTime.current = 0; setClosestIdx(null); }}
+          >
+            <div ref={marqueeRef} className="flex items-center will-change-transform">
+              {[...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS, ...SOCIAL_LOGOS].map(
+                (logo, idx) => (
+                  <a
+                    key={idx}
+                    href={logo.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    draggable={false}
+                    onClickCapture={(e) => { if (didDrag.current) e.preventDefault(); }}
+                    className={`mx-10 flex shrink-0 items-center transition-opacity duration-200 ${closestIdx !== null ? (closestIdx === idx ? "opacity-100" : "opacity-30") : ""}`}
+                  >
+                    <Image
+                      src={logo.src}
+                      alt={logo.name}
+                      width={120}
+                      height={40}
+                      draggable={false}
+                      className="pointer-events-none h-8 w-auto object-contain max-md:h-6"
+                    />
+                  </a>
+                ),
+              )}
+            </div>
           </div>
         </div>
       </section>
