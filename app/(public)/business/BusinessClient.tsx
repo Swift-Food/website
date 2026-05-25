@@ -18,7 +18,7 @@ export default function BusinessClient() {
   return (
     <div className="hv2-page-glow relative overflow-x-hidden bg-[#fbf7f4] text-[#1a1a1a]">
       {/* ────────────── HERO ────────────── */}
-      <section className="relative z-10 mx-auto grid min-h-screen max-w-[1280px] grid-cols-1 content-center items-center gap-10 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:gap-6 max-md:pt-20 max-md:pb-16 lg:grid-cols-[1fr_1.05fr] lg:gap-[72px]">
+      <section className="relative z-10 mx-auto grid min-h-screen max-w-[1440px] grid-cols-1 content-center items-center gap-10 px-8 pt-[132px] pb-[100px] max-[1100px]:px-8 max-md:gap-6 max-md:pt-20 max-md:pb-16 lg:grid-cols-[1fr_2fr] lg:gap-[72px]">
         <div className="max-md:text-center">
           <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
           <h1 className="mb-6 text-[clamp(40px,4.6vw,60px)] font-bold leading-[1.06] tracking-[-0.025em] max-md:mb-4 max-md:text-[30px] max-md:leading-[1.1]">
@@ -347,7 +347,8 @@ export default function BusinessClient() {
       </section>
 
       {/* ────────────── HOW IT WORKS ────────────── */}
-      <section className="relative z-10 mx-auto max-w-[1280px] px-8 py-24 max-md:px-6 max-md:py-16">
+      <div className="relative z-10 border-t border-[#e8e2da]">
+      <section className="mx-auto max-w-[1280px] px-8 py-24 max-md:px-6 max-md:py-16">
         <div className={SECTION_EYEBROW}>How it works</div>
         <h2 className="mb-[72px] max-w-[720px] text-[clamp(36px,4.2vw,56px)] font-medium leading-[1.06] tracking-[-0.022em] max-md:mb-12 max-md:text-[26px]">
           Live on your site in <em className="italic text-[#fa43ad]">under five minutes.</em>
@@ -378,6 +379,7 @@ export default function BusinessClient() {
           ))}
         </div>
       </section>
+      </div>
 
       {/* ────────────── WHY SWIFT ────────────── */}
       <section className="relative z-10 border-y border-[#e8e2da] bg-white">
@@ -391,7 +393,7 @@ export default function BusinessClient() {
               ["Easy to integrate.", "Install the package, drop in the component — minimal code, no complex setup."],
               ["Your brand, your colours.", "Customise the widget to match your site's look and feel."],
               ["AI handles the hard parts.", "Menu suggestions, sizing for headcount, and real-time pricing — your users just chat."],
-              ["Free to get started.", "No setup fee, no monthly cost. You earn commission on every order placed through your widget."],
+              ["Free to get started.", "No setup fee, no monthly cost. Get up and running in minutes."],
               ["Real local kitchens.", "We partner with vetted restaurants across London — no ghost kitchens, no reheated trays."],
               ["Track every order.", "A dashboard for your team to see what's been ordered, when it's arriving, and how much you've earned."],
             ].map(([lead, rest]) => (
@@ -441,7 +443,9 @@ export default function BusinessClient() {
             Ready to add catering to your site?
           </h2>
           <p className="mx-auto mb-9 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845]">
-            Free to set up. Live in minutes. Start earning from day one.
+            Free to set up. Live in minutes.
+            <br />
+            No commitments.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a className={BTN_PRIMARY} href="https://www.npmjs.com/package/@swift-food-services/catering-widget" target="_blank" rel="noopener noreferrer">
