@@ -168,14 +168,8 @@ export default function HomeV2Client() {
             <a className={BTN_PRIMARY} href="/event-order">
               Plan your event
             </a>
-          </div>
-          <div className="mt-5 text-[14px] text-[#4a4845] max-md:hidden">
-            Running a workspace, office, or venue?{" "}
-            <a
-              href="#business"
-              className="font-semibold text-[#c9277f] underline-offset-4 hover:underline"
-            >
-              Embed our widget →
+            <a className={BTN_GHOST} href="#business">
+              AI catering for your venue
             </a>
           </div>
         </div>
