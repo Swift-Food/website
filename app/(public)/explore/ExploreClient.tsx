@@ -11,7 +11,7 @@ const SOCIAL_LOGOS: { name: string; src: string; href: string }[] = [
   { name: "Cloudflare", src: "/SocialProof/Cloudflare_Logo.svg.png", href: "https://www.cloudflare.com/" },
   { name: "Cornetto", src: "/SocialProof/Cornetto-Logo.png", href: "#" },
   { name: "UCL", src: "/SocialProof/University_College_London_logo.svg.png", href: "https://www.ucl.ac.uk/" },
-  { name: "Google Developer Group", src: "/SocialProof/Google_Developer_Group.svg", href: "#" },
+  { name: "Google Developer Group", src: "/SocialProof/Google_Developer_Group.png", href: "#" },
 ];
 
 const BTN_PRIMARY =

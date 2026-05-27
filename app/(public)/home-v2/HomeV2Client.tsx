@@ -36,7 +36,7 @@ const SOCIAL_LOGOS: { name: string; src: string; href: string }[] = [
   },
   {
     name: "Google Developer Group",
-    src: "/SocialProof/Google_Developer_Group.svg",
+    src: "/SocialProof/Google_Developer_Group.png",
     href: "#",
   },
 ];
