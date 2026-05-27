@@ -103,7 +103,6 @@ export default function ExploreClient() {
   /* ── Scroll transition state ── */
   const transitionRef = useRef<HTMLDivElement>(null);
   const b2cCtaRef = useRef<HTMLDivElement>(null);
-  const b2cRef = useRef<HTMLDivElement>(null);
   const b2bFloatRef = useRef<HTMLDivElement>(null);
   const heroPlaceholderRef = useRef<HTMLDivElement>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
@@ -112,11 +111,10 @@ export default function ExploreClient() {
     const onScroll = () => {
       const section = transitionRef.current;
       const b2cCta = b2cCtaRef.current;
-      const b2c = b2cRef.current;
       const float = b2bFloatRef.current;
       const placeholder = heroPlaceholderRef.current;
       const heroSection = heroSectionRef.current;
-      if (!section || !b2cCta || !b2c || !float || !placeholder) return;
+      if (!section || !b2cCta || !float || !placeholder) return;
 
       const viewportH = window.innerHeight;
       const sRect = section.getBoundingClientRect();
@@ -125,20 +123,15 @@ export default function ExploreClient() {
       const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
       const darkOnScreen = sRect.top < viewportH && sRect.bottom > 0;
 
-      // Phase 1 — B2C CTA: fade in 0.10–0.16, hold 0.16–0.24, fade out 0.24–0.30
-      const ctaIn = Math.max(0, Math.min(1, (transitionP - 0.10) * (1 / 0.06)));
-      const ctaOut = Math.max(0, 1 - (transitionP - 0.24) * (1 / 0.06));
+      // Phase 1 — B2C CTA: fade in 0.08–0.14, hold 0.14–0.30, fade out 0.30–0.38
+      const ctaIn = Math.max(0, Math.min(1, (transitionP - 0.08) * (1 / 0.06)));
+      const ctaOut = Math.max(0, 1 - (transitionP - 0.30) * (1 / 0.08));
       const ctaOpacity = darkOnScreen ? Math.min(ctaIn, ctaOut) : 0;
       b2cCta.style.opacity = String(ctaOpacity);
       b2cCta.style.pointerEvents = ctaOpacity > 0.5 ? "auto" : "none";
 
-      // Phase 2 — Bridge text: fade in 0.37–0.43, hold 0.43–0.51, fade out 0.51–0.57
-      const b2cIn = Math.max(0, Math.min(1, (transitionP - 0.37) * (1 / 0.06)));
-      const b2cOut = Math.max(0, 1 - (transitionP - 0.51) * (1 / 0.06));
-      b2c.style.opacity = String(darkOnScreen ? Math.min(b2cIn, b2cOut) : 0);
-
-      // Phase 3 — B2B float: fade in 0.64–0.72
-      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.64) * (1 / 0.08)));
+      // Phase 2 — B2B float: fade in 0.48–0.58
+      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.48) * (1 / 0.10)));
 
       if (heroSection) {
         heroSection.getBoundingClientRect();
@@ -174,7 +167,7 @@ export default function ExploreClient() {
         float.style.opacity = String(b2bFade);
       }
 
-      if (transitionP <= 0.61) {
+      if (transitionP <= 0.45) {
         float.style.opacity = "0";
       }
     };
@@ -303,7 +296,7 @@ export default function ExploreClient() {
       <section
         ref={transitionRef}
         className="relative z-10 bg-[#3a3a3a] px-8 max-md:px-6"
-        style={{ minHeight: "400vh" }}
+        style={{ minHeight: "300vh" }}
       >
         <div className="sticky top-0 h-screen" />
       </section>
@@ -323,19 +316,6 @@ export default function ExploreClient() {
           <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-3">
             <a className={BTN_PRIMARY} href="/event-order">Plan your event</a>
           </div>
-        </div>
-      </div>
-
-      {/* Fixed B2C bridge text — stays centered in viewport */}
-      <div
-        ref={b2cRef}
-        className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-8 opacity-0 max-md:px-6"
-      >
-        <div className="text-center">
-          <p className="text-[clamp(28px,3.5vw,48px)] font-medium leading-[1.1] tracking-[-0.02em] text-white">
-            That&apos;s catering for <em className="italic text-[#fa43ad]">your</em> events.
-          </p>
-          <p className="mt-3 text-[18px] text-[#a8a4a0]">But what if ordering was built into your site?</p>
         </div>
       </div>
 
@@ -360,7 +340,7 @@ export default function ExploreClient() {
             <div ref={heroPlaceholderRef} className="opacity-0">
               <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
               <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-                Add AI catering to{" "}
+                Add Nibble to{" "}
                 <em className="italic text-[#fa43ad]">your</em> site.
               </h2>
             </div>
