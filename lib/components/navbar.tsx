@@ -31,7 +31,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`z-50 transition-all duration-300 py-5  ${isHomePage
+        className={`z-30 transition-all duration-300 py-5  ${isHomePage
           ? `fixed top-0 left-0 right-0 ${isScrolled ? "bg-white/20 backdrop-blur-sm border-gray-200" : "bg-transparent border-transparent"}`
           : "relative bg-white border-gray-200"
           }`}
