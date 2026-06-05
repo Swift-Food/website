@@ -1189,7 +1189,7 @@ export default function Step3ContactInfo() {
                 </div>
 
                 {/* Promo code discount */}
-                {(pricing.promoDiscount ?? 0) > 2 && (
+                {(pricing.promoDiscount ?? 0) > 0 && (
                   <div className="flex justify-between text-sm text-success font-medium">
                     <span>Promo Code Discount</span>
                     <span>-£{pricing.promoDiscount!.toFixed(2)}</span>
