@@ -297,9 +297,17 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                     </span>
                   </div>
                 )}
+                {session.promotionDiscount > 0 && (
+                  <div className="flex justify-between text-green-600 text-sm">
+                    <span>Restaurant Promotion:</span>
+                    <span className="font-semibold">
+                      -£{Number(session.promotionDiscount).toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 {session.promoDiscount > 0 && (
                   <div className="flex justify-between text-green-600 text-sm">
-                    <span>Discount:</span>
+                    <span>Promo Discount:</span>
                     <span className="font-semibold">
                       -£{Number(session.promoDiscount).toFixed(2)}
                     </span>
@@ -376,6 +384,15 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                 £{Number(order.deliveryFee).toFixed(2)}
               </span>
             </div>
+
+            {order.promotionDiscount && Number(order.promotionDiscount) > 0 && (
+              <div className="flex justify-between text-green-600 text-sm sm:text-base">
+                <span className="font-semibold">Restaurant Promotion:</span>
+                <span className="font-bold">
+                  -£{Number(order.promotionDiscount).toFixed(2)}
+                </span>
+              </div>
+            )}
 
             {order.promoDiscount && order.promoDiscount > 0 && (
               <div className="flex justify-between text-green-600 text-sm sm:text-base">
