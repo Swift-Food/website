@@ -132,7 +132,7 @@ export default function CateringDashboardPage() {
     if (!order) return;
     setCancelling(true);
     try {
-      await cateringService.cancelOrder(order.id);
+      await cateringService.cancelOrder(order.id, token);
       setShowCancelConfirm(false);
       await loadOrder();
     } catch (err: any) {
@@ -162,6 +162,7 @@ export default function CateringDashboardPage() {
           showPrices={pdfData.showPrices}
           deliveryCharge={pdfData.deliveryCharge}
           promoDiscount={pdfData.promoDiscount}
+          appliedPromotions={pdfData.appliedPromotions}
           totalPrice={pdfData.totalPrice}
           logoUrl={pdfData.logoUrl}
         />
@@ -379,6 +380,7 @@ export default function CateringDashboardPage() {
                   order={order}
                   onUpdate={loadOrder}
                   currentUserRole={currentUserRole}
+                  accessToken={token}
                 />
               </>
             ) : (

@@ -39,6 +39,7 @@ export const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
           showPrices={withPrices}
           deliveryCharge={deliveryCharge}
           promoDiscount={promoDiscount}
+          appliedPromotions={appliedPromotions}
           totalPrice={totalPrice}
           logoUrl={logoUrl}
         />
