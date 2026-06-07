@@ -132,7 +132,7 @@ export default function CateringDashboardPage() {
     if (!order) return;
     setCancelling(true);
     try {
-      await cateringService.cancelOrder(order.id);
+      await cateringService.cancelOrder(order.id, token);
       setShowCancelConfirm(false);
       await loadOrder();
     } catch (err: any) {
@@ -380,6 +380,7 @@ export default function CateringDashboardPage() {
                   order={order}
                   onUpdate={loadOrder}
                   currentUserRole={currentUserRole}
+                  accessToken={token}
                 />
               </>
             ) : (
