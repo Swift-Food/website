@@ -60,6 +60,7 @@ export default function FullMenuPage() {
           showPrices={pdfData.showPrices}
           deliveryCharge={pdfData.deliveryCharge}
           promoDiscount={pdfData.promoDiscount}
+          appliedPromotions={pdfData.appliedPromotions}
           totalPrice={pdfData.totalPrice}
           logoUrl={pdfData.logoUrl}
         />

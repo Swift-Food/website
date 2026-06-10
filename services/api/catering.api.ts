@@ -734,9 +734,10 @@ class CateringService {
     return response.json();
   }
 
-  async cancelOrder(orderId: string): Promise<void> {
+  async cancelOrder(orderId: string, accessToken?: string): Promise<void> {
+    const qs = accessToken ? `?accessToken=${encodeURIComponent(accessToken)}` : '';
     const response = await fetchWithAuth(
-      `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDERS}/${orderId}`,
+      `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDERS}/${orderId}${qs}`,
       { method: 'DELETE' }
     );
 

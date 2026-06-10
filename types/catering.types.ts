@@ -788,11 +788,13 @@ export interface AddSharedAccessDto {
   name: string;
   userId?: string;
   role: SharedAccessRole;
+  accessToken?: string; // order access token (guest auth via shared link)
 }
 
 export interface RemoveSharedAccessDto {
   orderId: string;
   email: string;
+  accessToken?: string; // order access token (guest auth via shared link)
 }
 
 export interface UpdatePickupContactDto {
@@ -807,6 +809,7 @@ export interface UpdateSharedAccessRoleDto {
   orderId: string;
   email: string;
   newRole: SharedAccessRole;
+  accessToken?: string; // order access token (guest auth via shared link)
 }
 
 export interface UpdateDeliveryTimeDto {

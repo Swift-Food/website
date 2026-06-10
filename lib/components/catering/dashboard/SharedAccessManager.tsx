@@ -11,9 +11,10 @@ interface SharedAccessManagerProps {
   order: CateringOrderResponse;
   onUpdate: () => void;
   currentUserRole: 'viewer' | 'manager' | null;
+  accessToken?: string; // order access token from the shared link (guest auth)
 }
 
-export default function SharedAccessManager({ order, onUpdate, currentUserRole }: SharedAccessManagerProps) {
+export default function SharedAccessManager({ order, onUpdate, currentUserRole, accessToken }: SharedAccessManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -39,6 +40,7 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
         name: formData.name,
         email: formData.email,
         role: formData.role,
+        accessToken,
       };
 
       await cateringService.addSharedAccess(dto);
@@ -59,6 +61,7 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
       const dto: RemoveSharedAccessDto = {
         orderId: order.id,
         email,
+        accessToken,
       };
 
       await cateringService.removeSharedAccess(dto);
@@ -74,6 +77,7 @@ export default function SharedAccessManager({ order, onUpdate, currentUserRole }
         orderId: order.id,
         email,
         newRole,
+        accessToken,
       };
 
       await cateringService.updateSharedAccessRole(dto);

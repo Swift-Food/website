@@ -1,4 +1,5 @@
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
+import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 export interface ReceiptAdjustment {
   label: string;
@@ -59,19 +60,17 @@ export interface ReceiptResponse {
 export async function fetchReceiptJson(
   orderId: string,
   restaurantId: string,
-  token?: string
+  _token?: string, // deprecated: auth is handled by fetchWithAuth (fresh token + 401 refresh)
 ): Promise<ReceiptResponse> {
   const url = `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDER_RECEIPT(orderId, restaurantId)}`;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, { headers });
+  // Use the shared authenticated client: it attaches a fresh access token and
+  // auto-refreshes + retries on 401. This endpoint requires auth since the
+  // security cutover; a raw fetch with a stale token caused intermittent 401s
+  // once the 15-min access token expired.
+  const res = await fetchWithAuth(url, {
+    headers: { "Content-Type": "application/json" },
+  });
 
   if (!res.ok) {
     const text = await res.text();
