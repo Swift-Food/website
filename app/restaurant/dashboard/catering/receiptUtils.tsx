@@ -81,6 +81,25 @@ export async function fetchReceiptJson(
 }
 
 /**
+ * Fetches the per-restaurant Order Checklist (packing list) PDF for one order,
+ * returning it as a Blob. Auth + restaurant-scoping are enforced server-side
+ * (RestaurantOwnershipGuard on :restaurantId); fetchWithAuth attaches a fresh
+ * access token and retries on 401.
+ */
+export async function fetchOrderChecklistBlob(
+  orderId: string,
+  restaurantId: string,
+): Promise<Blob> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDER_CHECKLIST(orderId, restaurantId)}`;
+  const res = await fetchWithAuth(url);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to fetch order checklist: ${res.status} ${text}`);
+  }
+  return res.blob();
+}
+
+/**
  * Builds a printable HTML receipt from receipt data
  */
 export function buildReceiptHTML(
