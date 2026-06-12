@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2 } from "lucide-react";
+import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2, X, Info } from "lucide-react";
 
 interface OrderItemsProps {
   order: CateringOrderResponse;
@@ -44,6 +44,13 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
         : restaurantsData.map((_, idx) => `legacy-${idx}`)
     )
   );
+
+  const [detailItem, setDetailItem] = useState<any>(null);
+  const [detailImageIdx, setDetailImageIdx] = useState(0);
+  const openDetail = (item: any) => {
+    setDetailItem(item);
+    setDetailImageIdx(0);
+  };
 
   const toggleSession = (sessionId: string) => {
     setExpandedSessions((prev) => {
@@ -135,7 +142,8 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                 return (
                   <div
                     key={itemIdx}
-                    className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors"
+                    onClick={() => openDetail(item)}
+                    className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                       <div className="flex-1 sm:pr-4">
@@ -147,6 +155,9 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                           {Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~
                           {Math.round(totalFeeds)} people
                         </p>
+                        <span className="inline-flex items-center gap-1 text-xs text-pink-600 font-medium mt-1">
+                          <Info className="h-3.5 w-3.5" /> View details
+                        </span>
                       </div>
                       <p className="font-bold text-pink-600 text-sm sm:text-base whitespace-nowrap self-end sm:self-auto">
                         £{Number(item.customerTotalPrice || 0).toFixed(2)}
@@ -476,6 +487,140 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
           )}
         </div>
       </div>
+
+      {/* Item detail modal — click an order item to see images, description, dietary, allergens */}
+      {detailItem && (() => {
+        const imgs: string[] = detailItem.images?.length
+          ? detailItem.images
+          : detailItem.menuItemImage
+          ? [detailItem.menuItemImage]
+          : [];
+        const dietary: string[] = detailItem.dietaryFilters || detailItem.dietaryRestrictions || [];
+        const allergenList: string[] = detailItem.allergens || [];
+        const addons = detailItem.addons || detailItem.selectedAddons || [];
+        const pretty = (s: string) => String(s).replace(/_/g, " ");
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            onClick={() => setDetailItem(null)}
+          >
+            <div
+              className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <h3 className="font-bold text-lg text-gray-900 pr-4 break-words">
+                  {detailItem.menuItemName || detailItem.name}
+                </h3>
+                <button
+                  onClick={() => setDetailItem(null)}
+                  className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 flex-shrink-0"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-4 space-y-4">
+                {imgs.length > 0 && (
+                  <div>
+                    <div className="aspect-[5/4] rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={imgs[detailImageIdx] ?? imgs[0]}
+                        alt={detailItem.menuItemName || detailItem.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {imgs.length > 1 && (
+                      <div className="flex gap-2 mt-2 overflow-x-auto">
+                        {imgs.map((img, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setDetailImageIdx(idx)}
+                            className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                              idx === detailImageIdx
+                                ? "border-pink-500"
+                                : "border-transparent opacity-60 hover:opacity-100"
+                            }`}
+                          >
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {detailItem.description && (
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {detailItem.description}
+                  </p>
+                )}
+                {dietary.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                      Dietary
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {dietary.map((d, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full capitalize"
+                        >
+                          {pretty(d)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {allergenList.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                      Allergens
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allergenList.map((a, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full capitalize"
+                        >
+                          {pretty(a)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {addons.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                      Add-ons
+                    </p>
+                    <div className="space-y-1">
+                      {addons.map((addon: any, i: number) => (
+                        <div key={i} className="flex justify-between text-sm text-gray-700 gap-2">
+                          <span className="break-words">
+                            • {addon.name}{" "}
+                            <span className="text-gray-500">x {addon.quantity}</span>
+                          </span>
+                          <span className="text-pink-600 font-semibold whitespace-nowrap">
+                            +£{((addon.customerUnitPrice || addon.price || 0) * addon.quantity).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {imgs.length === 0 &&
+                  !detailItem.description &&
+                  dietary.length === 0 &&
+                  allergenList.length === 0 &&
+                  addons.length === 0 && (
+                    <p className="text-sm text-gray-400">No extra details for this item.</p>
+                  )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
