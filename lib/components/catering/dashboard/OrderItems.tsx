@@ -462,7 +462,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
             </div>
           )}
 
-          {order.paymentLinkUrl && !order.paidAt && (
+          {order.paymentLinkUrl && (
             <div className="mt-3 sm:mt-4">
               <a
                 href={order.paymentLinkUrl}
@@ -470,7 +470,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                 rel="noopener noreferrer"
                 className="block w-full bg-pink-500 text-white text-center py-2.5 sm:py-3 rounded-lg font-bold hover:bg-pink-600 transition-colors text-sm sm:text-base"
               >
-                Complete Payment
+                {['paid', 'confirmed', 'completed'].includes(order.status) ? 'View Payment Link' : 'Complete Payment'}
               </a>
             </div>
           )}
