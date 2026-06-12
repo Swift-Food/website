@@ -15,8 +15,6 @@ import DeliveryTimeManager from "@/lib/components/catering/dashboard/DeliveryTim
 import { Loader2, Eye, XCircle } from "lucide-react";
 import RefundRequestButton from "@/lib/components/catering/dashboard/RefundRequestButton";
 import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
-import { pdf } from "@react-pdf/renderer";
-import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import PdfDownloadModal from "@/lib/components/catering/modals/PdfDownloadModal";
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
@@ -154,6 +152,12 @@ export default function CateringDashboardPage() {
 
     setGeneratingPdf(true);
     try {
+      // Load react-pdf lazily on the client only — a top-level import pulls it
+      // into the server bundle and breaks SSR (caused a 500 on this route).
+      const [{ pdf }, { CateringMenuPdf }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/components/pdf/CateringMenuPdf"),
+      ]);
       // transformOrderToPdfData is now async to handle image fetching for CORS compatibility
       const pdfData = await transformOrderToPdfData(order, withPrices);
       const blob = await pdf(

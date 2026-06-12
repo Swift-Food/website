@@ -133,7 +133,6 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                 const cateringUnit = item.cateringQuantityUnit || 1;
                 const feedsPerUnit = item.feedsPerUnit || 1;
                 const numUnits = item.quantity / cateringUnit;
-                console.log("the item is", JSON.stringify(item))
                 const totalFeeds = numUnits * feedsPerUnit;
 
                 // Support both 'addons' and 'selectedAddons' property names
@@ -523,29 +522,31 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
               <div className="p-4 space-y-4">
                 {imgs.length > 0 && (
                   <div>
-                    <div className="aspect-[5/4] rounded-lg overflow-hidden bg-gray-100">
+                    <div className="aspect-[5/4] rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center">
                       <img
                         src={imgs[detailImageIdx] ?? imgs[0]}
                         alt={detailItem.menuItemName || detailItem.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                     {imgs.length > 1 && (
-                      <div className="flex gap-2 mt-2 overflow-x-auto">
-                        {imgs.map((img, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => setDetailImageIdx(idx)}
-                            className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
-                              idx === detailImageIdx
-                                ? "border-pink-500"
-                                : "border-transparent opacity-60 hover:opacity-100"
-                            }`}
-                          >
-                            <img src={img} alt="" className="w-full h-full object-cover" />
-                          </button>
-                        ))}
+                      <div className="flex justify-center mt-2">
+                        <div className="inline-flex gap-2 overflow-x-auto max-w-full pb-1">
+                          {imgs.map((img, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setDetailImageIdx(idx)}
+                              className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                                idx === detailImageIdx
+                                  ? "border-pink-500"
+                                  : "border-transparent opacity-60 hover:opacity-100"
+                              }`}
+                            >
+                              <img src={img} alt="" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
