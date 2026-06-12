@@ -11,6 +11,31 @@ interface OrderItemsProps {
   generatingPdf?: boolean;
 }
 
+// Pretty-print an underscored value, e.g. "tree_nuts" -> "Tree Nuts"
+const prettyLabel = (s: string) =>
+  String(s)
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+
+// Match the catering-widget's allergen formatting/normalising behaviour
+const formatAllergen = (allergen: string) => prettyLabel(allergen);
+
+const normalizeAllergens = (
+  allergens?: string | string[] | null
+): string[] => {
+  if (!allergens) return [];
+  const list = Array.isArray(allergens) ? allergens : allergens.split(",");
+  return list
+    .map((a) => a.trim())
+    .filter(
+      (a) =>
+        a.length > 0 &&
+        a.toLowerCase() !== "no specific allergens" &&
+        a.toLowerCase() !== "no_specific_allergens"
+    );
+};
+
 export default function OrderItems({ order, onDownloadPdf, generatingPdf }: OrderItemsProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
@@ -47,9 +72,11 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
 
   const [detailItem, setDetailItem] = useState<any>(null);
   const [detailImageIdx, setDetailImageIdx] = useState(0);
+  const [isAllergenExpanded, setIsAllergenExpanded] = useState(false);
   const openDetail = (item: any) => {
     setDetailItem(item);
     setDetailImageIdx(0);
+    setIsAllergenExpanded(false);
   };
 
   const toggleSession = (sessionId: string) => {
@@ -487,136 +514,222 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
         </div>
       </div>
 
-      {/* Item detail modal — click an order item to see images, description, dietary, allergens */}
+      {/* Item detail modal — styled to match the catering-widget MenuItemModal (view-only) */}
       {detailItem && (() => {
         const imgs: string[] = detailItem.images?.length
           ? detailItem.images
           : detailItem.menuItemImage
           ? [detailItem.menuItemImage]
+          : detailItem.menuItemImageUrl
+          ? [detailItem.menuItemImageUrl]
           : [];
         const dietary: string[] = detailItem.dietaryFilters || detailItem.dietaryRestrictions || [];
-        const allergenList: string[] = detailItem.allergens || [];
+        const allergenList: string[] = normalizeAllergens(detailItem.allergens);
         const addons = detailItem.addons || detailItem.selectedAddons || [];
-        const pretty = (s: string) => String(s).replace(/_/g, " ");
+
+        const cateringUnit = detailItem.cateringQuantityUnit || 1;
+        const feedsPerUnit = detailItem.feedsPerUnit || 1;
+        const numUnits = (detailItem.quantity || 0) / cateringUnit;
+        const totalFeeds = numUnits * feedsPerUnit;
+
+        // Group chosen add-ons by their group title for nicer display
+        const addonsByGroup: Record<string, any[]> = {};
+        for (const addon of addons) {
+          const g = addon.groupTitle || "Add-ons";
+          (addonsByGroup[g] = addonsByGroup[g] || []).push(addon);
+        }
+
         return (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
             onClick={() => setDetailItem(null)}
           >
+            <div className="absolute inset-0 bg-black/50" />
             <div
-              className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              className="relative bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-                <h3 className="font-bold text-lg text-gray-900 pr-4 break-words">
-                  {detailItem.menuItemName || detailItem.name}
-                </h3>
-                <button
-                  onClick={() => setDetailItem(null)}
-                  className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 flex-shrink-0"
-                  aria-label="Close"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="p-4 space-y-4">
+              <button
+                onClick={() => setDetailItem(null)}
+                className="absolute top-3 right-3 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors z-30 shadow-md"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+
+              <div className="overflow-y-auto flex-1">
+                {/* Image header — flush to the top/sides of the card */}
                 {imgs.length > 0 && (
-                  <div>
-                    <div className="aspect-[5/4] rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center">
+                  <div className="flex-shrink-0">
+                    <div
+                      className="overflow-hidden"
+                      style={{ maxHeight: "50vh", aspectRatio: "5/4" }}
+                    >
                       <img
                         src={imgs[detailImageIdx] ?? imgs[0]}
                         alt={detailItem.menuItemName || detailItem.name}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     {imgs.length > 1 && (
-                      <div className="flex justify-center mt-2">
-                        <div className="inline-flex gap-2 overflow-x-auto max-w-full pb-1">
-                          {imgs.map((img, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => setDetailImageIdx(idx)}
-                              className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
-                                idx === detailImageIdx
-                                  ? "border-pink-500"
-                                  : "border-transparent opacity-60 hover:opacity-100"
-                              }`}
-                            >
-                              <img src={img} alt="" className="w-full h-full object-cover" />
-                            </button>
-                          ))}
-                        </div>
+                      <div className="flex gap-2 px-4 sm:px-6 pt-2 overflow-x-auto">
+                        {imgs.map((img, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setDetailImageIdx(idx)}
+                            className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                              idx === detailImageIdx
+                                ? "border-pink-500"
+                                : "border-transparent opacity-60 hover:opacity-100"
+                            }`}
+                            aria-label={`View image ${idx + 1}`}
+                          >
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
                 )}
-                {detailItem.description && (
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                    {detailItem.description}
+
+                <div className={imgs.length > 0 ? "px-4 sm:px-6 pt-3 pb-4 sm:pb-6" : "p-4 sm:p-6"}>
+                <h2 className="font-bold text-lg sm:text-2xl text-gray-900 mb-1 pr-8">
+                  {detailItem.menuItemName || detailItem.name}
+                </h2>
+                {detailItem.restaurantName && (
+                  <p className="text-xs sm:text-sm text-pink-600 font-medium mb-3 sm:mb-4">
+                    From {detailItem.restaurantName}
                   </p>
                 )}
-                {dietary.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-                      Dietary
+
+                <div className="space-y-3 sm:space-y-4 mt-2">
+                  {detailItem.description && (
+                    <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+                      {detailItem.description}
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
+                  )}
+
+                  {dietary.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {dietary.map((d, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full capitalize"
+                          className="bg-green-100 text-green-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold capitalize"
                         >
-                          {pretty(d)}
+                          {prettyLabel(d)}
                         </span>
                       ))}
                     </div>
-                  </div>
-                )}
-                {allergenList.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-                      Allergens
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {allergenList.map((a, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full capitalize"
-                        >
-                          {pretty(a)}
-                        </span>
-                      ))}
+                  )}
+
+                  {allergenList.length > 0 ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsAllergenExpanded(!isAllergenExpanded);
+                        }}
+                        className="w-full text-left hover:opacity-80 transition-opacity"
+                      >
+                        <h3 className="font-semibold text-xs sm:text-sm text-gray-900 flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2">
+                            <span className="text-sm sm:text-base">⚠️</span>
+                            Allergens
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-gray-500 font-normal">
+                            {isAllergenExpanded ? "▲ Hide" : "▼ Show"}
+                          </span>
+                        </h3>
+                      </button>
+                      {isAllergenExpanded && (
+                        <>
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2 my-2 sm:my-3">
+                            {allergenList.map((allergen, index) => (
+                              <span
+                                key={index}
+                                className="bg-amber-300 text-amber-900 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold"
+                              >
+                                {formatAllergen(allergen)}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-[10px] sm:text-xs text-gray-500 italic leading-relaxed">
+                            This is approximate. For full allergen information, please contact the restaurant.
+                          </p>
+                        </>
+                      )}
                     </div>
-                  </div>
-                )}
-                {addons.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-                      Add-ons
+                  ) : (
+                    <div className="bg-gray-100 border border-gray-200 rounded-lg p-2 sm:p-3">
+                      <p className="text-[10px] sm:text-xs text-gray-500 italic">
+                        ⚠️ Allergen information not available. Please contact the restaurant directly.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Price & portions */}
+                  <div className="pt-1 sm:pt-2">
+                    <span className="text-xl sm:text-2xl font-bold text-pink-600">
+                      £{Number(detailItem.customerTotalPrice || 0).toFixed(2)}
+                    </span>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                      {Math.round(numUnits)} portion
+                      {Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~
+                      {Math.round(totalFeeds)} people
                     </p>
-                    <div className="space-y-1">
-                      {addons.map((addon: any, i: number) => (
-                        <div key={i} className="flex justify-between text-sm text-gray-700 gap-2">
-                          <span className="break-words">
-                            • {addon.name}{" "}
-                            <span className="text-gray-500">x {addon.quantity}</span>
-                          </span>
-                          <span className="text-pink-600 font-semibold whitespace-nowrap">
-                            +£{((addon.customerUnitPrice || addon.price || 0) * addon.quantity).toFixed(2)}
-                          </span>
+                  </div>
+
+                  {/* Chosen add-ons */}
+                  {addons.length > 0 && (
+                    <div className="pt-2">
+                      <h3 className="font-semibold text-base text-gray-900 mb-3">
+                        Chosen Add-ons
+                      </h3>
+                      {Object.entries(addonsByGroup).map(([groupTitle, groupAddons]) => (
+                        <div key={groupTitle} className="mb-4 mt-6 first:mt-0">
+                          <h4 className="font-bold text-xs sm:text-sm text-gray-900 mb-2">
+                            {groupTitle}
+                          </h4>
+                          <div className="space-y-2">
+                            {groupAddons.map((addon: any, index: number) => {
+                              const addonAllergens = normalizeAllergens(addon.allergens);
+                              const lineTotal =
+                                (addon.customerUnitPrice || addon.price || 0) * addon.quantity;
+                              return (
+                                <div
+                                  key={index}
+                                  className="w-full flex items-center justify-between p-3 rounded-lg border border-pink-300 bg-pink-50"
+                                >
+                                  <div className="min-w-0 mr-2">
+                                    <span className="block text-sm text-gray-900">
+                                      {addon.name}{" "}
+                                      <span className="text-gray-500">× {addon.quantity}</span>
+                                    </span>
+                                    {addonAllergens.length > 0 && (
+                                      <p className="text-[9px] sm:text-[11px] text-gray-500 leading-snug">
+                                        <span className="font-medium">Allergens: </span>
+                                        {addonAllergens.map(formatAllergen).join(", ")}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {lineTotal > 0 && (
+                                    <span className="text-sm font-medium text-pink-600 whitespace-nowrap">
+                                      +£{lineTotal.toFixed(2)}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-                {imgs.length === 0 &&
-                  !detailItem.description &&
-                  dietary.length === 0 &&
-                  allergenList.length === 0 &&
-                  addons.length === 0 && (
-                    <p className="text-sm text-gray-400">No extra details for this item.</p>
                   )}
+                </div>
+                </div>
               </div>
             </div>
           </div>
