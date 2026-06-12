@@ -507,7 +507,13 @@ const styles = StyleSheet.create({
 // Cover Page Component - Using pre-designed image
 const CoverPage: React.FC = () => (
   <Page size="A4">
-    <Image src="/Swift_PDF_Cover_Page.png" style={{ width: "100%", height: "100%" }} />
+    {/* Absolute-fill: a flow-positioned <Image> with height:"100%" can't resolve the
+        percentage and falls back to the PNG's intrinsic 2480x3508, overflowing the page
+        ("Node of type IMAGE can't wrap between pages"). Absolute removes it from flow. */}
+    <Image
+      src="/Swift_PDF_Cover_Page.png"
+      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
+    />
   </Page>
 );
 
