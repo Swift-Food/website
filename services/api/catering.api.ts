@@ -710,7 +710,6 @@ class CateringService {
   }
 
   async getDeliveryTracking(mealSessionId: string): Promise<DeliveryTrackingDto> {
-    console.log("what we sending", `${API_BASE_URL}/catering-driver/delivery-tracking/${mealSessionId}` )
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-driver/track/${mealSessionId}`
     );

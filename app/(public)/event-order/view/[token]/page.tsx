@@ -60,16 +60,6 @@ export default function CateringDashboardPage() {
       setLoading(true);
       setError(null);
       const data = await cateringService.getOrderByToken(token);
-      console.log("[Event Order] API Response:", data);
-      // Log addon data specifically to check allergens/dietaryRestrictions
-      const allAddons = data.mealSessions?.flatMap(session =>
-        session.orderItems?.flatMap(restaurant =>
-          restaurant.menuItems?.flatMap(item => item.selectedAddons || [])
-        ) || []
-      ) || data.restaurants?.flatMap(restaurant =>
-        restaurant.menuItems?.flatMap(item => item.selectedAddons || [])
-      ) || [];
-      console.log("[Event Order] All Addons:", allAddons);
       setOrder(data);
 
       // Determine current user's role from the token
@@ -98,13 +88,11 @@ export default function CateringDashboardPage() {
   };
 
   const loadDeliveryTracking = async (orderData: CateringOrderResponse) => {
-    console.log("loading delivery tracking info")
     const trackableStatuses = ["restaurant_reviewed", "paid", "confirmed", "completed"];
     const sessions = orderData.mealSessions ?? [];
     if (!trackableStatuses.includes(orderData.status) || sessions.length === 0) return;
 
     try {
-      console.log("sesh id", JSON.stringify(sessions))
       const results = await Promise.allSettled(
 
         sessions.map((s) => cateringService.getDeliveryTracking(s.id))
@@ -116,7 +104,6 @@ export default function CateringDashboardPage() {
           data[sessions[index].id] = result.value;
         }
       });
-      console.log("the data for delivery tracking", JSON.stringify(data))
       setDeliveryTracking(data);
     } catch (err) {
       console.error("Failed to load delivery tracking:", err);
@@ -221,7 +208,6 @@ export default function CateringDashboardPage() {
   }
 
   const isManager =  currentUserRole === "manager";
-  console.log("current user role", currentUserRole)
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
