@@ -45,7 +45,7 @@ export interface MenuItem {
   discountPrice?: string;
   allergens?: string[];
   isDiscount: boolean;
-  image?: string;
+  images?: string[];
   averageRating?: string;
   cateringQuantityUnit?: number;
   feedsPerUnit?: number;
@@ -831,6 +831,7 @@ export interface MenuItemAddonItem {
   dietaryRestrictions?: string[];
   isDefault?: boolean;
   displayOrder?: number;
+  image?: string;
 }
 
 /** Group-level addon configuration */
@@ -851,6 +852,7 @@ export interface MenuItemAddon {
   dietaryRestrictions?: string[];
   groupTitle?: string;
   selectionType?: "single" | "multiple" | "multiple_no_repeat" | "multiple_repeat";
+  image?: string;
   isRequired?: boolean;
   minSelections?: number;
   maxSelections?: number;
@@ -905,7 +907,7 @@ export interface CreateMenuItemDto {
   prepTime: number;
   discountPrice?: number;
   isDiscount?: boolean;
-  image: string;
+  images?: string[];
   isAvailable: boolean;
   allergens: string[];
   dietaryFilters?: string[];
@@ -941,7 +943,7 @@ export interface UpdateMenuItemDto {
   prepTime?: number;
   discountPrice?: number;
   isDiscount?: boolean;
-  image?: string;
+  images?: string[];
   isAvailable?: boolean;
   allergens?: string[];
   dietaryFilters?: string[];
