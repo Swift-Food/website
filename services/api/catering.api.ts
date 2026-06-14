@@ -746,6 +746,28 @@ class CateringService {
     }
   }
 
+  /**
+   * Pay-at-click: mint the Stripe invoice for this order on demand, then return
+   * the hosted payment URL to redirect to. Requires a manager access token.
+   */
+  async createPayment(
+    orderId: string,
+    accessToken?: string,
+  ): Promise<{ paymentLinkUrl?: string; status?: string }> {
+    const qs = accessToken ? `?accessToken=${encodeURIComponent(accessToken)}` : '';
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDERS}/${orderId}/create-payment${qs}`,
+      { method: 'POST' }
+    );
+
+    if (!response.ok) {
+      const msg = await this.readErrorMessage(response);
+      throw new Error(msg || 'Failed to start payment');
+    }
+
+    return response.json();
+  }
+
   async getOrdersByUserId(userId: string): Promise<CateringOrderResponse[]> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/catering-orders/user/${userId}`
