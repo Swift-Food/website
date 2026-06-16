@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Loader, AlertCircle, ArrowLeft, X } from "lucide-react";
+import { Save, Loader, AlertCircle, ArrowLeft, X, Upload } from "lucide-react";
+import Image from "next/image";
 import { ImageUploadSection } from "./ImageUploadSection";
 import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
 
@@ -61,12 +62,16 @@ interface ProfileFormProps {
   contactNumber: string;
   images: string[];
   eventImages: string[];
+  logoImageUrl?: string;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onContactEmailChange: (value: string) => void;
   onContactNumberChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
+  onLogoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onLogoRemove: () => void;
+  uploadingLogoImage: boolean;
   pendingEventImages: PendingEventImage[];
   onPendingEventImagesChange: (images: PendingEventImage[]) => void;
   pendingEventDeletions: string[];
@@ -103,12 +108,16 @@ export const ProfileForm = ({
   contactNumber,
   images,
   eventImages,
+  logoImageUrl,
   onNameChange,
   onDescriptionChange,
   onContactEmailChange,
   onContactNumberChange,
   onImageUpload,
   onImageRemove,
+  onLogoUpload,
+  onLogoRemove,
+  uploadingLogoImage,
   pendingEventImages,
   onPendingEventImagesChange,
   pendingEventDeletions,
@@ -202,6 +211,71 @@ export const ProfileForm = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="space-y-8">
+            {/* Restaurant Logo */}
+            <div>
+              <label className="block text-lg font-bold text-gray-900 mb-2">
+                Restaurant Logo
+              </label>
+              <p className="text-sm text-gray-500 mb-4">
+                Shown as a circle on menu item cards
+              </p>
+              {logoImageUrl && (
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-200 flex-shrink-0">
+                    <Image
+                      src={logoImageUrl}
+                      alt="Restaurant logo"
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onLogoRemove}
+                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Remove logo
+                  </button>
+                </div>
+              )}
+              <input
+                type="file"
+                id="logo-upload"
+                accept="image/*"
+                onChange={onLogoUpload}
+                className="hidden"
+                disabled={uploadingLogoImage}
+              />
+              <label
+                htmlFor="logo-upload"
+                className={`inline-flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed rounded-xl ${
+                  uploadingLogoImage
+                    ? "bg-gray-100 border-gray-300 cursor-not-allowed"
+                    : "bg-white border-gray-300 hover:border-purple-500 hover:bg-purple-50 cursor-pointer"
+                } transition-colors w-full`}
+              >
+                {uploadingLogoImage ? (
+                  <>
+                    <Loader size={24} className="animate-spin text-gray-600" />
+                    <span className="text-base font-medium text-gray-700">Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={24} className="text-gray-600" />
+                    <span className="text-base font-medium text-gray-700">
+                      {logoImageUrl ? "Replace logo" : "Upload logo"}
+                    </span>
+                  </>
+                )}
+              </label>
+              <p className="text-sm text-gray-500 mt-2">Square images work best • Max 5MB • JPG, PNG, or WebP</p>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-gray-200"></div>
+
             {/* Restaurant Images */}
             <ImageUploadSection
               images={images}
@@ -431,7 +505,7 @@ export const ProfileForm = ({
             </button>
             <button
               type="submit"
-              disabled={saving || uploadingImage || uploadingEventImage}
+              disabled={saving || uploadingImage || uploadingEventImage || uploadingLogoImage}
               className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg shadow-lg shadow-purple-500/30"
             >
               {saving ? (

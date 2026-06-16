@@ -8,8 +8,9 @@ import {
   ChevronDown,
   ChevronUp,
   EyeIcon,
+  ClipboardList,
 } from "lucide-react";
-import { fetchReceiptJson, buildReceiptHTML } from "./receiptUtils";
+import { fetchReceiptJson, buildReceiptHTML, fetchOrderChecklistBlob } from "./receiptUtils";
 import { formatDeliveryAddress } from "./utils/address.utils";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
 import { PickupAddress } from "@/types/restaurant.types";
@@ -49,6 +50,7 @@ export const CateringOrderCard = ({
 }: CateringOrderCardProps) => {
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
   const [viewingReceipt, setViewingReceipt] = useState(false);
+  const [downloadingChecklist, setDownloadingChecklist] = useState(false);
 
   const isUnassigned = order.isUnassigned === true;
   const status = order.effectiveStatus || order.status;
@@ -137,6 +139,40 @@ export const CateringOrderCard = ({
       );
     } finally {
       setViewingReceipt(false);
+    }
+  };
+
+  // Download the per-restaurant Order Checklist (packing list) PDF for this
+  // order — items, add-ons, cutlery line, special instructions; no prices.
+  const downloadChecklist = async () => {
+    if (!token) {
+      alert("Missing authentication token. Please log in again.");
+      return;
+    }
+    setDownloadingChecklist(true);
+    try {
+      const blob = await fetchOrderChecklistBlob(order.id, restaurantId);
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
+      if (!w) {
+        // Popup blocked — fall back to a direct download.
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `order-checklist-${order.id.slice(0, 8)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (err) {
+      console.error("Checklist download error:", err);
+      alert(
+        `Failed to download checklist: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setDownloadingChecklist(false);
     }
   };
 
@@ -553,6 +589,24 @@ export const CateringOrderCard = ({
             <>
               <EyeIcon size={14} />
               View Receipt
+            </>
+          )}
+        </button>
+        <button
+          onClick={downloadChecklist}
+          disabled={downloadingChecklist}
+          className="px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+          type="button"
+        >
+          {downloadingChecklist ? (
+            <>
+              <Loader size={14} className="animate-spin" />
+              Preparing...
+            </>
+          ) : (
+            <>
+              <ClipboardList size={14} />
+              Order Checklist
             </>
           )}
         </button>

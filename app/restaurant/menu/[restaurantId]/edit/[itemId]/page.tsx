@@ -46,6 +46,7 @@ const EditMenuItemPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingAddonImage, setUploadingAddonImage] = useState(false);
 
   // Categories
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
@@ -228,8 +229,8 @@ const EditMenuItemPage = () => {
       setDiscountPrice(item.discountPrice?.toString() || "");
       setIsDiscount(item.isDiscount || false);
       setPrepTime(item.prepTime);
-      setImage(item.image || "");
-      setImagePreview(item.image || "");
+      setImage(item.images?.[0] || "");
+      setImagePreview(item.images?.[0] || "");
       setIsAvailable(item.isAvailable);
       setStatus(item.status);
       setStyle(item.style || MenuItemStyle.CARD);
@@ -493,6 +494,47 @@ const EditMenuItemPage = () => {
     setImagePreview("");
   };
 
+  // Upload an image for the add-on currently open in the modal. Mirrors
+  // handleImageChange (same /image-upload endpoint, field name "upload") but
+  // writes the returned URL onto currentAddon.image instead of the item image.
+  const handleAddonImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload an image file");
+      return;
+    }
+    setUploadingAddonImage(true);
+    setError("");
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("upload", file);
+      const response = await fetchWithAuth(
+        `${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`,
+        { method: "POST", body: formDataUpload }
+      );
+      const responseText = await response.text();
+      if (!response.ok) {
+        throw new Error(`Failed to upload image: ${response.status} - ${responseText}`);
+      }
+      let imageUrl: string;
+      try {
+        imageUrl = JSON.parse(responseText);
+      } catch {
+        throw new Error("Invalid response format from server");
+      }
+      if (!imageUrl || typeof imageUrl !== "string") {
+        throw new Error("No valid image URL returned from server");
+      }
+      setCurrentAddon((prev) => ({ ...prev, image: imageUrl }));
+      e.target.value = "";
+    } catch (err: any) {
+      setError(err.message || "Failed to upload add-on image");
+    } finally {
+      setUploadingAddonImage(false);
+    }
+  };
+
   const handleAddAllergen = (allergenValue: string) => {
     const current = selectedAllergens || [];
     if (!current.includes(allergenValue)) {
@@ -599,7 +641,7 @@ const EditMenuItemPage = () => {
         discountPrice: discountPrice ? parseFloat(discountPrice) : undefined,
         isDiscount,
         prepTime,
-        image: imageUrl,
+        images: imageUrl ? [imageUrl] : [],
         isAvailable,
         status,
         style,
@@ -1797,6 +1839,52 @@ const EditMenuItemPage = () => {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                             placeholder="Optional"
                           />
+                        </div>
+                        {/* Image */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                          <div className="flex items-center gap-3">
+                            {currentAddon.image && (
+                              <img
+                                src={currentAddon.image}
+                                alt=""
+                                className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                              />
+                            )}
+                            <label
+                              className={`inline-flex items-center gap-2 text-sm font-medium py-2 px-3 rounded-lg border border-gray-300 cursor-pointer hover:bg-gray-50 ${
+                                uploadingAddonImage ? "opacity-60 cursor-not-allowed" : ""
+                              }`}
+                            >
+                              {uploadingAddonImage ? (
+                                <>
+                                  <Loader size={16} className="animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload size={16} />
+                                  {currentAddon.image ? "Replace" : "Upload"}
+                                </>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleAddonImageChange}
+                                className="hidden"
+                                disabled={uploadingAddonImage}
+                              />
+                            </label>
+                            {currentAddon.image && (
+                              <button
+                                type="button"
+                                onClick={() => setCurrentAddon((prev) => ({ ...prev, image: undefined }))}
+                                className="text-sm text-gray-500 hover:text-red-600"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -7,8 +7,6 @@ import { CateringOrderResponse } from "@/types/api";
 import { Loader2, ArrowLeft, Download, Printer } from "lucide-react";
 import Link from "next/link";
 import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
-import { pdf } from "@react-pdf/renderer";
-import { CateringMenuPdf } from "@/lib/components/pdf/CateringMenuPdf";
 import PdfDownloadModal from "@/lib/components/catering/modals/PdfDownloadModal";
 
 export default function FullMenuPage() {
@@ -50,6 +48,12 @@ export default function FullMenuPage() {
 
     setGeneratingPdf(true);
     try {
+      // Load react-pdf lazily on the client only — a top-level import pulls it
+      // into the server bundle and breaks SSR (caused a 500 on this route).
+      const [{ pdf }, { CateringMenuPdf }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/components/pdf/CateringMenuPdf"),
+      ]);
       // Transform order data to PDF format (now async to handle image fetching)
       const pdfData = await transformOrderToPdfData(order, withPrices);
 
@@ -177,7 +181,6 @@ export default function FullMenuPage() {
         </h4>
         <div className="space-y-3">
           {items.map((item: any, idx: number) => {
-            console.log("item is", JSON.stringify(item))
             const cateringUnit = item.cateringQuantityUnit || 1;
             const feedsPerUnit = item.feedsPerUnit || 10;
             const numUnits = item.quantity / cateringUnit;
