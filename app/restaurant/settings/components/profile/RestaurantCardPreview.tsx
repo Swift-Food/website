@@ -21,7 +21,6 @@ interface RestaurantCardPreviewProps {
 const SAMPLE_RATING = "4.0";
 const SAMPLE_DISTANCE = "1.5 mi";
 const SAMPLE_PRICE_RANGE = "Premium";
-const SAMPLE_SUBTITLE = "Asian - Bento Box";
 
 export const RestaurantCardPreview = ({
   restaurantName,
@@ -37,7 +36,7 @@ export const RestaurantCardPreview = ({
   const subtitle =
     cleanTags.length > 0
       ? cleanTags.slice(0, 3).join(" - ")
-      : cuisineLabel?.trim() || SAMPLE_SUBTITLE;
+      : cuisineLabel?.trim() || "";
 
   return (
     <div>
@@ -99,9 +98,11 @@ export const RestaurantCardPreview = ({
                   {SAMPLE_PRICE_RANGE}
                 </span>
               </div>
-              <p className="text-[11px] text-gray-500 leading-tight">
-                {subtitle}
-              </p>
+              {subtitle && (
+                <p className="text-[11px] text-gray-500 leading-tight">
+                  {subtitle}
+                </p>
+              )}
             </div>
           </div>
         </div>
