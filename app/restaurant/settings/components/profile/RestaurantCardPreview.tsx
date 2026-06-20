@@ -41,15 +41,13 @@ export const RestaurantCardPreview = ({
 
   return (
     <div>
-      <label className="block text-lg font-bold text-gray-900 mb-2">
-        Preview
-      </label>
-      <p className="text-sm text-gray-500 mb-4">
+      <h2 className="text-base font-semibold text-gray-900">Preview</h2>
+      <p className="text-sm text-gray-500 mt-1 mb-4">
         How your card appears to customers. Rating, distance and price tier are
         sample values.
       </p>
 
-      <div className="max-w-sm rounded-xl border border-base-300 bg-white shadow-sm">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="overflow-hidden rounded-xl bg-white">
           {/* Banner */}
           {bannerImage ? (
@@ -62,7 +60,7 @@ export const RestaurantCardPreview = ({
               />
             </div>
           ) : (
-            <div className="relative flex aspect-video w-full items-center justify-center bg-base-200">
+            <div className="relative flex aspect-video w-full items-center justify-center bg-gray-100">
               <span className="text-3xl font-bold text-gray-300">
                 {name.charAt(0)}
               </span>

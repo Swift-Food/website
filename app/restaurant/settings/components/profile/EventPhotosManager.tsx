@@ -226,14 +226,12 @@ export const EventPhotosManager = ({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar size={20} className="text-purple-600" />
-        <label className="block text-lg font-bold text-gray-900">
-          Event Photos
-        </label>
+      <div className="flex items-center gap-2 mb-1">
+        <Calendar size={16} className="text-purple-600" />
+        <p className="text-sm font-medium text-gray-700">Event photos</p>
       </div>
       <p className="text-sm text-gray-500 mb-4">
-        Showcase photos from events, catering setups, or special occasions
+        Showcase photos from events, catering setups, or special occasions.
       </p>
 
       {/* Image Grid */}
@@ -366,29 +364,25 @@ export const EventPhotosManager = ({
         />
         <label
           htmlFor="event-image-upload"
-          className={`inline-flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed rounded-xl ${
+          className={`inline-flex items-center justify-center gap-2 px-5 py-3 border-2 border-dashed rounded-xl text-sm font-medium ${
             uploadingImage || isCropping
-              ? "bg-gray-100 border-gray-300 cursor-not-allowed"
-              : "bg-white border-purple-300 hover:border-purple-500 hover:bg-purple-50 cursor-pointer"
+              ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+              : "bg-white border-purple-300 text-gray-700 hover:border-purple-500 hover:bg-purple-50 cursor-pointer"
           } transition-colors w-full`}
         >
           {uploadingImage ? (
             <>
-              <Loader size={24} className="animate-spin text-gray-600" />
-              <span className="text-base font-medium text-gray-700">
-                Uploading...
-              </span>
+              <Loader size={18} className="animate-spin" />
+              Uploading...
             </>
           ) : (
             <>
-              <Upload size={24} className="text-purple-600" />
-              <span className="text-base font-medium text-gray-700">
-                Click to upload event photos
-              </span>
+              <Upload size={18} className="text-purple-600" />
+              Click to upload event photos
             </>
           )}
         </label>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-xs text-gray-400 mt-2">
           Images will be cropped to square • Click any image to adjust crop • Max 5MB each
         </p>
       </div>

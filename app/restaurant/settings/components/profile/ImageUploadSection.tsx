@@ -18,9 +18,10 @@ export const ImageUploadSection = ({
 }: ImageUploadSectionProps) => {
   return (
     <div>
-      <label className="block text-lg font-bold text-gray-900 mb-4">
-        Restaurant Photos
-      </label>
+      <p className="text-sm font-medium text-gray-700 mb-1">Restaurant photos</p>
+      <p className="text-sm text-gray-500 mb-4">
+        The first photo is used as your card banner.
+      </p>
 
       {images.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -60,29 +61,25 @@ export const ImageUploadSection = ({
         />
         <label
           htmlFor="image-upload"
-          className={`inline-flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed rounded-xl ${
+          className={`inline-flex items-center justify-center gap-2 px-5 py-3 border-2 border-dashed rounded-xl text-sm font-medium ${
             uploadingImage
-              ? "bg-gray-100 border-gray-300 cursor-not-allowed"
-              : "bg-white border-gray-300 hover:border-purple-500 hover:bg-purple-50 cursor-pointer"
+              ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+              : "bg-white border-gray-300 text-gray-700 hover:border-purple-500 hover:bg-purple-50 cursor-pointer"
           } transition-colors w-full`}
         >
           {uploadingImage ? (
             <>
-              <Loader size={24} className="animate-spin text-gray-600" />
-              <span className="text-base font-medium text-gray-700">
-                Uploading...
-              </span>
+              <Loader size={18} className="animate-spin" />
+              Uploading...
             </>
           ) : (
             <>
-              <Upload size={24} className="text-gray-600" />
-              <span className="text-base font-medium text-gray-700">
-                Click to upload a photo
-              </span>
+              <Upload size={18} />
+              Click to upload a photo
             </>
           )}
         </label>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-xs text-gray-400 mt-2">
           Square images work best • Max 5MB • JPG, PNG, or WebP
         </p>
       </div>
