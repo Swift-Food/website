@@ -212,15 +212,7 @@ const RestaurantSettingsPage = () => {
     }
   };
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file");
-      return;
-    }
-
+  const handleLogoUpload = async (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
       setError("Image size should be less than 5MB");
       return;
@@ -245,8 +237,6 @@ const RestaurantSettingsPage = () => {
       const imageUrl = JSON.parse(await response.text());
 
       setFormData((prev) => ({ ...prev, logoImageUrl: imageUrl }));
-
-      e.target.value = "";
     } catch (err: any) {
       setError(err.message || "Failed to upload logo");
     } finally {

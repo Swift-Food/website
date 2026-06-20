@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ImageUploadSection } from "./ImageUploadSection";
 import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
 import { RestaurantCardPreview } from "./RestaurantCardPreview";
+import { ImageCropModal, CropResult } from "./ImageCropModal";
 
 const CUISINE_OPTIONS = [
   { value: "british", label: "British" },
@@ -70,7 +71,7 @@ interface ProfileFormProps {
   onContactNumberChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
-  onLogoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onLogoUpload: (file: File) => void;
   onLogoRemove: () => void;
   uploadingLogoImage: boolean;
   pendingEventImages: PendingEventImage[];
@@ -147,6 +148,27 @@ export const ProfileForm = ({
   onTagsChange,
 }: ProfileFormProps) => {
   const [tagInput, setTagInput] = useState("");
+  const [logoCropSrc, setLogoCropSrc] = useState<string | null>(null);
+
+  // Read the chosen logo file into a data URL and open the crop modal instead
+  // of uploading directly. The cropped result is uploaded on confirm.
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+
+    const reader = new FileReader();
+    reader.onload = () => setLogoCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+
+    e.target.value = "";
+  };
+
+  const handleLogoCropComplete = (result: CropResult) => {
+    const file = new File([result.blob], "logo.jpg", { type: "image/jpeg" });
+    setLogoCropSrc(null);
+    onLogoUpload(file);
+  };
 
   const addTag = () => {
     const trimmed = tagInput.trim();
@@ -259,7 +281,7 @@ export const ProfileForm = ({
                 type="file"
                 id="logo-upload"
                 accept="image/*"
-                onChange={onLogoUpload}
+                onChange={handleLogoFileChange}
                 className="hidden"
                 disabled={uploadingLogoImage}
               />
@@ -538,6 +560,14 @@ export const ProfileForm = ({
           </div>
         </form>
       </div>
+
+      {logoCropSrc && (
+        <ImageCropModal
+          imageSrc={logoCropSrc}
+          onCropComplete={handleLogoCropComplete}
+          onCancel={() => setLogoCropSrc(null)}
+        />
+      )}
     </div>
   );
 };
