@@ -5,6 +5,7 @@ import { Save, Loader, AlertCircle, ArrowLeft, X, Upload } from "lucide-react";
 import Image from "next/image";
 import { ImageUploadSection } from "./ImageUploadSection";
 import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
+import { RestaurantCardPreview } from "./RestaurantCardPreview";
 
 const CUISINE_OPTIONS = [
   { value: "british", label: "British" },
@@ -211,6 +212,20 @@ export const ProfileForm = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="space-y-8">
+            {/* Card Preview */}
+            <RestaurantCardPreview
+              restaurantName={restaurantName}
+              images={images}
+              logoImageUrl={logoImageUrl}
+              tags={tags}
+              cuisineLabel={
+                CUISINE_OPTIONS.find((opt) => opt.value === cuisine)?.label
+              }
+            />
+
+            {/* Divider */}
+            <div className="border-t border-gray-200"></div>
+
             {/* Restaurant Logo */}
             <div>
               <label className="block text-lg font-bold text-gray-900 mb-2">
