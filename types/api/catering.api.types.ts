@@ -217,6 +217,10 @@ export interface CateringOrderResponse {
     addedAt?: string | Date;
     addedBy?: string;
   }>;
+  // Computed server-side from the token used to fetch this order - the
+  // entries above have accessToken stripped, so this is the only reliable
+  // way to know which role the current request's token actually has.
+  currentUserRole?: 'viewer' | 'manager' | null;
 
   // Pickup contact
   pickupContactName?: string;

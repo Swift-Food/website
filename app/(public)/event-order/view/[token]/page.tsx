@@ -62,11 +62,10 @@ export default function CateringDashboardPage() {
       const data = await cateringService.getOrderByToken(token);
       setOrder(data);
 
-      // Determine current user's role from the token
-      const currentUser = data.sharedAccessUsers?.find(
-        (u) => u.accessToken === token
-      );
-      setCurrentUserRole(currentUser?.role || null);
+      // Role is computed server-side (sharedAccessUsers here has its
+      // accessToken fields stripped, so matching by token client-side
+      // can never succeed).
+      setCurrentUserRole(data.currentUserRole ?? null);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
     } finally {
