@@ -23,6 +23,7 @@ const ACTIVE_STATUSES = [
   "confirmed",
 ];
 const CLOSED_STATUSES = ["completed", "cancelled"];
+const ALL_STATUSES = [...ACTIVE_STATUSES, ...CLOSED_STATUSES];
 
 const GROUPS: { key: GroupKey; label: string; statuses: string[] | null }[] = [
   { key: "active", label: "Active", statuses: ACTIVE_STATUSES },
@@ -43,7 +44,14 @@ const SUB_FILTERS: Record<GroupKey, { key: string; label: string; statuses: stri
     { key: "completed", label: "Completed", statuses: ["completed"] },
     { key: "cancelled", label: "Cancelled", statuses: ["cancelled"] },
   ],
-  all: [],
+  all: [
+    { key: "all", label: "All", statuses: ALL_STATUSES },
+    { key: "pending_review", label: "Pending Review", statuses: ["pending_review", "admin_reviewed"] },
+    { key: "awaiting_payment", label: "Awaiting Payment", statuses: ["restaurant_reviewed", "payment_link_sent"] },
+    { key: "confirmed", label: "Confirmed", statuses: ["paid", "confirmed"] },
+    { key: "completed", label: "Completed", statuses: ["completed"] },
+    { key: "cancelled", label: "Cancelled", statuses: ["cancelled"] },
+  ],
 };
 
 export const OrdersList = ({ spaceId }: Props) => {
@@ -79,7 +87,8 @@ export const OrdersList = ({ spaceId }: Props) => {
   };
 
   const filteredOrders = useMemo(() => {
-    if (group === "all") return orders;
+    // "All → All" shows everything (including any unmapped status).
+    if (group === "all" && sub === "all") return orders;
     const subs = SUB_FILTERS[group];
     const current = subs.find((s) => s.key === sub) ?? subs[0];
     const set = new Set(current.statuses);
@@ -138,7 +147,7 @@ export const OrdersList = ({ spaceId }: Props) => {
         </div>
 
         {/* Tier 2 — status within the group */}
-        {group !== "all" && (
+        {SUB_FILTERS[group].length > 0 && (
           <div className="overflow-x-auto pb-1">
             <nav className="flex min-w-max gap-1.5">
               {SUB_FILTERS[group].map((s) => {

@@ -1,7 +1,8 @@
 "use client";
 
 import { DashboardOrderSummary } from "@/types/api/coworking.api.types";
-import { ExternalLink } from "lucide-react";
+import { CalendarDays, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils/helpers";
 
 interface Props {
   order: DashboardOrderSummary;
@@ -17,93 +18,105 @@ const fmtDate = (d: string | Date) =>
     year: "numeric",
   });
 
-const STATUS_LABELS: Record<string, string> = {
-  pending_review: "Pending Review",
-  admin_reviewed: "Admin Reviewed",
-  restaurant_reviewed: "Awaiting Payment",
-  payment_link_sent: "Link Sent",
-  paid: "Paid",
-  confirmed: "Confirmed",
-  cancelled: "Cancelled",
-  completed: "Completed",
+const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string }> = {
+  pending_review: { label: "Pending Review", badge: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
+  admin_reviewed: { label: "Admin Reviewed", badge: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
+  restaurant_reviewed: { label: "Awaiting Payment", badge: "bg-blue-50 text-blue-700", dot: "bg-blue-500" },
+  payment_link_sent: { label: "Link Sent", badge: "bg-blue-50 text-blue-700", dot: "bg-blue-500" },
+  paid: { label: "Paid", badge: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
+  confirmed: { label: "Confirmed", badge: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
+  cancelled: { label: "Cancelled", badge: "bg-rose-50 text-rose-700", dot: "bg-rose-500" },
+  completed: { label: "Completed", badge: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  pending_review: "bg-amber-50 text-amber-700 border-amber-200",
-  admin_reviewed: "bg-amber-50 text-amber-700 border-amber-200",
-  restaurant_reviewed: "bg-blue-50 text-blue-700 border-blue-200",
-  payment_link_sent: "bg-blue-50 text-blue-700 border-blue-200",
-  paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  confirmed: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  cancelled: "bg-rose-50 text-rose-700 border-rose-200",
-  completed: "bg-gray-100 text-gray-600 border-gray-200",
-};
+const initialsOf = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase() || "?";
 
 export const OrderCard = ({ order, onViewDetail }: Props) => {
   const hasServiceFee = order.serviceFee > 0;
+  const status = STATUS_CONFIG[order.status] ?? {
+    label: order.status,
+    badge: "bg-gray-100 text-gray-600",
+    dot: "bg-gray-400",
+  };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-primary/40 hover:shadow-md hover:shadow-gray-200/60 transition-all">
+    <button
+      onClick={() => onViewDetail(order.id)}
+      className="group flex w-full flex-col rounded-2xl border border-gray-200 bg-white p-4 text-left transition-all hover:border-primary/40 hover:shadow-lg hover:shadow-gray-200/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div>
-          <p className="font-semibold tracking-tight text-gray-900">{order.customerName}</p>
-          <p className="text-xs text-gray-500">{order.customerEmail}</p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {fmtDate(order.eventDate)}
-            {order.eventTime && <span className="ml-1">· {order.eventTime}</span>}
-          </p>
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+          {initialsOf(order.customerName)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold tracking-tight text-gray-900">{order.customerName}</p>
+          <p className="truncate text-xs text-gray-500">{order.customerEmail}</p>
         </div>
         <span
-          className={`px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap flex-shrink-0 ${
-            STATUS_COLORS[order.status] ?? "bg-gray-100 text-gray-700 border-gray-300"
-          }`}
+          className={cn(
+            "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
+            status.badge
+          )}
         >
-          {STATUS_LABELS[order.status] ?? order.status}
+          <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
+          {status.label}
         </span>
       </div>
 
+      {/* Event date */}
+      <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+        <CalendarDays size={13} className="shrink-0 text-gray-400" />
+        <span>{fmtDate(order.eventDate)}</span>
+        {order.eventTime && (
+          <>
+            <span className="text-gray-300">·</span>
+            <span>{order.eventTime}</span>
+          </>
+        )}
+      </div>
+
       {/* Fee breakdown */}
-      <div className="bg-gray-50 rounded-xl p-3 mb-3 text-sm space-y-1">
+      <div className="mt-3 space-y-1.5 rounded-xl bg-gray-50 p-3 text-sm">
         <div className="flex justify-between text-gray-600">
           <span>Food subtotal</span>
-          <span>{fmt(order.subtotal)}</span>
+          <span className="tabular-nums">{fmt(order.subtotal)}</span>
         </div>
         {order.deliveryFee > 0 && (
           <div className="flex justify-between text-gray-600">
             <span>Delivery</span>
-            <span>{fmt(order.deliveryFee)}</span>
+            <span className="tabular-nums">{fmt(order.deliveryFee)}</span>
           </div>
         )}
         {hasServiceFee && (
           <div className="flex justify-between text-primary">
             <span>
-              Service Fee
+              Service fee
               {order.serviceFeeRate > 0 && (
-                <span className="ml-1 text-primary/70 text-xs">
-                  ({order.serviceFeeRate}%)
-                </span>
+                <span className="ml-1 text-xs text-primary/70">({order.serviceFeeRate}%)</span>
               )}
             </span>
-            <span>{fmt(order.serviceFee)}</span>
+            <span className="tabular-nums">{fmt(order.serviceFee)}</span>
           </div>
         )}
-        <div className="flex justify-between font-semibold text-gray-900 pt-1 border-t border-gray-200">
-          <span>Total</span>
-          <span>{fmt(order.finalTotal)}</span>
+        <div className="mt-1 flex items-center justify-between border-t border-gray-200 pt-2">
+          <span className="font-semibold text-gray-900">Total</span>
+          <span className="text-base font-bold tabular-nums text-gray-900">{fmt(order.finalTotal)}</span>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-end">
-        <button
-          onClick={() => onViewDetail(order.id)}
-          className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
-        >
-          View details
-          <ExternalLink size={12} />
-        </button>
+      {/* Footer affordance */}
+      <div className="mt-3 flex items-center justify-end gap-1 text-xs font-semibold text-primary transition-colors group-hover:text-primary/80">
+        View details
+        <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
       </div>
-    </div>
+    </button>
   );
 };

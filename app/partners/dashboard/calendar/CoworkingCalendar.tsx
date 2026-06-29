@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Loader, AlertCircle, CalendarDays } from "lu
 import { cn } from "@/lib/utils/helpers";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CalendarDay, CalendarOrderItem } from "@/types/api/coworking.api.types";
+import { OrderDetailModal } from "../orders/OrderDetailModal";
 
 interface Props {
   spaceId: string;
@@ -63,10 +64,14 @@ const fmtDateLong = (dateStr: string) => {
 
 interface EventCardProps {
   order: CalendarOrderItem;
+  onSelect: (orderId: string) => void;
 }
 
-const EventCard = ({ order }: EventCardProps) => (
-  <div className="rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:border-primary/40">
+const EventCard = ({ order, onSelect }: EventCardProps) => (
+  <button
+    onClick={() => onSelect(order.id)}
+    className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left transition-all hover:border-primary/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  >
     <div className="mb-2 flex items-start justify-between gap-2">
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-gray-900">{order.customerName}</p>
@@ -103,15 +108,16 @@ const EventCard = ({ order }: EventCardProps) => (
         <span>{fmt(order.finalTotal)}</span>
       </div>
     </div>
-  </div>
+  </button>
 );
 
 interface DayPanelProps {
   selectedDate: string | null;
   orders: CalendarOrderItem[];
+  onSelect: (orderId: string) => void;
 }
 
-const DayPanel = ({ selectedDate, orders }: DayPanelProps) => {
+const DayPanel = ({ selectedDate, orders, onSelect }: DayPanelProps) => {
   if (!selectedDate) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 px-6 py-12 text-center">
@@ -145,7 +151,7 @@ const DayPanel = ({ selectedDate, orders }: DayPanelProps) => {
       ) : (
         <div className="flex-1 space-y-2.5 overflow-y-auto p-4">
           {orders.map((o) => (
-            <EventCard key={o.id} order={o} />
+            <EventCard key={o.id} order={o} onSelect={onSelect} />
           ))}
         </div>
       )}
@@ -165,6 +171,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(todayStr);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const fetchCalendar = () => {
     setLoading(true);
@@ -213,7 +220,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
   const selectedOrders = selectedDate ? ordersByDate[selectedDate] ?? [] : [];
 
   return (
-    <div>
+    <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-200/50 sm:p-6">
       {error && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle size={16} className="shrink-0" />
@@ -226,7 +233,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
           <Loader size={24} className="animate-spin text-primary" />
         </div>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           {/* Calendar */}
           <div>
             {/* Month navigation */}
@@ -322,10 +329,22 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
           </div>
 
           {/* Selected-day events */}
-          <div className="min-h-[360px] rounded-2xl border border-gray-200 bg-white lg:min-h-0">
-            <DayPanel selectedDate={selectedDate} orders={selectedOrders} />
+          <div className="min-h-[360px] rounded-2xl border border-gray-200 bg-gray-50/60 lg:min-h-0">
+            <DayPanel
+              selectedDate={selectedDate}
+              orders={selectedOrders}
+              onSelect={setSelectedOrderId}
+            />
           </div>
         </div>
+      )}
+
+      {selectedOrderId && (
+        <OrderDetailModal
+          spaceId={spaceId}
+          orderId={selectedOrderId}
+          onClose={() => setSelectedOrderId(null)}
+        />
       )}
     </div>
   );

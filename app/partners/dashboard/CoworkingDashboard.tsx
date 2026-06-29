@@ -81,7 +81,7 @@ export const CoworkingDashboard = ({
   const meta = PAGE_META[activeTab];
 
   return (
-    <div className="flex min-h-screen bg-white text-gray-900">
+    <div className="flex min-h-screen bg-[#F6F7F9] text-gray-900">
       {/* Desktop sidebar */}
       <aside
         className={cn(
