@@ -87,6 +87,7 @@ export interface PricingOrderItem {
   specialInstructions?: string;
   reminderConfirmed?: boolean;
   reminderConfirmedAt?: string | Date;
+  restaurantAcceptanceStatus?: 'pending' | 'confirmed' | 'declined';
 
   // Menu Items
   menuItems: PricingMenuItem[];

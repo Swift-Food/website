@@ -3,12 +3,14 @@
 
 import React, { useState, useMemo } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2, X, Info } from "lucide-react";
+import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2, X, Info, CheckCircle2, Clock4, XCircle, Pencil } from "lucide-react";
 
 interface OrderItemsProps {
   order: CateringOrderResponse;
   onDownloadPdf?: () => void;
   generatingPdf?: boolean;
+  canEdit?: boolean;
+  editUrl?: string;
 }
 
 // Pretty-print an underscored value, e.g. "tree_nuts" -> "Tree Nuts"
@@ -17,6 +19,32 @@ const prettyLabel = (s: string) =>
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
+
+// Restaurant acceptance badge — only rendered during admin/restaurant review phases.
+const REVIEW_STATUSES = new Set(['admin_reviewed', 'restaurant_reviewed']);
+
+function RestaurantStatusBadge({ status }: { status?: 'pending' | 'confirmed' | 'declined' }) {
+  if (!status) return null;
+  if (status === 'confirmed') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+        <CheckCircle2 className="h-3 w-3" /> Confirmed
+      </span>
+    );
+  }
+  if (status === 'declined') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+        <XCircle className="h-3 w-3" /> Declined
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
+      <Clock4 className="h-3 w-3" /> Reviewing
+    </span>
+  );
+}
 
 // Match the catering-widget's allergen formatting/normalising behaviour
 const formatAllergen = (allergen: string) => prettyLabel(allergen);
@@ -36,7 +64,7 @@ const normalizeAllergens = (
     );
 };
 
-export default function OrderItems({ order, onDownloadPdf, generatingPdf }: OrderItemsProps) {
+export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdit, editUrl }: OrderItemsProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
   // Sort meal sessions by date and time
@@ -128,8 +156,9 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
   };
 
   // Render a single restaurant's menu items
-  const renderRestaurantItems = (restaurant: any, keyPrefix: string) => {
+  const renderRestaurantItems = (restaurant: any, keyPrefix: string, orderStatus?: string) => {
     const isExpanded = expandedRestaurants.has(keyPrefix);
+    const showAcceptanceBadge = orderStatus && REVIEW_STATUSES.has(orderStatus);
 
     return (
       <div
@@ -140,11 +169,14 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
           onClick={() => toggleRestaurant(keyPrefix)}
           className="w-full flex items-center justify-between gap-2 sm:gap-3 p-3 sm:p-5 border-b border-gray-200 hover:bg-gray-50 transition-colors"
         >
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <ChefHat className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500 flex-shrink-0" />
             <h3 className="text-base sm:text-lg font-bold text-gray-900 break-words text-left">
               {restaurant.restaurantName}
             </h3>
+            {showAcceptanceBadge && (
+              <RestaurantStatusBadge status={restaurant.restaurantAcceptanceStatus} />
+            )}
           </div>
           {isExpanded ? (
             <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
@@ -313,7 +345,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
             {/* Restaurants and their menu items */}
             <div className="space-y-4">
               {session.orderItems.map((restaurant, idx) =>
-                renderRestaurantItems(restaurant, `${session.id}-${idx}`)
+                renderRestaurantItems(restaurant, `${session.id}-${idx}`, order.status)
               )}
             </div>
 
@@ -371,20 +403,31 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
           <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
           Order Items
         </h2>
-        {onDownloadPdf && (
-          <button
-            onClick={onDownloadPdf}
-            disabled={generatingPdf}
-            className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-3 py-1.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {generatingPdf ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4" />
-            )}
-            {generatingPdf ? "Preparing..." : "Menu PDF"}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {canEdit && editUrl && (
+            <a
+              href={editUrl}
+              className="inline-flex items-center gap-2 rounded-lg border border-pink-300 bg-pink-50 px-3 py-1.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-100"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Order
+            </a>
+          )}
+          {onDownloadPdf && (
+            <button
+              onClick={onDownloadPdf}
+              disabled={generatingPdf}
+              className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-3 py-1.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {generatingPdf ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+              {generatingPdf ? "Preparing..." : "Menu PDF"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4 sm:space-y-6">
@@ -397,7 +440,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
           /* Legacy View - No Meal Sessions */
           <div className="space-y-4 sm:space-y-6">
             {restaurantsData.map((restaurant, idx) =>
-              renderRestaurantItems(restaurant, `legacy-${idx}`)
+              renderRestaurantItems(restaurant, `legacy-${idx}`, order.status)
             )}
           </div>
         )}

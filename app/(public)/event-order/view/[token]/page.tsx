@@ -206,7 +206,10 @@ export default function CateringDashboardPage() {
     );
   }
 
-  const isManager =  currentUserRole === "manager";
+  const isManager = currentUserRole === "manager";
+  // canEdit is computed server-side to mirror the BLOCKED_STATUSES check in
+  // guestUpdateSessionItems. Only the manager (order owner) can edit — viewers are read-only.
+  const canEdit = order?.canEdit && isManager;
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
@@ -290,7 +293,13 @@ export default function CateringDashboardPage() {
                 accessToken={token}
               />
             )}
-            <OrderItems order={order} onDownloadPdf={handleDownloadPdf} generatingPdf={generatingPdf} />
+            <OrderItems
+              order={order}
+              onDownloadPdf={handleDownloadPdf}
+              generatingPdf={generatingPdf}
+              canEdit={canEdit}
+              editUrl={`/event-order?editOrder=${token}`}
+            />
           </div>
 
           {/* Sidebar */}

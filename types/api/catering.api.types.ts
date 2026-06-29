@@ -189,6 +189,10 @@ export interface CateringOrderResponse {
   restaurantsTotalGross: number;
   restaurantsTotalNet: number;
 
+  // Whether the order can still be edited (blocked once invoice issued or paid).
+  // Computed server-side; mirrors the BLOCKED_STATUSES check on the backend.
+  canEdit?: boolean;
+
   // Status & payment
   status: CateringOrderStatus;
   paid: boolean;
