@@ -194,11 +194,11 @@ export const ProfileForm = ({
                 <RestaurantDetailsFields
                   restaurantName={restaurantName}
                   description={description}
-                  contactEmail={contactEmail}
+                  contactEmail={contactEmails[0] ?? ""}
                   contactNumber={contactNumber}
                   onNameChange={onNameChange}
                   onDescriptionChange={onDescriptionChange}
-                  onContactEmailChange={onContactEmailChange}
+                  onContactEmailChange={(val) => onContactEmailsChange([val])}
                   onContactNumberChange={onContactNumberChange}
                 />
               </SettingsCard>
