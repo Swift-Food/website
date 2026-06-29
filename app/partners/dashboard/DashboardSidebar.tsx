@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   ClipboardList,
   CalendarDays,
@@ -20,23 +21,25 @@ export const NAV_ITEMS: {
   key: Tab;
   label: string;
   icon: LucideIcon;
+  href: string;
 }[] = [
-  { key: "orders", label: "Orders", icon: ClipboardList },
-  { key: "calendar", label: "Calendar", icon: CalendarDays },
-  { key: "settings", label: "Settings", icon: Settings },
+  { key: "orders", label: "Orders", icon: ClipboardList, href: "/partners/dashboard/orders" },
+  { key: "calendar", label: "Calendar", icon: CalendarDays, href: "/partners/dashboard/calendar" },
+  { key: "settings", label: "Settings", icon: Settings, href: "/partners/dashboard/settings" },
 ];
 
 interface NavButtonProps {
   item: (typeof NAV_ITEMS)[number];
   active: boolean;
   collapsed: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 const NavButton = ({ item, active, collapsed, onClick }: NavButtonProps) => {
   const Icon = item.icon;
   return (
-    <button
+    <Link
+      href={item.href}
       onClick={onClick}
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
@@ -73,16 +76,16 @@ const NavButton = ({ item, active, collapsed, onClick }: NavButtonProps) => {
           {item.label}
         </span>
       )}
-    </button>
+    </Link>
   );
 };
 
 interface SidebarPanelProps {
   activeTab: Tab;
-  onTabChange: (tab: Tab) => void;
   onLogout: () => void;
   collapsed: boolean;
   onToggleCollapse?: () => void;
+  onNavigate?: () => void;
   partnerName?: string;
   spaceIds?: string[];
   selectedSpaceId?: string;
@@ -91,10 +94,10 @@ interface SidebarPanelProps {
 
 export const SidebarPanel = ({
   activeTab,
-  onTabChange,
   onLogout,
   collapsed,
   onToggleCollapse,
+  onNavigate,
   partnerName,
   spaceIds = [],
   selectedSpaceId,
@@ -151,7 +154,7 @@ export const SidebarPanel = ({
               item={item}
               active={activeTab === item.key}
               collapsed={collapsed}
-              onClick={() => onTabChange(item.key)}
+              onClick={onNavigate}
             />
           ))}
         </div>
