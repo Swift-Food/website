@@ -132,12 +132,12 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
                     <p className="text-xs text-gray-500">Time</p>
                     <p className="text-gray-900 font-medium">{order.eventTime}</p>
                   </div>
-                  {order.guestCount && (
+                  {order.guestCount ? (
                     <div>
                       <p className="text-xs text-gray-500">Guests</p>
                       <p className="text-gray-900 font-medium">{order.guestCount}</p>
                     </div>
-                  )}
+                  ) : null}
                   <div>
                     <p className="text-xs text-gray-500">Caterers</p>
                     <p className="text-gray-900 font-medium">{order.restaurantCount}</p>
