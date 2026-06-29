@@ -44,6 +44,11 @@ export default function Footer() {
                   Restaurant Dashboard
                 </Link>
               </li>
+              <li>
+                <Link href="/partners" className="hover:text-black transition-colors">
+                  Partner Portal
+                </Link>
+              </li>
             </ul>
           </div>
 
