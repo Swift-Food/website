@@ -100,81 +100,6 @@ export default function ExploreClient() {
     document.addEventListener("pointerup", onUp);
   }, []);
 
-  /* ── Scroll transition state ── */
-  const transitionRef = useRef<HTMLDivElement>(null);
-  const b2cCtaRef = useRef<HTMLDivElement>(null);
-  const b2bFloatRef = useRef<HTMLDivElement>(null);
-  const heroPlaceholderRef = useRef<HTMLDivElement>(null);
-  const heroSectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const section = transitionRef.current;
-      const b2cCta = b2cCtaRef.current;
-      const float = b2bFloatRef.current;
-      const placeholder = heroPlaceholderRef.current;
-      const heroSection = heroSectionRef.current;
-      if (!section || !b2cCta || !float || !placeholder) return;
-
-      const viewportH = window.innerHeight;
-      const sRect = section.getBoundingClientRect();
-
-      const scrollRange = sRect.height - viewportH;
-      const transitionP = scrollRange > 0 ? Math.max(0, Math.min(1, -sRect.top / scrollRange)) : 0;
-      const darkOnScreen = sRect.top < viewportH && sRect.bottom > 0;
-
-      // Phase 1 — B2C CTA: fade in 0.08–0.14, hold 0.14–0.30, fade out 0.30–0.38
-      const ctaIn = Math.max(0, Math.min(1, (transitionP - 0.08) * (1 / 0.06)));
-      const ctaOut = Math.max(0, 1 - (transitionP - 0.30) * (1 / 0.08));
-      const ctaOpacity = darkOnScreen ? Math.min(ctaIn, ctaOut) : 0;
-      b2cCta.style.opacity = String(ctaOpacity);
-      b2cCta.style.pointerEvents = ctaOpacity > 0.5 ? "auto" : "none";
-
-      // Phase 2 — B2B float: fade in 0.48–0.58
-      const b2bFade = Math.max(0, Math.min(1, (transitionP - 0.48) * (1 / 0.10)));
-
-      if (heroSection) {
-        heroSection.getBoundingClientRect();
-      }
-
-      const phRect = placeholder.getBoundingClientRect();
-
-      const floatY = parseFloat(float.style.top) || viewportH / 2;
-      const floatIsOverDark = sRect.bottom > floatY;
-      float.style.color = floatIsOverDark ? "white" : "#1a1a1a";
-
-      const phCenterX = phRect.left + phRect.width / 2;
-      const phCenterY = phRect.top + phRect.height / 2;
-      const screenCenterX = window.innerWidth / 2;
-      const screenCenterY = viewportH / 2;
-
-      const distY = Math.abs(phCenterY - screenCenterY);
-      const approachP = Math.max(0, Math.min(1, 1 - distY / (viewportH * 0.8)));
-
-      const curX = screenCenterX + (phCenterX - screenCenterX) * approachP;
-      float.style.left = `${curX}px`;
-      float.style.top = `${screenCenterY}px`;
-      float.style.transform = "translate(-50%, -50%)";
-      float.style.textAlign = approachP > 0.5 ? "left" : "center";
-
-      const placeholderPassedCenter = phCenterY <= screenCenterY;
-
-      if (placeholderPassedCenter) {
-        float.style.opacity = "0";
-        placeholder.style.opacity = "1";
-      } else {
-        placeholder.style.opacity = "0";
-        float.style.opacity = String(b2bFade);
-      }
-
-      if (transitionP <= 0.45) {
-        float.style.opacity = "0";
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   return (
     <div className="hv2-page-glow relative overflow-x-hidden bg-[#fbf7f4] text-[#1a1a1a]">
@@ -292,58 +217,15 @@ export default function ExploreClient() {
         <FeatureDemosSection />
       </div>
 
-      {/* ────────────── SCROLL TRANSITION (dark) ────────────── */}
-      <section
-        ref={transitionRef}
-        className="relative z-10 bg-[#3a3a3a] px-8 max-md:px-6"
-        style={{ minHeight: "300vh" }}
-      >
-        <div className="sticky top-0 h-screen" />
-      </section>
-
-      {/* Fixed B2C CTA — fade in/out during scroll, centered in viewport */}
-      <div
-        ref={b2cCtaRef}
-        className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-8 opacity-0 max-md:px-6"
-      >
-        <div className="text-center">
-          <h2 className="mb-4 text-[clamp(32px,4vw,54px)] font-medium leading-[1.06] tracking-[-0.022em] text-white max-md:text-[26px]">
-            Ready to plan your event?
-          </h2>
-          <p className="mx-auto mb-9 max-w-[460px] text-[17px] leading-[1.55] text-[#a8a4a0]">
-            Tell us what you&apos;re hosting — we&apos;ll handle the menu, pricing, and delivery.
-          </p>
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-3">
-            <a className={BTN_PRIMARY} href="/event-order">Plan your event</a>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating B2B heading — single element that moves from center to hero */}
-      <div
-        ref={b2bFloatRef}
-        className="pointer-events-none fixed z-50 opacity-0 will-change-transform transition-colors duration-300 px-8 max-md:px-6"
-        style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)", color: "white", maxWidth: "600px", width: "100%" }}
-      >
-        <div className="text-center">
-          <div className={`${SECTION_EYEBROW} text-center`}>For workspaces, offices &amp; venues</div>
-          <p className="text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-            Add Nibble to <em className="italic text-[#fa43ad]">your</em> site.
-          </p>
-        </div>
-      </div>
-
       {/* ────────────── B2B HERO + MOCKUP ────────────── */}
-      <section id="b2b" ref={heroSectionRef} className="relative z-10">
+      <section id="b2b" className="relative z-10">
         <div className="mx-auto grid min-h-screen max-w-[1440px] grid-cols-1 content-center items-center gap-14 px-8 py-24 lg:grid-cols-[1fr_1.2fr] lg:gap-[72px] max-md:py-18 max-md:px-6">
           <div className="max-md:text-center">
-            <div ref={heroPlaceholderRef} className="opacity-0">
-              <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
-              <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
-                Add Nibble to{" "}
-                <em className="italic text-[#fa43ad]">your</em> site.
-              </h2>
-            </div>
+            <div className={SECTION_EYEBROW}>For workspaces, offices &amp; venues</div>
+            <h2 className="mb-[22px] text-[clamp(36px,4.5vw,56px)] font-medium leading-[1.05] tracking-[-0.022em] max-md:text-[26px]">
+              Add Nibble to{" "}
+              <em className="italic text-[#fa43ad]">your</em> site.
+            </h2>
             <p className="mb-8 max-w-[500px] text-[17px] leading-[1.55] text-[#4a4845] max-md:mx-auto">
               Give members, teams, or guests a way to order catering right from your website. One component, zero backend work.
             </p>

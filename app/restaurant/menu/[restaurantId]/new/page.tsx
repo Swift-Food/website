@@ -512,7 +512,7 @@ const NewMenuItemPage = () => {
         discountPrice: discountPrice ? parseFloat(discountPrice) : undefined,
         isDiscount,
         prepTime,
-        image: imageUrl || "",
+        images: imageUrl ? [imageUrl] : [],
         isAvailable,
         status,
         style,

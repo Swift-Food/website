@@ -976,9 +976,9 @@ const MenuListPage = () => {
                       }`}
                     >
                       <GripVertical size={20} className="text-gray-400 flex-shrink-0" />
-                      {item.image && (
+                      {item.images?.[0] && (
                         <img
-                          src={item.image}
+                          src={item.images?.[0]}
                           alt={item.name}
                           className="w-10 h-10 rounded object-cover flex-shrink-0"
                         />
@@ -1214,10 +1214,10 @@ const MenuListPage = () => {
           </div>
 
           {/* Right Side - Image */}
-          {item.image && (
+          {item.images?.[0] && (
             <div className="w-full sm:w-64 h-48 sm:h-auto bg-gray-200 flex-shrink-0">
               <img
-                src={item.image}
+                src={item.images?.[0]}
                 alt={item.name}
                 className="w-full h-full object-cover"
               />

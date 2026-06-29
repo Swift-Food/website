@@ -23,6 +23,7 @@ interface FormData {
   contactNumber: string;
   images: string[];
   eventImages: string[];
+  logoImageUrl: string;
   showOnSite: boolean;
   isCorporate: boolean;
   cuisine: string;
@@ -44,6 +45,7 @@ const RestaurantSettingsPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingLogoImage, setUploadingLogoImage] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
@@ -53,6 +55,7 @@ const RestaurantSettingsPage = () => {
     contactNumber: "",
     images: [],
     eventImages: [],
+    logoImageUrl: "",
     showOnSite: false,
     isCorporate: false,
     cuisine: "other",
@@ -91,6 +94,7 @@ const RestaurantSettingsPage = () => {
           contactNumber: restaurantDetails.contactNumber || "",
           images: images,
           eventImages: eventImages,
+          logoImageUrl: restaurantDetails.logoImageUrl || "",
           showOnSite: restaurantDetails.showOnSite || false,
           isCorporate: restaurantDetails.isCorporate || false,
           cuisine: restaurantDetails.cuisine || "other",
@@ -126,6 +130,7 @@ const RestaurantSettingsPage = () => {
         contactNumber: restaurantDetails.contactNumber || "",
         images: images,
         eventImages: eventImages,
+        logoImageUrl: restaurantDetails.logoImageUrl || "",
         showOnSite: restaurantDetails.showOnSite || false,
         isCorporate: restaurantDetails.isCorporate || false,
         cuisine: restaurantDetails.cuisine || "other",
@@ -204,6 +209,38 @@ const RestaurantSettingsPage = () => {
       setError(err.message || "Failed to upload image");
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  const handleLogoUpload = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size should be less than 5MB");
+      return;
+    }
+
+    setUploadingLogoImage(true);
+    setError("");
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("upload", file);
+
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.IMAGE_UPLOAD}`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload logo: ${response.status}`);
+      }
+
+      const imageUrl = JSON.parse(await response.text());
+
+      setFormData((prev) => ({ ...prev, logoImageUrl: imageUrl }));
+    } catch (err: any) {
+      setError(err.message || "Failed to upload logo");
+    } finally {
+      setUploadingLogoImage(false);
     }
   };
 
@@ -290,6 +327,7 @@ const RestaurantSettingsPage = () => {
         contactNumber: formData.contactNumber,
         images: formData.images,
         eventImages: [...remainingEventImages, ...newEventImageUrls],
+        logoImageUrl: formData.logoImageUrl || null,
         cuisine: formData.cuisine,
         cateringFormats: formData.cateringFormats,
         dietarySupport: formData.dietarySupport,
@@ -358,12 +396,16 @@ const RestaurantSettingsPage = () => {
           contactNumber={formData.contactNumber}
           images={formData.images}
           eventImages={formData.eventImages}
+          logoImageUrl={formData.logoImageUrl}
           onNameChange={(value) => setFormData((prev) => ({ ...prev, restaurant_name: value }))}
           onDescriptionChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
           onContactEmailsChange={(value) => setFormData((prev) => ({ ...prev, contactEmails: value }))}
           onContactNumberChange={(value) => setFormData((prev) => ({ ...prev, contactNumber: value }))}
           onImageUpload={handleImageUpload}
           onImageRemove={handleRemoveImage}
+          onLogoUpload={handleLogoUpload}
+          onLogoRemove={() => setFormData((prev) => ({ ...prev, logoImageUrl: "" }))}
+          uploadingLogoImage={uploadingLogoImage}
           pendingEventImages={pendingEventImages}
           onPendingEventImagesChange={setPendingEventImages}
           pendingEventDeletions={pendingEventDeletions}

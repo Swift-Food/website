@@ -1,61 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Save, Loader, AlertCircle, ArrowLeft, X } from "lucide-react";
+import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react";
 import { ImageUploadSection } from "./ImageUploadSection";
 import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
-
-const CUISINE_OPTIONS = [
-  { value: "british", label: "British" },
-  { value: "italian", label: "Italian" },
-  { value: "chinese", label: "Chinese" },
-  { value: "japanese", label: "Japanese" },
-  { value: "korean", label: "Korean" },
-  { value: "indian", label: "Indian" },
-  { value: "middle_eastern", label: "Middle Eastern" },
-  { value: "american", label: "American" },
-  { value: "mediterranean", label: "Mediterranean" },
-  { value: "thai", label: "Thai" },
-  { value: "mexican", label: "Mexican" },
-  { value: "caribbean", label: "Caribbean" },
-  { value: "african", label: "African" },
-  { value: "eastern_european", label: "Eastern European" },
-  { value: "fusion", label: "Fusion" },
-  { value: "other", label: "Other" },
-];
-
-const CATERING_FORMAT_OPTIONS = [
-  { value: "buffet", label: "Buffet" },
-  { value: "set_menu", label: "Set Menu" },
-  { value: "individual_box", label: "Individual Box" },
-  { value: "canapes", label: "Canapés" },
-  { value: "grazing_table", label: "Grazing Table" },
-  { value: "family_style", label: "Family Style" },
-];
-
-const DIETARY_SUPPORT_OPTIONS = [
-  { value: "vegetarian", label: "Vegetarian" },
-  { value: "vegan", label: "Vegan" },
-  { value: "halal", label: "Halal" },
-  { value: "kosher", label: "Kosher" },
-  { value: "gluten_free", label: "Gluten Free" },
-  { value: "dairy_free", label: "Dairy Free" },
-  { value: "nut_free", label: "Nut Free" },
-  { value: "peanut_free", label: "Peanut Free" },
-  { value: "high_protein", label: "High Protein" },
-  { value: "pescatarian", label: "Pescatarian" },
-  { value: "low_calorie", label: "Low Calorie" },
-];
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_CONTACT_EMAILS = 10;
-
-const SERVICE_WINDOW_OPTIONS = [
-  { value: "breakfast", label: "Breakfast" },
-  { value: "lunch", label: "Lunch" },
-  { value: "dinner", label: "Dinner" },
-  { value: "all", label: "All Day" },
-];
+import { RestaurantCardPreview } from "./RestaurantCardPreview";
+import { LogoUploadSection } from "./LogoUploadSection";
+import { RestaurantDetailsFields } from "./RestaurantDetailsFields";
+import {
+  CateringCapabilitiesFields,
+  CUISINE_OPTIONS,
+} from "./CateringCapabilitiesFields";
+import { SettingsCard } from "./SettingsCard";
 
 interface ProfileFormProps {
   restaurantName: string;
@@ -64,12 +19,16 @@ interface ProfileFormProps {
   contactNumber: string;
   images: string[];
   eventImages: string[];
+  logoImageUrl?: string;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onContactEmailsChange: (value: string[]) => void;
   onContactNumberChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
+  onLogoUpload: (file: File) => void;
+  onLogoRemove: () => void;
+  uploadingLogoImage: boolean;
   pendingEventImages: PendingEventImage[];
   onPendingEventImagesChange: (images: PendingEventImage[]) => void;
   pendingEventDeletions: string[];
@@ -106,12 +65,16 @@ export const ProfileForm = ({
   contactNumber,
   images,
   eventImages,
+  logoImageUrl,
   onNameChange,
   onDescriptionChange,
   onContactEmailsChange,
   onContactNumberChange,
   onImageUpload,
   onImageRemove,
+  onLogoUpload,
+  onLogoRemove,
+  uploadingLogoImage,
   pendingEventImages,
   onPendingEventImagesChange,
   pendingEventDeletions,
@@ -127,406 +90,168 @@ export const ProfileForm = ({
   cuisine,
   cateringFormats,
   dietarySupport,
-  minCapacity,
-  maxCapacity,
-  cateringServiceWindows,
   onCuisineChange,
   onCateringFormatsChange,
   onDietarySupportChange,
-  onMinCapacityChange,
-  onMaxCapacityChange,
-  onCateringServiceWindowsChange,
   tags = [],
   onTagsChange,
 }: ProfileFormProps) => {
-  const [tagInput, setTagInput] = useState("");
-  const [emailInput, setEmailInput] = useState("");
-  const [emailError, setEmailError] = useState("");
-
-  const addEmail = () => {
-    const trimmed = emailInput.trim();
-    if (!trimmed) return;
-
-    if (!EMAIL_REGEX.test(trimmed)) {
-      setEmailError("Please enter a valid email address");
-      return;
-    }
-    if (contactEmails.includes(trimmed)) {
-      setEmailError("This email has already been added");
-      return;
-    }
-    if (contactEmails.length >= MAX_CONTACT_EMAILS) {
-      setEmailError(`You can add up to ${MAX_CONTACT_EMAILS} email addresses`);
-      return;
-    }
-
-    setEmailError("");
-    onContactEmailsChange([...contactEmails, trimmed]);
-    setEmailInput("");
-  };
-
-  const removeEmail = (email: string) => {
-    onContactEmailsChange(contactEmails.filter((e) => e !== email));
-  };
-
-  const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addEmail();
-    }
-  };
-
-  const addTag = () => {
-    const trimmed = tagInput.trim();
-    if (trimmed && !tags.includes(trimmed) && tags.length < 5) {
-      onTagsChange([...tags, trimmed]);
-    }
-    setTagInput("");
-  };
-
-  const removeTag = (tag: string) => {
-    onTagsChange(tags.filter((t) => t !== tag));
-  };
-
-  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addTag();
-    }
-  };
-
-  const toggleArrayValue = (arr: string[], value: string): string[] =>
-    arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave();
   };
 
+  const cuisineLabel = CUISINE_OPTIONS.find((opt) => opt.value === cuisine)?.label;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={onCancel}
-            className="p-2 hover:bg-white rounded-lg transition-colors"
-          >
-            <ArrowLeft size={24} className="text-gray-700" />
-          </button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Restaurant Profile
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Update your name, description, and photos
-            </p>
-          </div>
-        </div>
-
-        {/* Messages */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
-            <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-            <span className="text-sm font-medium">{success}</span>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <div className="space-y-8">
-            {/* Restaurant Images */}
-            <ImageUploadSection
-              images={images}
-              onImageUpload={onImageUpload}
-              onImageRemove={onImageRemove}
-              uploadingImage={uploadingImage}
-            />
-
-            {/* Divider */}
-            <div className="border-t border-gray-200"></div>
-
-            {/* Event Images */}
-            <EventPhotosManager
-              images={eventImages}
-              pendingImages={pendingEventImages}
-              onPendingImagesChange={onPendingEventImagesChange}
-              pendingDeletions={pendingEventDeletions}
-              onImageRemove={onEventImageRemove}
-              onImageRestore={onEventImageRestore}
-              uploadingImage={uploadingEventImage}
-            />
-
-            {/* Divider */}
-            <div className="border-t border-gray-200"></div>
-
-            {/* Restaurant Name */}
-            <div>
-              <label
-                htmlFor="restaurant_name"
-                className="block text-lg font-bold text-gray-900 mb-3"
-              >
-                Restaurant Name *
-              </label>
-              <input
-                type="text"
-                id="restaurant_name"
-                name="restaurant_name"
-                value={restaurantName}
-                onChange={(e) => onNameChange(e.target.value)}
-                required
-                className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-                placeholder="Enter restaurant name"
-              />
-            </div>
-
-            {/* Restaurant Description */}
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-lg font-bold text-gray-900 mb-3"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={description}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-                rows={5}
-                className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white resize-none"
-                placeholder="Tell customers about your restaurant..."
-              />
-              <p className="text-sm text-gray-500 mt-2">
-                This will be shown to customers when they browse your restaurant
-              </p>
-            </div>
-
-            {/* Contact Emails */}
-            <div>
-              <label
-                htmlFor="contact_email"
-                className="block text-lg font-bold text-gray-900 mb-3"
-              >
-                Contact Emails
-              </label>
-              <p className="text-sm text-gray-500 mb-3">
-                Add up to {MAX_CONTACT_EMAILS} email addresses for restaurant contact
-              </p>
-              {emailError && (
-                <p className="text-sm text-red-600 mb-2">{emailError}</p>
-              )}
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="email"
-                  id="contact_email"
-                  name="contact_email"
-                  value={emailInput}
-                  onChange={(e) => {
-                    setEmailInput(e.target.value);
-                    setEmailError("");
-                  }}
-                  onKeyDown={handleEmailKeyDown}
-                  placeholder={contactEmails.length >= MAX_CONTACT_EMAILS ? `Maximum ${MAX_CONTACT_EMAILS} emails reached` : "e.g., info@restaurant.com"}
-                  disabled={contactEmails.length >= MAX_CONTACT_EMAILS}
-                  className="flex-1 px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                />
-                <button
-                  type="button"
-                  onClick={addEmail}
-                  disabled={!emailInput.trim() || contactEmails.length >= MAX_CONTACT_EMAILS}
-                  className="px-5 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Add
-                </button>
-              </div>
-              {contactEmails.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {contactEmails.map((email) => (
-                    <span
-                      key={email}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-sm font-medium rounded-full"
-                    >
-                      {email}
-                      <button
-                        type="button"
-                        onClick={() => removeEmail(email)}
-                        className="hover:text-purple-600 transition-colors"
-                      >
-                        <X size={14} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Contact Number */}
-            <div>
-              <label
-                htmlFor="contact_number"
-                className="block text-lg font-bold text-gray-900 mb-3"
-              >
-                Contact Number
-              </label>
-              <input
-                type="tel"
-                id="contact_number"
-                name="contact_number"
-                value={contactNumber}
-                onChange={(e) => onContactNumberChange(e.target.value)}
-                className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-                placeholder="e.g., +44 7123 456789"
-              />
-            </div>
-          </div>
-
-            {/* Catering Capabilities */}
-            <div className="border-t border-gray-200"></div>
-
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-6">Catering Capabilities</h2>
-
-              {/* Primary Cuisine */}
-              <div className="mb-6">
-                <label className="block text-lg font-bold text-gray-900 mb-3">
-                  Primary Cuisine
-                </label>
-                <select
-                  value={cuisine}
-                  onChange={(e) => onCuisineChange(e.target.value)}
-                  className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-                >
-                  {CUISINE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Service Formats */}
-              <div className="mb-6">
-                <label className="block text-lg font-bold text-gray-900 mb-3">
-                  Service Formats
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {CATERING_FORMAT_OPTIONS.map((opt) => (
-                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={cateringFormats.includes(opt.value)}
-                        onChange={() => onCateringFormatsChange(toggleArrayValue(cateringFormats, opt.value))}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      />
-                      <span className="text-sm text-gray-700">{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Dietary Capabilities */}
-              <div className="mb-6">
-                <label className="block text-lg font-bold text-gray-900 mb-3">
-                  Dietary Capabilities
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {DIETARY_SUPPORT_OPTIONS.map((opt) => (
-                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={dietarySupport.includes(opt.value)}
-                        onChange={() => onDietarySupportChange(toggleArrayValue(dietarySupport, opt.value))}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      />
-                      <span className="text-sm text-gray-700">{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div className="mb-6">
-                <label className="block text-lg font-bold text-gray-900 mb-3">
-                  Tags (max 5)
-                </label>
-                <p className="text-sm text-gray-500 mb-3">
-                  Add custom tags to help customers discover your restaurant (e.g. "Street Food", "Family Friendly", "Award Winning")
-                </p>
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                    placeholder={tags.length >= 5 ? "Maximum 5 tags reached" : "Type a tag and press Enter or Add"}
-                    disabled={tags.length >= 5}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  />
-                  <button
-                    type="button"
-                    onClick={addTag}
-                    disabled={!tagInput.trim() || tags.length >= 5}
-                    className="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    Add
-                  </button>
-                </div>
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-sm font-medium rounded-full"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="hover:text-purple-600 transition-colors"
-                        >
-                          <X size={14} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-            </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-8 mt-8 border-t border-gray-200">
+    <div className="min-h-screen bg-gray-50">
+      <form onSubmit={handleSubmit}>
+        <div className="max-w-6xl mx-auto px-4 py-8 pb-28">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 px-6 rounded-xl transition-colors text-lg"
+              className="p-2 hover:bg-white rounded-lg transition-colors"
+            >
+              <ArrowLeft size={22} className="text-gray-700" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900">
+                Restaurant Profile
+              </h1>
+              <p className="text-gray-500 mt-0.5">
+                Manage how your restaurant appears to customers
+              </p>
+            </div>
+          </div>
+
+          {/* Messages */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start text-red-700">
+              <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700">
+              <span className="text-sm font-medium">{success}</span>
+            </div>
+          )}
+
+          {/* Two-column: form + sticky preview */}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 items-start">
+            {/* Preview (top on mobile, right on desktop) */}
+            <aside className="order-1 lg:order-2 lg:sticky lg:top-8">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+                <RestaurantCardPreview
+                  restaurantName={restaurantName}
+                  images={images}
+                  logoImageUrl={logoImageUrl}
+                  tags={tags}
+                  cuisineLabel={cuisineLabel}
+                />
+              </div>
+            </aside>
+
+            {/* Form sections */}
+            <div className="order-2 lg:order-1 space-y-6">
+              <SettingsCard
+                title="Brand & Photos"
+                description="Your logo and photos shown on your card and listings."
+              >
+                <div className="space-y-6">
+                  <LogoUploadSection
+                    logoImageUrl={logoImageUrl}
+                    uploadingLogoImage={uploadingLogoImage}
+                    onLogoUpload={onLogoUpload}
+                    onLogoRemove={onLogoRemove}
+                  />
+                  <div className="border-t border-gray-100" />
+                  <ImageUploadSection
+                    images={images}
+                    onImageUpload={onImageUpload}
+                    onImageRemove={onImageRemove}
+                    uploadingImage={uploadingImage}
+                  />
+                  <div className="border-t border-gray-100" />
+                  <EventPhotosManager
+                    images={eventImages}
+                    pendingImages={pendingEventImages}
+                    onPendingImagesChange={onPendingEventImagesChange}
+                    pendingDeletions={pendingEventDeletions}
+                    onImageRemove={onEventImageRemove}
+                    onImageRestore={onEventImageRestore}
+                    uploadingImage={uploadingEventImage}
+                  />
+                </div>
+              </SettingsCard>
+
+              <SettingsCard
+                title="Details"
+                description="Basic information customers see about your restaurant."
+              >
+                <RestaurantDetailsFields
+                  restaurantName={restaurantName}
+                  description={description}
+                  contactEmail={contactEmail}
+                  contactNumber={contactNumber}
+                  onNameChange={onNameChange}
+                  onDescriptionChange={onDescriptionChange}
+                  onContactEmailChange={onContactEmailChange}
+                  onContactNumberChange={onContactNumberChange}
+                />
+              </SettingsCard>
+
+              <SettingsCard
+                title="Catering Capabilities"
+                description="Cuisine, service formats, dietary options and discovery tags."
+              >
+                <CateringCapabilitiesFields
+                  cuisine={cuisine}
+                  cateringFormats={cateringFormats}
+                  dietarySupport={dietarySupport}
+                  tags={tags}
+                  onCuisineChange={onCuisineChange}
+                  onCateringFormatsChange={onCateringFormatsChange}
+                  onDietarySupportChange={onDietarySupportChange}
+                  onTagsChange={onTagsChange}
+                />
+              </SettingsCard>
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky action bar */}
+        <div className="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur border-t border-gray-200 z-30">
+          <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={saving || uploadingImage || uploadingEventImage}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg shadow-lg shadow-purple-500/30"
+              disabled={saving || uploadingImage || uploadingEventImage || uploadingLogoImage}
+              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-purple-500/30"
             >
               {saving ? (
                 <>
-                  <Loader size={24} className="animate-spin" />
+                  <Loader size={20} className="animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save size={24} />
+                  <Save size={20} />
                   Save Changes
                 </>
               )}
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 };

@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Tailwind v4 auto-detection misses sibling source folders outside app/.
+   Explicitly scan lib/ so utility classes used only there are generated. */
+@source "../lib";
+
 /* Custom Swift Food Theme - Modern Design with Pink Accents */
 @plugin "daisyui/theme" {
   name: "Swift";

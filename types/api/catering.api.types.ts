@@ -189,6 +189,10 @@ export interface CateringOrderResponse {
   restaurantsTotalGross: number;
   restaurantsTotalNet: number;
 
+  // Whether the order can still be edited (blocked once invoice issued or paid).
+  // Computed server-side; mirrors the BLOCKED_STATUSES check on the backend.
+  canEdit?: boolean;
+
   // Status & payment
   status: CateringOrderStatus;
   paid: boolean;
@@ -217,6 +221,10 @@ export interface CateringOrderResponse {
     addedAt?: string | Date;
     addedBy?: string;
   }>;
+  // Computed server-side from the token used to fetch this order - the
+  // entries above have accessToken stripped, so this is the only reliable
+  // way to know which role the current request's token actually has.
+  currentUserRole?: 'viewer' | 'manager' | null;
 
   // Pickup contact
   pickupContactName?: string;

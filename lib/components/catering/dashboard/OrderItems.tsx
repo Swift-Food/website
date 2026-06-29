@@ -3,15 +3,68 @@
 
 import React, { useState, useMemo } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2 } from "lucide-react";
+import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2, X, Info, CheckCircle2, Clock4, XCircle, Pencil } from "lucide-react";
 
 interface OrderItemsProps {
   order: CateringOrderResponse;
   onDownloadPdf?: () => void;
   generatingPdf?: boolean;
+  canEdit?: boolean;
+  editUrl?: string;
 }
 
-export default function OrderItems({ order, onDownloadPdf, generatingPdf }: OrderItemsProps) {
+// Pretty-print an underscored value, e.g. "tree_nuts" -> "Tree Nuts"
+const prettyLabel = (s: string) =>
+  String(s)
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+
+// Restaurant acceptance badge — only rendered during admin/restaurant review phases.
+const REVIEW_STATUSES = new Set(['admin_reviewed', 'restaurant_reviewed']);
+
+function RestaurantStatusBadge({ status }: { status?: 'pending' | 'confirmed' | 'declined' }) {
+  if (!status) return null;
+  if (status === 'confirmed') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+        <CheckCircle2 className="h-3 w-3" /> Confirmed
+      </span>
+    );
+  }
+  if (status === 'declined') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+        <XCircle className="h-3 w-3" /> Declined
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
+      <Clock4 className="h-3 w-3" /> Reviewing
+    </span>
+  );
+}
+
+// Match the catering-widget's allergen formatting/normalising behaviour
+const formatAllergen = (allergen: string) => prettyLabel(allergen);
+
+const normalizeAllergens = (
+  allergens?: string | string[] | null
+): string[] => {
+  if (!allergens) return [];
+  const list = Array.isArray(allergens) ? allergens : allergens.split(",");
+  return list
+    .map((a) => a.trim())
+    .filter(
+      (a) =>
+        a.length > 0 &&
+        a.toLowerCase() !== "no specific allergens" &&
+        a.toLowerCase() !== "no_specific_allergens"
+    );
+};
+
+export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdit, editUrl }: OrderItemsProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
   // Sort meal sessions by date and time
@@ -44,6 +97,15 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
         : restaurantsData.map((_, idx) => `legacy-${idx}`)
     )
   );
+
+  const [detailItem, setDetailItem] = useState<any>(null);
+  const [detailImageIdx, setDetailImageIdx] = useState(0);
+  const [isAllergenExpanded, setIsAllergenExpanded] = useState(false);
+  const openDetail = (item: any) => {
+    setDetailItem(item);
+    setDetailImageIdx(0);
+    setIsAllergenExpanded(false);
+  };
 
   const toggleSession = (sessionId: string) => {
     setExpandedSessions((prev) => {
@@ -94,8 +156,9 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
   };
 
   // Render a single restaurant's menu items
-  const renderRestaurantItems = (restaurant: any, keyPrefix: string) => {
+  const renderRestaurantItems = (restaurant: any, keyPrefix: string, orderStatus?: string) => {
     const isExpanded = expandedRestaurants.has(keyPrefix);
+    const showAcceptanceBadge = orderStatus && REVIEW_STATUSES.has(orderStatus);
 
     return (
       <div
@@ -106,11 +169,14 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
           onClick={() => toggleRestaurant(keyPrefix)}
           className="w-full flex items-center justify-between gap-2 sm:gap-3 p-3 sm:p-5 border-b border-gray-200 hover:bg-gray-50 transition-colors"
         >
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <ChefHat className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500 flex-shrink-0" />
             <h3 className="text-base sm:text-lg font-bold text-gray-900 break-words text-left">
               {restaurant.restaurantName}
             </h3>
+            {showAcceptanceBadge && (
+              <RestaurantStatusBadge status={restaurant.restaurantAcceptanceStatus} />
+            )}
           </div>
           {isExpanded ? (
             <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
@@ -126,7 +192,6 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                 const cateringUnit = item.cateringQuantityUnit || 1;
                 const feedsPerUnit = item.feedsPerUnit || 1;
                 const numUnits = item.quantity / cateringUnit;
-                console.log("the item is", JSON.stringify(item))
                 const totalFeeds = numUnits * feedsPerUnit;
 
                 // Support both 'addons' and 'selectedAddons' property names
@@ -135,7 +200,8 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                 return (
                   <div
                     key={itemIdx}
-                    className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors"
+                    onClick={() => openDetail(item)}
+                    className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                       <div className="flex-1 sm:pr-4">
@@ -147,6 +213,9 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                           {Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~
                           {Math.round(totalFeeds)} people
                         </p>
+                        <span className="inline-flex items-center gap-1 text-xs text-pink-600 font-medium mt-1">
+                          <Info className="h-3.5 w-3.5" /> View details
+                        </span>
                       </div>
                       <p className="font-bold text-pink-600 text-sm sm:text-base whitespace-nowrap self-end sm:self-auto">
                         £{Number(item.customerTotalPrice || 0).toFixed(2)}
@@ -276,7 +345,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
             {/* Restaurants and their menu items */}
             <div className="space-y-4">
               {session.orderItems.map((restaurant, idx) =>
-                renderRestaurantItems(restaurant, `${session.id}-${idx}`)
+                renderRestaurantItems(restaurant, `${session.id}-${idx}`, order.status)
               )}
             </div>
 
@@ -334,20 +403,31 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
           <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
           Order Items
         </h2>
-        {onDownloadPdf && (
-          <button
-            onClick={onDownloadPdf}
-            disabled={generatingPdf}
-            className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-3 py-1.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {generatingPdf ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4" />
-            )}
-            {generatingPdf ? "Preparing..." : "Menu PDF"}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {canEdit && editUrl && (
+            <a
+              href={editUrl}
+              className="inline-flex items-center gap-2 rounded-lg border border-pink-300 bg-pink-50 px-3 py-1.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-100"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Order
+            </a>
+          )}
+          {onDownloadPdf && (
+            <button
+              onClick={onDownloadPdf}
+              disabled={generatingPdf}
+              className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-3 py-1.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {generatingPdf ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+              {generatingPdf ? "Preparing..." : "Menu PDF"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4 sm:space-y-6">
@@ -360,7 +440,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
           /* Legacy View - No Meal Sessions */
           <div className="space-y-4 sm:space-y-6">
             {restaurantsData.map((restaurant, idx) =>
-              renderRestaurantItems(restaurant, `legacy-${idx}`)
+              renderRestaurantItems(restaurant, `legacy-${idx}`, order.status)
             )}
           </div>
         )}
@@ -462,7 +542,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
             </div>
           )}
 
-          {order.paymentLinkUrl && !order.paidAt && (
+          {order.paymentLinkUrl && (
             <div className="mt-3 sm:mt-4">
               <a
                 href={order.paymentLinkUrl}
@@ -470,12 +550,234 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf }: Orde
                 rel="noopener noreferrer"
                 className="block w-full bg-pink-500 text-white text-center py-2.5 sm:py-3 rounded-lg font-bold hover:bg-pink-600 transition-colors text-sm sm:text-base"
               >
-                Complete Payment
+                {['paid', 'confirmed', 'completed'].includes(order.status) ? 'View Payment Link' : 'Complete Payment'}
               </a>
             </div>
           )}
         </div>
       </div>
+
+      {/* Item detail modal — styled to match the catering-widget MenuItemModal (view-only) */}
+      {detailItem && (() => {
+        const imgs: string[] = detailItem.images?.length
+          ? detailItem.images
+          : detailItem.menuItemImage
+          ? [detailItem.menuItemImage]
+          : detailItem.menuItemImageUrl
+          ? [detailItem.menuItemImageUrl]
+          : [];
+        const dietary: string[] = detailItem.dietaryFilters || detailItem.dietaryRestrictions || [];
+        const allergenList: string[] = normalizeAllergens(detailItem.allergens);
+        const addons = detailItem.addons || detailItem.selectedAddons || [];
+
+        const cateringUnit = detailItem.cateringQuantityUnit || 1;
+        const feedsPerUnit = detailItem.feedsPerUnit || 1;
+        const numUnits = (detailItem.quantity || 0) / cateringUnit;
+        const totalFeeds = numUnits * feedsPerUnit;
+
+        // Group chosen add-ons by their group title for nicer display
+        const addonsByGroup: Record<string, any[]> = {};
+        for (const addon of addons) {
+          const g = addon.groupTitle || "Add-ons";
+          (addonsByGroup[g] = addonsByGroup[g] || []).push(addon);
+        }
+
+        return (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            onClick={() => setDetailItem(null)}
+          >
+            <div className="absolute inset-0 bg-black/50" />
+            <div
+              className="relative bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setDetailItem(null)}
+                className="absolute top-3 right-3 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors z-30 shadow-md"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+
+              <div className="overflow-y-auto flex-1">
+                {/* Image header — flush to the top/sides of the card */}
+                {imgs.length > 0 && (
+                  <div className="flex-shrink-0">
+                    <div
+                      className="overflow-hidden"
+                      style={{ maxHeight: "50vh", aspectRatio: "5/4" }}
+                    >
+                      <img
+                        src={imgs[detailImageIdx] ?? imgs[0]}
+                        alt={detailItem.menuItemName || detailItem.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {imgs.length > 1 && (
+                      <div className="flex gap-2 px-4 sm:px-6 pt-2 overflow-x-auto">
+                        {imgs.map((img, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setDetailImageIdx(idx)}
+                            className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                              idx === detailImageIdx
+                                ? "border-pink-500"
+                                : "border-transparent opacity-60 hover:opacity-100"
+                            }`}
+                            aria-label={`View image ${idx + 1}`}
+                          >
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className={imgs.length > 0 ? "px-4 sm:px-6 pt-3 pb-4 sm:pb-6" : "p-4 sm:p-6"}>
+                <h2 className="font-bold text-lg sm:text-2xl text-gray-900 mb-1 pr-8">
+                  {detailItem.menuItemName || detailItem.name}
+                </h2>
+                {detailItem.restaurantName && (
+                  <p className="text-xs sm:text-sm text-pink-600 font-medium mb-3 sm:mb-4">
+                    From {detailItem.restaurantName}
+                  </p>
+                )}
+
+                <div className="space-y-3 sm:space-y-4 mt-2">
+                  {detailItem.description && (
+                    <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+                      {detailItem.description}
+                    </p>
+                  )}
+
+                  {dietary.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                      {dietary.map((d, i) => (
+                        <span
+                          key={i}
+                          className="bg-green-100 text-green-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold capitalize"
+                        >
+                          {prettyLabel(d)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {allergenList.length > 0 ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsAllergenExpanded(!isAllergenExpanded);
+                        }}
+                        className="w-full text-left hover:opacity-80 transition-opacity"
+                      >
+                        <h3 className="font-semibold text-xs sm:text-sm text-gray-900 flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2">
+                            <span className="text-sm sm:text-base">⚠️</span>
+                            Allergens
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-gray-500 font-normal">
+                            {isAllergenExpanded ? "▲ Hide" : "▼ Show"}
+                          </span>
+                        </h3>
+                      </button>
+                      {isAllergenExpanded && (
+                        <>
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2 my-2 sm:my-3">
+                            {allergenList.map((allergen, index) => (
+                              <span
+                                key={index}
+                                className="bg-amber-300 text-amber-900 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold"
+                              >
+                                {formatAllergen(allergen)}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-[10px] sm:text-xs text-gray-500 italic leading-relaxed">
+                            This is approximate. For full allergen information, please contact the restaurant.
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-100 border border-gray-200 rounded-lg p-2 sm:p-3">
+                      <p className="text-[10px] sm:text-xs text-gray-500 italic">
+                        ⚠️ Allergen information not available. Please contact the restaurant directly.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Price & portions */}
+                  <div className="pt-1 sm:pt-2">
+                    <span className="text-xl sm:text-2xl font-bold text-pink-600">
+                      £{Number(detailItem.customerTotalPrice || 0).toFixed(2)}
+                    </span>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                      {Math.round(numUnits)} portion
+                      {Math.round(numUnits) !== 1 ? "s" : ""} • Serves ~
+                      {Math.round(totalFeeds)} people
+                    </p>
+                  </div>
+
+                  {/* Chosen add-ons */}
+                  {addons.length > 0 && (
+                    <div className="pt-2">
+                      <h3 className="font-semibold text-base text-gray-900 mb-3">
+                        Chosen Add-ons
+                      </h3>
+                      {Object.entries(addonsByGroup).map(([groupTitle, groupAddons]) => (
+                        <div key={groupTitle} className="mb-4 mt-6 first:mt-0">
+                          <h4 className="font-bold text-xs sm:text-sm text-gray-900 mb-2">
+                            {groupTitle}
+                          </h4>
+                          <div className="space-y-2">
+                            {groupAddons.map((addon: any, index: number) => {
+                              const addonAllergens = normalizeAllergens(addon.allergens);
+                              const lineTotal =
+                                (addon.customerUnitPrice || addon.price || 0) * addon.quantity;
+                              return (
+                                <div
+                                  key={index}
+                                  className="w-full flex items-center justify-between p-3 rounded-lg border border-pink-300 bg-pink-50"
+                                >
+                                  <div className="min-w-0 mr-2">
+                                    <span className="block text-sm text-gray-900">
+                                      {addon.name}{" "}
+                                      <span className="text-gray-500">× {addon.quantity}</span>
+                                    </span>
+                                    {addonAllergens.length > 0 && (
+                                      <p className="text-[9px] sm:text-[11px] text-gray-500 leading-snug">
+                                        <span className="font-medium">Allergens: </span>
+                                        {addonAllergens.map(formatAllergen).join(", ")}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {lineTotal > 0 && (
+                                    <span className="text-sm font-medium text-pink-600 whitespace-nowrap">
+                                      +£{lineTotal.toFixed(2)}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

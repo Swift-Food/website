@@ -20,6 +20,7 @@ export const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
   showPrices = true,
   deliveryCharge,
   promoDiscount,
+  appliedPromotions,
   totalPrice,
   logoUrl,
   filename = "catering-menu.pdf",
