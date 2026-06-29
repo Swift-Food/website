@@ -1,13 +1,82 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Loader, AlertCircle, CheckCircle, Info } from "lucide-react";
+import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
 
 interface Props {
   spaceId: string;
 }
+
+const PublishableKeyField = ({ value }: { value: string }) => {
+  const [revealed, setRevealed] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable — silently ignore */
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-500 mb-1">
+        Publishable key
+      </label>
+      <div className="flex items-stretch gap-2">
+        <div className="flex flex-1 items-center min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2">
+          <span className="flex-1 truncate font-mono text-sm text-gray-700">
+            {revealed ? value : "•".repeat(Math.min(value.length, 32))}
+          </span>
+          <button
+            type="button"
+            onClick={() => setRevealed((v) => !v)}
+            aria-label={revealed ? "Hide key" : "Reveal key"}
+            className="ml-2 shrink-0 text-gray-400 transition-colors hover:text-gray-700"
+          >
+            {revealed ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={handleCopy}
+          aria-label="Copy key"
+          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+        >
+          {copied ? (
+            <>
+              <Check size={15} className="text-green-600" />
+              Copied
+            </>
+          ) : (
+            <>
+              <Copy size={15} />
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      <p className="mt-1.5 text-xs text-gray-500">
+        Used by the{" "}
+        <a
+          href="https://www.npmjs.com/package/@swift-food-services/catering-widget"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+        >
+          @swift-food-services/catering-widget
+          <ExternalLink size={12} />
+        </a>{" "}
+        package.
+      </p>
+    </div>
+  );
+};
 
 export const CoworkingSettings = ({ spaceId }: Props) => {
   const [space, setSpace] = useState<CoworkingSpace | null>(null);
@@ -80,10 +149,12 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
     <div className="max-w-xl space-y-6">
       {/* Space info */}
       {space && (
-        <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
-          <p className="font-semibold text-gray-900 mb-1">{space.name}</p>
-          {space.slug && <p className="text-gray-500 text-xs font-mono">/{space.slug}</p>}
-          {space.contactEmail && <p className="text-gray-600">{space.contactEmail}</p>}
+        <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-3">
+          <div>
+            <p className="font-semibold text-gray-900 mb-1">{space.name}</p>
+            {space.contactEmail && <p className="text-gray-600">{space.contactEmail}</p>}
+          </div>
+          {space.publishableKey && <PublishableKeyField value={space.publishableKey} />}
         </div>
       )}
 
