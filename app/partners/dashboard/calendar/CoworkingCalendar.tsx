@@ -206,18 +206,51 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
     return map;
   }, [calendarDays]);
 
-  // Grid cells for the month (Monday-first)
+  // Grid cells for the month (Monday-first), padded with adjacent-month days
+  // so the 6-row grid is always full and visually continuous.
   const firstDay = new Date(year, month - 1, 1).getDay(); // 0=Sun
   const daysInMonth = new Date(year, month, 0).getDate();
   const startOffset = (firstDay + 6) % 7;
 
-  const cells: (number | null)[] = [
-    ...Array(startOffset).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const daysInPrev = new Date(year, month - 1, 0).getDate();
+
+  type Cell = { day: number; mo: number; yr: number; dateStr: string; inMonth: boolean };
+  const cells: Cell[] = [];
+  for (let i = startOffset; i > 0; i--) {
+    const day = daysInPrev - i + 1;
+    cells.push({ day, mo: prevMonth, yr: prevYear, dateStr: `${prevYear}-${pad(prevMonth)}-${pad(day)}`, inMonth: false });
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    cells.push({ day, mo: month, yr: year, dateStr: `${year}-${pad(month)}-${pad(day)}`, inMonth: true });
+  }
+  for (let day = 1; cells.length < 42; day++) {
+    cells.push({ day, mo: nextMonth, yr: nextYear, dateStr: `${nextYear}-${pad(nextMonth)}-${pad(day)}`, inMonth: false });
+  }
 
   const selectedOrders = selectedDate ? ordersByDate[selectedDate] ?? [] : [];
+
+  // Summary for the visible month
+  const monthPrefix = `${year}-${pad(month)}`;
+  const monthStats = calendarDays.reduce(
+    (acc, d) => {
+      if (!d.date.startsWith(monthPrefix)) return acc;
+      acc.events += d.orders.length;
+      acc.revenue += d.orders.reduce((s, o) => s + Number(o.finalTotal || 0), 0);
+      return acc;
+    },
+    { events: 0, revenue: 0 }
+  );
+
+  const goToDate = (c: Cell) => {
+    setYear(c.yr);
+    setMonth(c.mo);
+    setSelectedDate(c.dateStr);
+  };
 
   return (
     <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-200/50 sm:p-6">
@@ -237,10 +270,17 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
           {/* Calendar */}
           <div>
             {/* Month navigation */}
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold tracking-tight text-gray-900">
-                {MONTH_NAMES[month - 1]} {year}
-              </h3>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold tracking-tight text-gray-900">
+                  {MONTH_NAMES[month - 1]} {year}
+                </h3>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  {monthStats.events === 0
+                    ? "No events this month"
+                    : `${monthStats.events} event${monthStats.events !== 1 ? "s" : ""} · ${fmt(monthStats.revenue)}`}
+                </p>
+              </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={prev}
@@ -276,24 +316,25 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
 
             {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-1.5">
-              {cells.map((day, idx) => {
-                if (!day) return <div key={idx} className="min-h-[92px]" />;
-
-                const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                const orders = ordersByDate[dateStr] ?? [];
+              {cells.map((cell, idx) => {
+                const orders = ordersByDate[cell.dateStr] ?? [];
                 const hasOrders = orders.length > 0;
-                const isToday = dateStr === todayStr;
-                const isSelected = dateStr === selectedDate;
+                const isToday = cell.dateStr === todayStr;
+                const isSelected = cell.dateStr === selectedDate;
 
                 return (
                   <button
                     key={idx}
-                    onClick={() => setSelectedDate(dateStr)}
+                    onClick={() => goToDate(cell)}
+                    aria-current={isToday ? "date" : undefined}
                     className={cn(
-                      "group flex min-h-[92px] flex-col items-center justify-start gap-1 rounded-xl border p-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary",
+                      "group relative flex min-h-[92px] flex-col items-center justify-start gap-1 rounded-xl border p-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary",
                       isSelected
                         ? "border-primary bg-primary/10"
-                        : "border-transparent hover:border-gray-200 hover:bg-gray-50"
+                        : hasOrders && cell.inMonth
+                          ? "border-gray-200 bg-gray-50/70 hover:border-gray-300 hover:bg-gray-100/70"
+                          : "border-transparent hover:border-gray-200 hover:bg-gray-50",
+                      !cell.inMonth && "opacity-40"
                     )}
                   >
                     <span
@@ -301,30 +342,48 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-medium",
                         isToday && !isSelected && "bg-primary text-white",
                         isSelected && "text-primary",
-                        !isToday && !isSelected && "text-gray-700"
+                        !isToday && !isSelected && (cell.inMonth ? "text-gray-700" : "text-gray-400")
                       )}
                     >
-                      {day}
+                      {cell.day}
                     </span>
 
                     {hasOrders && (
                       <div className="flex flex-wrap items-center justify-center gap-1">
-                        {orders.slice(0, 3).map((o, i) => (
+                        {orders.slice(0, 4).map((o, i) => (
                           <span
                             key={i}
                             className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOTS[o.status] ?? "bg-gray-400")}
                           />
                         ))}
-                        {orders.length > 3 && (
-                          <span className="text-[10px] font-semibold leading-none text-gray-400">
-                            +{orders.length - 3}
-                          </span>
-                        )}
                       </div>
+                    )}
+
+                    {/* Event count badge */}
+                    {hasOrders && (
+                      <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white">
+                        {orders.length}
+                      </span>
                     )}
                   </button>
                 );
               })}
+            </div>
+
+            {/* Status legend */}
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-gray-100 pt-3">
+              {[
+                { label: "Confirmed / Paid", dot: "bg-emerald-500" },
+                { label: "In progress", dot: "bg-blue-400" },
+                { label: "Pending", dot: "bg-amber-400" },
+                { label: "Cancelled", dot: "bg-rose-400" },
+                { label: "Completed", dot: "bg-gray-400" },
+              ].map((l) => (
+                <span key={l.label} className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500">
+                  <span className={cn("h-2 w-2 rounded-full", l.dot)} />
+                  {l.label}
+                </span>
+              ))}
             </div>
           </div>
 
