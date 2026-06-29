@@ -1,0 +1,142 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { Loader, AlertCircle } from "lucide-react";
+import { coworkingApi } from "@/services/api/coworking.api";
+import { DashboardOrderSummary } from "@/types/api/coworking.api.types";
+import { OrderCard } from "./OrderCard";
+import { OrderDetailModal } from "./OrderDetailModal";
+
+interface Props {
+  spaceId: string;
+}
+
+const STATUS_TABS: { key: string; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "admin_reviewed", label: "Pending Review" },
+  { key: "restaurant_reviewed", label: "Awaiting Payment" },
+  { key: "confirmed", label: "Confirmed" },
+  { key: "completed", label: "Completed" },
+  { key: "cancelled", label: "Cancelled" },
+];
+
+export const OrdersList = ({ spaceId }: Props) => {
+  const [orders, setOrders] = useState<DashboardOrderSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const fetchOrders = () => {
+    setLoading(true);
+    coworkingApi
+      .getOrders(spaceId)
+      .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .catch((err) => setError(err.message || "Failed to load orders"))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [spaceId]);
+
+  const filteredOrders = useMemo(() => {
+    if (activeTab === "all") return orders;
+    // "confirmed" tab includes both paid and confirmed statuses
+    if (activeTab === "confirmed") {
+      return orders.filter((o) => o.status === "paid" || o.status === "confirmed");
+    }
+    // "restaurant_reviewed" tab includes payment_link_sent too
+    if (activeTab === "restaurant_reviewed") {
+      return orders.filter(
+        (o) => o.status === "restaurant_reviewed" || o.status === "payment_link_sent"
+      );
+    }
+    return orders.filter((o) => o.status === activeTab);
+  }, [orders, activeTab]);
+
+  const countForTab = (key: string) => {
+    if (key === "all") return orders.length;
+    if (key === "confirmed") return orders.filter((o) => o.status === "paid" || o.status === "confirmed").length;
+    if (key === "restaurant_reviewed") return orders.filter((o) => o.status === "restaurant_reviewed" || o.status === "payment_link_sent").length;
+    return orders.filter((o) => o.status === key).length;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader size={28} className="animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <AlertCircle size={16} className="flex-shrink-0" />
+        {error}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Status tabs */}
+      <div className="border-b border-gray-200 mb-5 overflow-x-auto">
+        <nav className="flex space-x-1 min-w-max">
+          {STATUS_TABS.map((tab) => {
+            const count = countForTab(tab.key);
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`py-3 px-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === tab.key
+                    ? "border-indigo-600 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                {tab.label}
+                {count > 0 && (
+                  <span
+                    className={`ml-1.5 py-0.5 px-1.5 rounded-full text-xs ${
+                      activeTab === tab.key
+                        ? "bg-indigo-100 text-indigo-600"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {filteredOrders.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <p>No orders in this category</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredOrders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onViewDetail={setSelectedOrderId}
+            />
+          ))}
+        </div>
+      )}
+
+      {selectedOrderId && (
+        <OrderDetailModal
+          spaceId={spaceId}
+          orderId={selectedOrderId}
+          onClose={() => setSelectedOrderId(null)}
+        />
+      )}
+    </div>
+  );
+};

@@ -47,6 +47,9 @@ const DIETARY_SUPPORT_OPTIONS = [
   { value: "low_calorie", label: "Low Calorie" },
 ];
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_CONTACT_EMAILS = 10;
+
 const SERVICE_WINDOW_OPTIONS = [
   { value: "breakfast", label: "Breakfast" },
   { value: "lunch", label: "Lunch" },
@@ -57,13 +60,13 @@ const SERVICE_WINDOW_OPTIONS = [
 interface ProfileFormProps {
   restaurantName: string;
   description: string;
-  contactEmail: string;
+  contactEmails: string[];
   contactNumber: string;
   images: string[];
   eventImages: string[];
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onContactEmailChange: (value: string) => void;
+  onContactEmailsChange: (value: string[]) => void;
   onContactNumberChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
@@ -99,13 +102,13 @@ interface ProfileFormProps {
 export const ProfileForm = ({
   restaurantName,
   description,
-  contactEmail,
+  contactEmails,
   contactNumber,
   images,
   eventImages,
   onNameChange,
   onDescriptionChange,
-  onContactEmailChange,
+  onContactEmailsChange,
   onContactNumberChange,
   onImageUpload,
   onImageRemove,
@@ -137,6 +140,41 @@ export const ProfileForm = ({
   onTagsChange,
 }: ProfileFormProps) => {
   const [tagInput, setTagInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const addEmail = () => {
+    const trimmed = emailInput.trim();
+    if (!trimmed) return;
+
+    if (!EMAIL_REGEX.test(trimmed)) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+    if (contactEmails.includes(trimmed)) {
+      setEmailError("This email has already been added");
+      return;
+    }
+    if (contactEmails.length >= MAX_CONTACT_EMAILS) {
+      setEmailError(`You can add up to ${MAX_CONTACT_EMAILS} email addresses`);
+      return;
+    }
+
+    setEmailError("");
+    onContactEmailsChange([...contactEmails, trimmed]);
+    setEmailInput("");
+  };
+
+  const removeEmail = (email: string) => {
+    onContactEmailsChange(contactEmails.filter((e) => e !== email));
+  };
+
+  const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addEmail();
+    }
+  };
 
   const addTag = () => {
     const trimmed = tagInput.trim();
@@ -269,23 +307,63 @@ export const ProfileForm = ({
               </p>
             </div>
 
-            {/* Contact Email */}
+            {/* Contact Emails */}
             <div>
               <label
                 htmlFor="contact_email"
                 className="block text-lg font-bold text-gray-900 mb-3"
               >
-                Contact Email
+                Contact Emails
               </label>
-              <input
-                type="email"
-                id="contact_email"
-                name="contact_email"
-                value={contactEmail}
-                onChange={(e) => onContactEmailChange(e.target.value)}
-                className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-                placeholder="e.g., info@restaurant.com"
-              />
+              <p className="text-sm text-gray-500 mb-3">
+                Add up to {MAX_CONTACT_EMAILS} email addresses for restaurant contact
+              </p>
+              {emailError && (
+                <p className="text-sm text-red-600 mb-2">{emailError}</p>
+              )}
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="email"
+                  id="contact_email"
+                  name="contact_email"
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    setEmailError("");
+                  }}
+                  onKeyDown={handleEmailKeyDown}
+                  placeholder={contactEmails.length >= MAX_CONTACT_EMAILS ? `Maximum ${MAX_CONTACT_EMAILS} emails reached` : "e.g., info@restaurant.com"}
+                  disabled={contactEmails.length >= MAX_CONTACT_EMAILS}
+                  className="flex-1 px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                />
+                <button
+                  type="button"
+                  onClick={addEmail}
+                  disabled={!emailInput.trim() || contactEmails.length >= MAX_CONTACT_EMAILS}
+                  className="px-5 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Add
+                </button>
+              </div>
+              {contactEmails.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {contactEmails.map((email) => (
+                    <span
+                      key={email}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-sm font-medium rounded-full"
+                    >
+                      {email}
+                      <button
+                        type="button"
+                        onClick={() => removeEmail(email)}
+                        className="hover:text-purple-600 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Contact Number */}

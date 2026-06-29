@@ -22,3 +22,6 @@ export * from './corporate.api.types';
 
 // Guest ticket view types (responses)
 export * from './guest-ticket-view.api.types';
+
+// Coworking space types (responses)
+export * from './coworking.api.types';
