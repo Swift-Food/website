@@ -85,21 +85,23 @@ export const CoworkingDashboard = ({
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 transition-[width] duration-300 ease-in-out md:block",
-          collapsed ? "w-[76px]" : "w-64 border-r border-gray-200/80 bg-white"
+          "sticky top-0 hidden h-screen shrink-0 p-3 transition-[width] duration-300 ease-in-out md:block",
+          collapsed ? "w-[92px]" : "w-[320px]"
         )}
       >
-        <SidebarPanel
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onLogout={onLogout}
-          collapsed={collapsed}
-          onToggleCollapse={toggleCollapse}
-          partnerName={partnerName}
-          spaceIds={spaceIds}
-          selectedSpaceId={selectedSpaceId}
-          onSelectSpace={onSelectSpace}
-        />
+        <div className="h-full overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+          <SidebarPanel
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onLogout={onLogout}
+            collapsed={collapsed}
+            onToggleCollapse={toggleCollapse}
+            partnerName={partnerName}
+            spaceIds={spaceIds}
+            selectedSpaceId={selectedSpaceId}
+            onSelectSpace={onSelectSpace}
+          />
+        </div>
       </aside>
 
       {/* Mobile drawer */}
