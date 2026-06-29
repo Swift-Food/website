@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Loader, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils/helpers";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { DashboardOrderSummary } from "@/types/api/coworking.api.types";
 import { OrderCard } from "./OrderCard";
@@ -11,20 +12,46 @@ interface Props {
   spaceId: string;
 }
 
-const STATUS_TABS: { key: string; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "admin_reviewed", label: "Pending Review" },
-  { key: "restaurant_reviewed", label: "Awaiting Payment" },
-  { key: "confirmed", label: "Confirmed" },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
+type GroupKey = "active" | "closed" | "all";
+
+const ACTIVE_STATUSES = [
+  "pending_review",
+  "admin_reviewed",
+  "restaurant_reviewed",
+  "payment_link_sent",
+  "paid",
+  "confirmed",
 ];
+const CLOSED_STATUSES = ["completed", "cancelled"];
+
+const GROUPS: { key: GroupKey; label: string; statuses: string[] | null }[] = [
+  { key: "active", label: "Active", statuses: ACTIVE_STATUSES },
+  { key: "closed", label: "Closed", statuses: CLOSED_STATUSES },
+  { key: "all", label: "All", statuses: null },
+];
+
+// Sub-filters per group. `statuses` is the set each pill matches.
+const SUB_FILTERS: Record<GroupKey, { key: string; label: string; statuses: string[] }[]> = {
+  active: [
+    { key: "all", label: "All", statuses: ACTIVE_STATUSES },
+    { key: "pending_review", label: "Pending Review", statuses: ["pending_review", "admin_reviewed"] },
+    { key: "awaiting_payment", label: "Awaiting Payment", statuses: ["restaurant_reviewed", "payment_link_sent"] },
+    { key: "confirmed", label: "Confirmed", statuses: ["paid", "confirmed"] },
+  ],
+  closed: [
+    { key: "all", label: "All", statuses: CLOSED_STATUSES },
+    { key: "completed", label: "Completed", statuses: ["completed"] },
+    { key: "cancelled", label: "Cancelled", statuses: ["cancelled"] },
+  ],
+  all: [],
+};
 
 export const OrdersList = ({ spaceId }: Props) => {
   const [orders, setOrders] = useState<DashboardOrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("all");
+  const [group, setGroup] = useState<GroupKey>("active");
+  const [sub, setSub] = useState<string>("all");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const fetchOrders = () => {
@@ -40,27 +67,24 @@ export const OrdersList = ({ spaceId }: Props) => {
     fetchOrders();
   }, [spaceId]);
 
-  const filteredOrders = useMemo(() => {
-    if (activeTab === "all") return orders;
-    // "confirmed" tab includes both paid and confirmed statuses
-    if (activeTab === "confirmed") {
-      return orders.filter((o) => o.status === "paid" || o.status === "confirmed");
-    }
-    // "restaurant_reviewed" tab includes payment_link_sent too
-    if (activeTab === "restaurant_reviewed") {
-      return orders.filter(
-        (o) => o.status === "restaurant_reviewed" || o.status === "payment_link_sent"
-      );
-    }
-    return orders.filter((o) => o.status === activeTab);
-  }, [orders, activeTab]);
-
-  const countForTab = (key: string) => {
-    if (key === "all") return orders.length;
-    if (key === "confirmed") return orders.filter((o) => o.status === "paid" || o.status === "confirmed").length;
-    if (key === "restaurant_reviewed") return orders.filter((o) => o.status === "restaurant_reviewed" || o.status === "payment_link_sent").length;
-    return orders.filter((o) => o.status === key).length;
+  const selectGroup = (key: GroupKey) => {
+    setGroup(key);
+    setSub("all");
   };
+
+  const countForStatuses = (statuses: string[] | null) => {
+    if (!statuses) return orders.length;
+    const set = new Set(statuses);
+    return orders.filter((o) => set.has(o.status)).length;
+  };
+
+  const filteredOrders = useMemo(() => {
+    if (group === "all") return orders;
+    const subs = SUB_FILTERS[group];
+    const current = subs.find((s) => s.key === sub) ?? subs[0];
+    const set = new Set(current.statuses);
+    return orders.filter((o) => set.has(o.status));
+  }, [orders, group, sub]);
 
   if (loading) {
     return (
@@ -81,36 +105,73 @@ export const OrdersList = ({ spaceId }: Props) => {
 
   return (
     <div>
-      {/* Status filter */}
-      <div className="mb-6 overflow-x-auto pb-1">
-        <nav className="flex min-w-max gap-1.5">
-          {STATUS_TABS.map((tab) => {
-            const count = countForTab(tab.key);
-            const active = activeTab === tab.key;
+      {/* Two-tier status filter */}
+      <div className="mb-6 space-y-3">
+        {/* Tier 1 — order group */}
+        <div className="inline-flex rounded-xl bg-gray-100 p-1">
+          {GROUPS.map((g) => {
+            const active = group === g.key;
+            const count = countForStatuses(g.statuses);
             return (
               <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                key={g.key}
+                onClick={() => selectGroup(g.key)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
-                }`}
-              >
-                {tab.label}
-                {count > 0 && (
-                  <span
-                    className={`rounded-full px-1.5 text-xs font-semibold tabular-nums ${
-                      active ? "bg-white/20 text-white" : "bg-white text-gray-500"
-                    }`}
-                  >
-                    {count}
-                  </span>
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-gray-500 hover:text-gray-900"
                 )}
+              >
+                {g.label}
+                <span
+                  className={cn(
+                    "text-xs font-semibold tabular-nums",
+                    active ? "text-primary/70" : "text-gray-400"
+                  )}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
-        </nav>
+        </div>
+
+        {/* Tier 2 — status within the group */}
+        {group !== "all" && (
+          <div className="overflow-x-auto pb-1">
+            <nav className="flex min-w-max gap-1.5">
+              {SUB_FILTERS[group].map((s) => {
+                const active = sub === s.key;
+                const count = countForStatuses(s.statuses);
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => setSub(s.key)}
+                    className={cn(
+                      "flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                    )}
+                  >
+                    {s.label}
+                    {count > 0 && (
+                      <span
+                        className={cn(
+                          "rounded-full px-1.5 text-xs font-semibold tabular-nums",
+                          active ? "bg-white/20 text-white" : "bg-white text-gray-500"
+                        )}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        )}
       </div>
 
       {filteredOrders.length === 0 ? (
@@ -118,7 +179,7 @@ export const OrdersList = ({ spaceId }: Props) => {
           <p>No orders in this category</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredOrders.map((order) => (
             <OrderCard
               key={order.id}

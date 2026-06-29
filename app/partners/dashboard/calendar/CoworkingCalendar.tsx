@@ -270,7 +270,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
             {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-1.5">
               {cells.map((day, idx) => {
-                if (!day) return <div key={idx} className="aspect-square" />;
+                if (!day) return <div key={idx} className="min-h-[92px]" />;
 
                 const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                 const orders = ordersByDate[dateStr] ?? [];
@@ -283,7 +283,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                     key={idx}
                     onClick={() => setSelectedDate(dateStr)}
                     className={cn(
-                      "group flex aspect-square flex-col items-center justify-start gap-1 rounded-xl border p-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary",
+                      "group flex min-h-[92px] flex-col items-center justify-start gap-1 rounded-xl border p-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary",
                       isSelected
                         ? "border-primary bg-primary/10"
                         : "border-transparent hover:border-gray-200 hover:bg-gray-50"
@@ -322,7 +322,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
           </div>
 
           {/* Selected-day events */}
-          <div className="min-h-[360px] rounded-2xl border border-gray-200 bg-gray-50/60 lg:min-h-0">
+          <div className="min-h-[360px] rounded-2xl border border-gray-200 bg-white lg:min-h-0">
             <DayPanel selectedDate={selectedDate} orders={selectedOrders} />
           </div>
         </div>

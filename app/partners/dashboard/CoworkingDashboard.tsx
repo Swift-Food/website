@@ -81,7 +81,7 @@ export const CoworkingDashboard = ({
   const meta = PAGE_META[activeTab];
 
   return (
-    <div className="flex min-h-screen bg-[#F6F7F9] text-gray-900">
+    <div className="flex min-h-screen bg-white text-gray-900">
       {/* Desktop sidebar */}
       <aside
         className={cn(
@@ -160,7 +160,7 @@ export const CoworkingDashboard = ({
         </header>
 
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <div className="mx-auto w-full max-w-5xl">
+          <div className="w-full">
             {/* Page header */}
             <div className="mb-6">
               <h1 className="text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">
@@ -169,8 +169,8 @@ export const CoworkingDashboard = ({
               <p className="mt-1 text-sm text-gray-500">{meta.subtitle}</p>
             </div>
 
-            {/* Content card */}
-            <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-200/50 sm:p-6">
+            {/* Page content — flat on the white page */}
+            <div>
               {activeTab === "orders" && <OrdersList spaceId={spaceId} />}
               {activeTab === "calendar" && <CoworkingCalendar spaceId={spaceId} />}
               {activeTab === "settings" && <CoworkingSettings spaceId={spaceId} />}
