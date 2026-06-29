@@ -29,25 +29,25 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending_review: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  admin_reviewed: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  restaurant_reviewed: "bg-blue-100 text-blue-800 border-blue-300",
-  payment_link_sent: "bg-blue-100 text-blue-800 border-blue-300",
-  paid: "bg-green-100 text-green-800 border-green-300",
-  confirmed: "bg-green-100 text-green-800 border-green-300",
-  cancelled: "bg-red-100 text-red-800 border-red-300",
-  completed: "bg-gray-100 text-gray-700 border-gray-300",
+  pending_review: "bg-amber-50 text-amber-700 border-amber-200",
+  admin_reviewed: "bg-amber-50 text-amber-700 border-amber-200",
+  restaurant_reviewed: "bg-blue-50 text-blue-700 border-blue-200",
+  payment_link_sent: "bg-blue-50 text-blue-700 border-blue-200",
+  paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  confirmed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  cancelled: "bg-rose-50 text-rose-700 border-rose-200",
+  completed: "bg-gray-100 text-gray-600 border-gray-200",
 };
 
 export const OrderCard = ({ order, onViewDetail }: Props) => {
   const hasServiceFee = order.serviceFee > 0;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-indigo-200 hover:shadow-sm transition-all">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md hover:shadow-gray-200/60 transition-all">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <p className="font-semibold text-gray-900">{order.customerName}</p>
+          <p className="font-semibold tracking-tight text-gray-900">{order.customerName}</p>
           <p className="text-xs text-gray-500">{order.customerEmail}</p>
           <p className="text-xs text-gray-500 mt-0.5">
             {fmtDate(order.eventDate)}
@@ -63,8 +63,8 @@ export const OrderCard = ({ order, onViewDetail }: Props) => {
         </span>
       </div>
 
-      {/* Task 3 — Fee breakdown */}
-      <div className="bg-gray-50 rounded-lg p-3 mb-3 text-sm space-y-1">
+      {/* Fee breakdown */}
+      <div className="bg-gray-50 rounded-xl p-3 mb-3 text-sm space-y-1">
         <div className="flex justify-between text-gray-600">
           <span>Food subtotal</span>
           <span>{fmt(order.subtotal)}</span>

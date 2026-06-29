@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader, ChevronDown } from "lucide-react";
+import { Loader } from "lucide-react";
 import { useCoworkingAuth } from "@/lib/hooks/useCoworkingAuth";
 import { CoworkingDashboard } from "./CoworkingDashboard";
 
@@ -76,32 +76,12 @@ export default function CoworkingDashboardPage() {
   }
 
   return (
-    <>
-      {/* Space switcher for admins managing multiple spaces */}
-      {spaceIds.length > 1 && (
-        <div className="bg-indigo-700 text-white text-sm px-4 py-2 flex items-center justify-center gap-2">
-          <span className="text-indigo-200">Managing space:</span>
-          <div className="relative inline-block">
-            <select
-              value={selectedSpaceId}
-              onChange={(e) => setSelectedSpaceId(e.target.value)}
-              className="appearance-none bg-indigo-600 border border-indigo-500 text-white rounded-md pl-3 pr-7 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-white cursor-pointer"
-            >
-              {spaceIds.map((id, i) => (
-                <option key={id} value={id}>
-                  Space {i + 1} — {id.slice(0, 8)}…
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-200" />
-          </div>
-        </div>
-      )}
-
-      <CoworkingDashboard
-        spaceId={selectedSpaceId}
-        onLogout={handleLogout}
-      />
-    </>
+    <CoworkingDashboard
+      spaceId={selectedSpaceId}
+      onLogout={handleLogout}
+      spaceIds={spaceIds}
+      selectedSpaceId={selectedSpaceId}
+      onSelectSpace={setSelectedSpaceId}
+    />
   );
 }

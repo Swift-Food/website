@@ -81,28 +81,27 @@ export const OrdersList = ({ spaceId }: Props) => {
 
   return (
     <div>
-      {/* Status tabs */}
-      <div className="border-b border-gray-200 mb-5 overflow-x-auto">
-        <nav className="flex space-x-1 min-w-max">
+      {/* Status filter */}
+      <div className="mb-6 overflow-x-auto pb-1">
+        <nav className="flex min-w-max gap-1.5">
           {STATUS_TABS.map((tab) => {
             const count = countForTab(tab.key);
+            const active = activeTab === tab.key;
             return (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`py-3 px-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                  activeTab === tab.key
-                    ? "border-indigo-600 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
                 }`}
               >
                 {tab.label}
                 {count > 0 && (
                   <span
-                    className={`ml-1.5 py-0.5 px-1.5 rounded-full text-xs ${
-                      activeTab === tab.key
-                        ? "bg-indigo-100 text-indigo-600"
-                        : "bg-gray-100 text-gray-600"
+                    className={`rounded-full px-1.5 text-xs font-semibold tabular-nums ${
+                      active ? "bg-white/20 text-white" : "bg-white text-gray-500"
                     }`}
                   >
                     {count}

@@ -7,6 +7,9 @@ import { usePathname } from "next/navigation";
 export default function Footer() {
   const pathname = usePathname();
   const isRestaurantPath = pathname?.startsWith("/restaurant");
+  const isPartnerPath = pathname?.startsWith("/partners");
+
+  if (isPartnerPath) return null;
 
   return (
     <footer className="bg-white border-t border-gray-100 pt-10 pb-10 px-6">
