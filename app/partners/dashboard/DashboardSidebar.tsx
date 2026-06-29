@@ -40,20 +40,24 @@ const NavButton = ({ item, active, collapsed, onClick }: NavButtonProps) => {
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex items-center rounded-xl outline-none transition-colors",
-        "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
-        collapsed ? "h-11 w-11 justify-center" : "h-11 w-full gap-3 px-3",
+        "group relative flex items-center outline-none transition-colors",
+        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
+        collapsed
+          ? "h-11 w-11 justify-center rounded-full"
+          : "h-11 w-full gap-3 rounded-xl px-3",
         active
           ? collapsed
-            ? "bg-indigo-600 text-white shadow-sm shadow-indigo-300/60"
-            : "bg-indigo-50 text-indigo-700"
-          : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            ? "bg-primary text-white"
+            : "bg-primary/10 text-primary"
+          : collapsed
+            ? "bg-white text-gray-500 hover:text-gray-900"
+            : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
       )}
     >
       <Icon
         size={19}
         strokeWidth={2}
-        className={cn("shrink-0", active && !collapsed && "text-indigo-600")}
+        className={cn("shrink-0", active && !collapsed && "text-primary")}
       />
       {!collapsed && (
         <span className="text-sm font-medium tracking-tight">{item.label}</span>
@@ -78,6 +82,7 @@ interface SidebarPanelProps {
   onLogout: () => void;
   collapsed: boolean;
   onToggleCollapse?: () => void;
+  partnerName?: string;
   spaceIds?: string[];
   selectedSpaceId?: string;
   onSelectSpace?: (id: string) => void;
@@ -89,6 +94,7 @@ export const SidebarPanel = ({
   onLogout,
   collapsed,
   onToggleCollapse,
+  partnerName,
   spaceIds = [],
   selectedSpaceId,
   onSelectSpace,
@@ -96,50 +102,66 @@ export const SidebarPanel = ({
   const multiSpace = spaceIds.length > 1;
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full flex-col">
       {/* Brand + collapse toggle */}
       <div
         className={cn(
-          "flex items-center border-b border-gray-100 px-4",
-          collapsed ? "h-[68px] flex-col justify-center gap-2 px-0" : "h-[68px] gap-3"
+          "flex h-[68px] items-center",
+          collapsed ? "justify-center px-0" : "gap-3 px-4"
         )}
       >
-        <div className={cn("flex items-center gap-3", collapsed && "gap-0")}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-300/60">
-            <Building2 size={18} strokeWidth={2.25} />
-          </span>
-          {!collapsed && (
-            <div className="leading-tight">
-              <p className="text-[15px] font-semibold tracking-tight text-gray-900">
-                Swift Partner
-              </p>
-              <p className="text-xs font-medium text-gray-400">Dashboard</p>
-            </div>
+        <span
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center bg-primary text-white",
+            collapsed ? "rounded-full" : "rounded-xl"
           )}
-        </div>
-
-        {onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className={cn(
-              "flex items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-              collapsed ? "h-8 w-8" : "ml-auto h-8 w-8"
+        >
+          <Building2 size={18} strokeWidth={2.25} />
+        </span>
+        {!collapsed && (
+          <>
+            <div className="min-w-0 flex-1 leading-tight">
+              <p className="truncate text-[15px] font-semibold tracking-tight text-gray-900">
+                {partnerName || "Swift Partner"}
+              </p>
+              <p className="truncate text-xs font-medium text-gray-400">
+                Partner Dashboard
+              </p>
+            </div>
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                aria-label="Collapse sidebar"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <PanelLeftClose size={18} />
+              </button>
             )}
-          >
-            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-          </button>
+          </>
         )}
       </div>
 
+      {/* Collapsed: expand toggle grouped with the brand at the top */}
+      {collapsed && onToggleCollapse && (
+        <div className="flex justify-center pb-3">
+          <button
+            onClick={onToggleCollapse}
+            aria-label="Expand sidebar"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <PanelLeftOpen size={18} />
+          </button>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className={cn("flex-1 overflow-y-auto py-4", collapsed ? "px-3" : "px-3")}>
+      <nav className={cn("flex-1 overflow-y-auto px-3", collapsed ? "pb-4" : "py-4")}>
         {!collapsed && (
           <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
             Menu
           </p>
         )}
-        <div className={cn("flex flex-col gap-1", collapsed && "items-center")}>
+        <div className={cn("flex flex-col gap-1", collapsed && "items-center gap-2.5")}>
           {NAV_ITEMS.map((item) => (
             <NavButton
               key={item.key}
@@ -153,7 +175,7 @@ export const SidebarPanel = ({
       </nav>
 
       {/* Footer: space switcher + logout */}
-      <div className={cn("border-t border-gray-100 p-3", collapsed && "px-3")}>
+      <div className={cn("p-3", collapsed && "px-3")}>
         {multiSpace && !collapsed && (
           <label className="mb-3 block">
             <span className="mb-1.5 block px-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
@@ -163,7 +185,7 @@ export const SidebarPanel = ({
               <select
                 value={selectedSpaceId}
                 onChange={(e) => onSelectSpace?.(e.target.value)}
-                className="w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 py-2 pl-3 pr-8 text-sm font-medium text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                className="w-full appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 {spaceIds.map((id, i) => (
                   <option key={id} value={id}>
@@ -183,7 +205,7 @@ export const SidebarPanel = ({
           onClick={onLogout}
           aria-label="Logout"
           className={cn(
-            "group relative flex items-center rounded-xl text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
+            "group relative flex items-center rounded-xl text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
             collapsed ? "mx-auto h-11 w-11 justify-center" : "h-11 w-full gap-3 px-3"
           )}
         >

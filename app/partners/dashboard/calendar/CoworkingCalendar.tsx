@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Loader, AlertCircle } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
-import { CalendarDay, CalendarOrderItem, CoworkingOrderStatus } from "@/types/api/coworking.api.types";
+import { CalendarDay, CalendarOrderItem } from "@/types/api/coworking.api.types";
 
 interface Props {
   spaceId: string;
@@ -79,7 +79,7 @@ const DayPopover = ({ orders, onClose }: DayPopoverProps) => (
               </div>
             )}
             {o.serviceFee > 0 && (
-              <div className="flex justify-between text-indigo-700">
+              <div className="flex justify-between text-primary">
                 <span>Service Fee</span>
                 <span>{fmt(o.serviceFee)}</span>
               </div>
@@ -191,7 +191,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader size={24} className="animate-spin text-indigo-600" />
+          <Loader size={24} className="animate-spin text-primary" />
         </div>
       ) : (
         <>
@@ -221,14 +221,14 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                 <div
                   key={idx}
                   className={`relative bg-white min-h-[80px] p-1.5 ${
-                    hasOrders ? "cursor-pointer hover:bg-indigo-50 transition-colors" : ""
+                    hasOrders ? "cursor-pointer hover:bg-primary/10 transition-colors" : ""
                   }`}
                   onClick={() => hasOrders && setOpenPopoverDate(isPopoverOpen ? null : dateStr)}
                 >
                   <span
                     className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium ${
                       isToday
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-primary text-white"
                         : "text-gray-700"
                     }`}
                   >
@@ -240,14 +240,14 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                       {orders.slice(0, 2).map((o, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-1 text-[10px] text-gray-700 bg-indigo-50 rounded px-1 py-0.5 truncate"
+                          className="flex items-center gap-1 text-[10px] text-gray-700 bg-primary/10 rounded px-1 py-0.5 truncate"
                         >
                           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOTS[o.status] ?? "bg-gray-400"}`} />
                           <span className="truncate">{o.customerName}</span>
                         </div>
                       ))}
                       {orders.length > 2 && (
-                        <p className="text-[10px] text-indigo-500 pl-1">+{orders.length - 2} more</p>
+                        <p className="text-[10px] text-primary/70 pl-1">+{orders.length - 2} more</p>
                       )}
                     </div>
                   )}

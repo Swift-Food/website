@@ -23,7 +23,7 @@ interface MetricCardProps {
 
 const MetricCard = ({ icon, label, value, sub, accent = "indigo" }: MetricCardProps) => {
   const accentClasses: Record<string, string> = {
-    indigo: "bg-indigo-50 text-indigo-600",
+    indigo: "bg-primary/10 text-primary",
     green: "bg-green-50 text-green-600",
     blue: "bg-blue-50 text-blue-600",
     purple: "bg-purple-50 text-purple-600",
@@ -58,7 +58,7 @@ export const CoworkingMetrics = ({ spaceId }: Props) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader size={24} className="animate-spin text-indigo-600" />
+        <Loader size={24} className="animate-spin text-primary" />
       </div>
     );
   }
@@ -128,7 +128,7 @@ export const CoworkingMetrics = ({ spaceId }: Props) => {
               {
                 label: "Food & Catering",
                 value: metrics.totalRevenue - metrics.serviceFeeRevenue - metrics.venueHireRevenue,
-                color: "bg-indigo-400",
+                color: "bg-primary/70",
               },
               { label: "Service Fee", value: metrics.serviceFeeRevenue, color: "bg-green-400" },
               { label: "Venue Hire", value: metrics.venueHireRevenue, color: "bg-blue-400" },

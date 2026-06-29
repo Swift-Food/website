@@ -43,7 +43,7 @@ export const OrderCard = ({ order, onViewDetail }: Props) => {
   const hasServiceFee = order.serviceFee > 0;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md hover:shadow-gray-200/60 transition-all">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-primary/40 hover:shadow-md hover:shadow-gray-200/60 transition-all">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
@@ -76,11 +76,11 @@ export const OrderCard = ({ order, onViewDetail }: Props) => {
           </div>
         )}
         {hasServiceFee && (
-          <div className="flex justify-between text-indigo-700">
+          <div className="flex justify-between text-primary">
             <span>
               Service Fee
               {order.serviceFeeRate > 0 && (
-                <span className="ml-1 text-indigo-500 text-xs">
+                <span className="ml-1 text-primary/70 text-xs">
                   ({order.serviceFeeRate}%)
                 </span>
               )}
@@ -98,7 +98,7 @@ export const OrderCard = ({ order, onViewDetail }: Props) => {
       <div className="flex items-center justify-end">
         <button
           onClick={() => onViewDetail(order.id)}
-          className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+          className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
         >
           View details
           <ExternalLink size={12} />

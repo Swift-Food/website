@@ -60,7 +60,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader size={24} className="animate-spin text-indigo-600" />
+        <Loader size={24} className="animate-spin text-primary" />
       </div>
     );
   }
@@ -89,9 +89,9 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
 
       {/* Task 6 — Catering Service Fee section */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="bg-indigo-50 border-b border-indigo-100 px-5 py-3.5">
-          <h3 className="font-semibold text-indigo-900">Catering Service Fee</h3>
-          <p className="text-xs text-indigo-700 mt-0.5">
+        <div className="bg-primary/10 border-b border-primary/20 px-5 py-3.5">
+          <h3 className="font-semibold text-primary">Catering Service Fee</h3>
+          <p className="text-xs text-primary mt-0.5">
             A percentage charged on top of the catering food subtotal (after promotions)
           </p>
         </div>
@@ -108,7 +108,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
               )}
             </div>
             {currentRate > 0 && (
-              <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full font-medium">
+              <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-medium">
                 Active
               </span>
             )}
@@ -127,7 +127,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
                   min="0"
                   max="100"
                   step="0.5"
-                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 text-sm"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 text-sm"
                   placeholder="0"
                 />
                 <span className="text-sm text-gray-500">% of food subtotal</span>
@@ -163,7 +163,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors text-sm"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors text-sm"
             >
               {saving ? (
                 <>

@@ -79,7 +79,7 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
         <div className="p-5">
           {loading && (
             <div className="flex items-center justify-center py-12">
-              <Loader size={28} className="animate-spin text-indigo-600" />
+              <Loader size={28} className="animate-spin text-primary" />
             </div>
           )}
 
@@ -184,11 +184,11 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
 
                   {/* Service Fee — Task 4: between delivery and venue hire, hidden when zero */}
                   {order.totals.serviceFee > 0 && (
-                    <div className="flex justify-between text-indigo-700">
+                    <div className="flex justify-between text-primary">
                       <span>
                         Service Fee
                         {order.totals.serviceFeeRate > 0 && (
-                          <span className="ml-1 text-indigo-500 text-xs">
+                          <span className="ml-1 text-primary/70 text-xs">
                             ({order.totals.serviceFeeRate}%)
                           </span>
                         )}

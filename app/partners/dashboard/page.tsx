@@ -35,7 +35,7 @@ export default function CoworkingDashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Loader size={36} className="animate-spin text-indigo-600 mx-auto mb-3" />
+          <Loader size={36} className="animate-spin text-primary mx-auto mb-3" />
           <p className="text-gray-500 text-sm">Loading dashboard…</p>
         </div>
       </div>
@@ -45,7 +45,7 @@ export default function CoworkingDashboardPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader size={24} className="animate-spin text-indigo-600" />
+        <Loader size={24} className="animate-spin text-primary" />
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function CoworkingDashboardPage() {
           </p>
           <button
             onClick={handleLogout}
-            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            className="text-sm text-primary hover:text-primary/80 font-medium"
           >
             Sign out
           </button>

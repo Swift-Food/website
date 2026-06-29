@@ -65,7 +65,7 @@ export const OrdersList = ({ spaceId }: Props) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader size={28} className="animate-spin text-indigo-600" />
+        <Loader size={28} className="animate-spin text-primary" />
       </div>
     );
   }
@@ -93,7 +93,7 @@ export const OrdersList = ({ spaceId }: Props) => {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-primary text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
                 }`}
               >

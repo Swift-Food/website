@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils/helpers";
+import { coworkingApi } from "@/services/api/coworking.api";
 import { OrdersList } from "./orders/OrdersList";
 import { CoworkingCalendar } from "./calendar/CoworkingCalendar";
 import { CoworkingSettings } from "./settings/CoworkingSettings";
@@ -43,11 +44,26 @@ export const CoworkingDashboard = ({
   const [activeTab, setActiveTab] = useState<Tab>("orders");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [partnerName, setPartnerName] = useState("");
 
   // Restore the collapsed preference after mount (avoids SSR mismatch).
   useEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
   }, []);
+
+  // Load the partner space name for the sidebar header.
+  useEffect(() => {
+    let active = true;
+    coworkingApi
+      .getSpace(spaceId)
+      .then((space) => {
+        if (active) setPartnerName(space?.name ?? "");
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [spaceId]);
 
   const toggleCollapse = () => {
     setCollapsed((prev) => {
@@ -69,8 +85,8 @@ export const CoworkingDashboard = ({
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 border-r border-gray-200/80 transition-[width] duration-300 ease-in-out md:block",
-          collapsed ? "w-[76px]" : "w-64"
+          "sticky top-0 hidden h-screen shrink-0 transition-[width] duration-300 ease-in-out md:block",
+          collapsed ? "w-[76px]" : "w-64 border-r border-gray-200/80 bg-white"
         )}
       >
         <SidebarPanel
@@ -79,6 +95,7 @@ export const CoworkingDashboard = ({
           onLogout={onLogout}
           collapsed={collapsed}
           onToggleCollapse={toggleCollapse}
+          partnerName={partnerName}
           spaceIds={spaceIds}
           selectedSpaceId={selectedSpaceId}
           onSelectSpace={onSelectSpace}
@@ -102,7 +119,7 @@ export const CoworkingDashboard = ({
         />
         <div
           className={cn(
-            "absolute inset-y-0 left-0 w-[270px] border-r border-gray-200 shadow-xl transition-transform duration-300 ease-in-out",
+            "absolute inset-y-0 left-0 w-[270px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -118,6 +135,7 @@ export const CoworkingDashboard = ({
             onTabChange={handleTabChange}
             onLogout={onLogout}
             collapsed={false}
+            partnerName={partnerName}
             spaceIds={spaceIds}
             selectedSpaceId={selectedSpaceId}
             onSelectSpace={onSelectSpace}
