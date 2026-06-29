@@ -1,17 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import {
   ClipboardList,
   CalendarDays,
   Settings,
   LogOut,
-  Building2,
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils/helpers";
+import swiftIcon from "@/app/icon.png";
 
 export type Tab = "orders" | "calendar" | "settings";
 
@@ -112,47 +113,29 @@ export const SidebarPanel = ({
       >
         <span
           className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center bg-primary text-white",
+            "flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border border-gray-200",
             collapsed ? "rounded-full" : "rounded-xl"
           )}
         >
-          <Building2 size={18} strokeWidth={2.25} />
+          <Image
+            src={swiftIcon}
+            alt="Swift"
+            width={36}
+            height={36}
+            className="h-full w-full object-cover"
+          />
         </span>
         {!collapsed && (
-          <>
-            <div className="min-w-0 flex-1 leading-tight">
-              <p className="truncate text-[15px] font-semibold tracking-tight text-gray-900">
-                {partnerName || "Swift Partner"}
-              </p>
-              <p className="truncate text-xs font-medium text-gray-400">
-                Partner Dashboard
-              </p>
-            </div>
-            {onToggleCollapse && (
-              <button
-                onClick={onToggleCollapse}
-                aria-label="Collapse sidebar"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <PanelLeftClose size={18} />
-              </button>
-            )}
-          </>
+          <div className="min-w-0 flex-1 leading-tight">
+            <p className="truncate text-[15px] font-semibold tracking-tight text-gray-900">
+              {partnerName || "Swift Partner"}
+            </p>
+            <p className="truncate text-xs font-medium text-gray-400">
+              Partner Dashboard
+            </p>
+          </div>
         )}
       </div>
-
-      {/* Collapsed: expand toggle grouped with the brand at the top */}
-      {collapsed && onToggleCollapse && (
-        <div className="flex justify-center pb-3">
-          <button
-            onClick={onToggleCollapse}
-            aria-label="Expand sidebar"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            <PanelLeftOpen size={18} />
-          </button>
-        </div>
-      )}
 
       {/* Navigation */}
       <nav className={cn("flex-1 overflow-y-auto px-3", collapsed ? "pb-4" : "py-4")}>
@@ -201,11 +184,38 @@ export const SidebarPanel = ({
           </label>
         )}
 
+        {/* Collapse / expand toggle */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={cn(
+              "group relative mb-1 flex items-center rounded-xl text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+              collapsed ? "mx-auto h-11 w-11 justify-center" : "h-11 w-full gap-3 px-3"
+            )}
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={19} strokeWidth={2} className="shrink-0" />
+            ) : (
+              <PanelLeftClose size={19} strokeWidth={2} className="shrink-0" />
+            )}
+            {!collapsed && <span className="text-sm font-medium">Collapse</span>}
+            {collapsed && (
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute left-full z-50 ml-3 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+              >
+                Expand
+              </span>
+            )}
+          </button>
+        )}
+
         <button
           onClick={onLogout}
           aria-label="Logout"
           className={cn(
-            "group relative flex items-center rounded-xl text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+            "group relative flex items-center rounded-xl text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none",
             collapsed ? "mx-auto h-11 w-11 justify-center" : "h-11 w-full gap-3 px-3"
           )}
         >
