@@ -8,13 +8,17 @@ import {
 } from '@/types/api/coworking.api.types';
 
 export const coworkingApi = {
+  // POST /auth/login-partner
   login: async (email: string, password: string): Promise<{ access_token: string; refresh_token: string }> => {
-    const response = await fetch(`${API_BASE_URL}/auth/login-coworking-admin`, {
+    const response = await fetch(`${API_BASE_URL}/auth/login-partner`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    if (!response.ok) throw new Error('Login failed. Please check your credentials.');
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body?.message || 'Login failed. Please check your credentials.');
+    }
     return response.json();
   },
 
@@ -24,50 +28,53 @@ export const coworkingApi = {
     return response.json();
   },
 
+  // GET /partner-dashboard/:spaceId/info
   getSpace: async (spaceId: string): Promise<CoworkingSpace> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/coworking-dashboard/${spaceId}/info`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/info`);
     if (!response.ok) throw new Error('Failed to fetch space details');
     return response.json();
   },
 
-  // Task 3 — Order list
-  getOrders: async (spaceId: string, status?: string): Promise<DashboardOrderSummary[]> => {
-    const url = status
-      ? `${API_BASE_URL}/coworking-dashboard/${spaceId}/orders?status=${status}`
-      : `${API_BASE_URL}/coworking-dashboard/${spaceId}/orders`;
+  // GET /partner-dashboard/:spaceId/orders
+  getOrders: async (spaceId: string, params?: { status?: string; from?: string; to?: string; page?: number; limit?: number }): Promise<DashboardOrderSummary[]> => {
+    const qs = new URLSearchParams();
+    if (params?.status) qs.set('status', params.status);
+    if (params?.from) qs.set('from', params.from);
+    if (params?.to) qs.set('to', params.to);
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const url = `${API_BASE_URL}/partner-dashboard/${spaceId}/orders${qs.toString() ? `?${qs}` : ''}`;
     const response = await fetchWithAuth(url);
     if (!response.ok) throw new Error('Failed to fetch orders');
     const data = await response.json();
-    // Unwrap if the API returns { orders: [...] } or { data: [...] } instead of a bare array
+    // Response shape: { orders: [...], pagination: {...} }
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.orders)) return data.orders;
-    if (Array.isArray(data?.data)) return data.data;
     return [];
   },
 
-  // Task 4 — Order detail
+  // GET /partner-dashboard/:spaceId/orders/:orderId  (detail — if endpoint exists)
   getOrderDetail: async (spaceId: string, orderId: string): Promise<DashboardOrderDetail> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/coworking/${spaceId}/orders/${orderId}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/orders/${orderId}`);
     if (!response.ok) throw new Error('Failed to fetch order details');
     return response.json();
   },
 
-  // Task 5 — Calendar
-  getCalendar: async (spaceId: string, year: number, month: number): Promise<CalendarDay[]> => {
-    const response = await fetchWithAuth(
-      `${API_BASE_URL}/coworking-dashboard/${spaceId}/calendar?year=${year}&month=${month}`
-    );
+  // GET /partner-dashboard/:spaceId/calendar
+  getCalendar: async (spaceId: string): Promise<CalendarDay[]> => {
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/calendar`);
     if (!response.ok) throw new Error('Failed to fetch calendar');
     const data = await response.json();
+    // Response shape: { dates: [...] }
     if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.dates)) return data.dates;
     if (Array.isArray(data?.days)) return data.days;
-    if (Array.isArray(data?.data)) return data.data;
     return [];
   },
 
-  // Task 6 — Commission rate
+  // PATCH /partner-dashboard/:spaceId/commission
   updateCommissionRate: async (spaceId: string, commission: number): Promise<{ commission: number }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/coworking-dashboard/${spaceId}/settings/commission-rate`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/commission`, {
       method: 'PATCH',
       body: JSON.stringify({ commission }),
     });
@@ -78,14 +85,39 @@ export const coworkingApi = {
     return response.json();
   },
 
-  // Task 7 — Financial metrics
+  // POST /auth/forgot-password
+  forgotPassword: async (email: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, context: 'partner-admin' }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body?.message || 'Failed to send reset code');
+    }
+  },
+
+  // POST /auth/reset-password
+  resetPassword: async (email: string, code: string, newPassword: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, newPassword, context: 'partner-admin' }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body?.message || 'Failed to reset password');
+    }
+  },
+
+  // Financial metrics — extend this path once the backend endpoint is confirmed
   getMetrics: async (spaceId: string, from?: string, to?: string): Promise<CoworkingMetrics> => {
-    const params = new URLSearchParams();
-    if (from) params.set('from', from);
-    if (to) params.set('to', to);
-    const qs = params.toString();
+    const qs = new URLSearchParams();
+    if (from) qs.set('from', from);
+    if (to) qs.set('to', to);
     const response = await fetchWithAuth(
-      `${API_BASE_URL}/coworking/${spaceId}/metrics${qs ? `?${qs}` : ''}`
+      `${API_BASE_URL}/partner-dashboard/${spaceId}/metrics${qs.toString() ? `?${qs}` : ''}`
     );
     if (!response.ok) throw new Error('Failed to fetch metrics');
     return response.json();

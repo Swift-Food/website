@@ -97,7 +97,7 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">Reference</p>
                   <p className="font-bold text-gray-900 text-lg">
-                    {order.orderReference ?? order.id.slice(0, 8).toUpperCase()}
+                    {order.id.slice(0, 8).toUpperCase()}
                   </p>
                 </div>
                 <span
@@ -165,7 +165,7 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
                 <div className="p-4 space-y-2 text-sm">
                   <div className="flex justify-between text-gray-700">
                     <span>Food subtotal</span>
-                    <span>{fmt(order.totals.foodSubtotal)}</span>
+                    <span>{fmt(order.totals.subtotal)}</span>
                   </div>
 
                   {order.totals.promoDiscount > 0 && (
@@ -175,23 +175,25 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
                     </div>
                   )}
 
-                  <div className="flex justify-between text-gray-700">
-                    <span>Delivery</span>
-                    <span>{fmt(order.totals.deliveryFee)}</span>
-                  </div>
+                  {order.totals.deliveryFee > 0 && (
+                    <div className="flex justify-between text-gray-700">
+                      <span>Delivery</span>
+                      <span>{fmt(order.totals.deliveryFee)}</span>
+                    </div>
+                  )}
 
-                  {/* Service Fee — Task 4: shown between delivery and venue hire, hidden when zero */}
-                  {order.totals.coworkingServiceFee > 0 && (
+                  {/* Service Fee — Task 4: between delivery and venue hire, hidden when zero */}
+                  {order.totals.serviceFee > 0 && (
                     <div className="flex justify-between text-indigo-700">
                       <span>
                         Service Fee
-                        {order.totals.coworkingServiceFeeRate > 0 && (
+                        {order.totals.serviceFeeRate > 0 && (
                           <span className="ml-1 text-indigo-500 text-xs">
-                            ({order.totals.coworkingServiceFeeRate}%)
+                            ({order.totals.serviceFeeRate}%)
                           </span>
                         )}
                       </span>
-                      <span className="font-medium">{fmt(order.totals.coworkingServiceFee)}</span>
+                      <span className="font-medium">{fmt(order.totals.serviceFee)}</span>
                     </div>
                   )}
 
@@ -204,7 +206,7 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
 
                   <div className="pt-2 border-t border-gray-200 flex justify-between font-bold text-gray-900">
                     <span>Total</span>
-                    <span>{fmt(order.totals.total)}</span>
+                    <span>{fmt(order.totals.finalTotal)}</span>
                   </div>
                 </div>
               </div>

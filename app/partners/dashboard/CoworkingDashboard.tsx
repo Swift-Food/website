@@ -6,15 +6,13 @@ import {
   ClipboardList,
   CalendarDays,
   Settings,
-  BarChart3,
   Building2,
 } from "lucide-react";
 import { OrdersList } from "./orders/OrdersList";
 import { CoworkingCalendar } from "./calendar/CoworkingCalendar";
 import { CoworkingSettings } from "./settings/CoworkingSettings";
-import { CoworkingMetrics } from "./metrics/CoworkingMetrics";
 
-type Tab = "orders" | "calendar" | "settings" | "metrics";
+type Tab = "orders" | "calendar" | "settings";
 
 interface Props {
   spaceId: string;
@@ -24,7 +22,6 @@ interface Props {
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: "orders", label: "Orders", icon: <ClipboardList size={16} /> },
   { key: "calendar", label: "Calendar", icon: <CalendarDays size={16} /> },
-  { key: "metrics", label: "Financials", icon: <BarChart3 size={16} /> },
   { key: "settings", label: "Settings", icon: <Settings size={16} /> },
 ];
 
@@ -41,8 +38,7 @@ export const CoworkingDashboard = ({ spaceId, onLogout }: Props) => {
               <Building2 size={20} className="text-indigo-600" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Coworking Dashboard</h1>
-              <p className="text-xs text-gray-500 font-mono">{spaceId}</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Partner Dashboard</h1>
             </div>
           </div>
           <button
@@ -88,12 +84,6 @@ export const CoworkingDashboard = ({ spaceId, onLogout }: Props) => {
             <>
               <h2 className="text-lg font-semibold text-gray-900 mb-5">Event Calendar</h2>
               <CoworkingCalendar spaceId={spaceId} />
-            </>
-          )}
-          {activeTab === "metrics" && (
-            <>
-              <h2 className="text-lg font-semibold text-gray-900 mb-5">Financial Overview</h2>
-              <CoworkingMetrics spaceId={spaceId} />
             </>
           )}
           {activeTab === "settings" && (

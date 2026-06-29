@@ -60,8 +60,8 @@ const DayPopover = ({ orders, onClose }: DayPopoverProps) => (
           <div className="flex items-start justify-between gap-2 mb-1.5">
             <div className="min-w-0">
               <p className="font-semibold text-gray-900 truncate">{o.customerName}</p>
-              {o.organization && <p className="text-gray-500 truncate">{o.organization}</p>}
-              <p className="text-gray-500">{o.eventTime}{o.guestCount ? ` · ${o.guestCount} guests` : ""}</p>
+              <p className="text-gray-500 truncate">{o.customerEmail}</p>
+              <p className="text-gray-500">{o.eventTime}</p>
             </div>
             <span
               className={`flex-shrink-0 w-2 h-2 rounded-full mt-1 ${
@@ -72,26 +72,21 @@ const DayPopover = ({ orders, onClose }: DayPopoverProps) => (
 
           {/* Task 5 — Service fee in calendar popover */}
           <div className="space-y-0.5 border-t border-gray-200 pt-1.5">
-            {o.venueHireFee > 0 && (
+            {o.deliveryFee > 0 && (
               <div className="flex justify-between text-gray-600">
-                <span>Venue hire</span>
-                <span>{fmt(o.venueHireFee)}</span>
+                <span>Delivery</span>
+                <span>{fmt(o.deliveryFee)}</span>
               </div>
             )}
-            {o.coworkingServiceFee > 0 && (
+            {o.serviceFee > 0 && (
               <div className="flex justify-between text-indigo-700">
-                <span>
-                  Service Fee
-                  {o.coworkingServiceFeeRate > 0 && (
-                    <span className="ml-1 text-indigo-400">({o.coworkingServiceFeeRate}%)</span>
-                  )}
-                </span>
-                <span>{fmt(o.coworkingServiceFee)}</span>
+                <span>Service Fee</span>
+                <span>{fmt(o.serviceFee)}</span>
               </div>
             )}
             <div className="flex justify-between font-semibold text-gray-900">
               <span>Total</span>
-              <span>{fmt(o.total)}</span>
+              <span>{fmt(o.finalTotal)}</span>
             </div>
           </div>
 
@@ -121,19 +116,19 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
   const [error, setError] = useState("");
   const [openPopoverDate, setOpenPopoverDate] = useState<string | null>(null);
 
-  const fetchCalendar = (y: number, m: number) => {
+  const fetchCalendar = () => {
     setLoading(true);
     setError("");
     coworkingApi
-      .getCalendar(spaceId, y, m)
+      .getCalendar(spaceId)
       .then(setCalendarDays)
       .catch((err) => setError(err.message || "Failed to load calendar"))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchCalendar(year, month);
-  }, [spaceId, year, month]);
+    fetchCalendar();
+  }, [spaceId]);
 
   const prev = () => {
     if (month === 1) { setYear(y => y - 1); setMonth(12); }

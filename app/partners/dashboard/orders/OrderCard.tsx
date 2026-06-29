@@ -40,28 +40,19 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export const OrderCard = ({ order, onViewDetail }: Props) => {
-  const hasServiceFee = order.coworkingServiceFee > 0;
-
-  const dateLabel = order.bookingStartTime
-    ? fmtDate(order.bookingStartTime)
-    : fmtDate(order.createdAt);
-
-  const timeLabel = order.estimatedDelivery ?? order.bookingStartTime?.slice(11, 16) ?? null;
+  const hasServiceFee = order.serviceFee > 0;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-indigo-200 hover:shadow-sm transition-all">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <p className="font-semibold text-gray-900">{order.memberName}</p>
-          <p className="text-xs text-gray-500">{order.memberEmail}</p>
+          <p className="font-semibold text-gray-900">{order.customerName}</p>
+          <p className="text-xs text-gray-500">{order.customerEmail}</p>
           <p className="text-xs text-gray-500 mt-0.5">
-            {dateLabel}
-            {timeLabel && <span className="ml-1">· {timeLabel}</span>}
+            {fmtDate(order.eventDate)}
+            {order.eventTime && <span className="ml-1">· {order.eventTime}</span>}
           </p>
-          {order.roomLocationDetails && (
-            <p className="text-xs text-indigo-600 mt-0.5">{order.roomLocationDetails}</p>
-          )}
         </div>
         <span
           className={`px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap flex-shrink-0 ${
@@ -78,39 +69,33 @@ export const OrderCard = ({ order, onViewDetail }: Props) => {
           <span>Food subtotal</span>
           <span>{fmt(order.subtotal)}</span>
         </div>
+        {order.deliveryFee > 0 && (
+          <div className="flex justify-between text-gray-600">
+            <span>Delivery</span>
+            <span>{fmt(order.deliveryFee)}</span>
+          </div>
+        )}
         {hasServiceFee && (
           <div className="flex justify-between text-indigo-700">
             <span>
               Service Fee
-              {order.coworkingServiceFeeRate && order.coworkingServiceFeeRate > 0 && (
+              {order.serviceFeeRate > 0 && (
                 <span className="ml-1 text-indigo-500 text-xs">
-                  ({order.coworkingServiceFeeRate}%)
+                  ({order.serviceFeeRate}%)
                 </span>
               )}
             </span>
-            <span>{fmt(order.coworkingServiceFee)}</span>
-          </div>
-        )}
-        {order.venueHireFee > 0 && (
-          <div className="flex justify-between text-gray-600">
-            <span>Venue hire</span>
-            <span>{fmt(order.venueHireFee)}</span>
+            <span>{fmt(order.serviceFee)}</span>
           </div>
         )}
         <div className="flex justify-between font-semibold text-gray-900 pt-1 border-t border-gray-200">
           <span>Total</span>
-          <span>{fmt(order.total)}</span>
+          <span>{fmt(order.finalTotal)}</span>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-3 text-xs text-gray-500">
-          <span>{order.itemCount} item{order.itemCount !== 1 ? "s" : ""}</span>
-          {order.bookingReference && (
-            <span className="font-mono">#{order.bookingReference}</span>
-          )}
-        </div>
+      <div className="flex items-center justify-end">
         <button
           onClick={() => onViewDetail(order.id)}
           className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"

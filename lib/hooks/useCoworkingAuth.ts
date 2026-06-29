@@ -9,7 +9,7 @@ const STORAGE_KEYS = {
 
 export interface CoworkingSpaceUser {
   id: string;
-  coworkingSpaceId: string;
+  partnerSpaceId: string;
   role: string;
 }
 
@@ -43,6 +43,7 @@ export const useCoworkingAuth = () => {
 
     const profile = await coworkingApi.getProfile();
     const userObj = profile.user ?? profile;
+    console.log("Fetched user profile:", JSON.stringify(userObj));
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userObj));
 
     setToken(tokens.access_token);
@@ -59,9 +60,9 @@ export const useCoworkingAuth = () => {
     setUser(null);
   };
 
-  // Profile shape: user.coworkingSpaceUsers[].coworkingSpaceId
-  const spaceUsers: CoworkingSpaceUser[] = user?.coworkingSpaceUsers ?? [];
-  const spaceIds = spaceUsers.map((s) => s.coworkingSpaceId);
+  // Profile shape: user.partnerSpaceUsers[].partnerSpaceId
+  const spaceUsers: CoworkingSpaceUser[] = user?.partnerSpaceUsers ?? [];
+  const spaceIds = spaceUsers.map((s) => s.partnerSpaceId);
   const spaceId: string | null = spaceIds[0] ?? null;
 
   return { user, token, login, logout, isAuthenticated: !!token, loading, spaceId, spaceIds };

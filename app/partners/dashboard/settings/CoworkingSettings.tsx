@@ -82,7 +82,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
       {space && (
         <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
           <p className="font-semibold text-gray-900 mb-1">{space.name}</p>
-          {space.address && <p className="text-gray-600">{space.address}</p>}
+          {space.slug && <p className="text-gray-500 text-xs font-mono">/{space.slug}</p>}
           {space.contactEmail && <p className="text-gray-600">{space.contactEmail}</p>}
         </div>
       )}

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { AlertCircle, Building2, Loader } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AlertCircle, CheckCircle, Building2, Loader } from "lucide-react";
 import { useCoworkingAuth } from "@/lib/hooks/useCoworkingAuth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function CoworkingLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isAuthenticated } = useCoworkingAuth();
 
   const [email, setEmail] = useState("");
@@ -15,9 +15,11 @@ export default function CoworkingLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const successMessage = searchParams.get("success");
+
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/coworking/dashboard");
+      router.push("/partners/dashboard");
     }
   }, [isAuthenticated, router]);
 
@@ -27,7 +29,7 @@ export default function CoworkingLoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      router.push("/coworking/dashboard");
+      router.push("/partners/dashboard");
     } catch (err: any) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {
@@ -42,9 +44,16 @@ export default function CoworkingLoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
             <Building2 size={32} className="text-indigo-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Coworking Portal</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Partner Portal</h1>
           <p className="text-gray-500 mt-1 text-sm">Sign in to manage your space</p>
         </div>
+
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-700">
+            <CheckCircle size={16} className="mr-2 flex-shrink-0" />
+            <span className="text-sm">{successMessage}</span>
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700">
@@ -98,6 +107,15 @@ export default function CoworkingLoginPage() {
             )}
           </button>
         </form>
+
+        <p className="text-center text-sm text-gray-500 mt-4">
+          <a
+            href="/partners/set-password"
+            className="text-indigo-600 hover:text-indigo-800 font-medium"
+          >
+            Forgot password?
+          </a>
+        </p>
       </div>
     </div>
   );

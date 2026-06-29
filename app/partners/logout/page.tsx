@@ -15,7 +15,7 @@ export default function CoworkingLogoutPage() {
       "refresh_token",
     ];
     keys.forEach((k) => localStorage.removeItem(k));
-    router.replace("/coworking/login");
+    router.replace("/partners/login");
   }, [router]);
 
   return null;
