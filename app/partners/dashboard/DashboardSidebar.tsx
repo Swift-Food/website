@@ -138,7 +138,7 @@ export const SidebarPanel = ({
       </div>
 
       {/* Navigation */}
-      <nav className={cn("flex-1 overflow-y-auto px-3", collapsed ? "pb-4" : "py-4")}>
+      <nav className={cn("flex-1 px-3", collapsed ? "pb-4 pt-5" : "overflow-y-auto py-4")}>
         {!collapsed && (
           <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
             Menu
