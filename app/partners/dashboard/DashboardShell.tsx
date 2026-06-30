@@ -242,8 +242,8 @@ export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
 
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             <div className="w-full">
-              {/* Page header */}
-              <div className="mb-6 flex items-center gap-3.5 border-b border-gray-200/70 pb-5 sm:mb-8">
+              {/* Page header — hidden on mobile (the navbar shows the title there) */}
+              <div className="mb-6 hidden items-center gap-3.5 border-b border-gray-200/70 pb-5 sm:mb-8 md:flex">
                 {PageIcon && (
                   <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-primary shadow-sm sm:flex">
                     <PageIcon size={20} strokeWidth={2} />
