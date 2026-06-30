@@ -111,6 +111,19 @@ export const coworkingApi = {
     }
   },
 
+  // PATCH /partner-dashboard/:spaceId/restaurants
+  updateSelectedRestaurants: async (spaceId: string, selectedRestaurantIds: string[]): Promise<{ selectedRestaurants: { id: string; restaurant_name: string }[] }> => {
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/restaurants`, {
+      method: 'PATCH',
+      body: JSON.stringify({ selectedRestaurantIds }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body?.message || 'Failed to update restaurant selection');
+    }
+    return response.json();
+  },
+
   // Financial metrics — extend this path once the backend endpoint is confirmed
   getMetrics: async (spaceId: string, from?: string, to?: string): Promise<CoworkingMetrics> => {
     const qs = new URLSearchParams();

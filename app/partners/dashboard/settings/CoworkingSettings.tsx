@@ -1,9 +1,155 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, ChevronDown } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
+
+interface RestaurantSelectionProps {
+  spaceId: string;
+  available: { id: string; restaurant_name: string }[];
+  selected: { id: string; restaurant_name: string }[];
+}
+
+const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelectionProps) => {
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(
+    () => new Set(selected.map((r) => r.id))
+  );
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const toggle = (id: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError("");
+    setSaveSuccess(false);
+    try {
+      await coworkingApi.updateSelectedRestaurants(spaceId, Array.from(checkedIds));
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 4000);
+    } catch (err: any) {
+      setSaveError(err.message || "Failed to update restaurant selection.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const selectedNames = available
+    .filter((r) => checkedIds.has(r.id))
+    .map((r) => r.restaurant_name);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-indigo-50 border-b border-indigo-100 px-5 py-3.5">
+        <h3 className="font-semibold text-indigo-900">Available Restaurants</h3>
+        <p className="text-xs text-indigo-700 mt-0.5">
+          Choose which restaurants your customers can order from
+        </p>
+      </div>
+
+      <div className="p-5 space-y-4">
+        {available.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            No restaurants have been assigned to your space yet. Contact Swift to add restaurants.
+          </p>
+        ) : (
+          <div ref={dropdownRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-sm text-gray-800 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            >
+              <span className={selectedNames.length === 0 ? "text-gray-400" : ""}>
+                {selectedNames.length === 0
+                  ? "Select restaurants…"
+                  : selectedNames.length === 1
+                  ? selectedNames[0]
+                  : `${selectedNames.length} restaurants selected`}
+              </span>
+              <ChevronDown
+                size={16}
+                className={`text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {open && (
+              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                {available.map((r) => (
+                  <li key={r.id}>
+                    <label className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={checkedIds.has(r.id)}
+                        onChange={() => toggle(r.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-800">{r.restaurant_name}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {saveError && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <AlertCircle size={14} className="flex-shrink-0" />
+            {saveError}
+          </div>
+        )}
+
+        {saveSuccess && (
+          <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            <CheckCircle size={14} className="flex-shrink-0" />
+            Restaurant selection saved.
+          </div>
+        )}
+
+        {available.length > 0 && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors text-sm"
+          >
+            {saving ? (
+              <>
+                <Loader size={14} className="animate-spin" />
+                Saving…
+              </>
+            ) : (
+              <>
+                <Save size={14} />
+                Save selection
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface Props {
   spaceId: string;
@@ -343,6 +489,12 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
           </button>
         </div>
       </div>
+
+      <RestaurantSelection
+        spaceId={spaceId}
+        available={space?.availableRestaurants ?? []}
+        selected={space?.selectedRestaurants ?? []}
+      />
     </div>
   );
 };

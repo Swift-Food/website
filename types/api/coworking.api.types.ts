@@ -19,6 +19,8 @@ export interface CoworkingSpace {
   aiChatEnabled?: boolean;
   aiPipelineVariant?: string;
   commission: number; // % rate; 0 = no service fee
+  availableRestaurants?: { id: string; restaurant_name: string }[];
+  selectedRestaurants?: { id: string; restaurant_name: string }[];
   createdAt: string | Date;
   updatedAt: string | Date;
 }
