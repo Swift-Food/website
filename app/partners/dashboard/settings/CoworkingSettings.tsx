@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, ChevronDown, Store } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, Store, X, SlidersHorizontal, Search } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
 
@@ -11,33 +11,188 @@ interface RestaurantSelectionProps {
   selected: { id: string; restaurant_name: string }[];
 }
 
-const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelectionProps) => {
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(
-    () => new Set(selected.map((r) => r.id))
-  );
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const dropdownRef = useRef<HTMLDivElement>(null);
+interface RestaurantSelectModalProps {
+  available: { id: string; restaurant_name: string }[];
+  initialSelected: Set<string>;
+  onClose: () => void;
+  onApply: (ids: Set<string>) => void;
+}
+
+const RestaurantSelectModal = ({
+  available,
+  initialSelected,
+  onClose,
+  onApply,
+}: RestaurantSelectModalProps) => {
+  const [draft, setDraft] = useState<Set<string>>(() => new Set(initialSelected));
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? available.filter((r) => r.restaurant_name.toLowerCase().includes(q))
+    : available;
 
   const toggle = (id: string) => {
-    setCheckedIds((prev) => {
+    setDraft((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+  };
+
+  // Bulk actions apply to the current matches, so they stay useful while filtering.
+  const selectAll = () =>
+    setDraft((prev) => {
+      const next = new Set(prev);
+      filtered.forEach((r) => next.add(r.id));
+      return next;
+    });
+  const deselectAll = () =>
+    setDraft((prev) => {
+      const next = new Set(prev);
+      filtered.forEach((r) => next.delete(r.id));
+      return next;
+    });
+
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex bg-black/40 sm:items-center sm:justify-center sm:p-4"
+      onClick={handleBackdrop}
+    >
+      <div className="flex h-full w-full flex-col overflow-hidden bg-white shadow-xl sm:h-auto sm:max-h-[85vh] sm:max-w-md sm:rounded-2xl">
+        {/* Header */}
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 p-5">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-gray-900">
+              Select restaurants
+            </h2>
+            <p className="mt-0.5 text-sm text-gray-500">
+              {draft.size} of {available.length} selected
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-gray-400 transition-colors hover:text-gray-600"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Search + bulk actions */}
+        <div className="shrink-0 space-y-2.5 border-b border-gray-100 p-3 sm:px-5">
+          <div className="relative">
+            <Search
+              size={15}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search restaurants…"
+              className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={selectAll}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-primary/60 hover:text-primary"
+            >
+              {q ? "Select matches" : "Select all"}
+            </button>
+            <button
+              type="button"
+              onClick={deselectAll}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-primary/60 hover:text-primary"
+            >
+              {q ? "Deselect matches" : "Deselect all"}
+            </button>
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto p-2 sm:p-3">
+          {filtered.length === 0 ? (
+            <p className="px-3 py-8 text-center text-sm text-gray-500">
+              No restaurants match “{query.trim()}”.
+            </p>
+          ) : (
+            <ul className="space-y-1">
+              {filtered.map((r) => {
+                const checked = draft.has(r.id);
+                return (
+                  <li key={r.id}>
+                    <label
+                      className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+                        checked ? "bg-primary/5" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggle(r.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
+                      />
+                      <span className="text-sm text-gray-800">{r.restaurant_name}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-gray-200 bg-gray-50/60 p-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onApply(draft)}
+            className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelectionProps) => {
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(
+    () => new Set(selected.map((r) => r.id))
+  );
+  const [modalOpen, setModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const applySelection = (ids: Set<string>) => {
+    setCheckedIds(ids);
+    setSaveSuccess(false);
+    setSaveError("");
+    setModalOpen(false);
   };
 
   const handleSave = async () => {
@@ -60,105 +215,110 @@ const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelecti
     .map((r) => r.restaurant_name);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      {/* Card header */}
-      <div className="flex items-start gap-3 border-b border-gray-100 p-5 sm:p-6">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Store size={18} />
-        </span>
-        <div>
-          <h2 className="font-semibold tracking-tight text-gray-900">
-            Available restaurants
-          </h2>
-          <p className="mt-0.5 text-sm text-gray-500">
-            Choose which restaurants your customers can order from.
-          </p>
+    <>
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        {/* Card header */}
+        <div className="flex items-start gap-3 border-b border-gray-100 p-5 sm:p-6">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Store size={18} />
+          </span>
+          <div>
+            <h2 className="font-semibold tracking-tight text-gray-900">
+              Available restaurants
+            </h2>
+            <p className="mt-0.5 text-sm text-gray-500">
+              Choose which restaurants your customers can order from.
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="space-y-4 p-5 sm:p-6">
-        {available.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No restaurants have been assigned to your space yet. Contact Swift to add restaurants.
-          </p>
-        ) : (
-          <div ref={dropdownRef} className="relative">
+        <div className="space-y-4 p-5 sm:p-6">
+          {available.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No restaurants have been assigned to your space yet. Contact Swift to add restaurants.
+            </p>
+          ) : (
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                {selectedNames.length > 0 ? (
+                  <>
+                    <p className="text-sm font-medium text-gray-900">
+                      {selectedNames.length} of {available.length}{" "}
+                      {available.length === 1 ? "restaurant" : "restaurants"} enabled
+                    </p>
+                    <p className="mt-0.5 truncate text-sm text-gray-500">
+                      {selectedNames.join(", ")}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-gray-900">No restaurants enabled</p>
+                    <p className="mt-0.5 text-sm text-gray-500">
+                      Customers won&apos;t see any restaurants until you choose some.
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:border-primary/60 hover:text-primary"
+              >
+                <SlidersHorizontal size={15} />
+                {selectedNames.length > 0 ? "Edit" : "Choose"}
+              </button>
+            </div>
+          )}
+
+          {saveError && (
+            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <AlertCircle size={14} className="flex-shrink-0" />
+              {saveError}
+            </div>
+          )}
+
+          {saveSuccess && (
+            <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              <CheckCircle size={14} className="flex-shrink-0" />
+              Restaurant selection saved.
+            </div>
+          )}
+        </div>
+
+        {/* Footer action */}
+        {available.length > 0 && (
+          <div className="flex justify-end border-t border-gray-100 bg-gray-50/60 px-5 py-4 sm:px-6">
             <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              className="flex w-full items-center justify-between rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
             >
-              <span className={selectedNames.length === 0 ? "text-gray-400" : ""}>
-                {selectedNames.length === 0
-                  ? "Select restaurants…"
-                  : selectedNames.length === 1
-                  ? selectedNames[0]
-                  : `${selectedNames.length} restaurants selected`}
-              </span>
-              <ChevronDown
-                size={16}
-                className={`text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
-              />
+              {saving ? (
+                <>
+                  <Loader size={14} className="animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                <>
+                  <Save size={14} />
+                  Save selection
+                </>
+              )}
             </button>
-
-            {open && (
-              <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
-                {available.map((r) => (
-                  <li key={r.id}>
-                    <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5 hover:bg-gray-50">
-                      <input
-                        type="checkbox"
-                        checked={checkedIds.has(r.id)}
-                        onChange={() => toggle(r.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
-                      />
-                      <span className="text-sm text-gray-800">{r.restaurant_name}</span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
-        {saveError && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            <AlertCircle size={14} className="flex-shrink-0" />
-            {saveError}
-          </div>
-        )}
-
-        {saveSuccess && (
-          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-            <CheckCircle size={14} className="flex-shrink-0" />
-            Restaurant selection saved.
           </div>
         )}
       </div>
 
-      {/* Footer action */}
-      {available.length > 0 && (
-        <div className="flex justify-end border-t border-gray-100 bg-gray-50/60 px-5 py-4 sm:px-6">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
-          >
-            {saving ? (
-              <>
-                <Loader size={14} className="animate-spin" />
-                Saving…
-              </>
-            ) : (
-              <>
-                <Save size={14} />
-                Save selection
-              </>
-            )}
-          </button>
-        </div>
+      {modalOpen && (
+        <RestaurantSelectModal
+          available={available}
+          initialSelected={checkedIds}
+          onClose={() => setModalOpen(false)}
+          onApply={applySelection}
+        />
       )}
-    </div>
+    </>
   );
 };
 
