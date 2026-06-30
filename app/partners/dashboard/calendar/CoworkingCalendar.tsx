@@ -132,7 +132,7 @@ const DayPanel = ({ selectedDate, orders, onSelect }: DayPanelProps) => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-gray-100 px-4 py-3.5">
+      <div className="border-b border-gray-100 px-0 py-3.5 sm:px-4">
         <p className="text-sm font-semibold tracking-tight text-gray-900">
           {fmtDateLong(selectedDate)}
         </p>
@@ -149,7 +149,7 @@ const DayPanel = ({ selectedDate, orders, onSelect }: DayPanelProps) => {
           <p className="text-xs text-gray-400">Nothing booked for this day.</p>
         </div>
       ) : (
-        <div className="flex-1 space-y-2.5 overflow-y-auto p-4">
+        <div className="flex-1 space-y-2.5 overflow-y-auto px-0 py-4 sm:p-4">
           {orders.map((o) => (
             <EventCard key={o.id} order={o} onSelect={onSelect} />
           ))}
@@ -348,8 +348,9 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                       {cell.day}
                     </span>
 
+                    {/* Status dots — desktop only */}
                     {hasOrders && (
-                      <div className="flex flex-wrap items-center justify-center gap-1">
+                      <div className="hidden flex-wrap items-center justify-center gap-1 sm:flex">
                         {orders.slice(0, 4).map((o, i) => (
                           <span
                             key={i}
@@ -359,9 +360,16 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                       </div>
                     )}
 
-                    {/* Event count badge */}
+                    {/* Event count badge — desktop only (paired with dots) */}
                     {hasOrders && (
-                      <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white">
+                      <span className="absolute right-1.5 top-1.5 hidden h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white sm:flex">
+                        {orders.length}
+                      </span>
+                    )}
+
+                    {/* Mobile: just the count, no dots */}
+                    {hasOrders && (
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold leading-none text-white sm:hidden">
                         {orders.length}
                       </span>
                     )}
@@ -370,8 +378,8 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
               })}
             </div>
 
-            {/* Status legend */}
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-gray-100 pt-3">
+            {/* Status legend — desktop only */}
+            <div className="mt-4 hidden flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-gray-100 pt-3 sm:flex">
               {[
                 { label: "Confirmed / Paid", dot: "bg-emerald-500" },
                 { label: "In progress", dot: "bg-blue-400" },
@@ -387,8 +395,8 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
             </div>
           </div>
 
-          {/* Selected-day events */}
-          <div className="min-h-[360px] rounded-2xl border border-gray-200 bg-gray-50/60 lg:min-h-0">
+          {/* Selected-day events — flat on mobile, carded on larger screens */}
+          <div className="border-t border-gray-200 bg-transparent sm:min-h-[360px] sm:rounded-2xl sm:border sm:bg-gray-50/60 lg:min-h-0">
             <DayPanel
               selectedDate={selectedDate}
               orders={selectedOrders}

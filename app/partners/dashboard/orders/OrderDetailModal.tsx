@@ -61,22 +61,23 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex bg-black/40 sm:items-center sm:justify-center sm:p-4"
       onClick={handleBackdrop}
     >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="flex h-full w-full flex-col overflow-hidden bg-white shadow-xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white p-5 sm:rounded-t-xl">
           <h2 className="text-lg font-semibold text-gray-900">Order Details</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
+            className="text-gray-400 transition-colors hover:text-gray-600"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="flex-1 overflow-y-auto p-5">
           {loading && (
             <div className="flex items-center justify-center py-12">
               <Loader size={28} className="animate-spin text-primary" />
