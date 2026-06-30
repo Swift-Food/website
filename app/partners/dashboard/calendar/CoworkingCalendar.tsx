@@ -1,10 +1,19 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Loader, AlertCircle, CalendarDays } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader,
+  AlertCircle,
+  CalendarDays,
+} from "lucide-react";
 import { cn } from "@/lib/utils/helpers";
 import { coworkingApi } from "@/services/api/coworking.api";
-import { CalendarDay, CalendarOrderItem } from "@/types/api/coworking.api.types";
+import {
+  CalendarDay,
+  CalendarOrderItem,
+} from "@/types/api/coworking.api.types";
 import { OrderDetailModal } from "../orders/OrderDetailModal";
 
 interface Props {
@@ -14,8 +23,18 @@ interface Props {
 const fmt = (n: number) => `£${Number(n).toFixed(2)}`;
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const STATUS_DOTS: Record<string, string> = {
@@ -74,16 +93,20 @@ const EventCard = ({ order, onSelect }: EventCardProps) => (
   >
     <div className="mb-2 flex items-start justify-between gap-2">
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-gray-900">{order.customerName}</p>
+        <p className="truncate text-sm font-semibold text-gray-900">
+          {order.customerName}
+        </p>
         <p className="truncate text-xs text-gray-500">{order.customerEmail}</p>
         {order.eventTime && (
-          <p className="mt-0.5 text-xs font-medium text-gray-400">{order.eventTime}</p>
+          <p className="mt-0.5 text-xs font-medium text-gray-400">
+            {order.eventTime}
+          </p>
         )}
       </div>
       <span
         className={cn(
           "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-          STATUS_BADGES[order.status] ?? "bg-gray-100 text-gray-600"
+          STATUS_BADGES[order.status] ?? "bg-gray-100 text-gray-600",
         )}
       >
         {STATUS_LABELS[order.status] ?? order.status}
@@ -123,7 +146,9 @@ const DayPanel = ({ selectedDate, orders, onSelect }: DayPanelProps) => {
       <div className="flex h-full flex-col items-center justify-center gap-2 px-6 py-12 text-center">
         <CalendarDays size={26} className="text-gray-300" />
         <p className="text-sm font-medium text-gray-500">Select a date</p>
-        <p className="text-xs text-gray-400">Pick a day on the calendar to see its events.</p>
+        <p className="text-xs text-gray-400">
+          Pick a day on the calendar to see its events.
+        </p>
       </div>
     );
   }
@@ -188,13 +213,17 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
   }, [spaceId]);
 
   const prev = () => {
-    if (month === 1) { setYear((y) => y - 1); setMonth(12); }
-    else setMonth((m) => m - 1);
+    if (month === 1) {
+      setYear((y) => y - 1);
+      setMonth(12);
+    } else setMonth((m) => m - 1);
   };
 
   const next = () => {
-    if (month === 12) { setYear((y) => y + 1); setMonth(1); }
-    else setMonth((m) => m + 1);
+    if (month === 12) {
+      setYear((y) => y + 1);
+      setMonth(1);
+    } else setMonth((m) => m + 1);
   };
 
   // Lookup: date string → orders
@@ -219,20 +248,44 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
   const nextYear = month === 12 ? year + 1 : year;
   const daysInPrev = new Date(year, month - 1, 0).getDate();
 
-  type Cell = { day: number; mo: number; yr: number; dateStr: string; inMonth: boolean };
+  type Cell = {
+    day: number;
+    mo: number;
+    yr: number;
+    dateStr: string;
+    inMonth: boolean;
+  };
   const cells: Cell[] = [];
   for (let i = startOffset; i > 0; i--) {
     const day = daysInPrev - i + 1;
-    cells.push({ day, mo: prevMonth, yr: prevYear, dateStr: `${prevYear}-${pad(prevMonth)}-${pad(day)}`, inMonth: false });
+    cells.push({
+      day,
+      mo: prevMonth,
+      yr: prevYear,
+      dateStr: `${prevYear}-${pad(prevMonth)}-${pad(day)}`,
+      inMonth: false,
+    });
   }
   for (let day = 1; day <= daysInMonth; day++) {
-    cells.push({ day, mo: month, yr: year, dateStr: `${year}-${pad(month)}-${pad(day)}`, inMonth: true });
+    cells.push({
+      day,
+      mo: month,
+      yr: year,
+      dateStr: `${year}-${pad(month)}-${pad(day)}`,
+      inMonth: true,
+    });
   }
   for (let day = 1; cells.length < 42; day++) {
-    cells.push({ day, mo: nextMonth, yr: nextYear, dateStr: `${nextYear}-${pad(nextMonth)}-${pad(day)}`, inMonth: false });
+    cells.push({
+      day,
+      mo: nextMonth,
+      yr: nextYear,
+      dateStr: `${nextYear}-${pad(nextMonth)}-${pad(day)}`,
+      inMonth: false,
+    });
   }
 
-  const selectedOrders = selectedDate ? ordersByDate[selectedDate] ?? [] : [];
+  const selectedOrders = selectedDate ? (ordersByDate[selectedDate] ?? []) : [];
 
   // Summary for the visible month
   const monthPrefix = `${year}-${pad(month)}`;
@@ -240,10 +293,13 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
     (acc, d) => {
       if (!d.date.startsWith(monthPrefix)) return acc;
       acc.events += d.orders.length;
-      acc.revenue += d.orders.reduce((s, o) => s + Number(o.finalTotal || 0), 0);
+      acc.revenue += d.orders.reduce(
+        (s, o) => s + Number(o.finalTotal || 0),
+        0,
+      );
       return acc;
     },
-    { events: 0, revenue: 0 }
+    { events: 0, revenue: 0 },
   );
 
   const goToDate = (c: Cell) => {
@@ -290,7 +346,11 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                   <ChevronLeft size={18} />
                 </button>
                 <button
-                  onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth() + 1); setSelectedDate(todayStr); }}
+                  onClick={() => {
+                    setYear(today.getFullYear());
+                    setMonth(today.getMonth() + 1);
+                    setSelectedDate(todayStr);
+                  }}
                   className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
                 >
                   Today
@@ -308,7 +368,10 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
             {/* Day-of-week headers */}
             <div className="grid grid-cols-7">
               {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                <div key={d} className="pb-2 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                <div
+                  key={d}
+                  className="pb-2 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-400"
+                >
                   {d}
                 </div>
               ))}
@@ -334,7 +397,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                         : hasOrders && cell.inMonth
                           ? "border-gray-200 bg-gray-50/70 hover:border-gray-300 hover:bg-gray-100/70"
                           : "border-transparent hover:border-gray-200 hover:bg-gray-50",
-                      !cell.inMonth && "opacity-40"
+                      !cell.inMonth && "opacity-40",
                     )}
                   >
                     <span
@@ -342,7 +405,9 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-medium",
                         isToday && !isSelected && "bg-primary text-white",
                         isSelected && "text-primary",
-                        !isToday && !isSelected && (cell.inMonth ? "text-gray-700" : "text-gray-400")
+                        !isToday &&
+                          !isSelected &&
+                          (cell.inMonth ? "text-gray-700" : "text-gray-400"),
                       )}
                     >
                       {cell.day}
@@ -354,17 +419,13 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                         {orders.slice(0, 4).map((o, i) => (
                           <span
                             key={i}
-                            className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOTS[o.status] ?? "bg-gray-400")}
+                            className={cn(
+                              "h-2.5 w-2.5 rounded-full",
+                              STATUS_DOTS[o.status] ?? "bg-gray-400",
+                            )}
                           />
                         ))}
                       </div>
-                    )}
-
-                    {/* Event count badge — desktop only (paired with dots) */}
-                    {hasOrders && (
-                      <span className="absolute right-1.5 top-1.5 hidden h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white sm:flex">
-                        {orders.length}
-                      </span>
                     )}
 
                     {/* Mobile: just the count, no dots */}
@@ -387,7 +448,10 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
                 { label: "Cancelled", dot: "bg-rose-400" },
                 { label: "Completed", dot: "bg-gray-400" },
               ].map((l) => (
-                <span key={l.label} className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500">
+                <span
+                  key={l.label}
+                  className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500"
+                >
                   <span className={cn("h-2 w-2 rounded-full", l.dot)} />
                   {l.label}
                 </span>
