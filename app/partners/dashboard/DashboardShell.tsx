@@ -6,7 +6,7 @@ import { Menu, X, Loader } from "lucide-react";
 import { cn } from "@/lib/utils/helpers";
 import { useCoworkingAuth } from "@/lib/hooks/useCoworkingAuth";
 import { coworkingApi } from "@/services/api/coworking.api";
-import { SidebarPanel, type Tab } from "./DashboardSidebar";
+import { SidebarPanel, NAV_ITEMS, type Tab } from "./DashboardSidebar";
 
 const COLLAPSE_KEY = "partner_sidebar_collapsed";
 
@@ -67,6 +67,7 @@ export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
 
   const activeTab = tabFromPath(pathname);
   const meta = PAGE_META[activeTab];
+  const PageIcon = NAV_ITEMS.find((i) => i.key === activeTab)?.icon;
 
   // Default to the first space once auth loads.
   useEffect(() => {
@@ -242,11 +243,18 @@ export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             <div className="w-full">
               {/* Page header */}
-              <div className="mb-6">
-                <h1 className="text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">
-                  {meta.title}
-                </h1>
-                <p className="mt-1 text-sm text-gray-500">{meta.subtitle}</p>
+              <div className="mb-6 flex items-center gap-3.5 border-b border-gray-200/70 pb-5 sm:mb-8">
+                {PageIcon && (
+                  <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-primary shadow-sm sm:flex">
+                    <PageIcon size={20} strokeWidth={2} />
+                  </span>
+                )}
+                <div className="min-w-0">
+                  <h1 className="text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">
+                    {meta.title}
+                  </h1>
+                  <p className="mt-0.5 text-sm text-gray-500">{meta.subtitle}</p>
+                </div>
               </div>
 
               {/* Page content */}
