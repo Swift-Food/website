@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink } from "lucide-react";
+import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
 
 interface Props {
   spaceId: string;
 }
+
+const initialsOf = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase() || "S";
 
 const PublishableKeyField = ({ value }: { value: string }) => {
   const [revealed, setRevealed] = useState(false);
@@ -25,11 +34,11 @@ const PublishableKeyField = ({ value }: { value: string }) => {
 
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-500 mb-1">
+      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-400">
         Publishable key
       </label>
       <div className="flex items-stretch gap-2">
-        <div className="flex flex-1 items-center min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2">
+        <div className="flex flex-1 items-center min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
           <span className="flex-1 truncate font-mono text-sm text-gray-700">
             {revealed ? value : "•".repeat(Math.min(value.length, 32))}
           </span>
@@ -146,109 +155,192 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
   const currentRate = space?.commission ?? 0;
 
   return (
-    <div className="max-w-xl space-y-6">
-      {/* Space info */}
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* ── Workspace profile card ─────────────────────────────────── */}
       {space && (
-        <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-3">
-          <div>
-            <p className="font-semibold text-gray-900 mb-1">{space.name}</p>
-            {space.contactEmail && <p className="text-gray-600">{space.contactEmail}</p>}
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          {/* Banner */}
+          <div className="h-24 bg-gray-50" />
+
+          <div className="px-5 pb-6 sm:px-6">
+            {/* Avatar + status, overlapping the banner */}
+            <div className="-mt-10 flex items-end justify-between">
+              <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-2xl font-bold text-white shadow-md ring-4 ring-white">
+                {initialsOf(space.name)}
+              </span>
+              <span
+                className={
+                  space.isActive
+                    ? "mb-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
+                    : "mb-1 inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600"
+                }
+              >
+                <span
+                  className={
+                    space.isActive
+                      ? "h-1.5 w-1.5 rounded-full bg-emerald-500"
+                      : "h-1.5 w-1.5 rounded-full bg-gray-400"
+                  }
+                />
+                {space.isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
+
+            {/* Name + email */}
+            <div className="mt-3">
+              <h2 className="text-lg font-semibold tracking-tight text-gray-900">
+                {space.name}
+              </h2>
+              {space.contactEmail && (
+                <p className="text-sm text-gray-500">{space.contactEmail}</p>
+              )}
+            </div>
+
+            {/* Integration / publishable key */}
+            {space.publishableKey && (
+              <div className="mt-6 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <KeyRound size={15} className="text-gray-400" />
+                  <p className="text-sm font-semibold text-gray-700">Integration</p>
+                </div>
+                <PublishableKeyField value={space.publishableKey} />
+              </div>
+            )}
           </div>
-          {space.publishableKey && <PublishableKeyField value={space.publishableKey} />}
         </div>
       )}
 
-      {/* Task 6 — Catering Service Fee section */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="bg-primary/10 border-b border-primary/20 px-5 py-3.5">
-          <h3 className="font-semibold text-primary">Catering Service Fee</h3>
-          <p className="text-xs text-primary mt-0.5">
-            A percentage charged on top of the catering food subtotal (after promotions)
-          </p>
+      {/* ── Catering Service Fee card ──────────────────────────────── */}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        {/* Card header */}
+        <div className="flex items-start gap-3 border-b border-gray-100 p-5 sm:p-6">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Percent size={18} />
+          </span>
+          <div>
+            <h2 className="font-semibold tracking-tight text-gray-900">
+              Catering service fee
+            </h2>
+            <p className="mt-0.5 text-sm text-gray-500">
+              A percentage charged on top of the catering food subtotal, after promotions.
+            </p>
+          </div>
         </div>
 
-        <div className="p-5">
-          {/* Current state */}
-          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
+        <div className="p-5 sm:p-6">
+          {/* Current rate hero */}
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">Current rate</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                Current rate
+              </p>
               {currentRate === 0 ? (
-                <p className="text-sm font-semibold text-gray-500">No service fee</p>
+                <p className="mt-0.5 text-3xl font-bold tracking-tight text-gray-300">
+                  No fee
+                </p>
               ) : (
-                <p className="text-sm font-semibold text-gray-900">{currentRate}%</p>
+                <p className="mt-0.5 text-3xl font-bold tracking-tight text-gray-900 tabular-nums">
+                  {currentRate}
+                  <span className="text-xl text-gray-400">%</span>
+                </p>
               )}
             </div>
-            {currentRate > 0 && (
-              <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-medium">
-                Active
-              </span>
-            )}
+            <span
+              className={
+                currentRate > 0
+                  ? "inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                  : "inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500"
+              }
+            >
+              <span
+                className={
+                  currentRate > 0
+                    ? "h-1.5 w-1.5 rounded-full bg-primary"
+                    : "h-1.5 w-1.5 rounded-full bg-gray-400"
+                }
+              />
+              {currentRate > 0 ? "Active" : "Disabled"}
+            </span>
           </div>
 
-          <form onSubmit={handleSaveCommission} className="space-y-4">
+          <form id="commission-form" onSubmit={handleSaveCommission} className="mt-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                New rate (%)
+              <label
+                htmlFor="commission-rate"
+                className="mb-1.5 block text-sm font-medium text-gray-700"
+              >
+                Update rate
               </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={commission}
-                  onChange={(e) => setCommission(e.target.value)}
-                  min="0"
-                  max="100"
-                  step="0.5"
-                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 text-sm"
-                  placeholder="0"
-                />
-                <span className="text-sm text-gray-500">% of food subtotal</span>
+              <div className="flex items-center gap-2.5">
+                <div className="relative">
+                  <input
+                    id="commission-rate"
+                    type="number"
+                    value={commission}
+                    onChange={(e) => setCommission(e.target.value)}
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    className="w-36 rounded-lg border border-gray-300 py-2.5 pl-3 pr-8 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    placeholder="0"
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">
+                    %
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500">of food subtotal</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-1.5 text-xs text-gray-500">
                 Set to 0 to disable the service fee entirely.
               </p>
             </div>
 
             {saveError && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 <AlertCircle size={14} className="flex-shrink-0" />
                 {saveError}
               </div>
             )}
 
             {saveSuccess && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
                 <CheckCircle size={14} className="flex-shrink-0" />
-                Commission rate updated successfully.
+                Service fee rate updated successfully.
               </div>
             )}
 
             {/* Info note */}
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs">
-              <Info size={14} className="flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <Info size={14} className="mt-0.5 flex-shrink-0" />
               <p>
-                This rate only applies to <strong>new orders</strong> placed after saving. Existing orders are
-                not affected — they retain the rate that was active at the time of pricing.
+                This rate only applies to <strong>new orders</strong> placed after
+                saving. Existing orders are not affected — they retain the rate that was
+                active at the time of pricing.
               </p>
             </div>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-primary/40 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors text-sm"
-            >
-              {saving ? (
-                <>
-                  <Loader size={14} className="animate-spin" />
-                  Saving…
-                </>
-              ) : (
-                <>
-                  <Save size={14} />
-                  Save rate
-                </>
-              )}
-            </button>
           </form>
+        </div>
+
+        {/* Sticky-feel footer action */}
+        <div className="flex justify-end border-t border-gray-100 bg-gray-50/60 px-5 py-4 sm:px-6">
+          <button
+            type="submit"
+            form="commission-form"
+            disabled={saving}
+            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
+          >
+            {saving ? (
+              <>
+                <Loader size={14} className="animate-spin" />
+                Saving…
+              </>
+            ) : (
+              <>
+                <Save size={14} />
+                Save rate
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
