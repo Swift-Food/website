@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, ChevronDown } from "lucide-react";
+import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, ChevronDown, Store } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
 
@@ -60,15 +60,23 @@ const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelecti
     .map((r) => r.restaurant_name);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div className="bg-indigo-50 border-b border-indigo-100 px-5 py-3.5">
-        <h3 className="font-semibold text-indigo-900">Available Restaurants</h3>
-        <p className="text-xs text-indigo-700 mt-0.5">
-          Choose which restaurants your customers can order from
-        </p>
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      {/* Card header */}
+      <div className="flex items-start gap-3 border-b border-gray-100 p-5 sm:p-6">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Store size={18} />
+        </span>
+        <div>
+          <h2 className="font-semibold tracking-tight text-gray-900">
+            Available restaurants
+          </h2>
+          <p className="mt-0.5 text-sm text-gray-500">
+            Choose which restaurants your customers can order from.
+          </p>
+        </div>
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="space-y-4 p-5 sm:p-6">
         {available.length === 0 ? (
           <p className="text-sm text-gray-500">
             No restaurants have been assigned to your space yet. Contact Swift to add restaurants.
@@ -78,7 +86,7 @@ const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelecti
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
-              className="w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-sm text-gray-800 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="flex w-full items-center justify-between rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20"
             >
               <span className={selectedNames.length === 0 ? "text-gray-400" : ""}>
                 {selectedNames.length === 0
@@ -94,15 +102,15 @@ const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelecti
             </button>
 
             {open && (
-              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+              <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
                 {available.map((r) => (
                   <li key={r.id}>
-                    <label className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer">
+                    <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5 hover:bg-gray-50">
                       <input
                         type="checkbox"
                         checked={checkedIds.has(r.id)}
                         onChange={() => toggle(r.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
                       />
                       <span className="text-sm text-gray-800">{r.restaurant_name}</span>
                     </label>
@@ -114,24 +122,27 @@ const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelecti
         )}
 
         {saveError && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             <AlertCircle size={14} className="flex-shrink-0" />
             {saveError}
           </div>
         )}
 
         {saveSuccess && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
             <CheckCircle size={14} className="flex-shrink-0" />
             Restaurant selection saved.
           </div>
         )}
+      </div>
 
-        {available.length > 0 && (
+      {/* Footer action */}
+      {available.length > 0 && (
+        <div className="flex justify-end border-t border-gray-100 bg-gray-50/60 px-5 py-4 sm:px-6">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-5 rounded-lg transition-colors text-sm"
+            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
           >
             {saving ? (
               <>
@@ -145,8 +156,8 @@ const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelecti
               </>
             )}
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
