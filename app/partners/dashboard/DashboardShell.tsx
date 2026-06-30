@@ -240,7 +240,13 @@ export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
             </span>
           </header>
 
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <main
+            className={cn(
+              "flex-1 sm:px-6 lg:px-8 lg:py-8",
+              // Calendar goes edge-to-edge on mobile; other tabs keep page padding.
+              activeTab === "calendar" ? "p-0 sm:py-6" : "px-4 py-6"
+            )}
+          >
             <div className="w-full">
               {/* Page header — hidden on mobile (the navbar shows the title there) */}
               <div className="mb-6 hidden items-center gap-3.5 border-b border-gray-200/70 pb-5 sm:mb-8 md:flex">

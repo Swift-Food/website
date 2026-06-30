@@ -309,7 +309,7 @@ export const CoworkingCalendar = ({ spaceId }: Props) => {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-200/50 sm:p-6">
+    <div className="border-x-0 border-y border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-200/50 sm:rounded-2xl sm:border-x sm:p-6">
       {error && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle size={16} className="shrink-0" />
