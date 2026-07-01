@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, Store, X, SlidersHorizontal, Search } from "lucide-react";
+import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, Store, X, SlidersHorizontal, Search, CreditCard } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
 
@@ -319,6 +319,245 @@ const RestaurantSelection = ({ spaceId, available, selected }: RestaurantSelecti
         />
       )}
     </>
+  );
+};
+
+interface StripePayoutsSectionProps {
+  spaceId: string;
+  stripeAccountId: string | null | undefined;
+  stripeOnboardingComplete: boolean | undefined;
+  onStripeComplete: () => void;
+}
+
+const StripePayoutsSection = ({
+  spaceId,
+  stripeAccountId,
+  stripeOnboardingComplete,
+  onStripeComplete,
+}: StripePayoutsSectionProps) => {
+  const [localComplete, setLocalComplete] = useState(!!stripeOnboardingComplete);
+  const [balance, setBalance] = useState<{ available: number; pending: number; currency: string } | null>(null);
+  const [balanceError, setBalanceError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // State 2 on mount: silently verify — backend may already be complete from Stripe redirect
+  useEffect(() => {
+    if (stripeAccountId && !localComplete) {
+      coworkingApi.getStripeStatus(spaceId).then((s) => {
+        if (s.complete) {
+          setLocalComplete(true);
+          onStripeComplete();
+        }
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // State 3: fetch balance whenever localComplete becomes true
+  useEffect(() => {
+    if (localComplete) {
+      coworkingApi.getStripeBalance(spaceId)
+        .then(setBalance)
+        .catch(() => setBalanceError(true));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localComplete]);
+
+  const handleSetup = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const { onboardingUrl } = await coworkingApi.createStripeAccount(spaceId);
+      window.location.href = onboardingUrl;
+    } catch (err: any) {
+      setError(err.message || "Failed to create Stripe account.");
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteOnboarding = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const { onboardingUrl } = await coworkingApi.refreshStripeOnboardingLink(spaceId);
+      window.location.href = onboardingUrl;
+    } catch (err: any) {
+      setError(err.message || "Failed to get onboarding link.");
+      setLoading(false);
+    }
+  };
+
+  const handleCheckStatus = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const s = await coworkingApi.getStripeStatus(spaceId);
+      if (s.complete) {
+        setLocalComplete(true);
+        onStripeComplete();
+      } else {
+        setError("Onboarding is not complete yet. Please finish in Stripe and try again.");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to check status.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      {/* Card header */}
+      <div className="flex items-start gap-3 border-b border-gray-100 p-5 sm:p-6">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <CreditCard size={18} />
+        </span>
+        <div>
+          <h2 className="font-semibold tracking-tight text-gray-900">Stripe payouts</h2>
+          <p className="mt-0.5 text-sm text-gray-500">
+            Connect your Stripe account to receive payouts from catering orders.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-4 p-5 sm:p-6">
+        {/* ── State 1 — No account ─────────────────────────────── */}
+        {!stripeAccountId && !localComplete && (
+          <>
+            <p className="text-sm text-gray-600">
+              Set up Stripe Connect to receive payouts directly to your bank account when catering orders are completed.
+            </p>
+            {error && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <AlertCircle size={14} className="flex-shrink-0" />
+                {error}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleSetup}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
+            >
+              {loading ? (
+                <>
+                  <Loader size={14} className="animate-spin" />
+                  Setting up…
+                </>
+              ) : (
+                <>
+                  <ExternalLink size={14} />
+                  Set up Stripe payouts
+                </>
+              )}
+            </button>
+          </>
+        )}
+
+        {/* ── State 2 — Account exists, incomplete ─────────────── */}
+        {stripeAccountId && !localComplete && (
+          <>
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+              <p>
+                Your Stripe account has been created but onboarding is incomplete. Complete onboarding to start receiving payouts and to unlock commission settings.
+              </p>
+            </div>
+            {error && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <AlertCircle size={14} className="flex-shrink-0" />
+                {error}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleCompleteOnboarding}
+                disabled={loading}
+                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
+              >
+                {loading ? (
+                  <>
+                    <Loader size={14} className="animate-spin" />
+                    Loading…
+                  </>
+                ) : (
+                  <>
+                    <ExternalLink size={14} />
+                    Complete onboarding
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleCheckStatus}
+                disabled={loading}
+                className="flex items-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <Loader size={14} className="animate-spin" />
+                    Checking…
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={14} />
+                    I&apos;ve completed onboarding — check status
+                  </>
+                )}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── State 3 — Complete ───────────────────────────────── */}
+        {localComplete && (
+          <>
+            <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              <CheckCircle size={14} className="flex-shrink-0" />
+              Stripe account connected and payouts enabled.
+            </div>
+
+            {!balance && !balanceError && (
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Loader size={14} className="animate-spin" />
+                Loading balance…
+              </div>
+            )}
+
+            {balance && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Available
+                  </p>
+                  <p className="mt-0.5 text-2xl font-bold tracking-tight text-gray-900 tabular-nums">
+                    £{balance.available.toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Pending
+                  </p>
+                  <p className="mt-0.5 text-2xl font-bold tracking-tight text-gray-900 tabular-nums">
+                    £{balance.pending.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {balanceError && (
+              <p className="text-sm text-gray-400">Balance unavailable</p>
+            )}
+
+            {stripeAccountId && (
+              <p className="font-mono text-xs text-gray-400">{stripeAccountId}</p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
