@@ -19,6 +19,8 @@ export interface CoworkingSpace {
   aiChatEnabled?: boolean;
   aiPipelineVariant?: string;
   commission: number; // % rate; 0 = no service fee
+  stripeAccountId?: string | null;
+  stripeOnboardingComplete?: boolean;
   availableRestaurants?: { id: string; restaurant_name: string }[];
   selectedRestaurants?: { id: string; restaurant_name: string }[];
   createdAt: string | Date;
@@ -112,6 +114,16 @@ export interface CoworkingMetrics {
   averageOrderValue: number;
   periodStart: string;
   periodEnd: string;
+}
+
+// ============================================================================
+// STRIPE
+// ============================================================================
+
+export interface PartnerStripeStatus {
+  complete: boolean;
+  currentlyDue: string[];
+  detailsSubmitted: boolean;
 }
 
 // Legacy alias kept so existing CoworkingOrderStatus references don't break
