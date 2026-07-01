@@ -691,6 +691,10 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
     }
   };
 
+  const handleStripeComplete = () => {
+    setSpace((prev) => (prev ? { ...prev, stripeOnboardingComplete: true } : prev));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -709,6 +713,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
   }
 
   const currentRate = space?.commission ?? 0;
+  const stripeGated = !space?.stripeOnboardingComplete;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -784,6 +789,12 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
         </div>
 
         <div className="p-5 sm:p-6">
+          {stripeGated && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <Info size={14} className="mt-0.5 flex-shrink-0" />
+              <p>Complete Stripe payouts setup to configure your commission rate.</p>
+            </div>
+          )}
           {/* Current rate hero */}
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -837,7 +848,8 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
                     min="0"
                     max="100"
                     step="0.5"
-                    className="w-36 rounded-lg border border-gray-300 py-2.5 pl-3 pr-8 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    disabled={stripeGated}
+                    className="w-36 rounded-lg border border-gray-300 py-2.5 pl-3 pr-8 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                     placeholder="0"
                   />
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">
@@ -882,7 +894,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
           <button
             type="submit"
             form="commission-form"
-            disabled={saving}
+            disabled={saving || stripeGated}
             className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
           >
             {saving ? (
@@ -904,6 +916,13 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
         spaceId={spaceId}
         available={space?.availableRestaurants ?? []}
         selected={space?.selectedRestaurants ?? []}
+      />
+
+      <StripePayoutsSection
+        spaceId={spaceId}
+        stripeAccountId={space?.stripeAccountId}
+        stripeOnboardingComplete={space?.stripeOnboardingComplete}
+        onStripeComplete={handleStripeComplete}
       />
     </div>
   );
