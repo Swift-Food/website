@@ -125,9 +125,9 @@ export const coworkingApi = {
     return response.json();
   },
 
-  // POST /admin/partner-spaces/:spaceId/stripe-account
+  // POST /partner-dashboard/:spaceId/stripe-account
   createStripeAccount: async (spaceId: string): Promise<{ accountId: string; onboardingUrl: string }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/admin/partner-spaces/${spaceId}/stripe-account`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -137,9 +137,9 @@ export const coworkingApi = {
     return response.json();
   },
 
-  // GET /admin/partner-spaces/:spaceId/stripe-account/status
+  // GET /partner-dashboard/:spaceId/stripe-account/status
   getStripeStatus: async (spaceId: string): Promise<PartnerStripeStatus> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/admin/partner-spaces/${spaceId}/stripe-account/status`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/status`);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body?.message || 'Failed to fetch Stripe status');
@@ -147,9 +147,9 @@ export const coworkingApi = {
     return response.json();
   },
 
-  // POST /admin/partner-spaces/:spaceId/stripe-account/refresh
+  // POST /partner-dashboard/:spaceId/stripe-account/refresh
   refreshStripeOnboardingLink: async (spaceId: string): Promise<{ onboardingUrl: string }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/admin/partner-spaces/${spaceId}/stripe-account/refresh`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/refresh`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -159,9 +159,9 @@ export const coworkingApi = {
     return response.json();
   },
 
-  // GET /admin/partner-spaces/:spaceId/stripe-account/details
+  // GET /partner-dashboard/:spaceId/stripe-account/details
   getStripeDetails: async (spaceId: string): Promise<{ accountId: string; onboardingComplete: boolean; email: string | null; payoutsEnabled: boolean; chargesEnabled: boolean }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/admin/partner-spaces/${spaceId}/stripe-account/details`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/details`);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body?.message || 'Failed to fetch Stripe details');
@@ -169,9 +169,9 @@ export const coworkingApi = {
     return response.json();
   },
 
-  // GET /admin/partner-spaces/:spaceId/stripe-account/balance
+  // GET /partner-dashboard/:spaceId/stripe-account/balance
   getStripeBalance: async (spaceId: string): Promise<{ available: number; pending: number; currency: string }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/admin/partner-spaces/${spaceId}/stripe-account/balance`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/balance`);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body?.message || 'Failed to fetch Stripe balance');
