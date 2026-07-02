@@ -37,4 +37,10 @@ export interface RefundRequest {
     customerUnitPrice?: number;
     customerTotalPrice?: number;
   }[];
+  // Admin-issued refund fields (populated by admin dashboard flow)
+  adminNotes?: string | null;
+  stripeRefundId?: string | null;
+  processingNotes?: string | null;
+  processedAt?: string | null;
+  restaurant?: { restaurant_name?: string } | null;
 }

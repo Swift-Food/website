@@ -13,6 +13,7 @@ import {
 import { fetchReceiptJson, buildReceiptHTML, fetchOrderChecklistBlob } from "./receiptUtils";
 import { formatDeliveryAddress } from "./utils/address.utils";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
+import RefundHistorySection from "./components/RefundHistorySection";
 import { PickupAddress } from "@/types/restaurant.types";
 
 interface CateringOrderCardProps {
@@ -692,6 +693,9 @@ export const CateringOrderCard = ({
           </p>
         </div>
       )}
+
+      {/* Refunds Swift Admin has issued against this restaurant on this order. */}
+      <RefundHistorySection orderId={order.id} restaurantId={restaurantId} />
 
       {/* Review Buttons */}
       {status === "admin_reviewed" && (
