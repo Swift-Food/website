@@ -61,6 +61,9 @@ export const RestaurantDashboard = ({
   const [activeTab, setActiveTab] = useState<
     "withdrawals" | "catering" | "refunds" | "tax-invoices"
   >("catering");
+  const [refundSubTab, setRefundSubTab] = useState<"awaiting" | "completed">(
+    "awaiting",
+  );
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     () => {
       if (restaurantUser?.paymentAccounts) {
@@ -639,10 +642,73 @@ export const RestaurantDashboard = ({
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
                   Refunds
                 </h2>
-                <RefundRequestsList
-                  refunds={refunds}
-                  onProcessRefund={handleProcessRefund}
-                />
+                {/* Split refunds into the two things a partner actually cares
+                    about: ones you still need to act on (pending) vs
+                    everything else. Kept as sub-tabs (not filter chips) so
+                    'Awaiting response' is the first thing seen on load. */}
+                {(() => {
+                  const awaiting = refunds.filter(
+                    (r) => r.status === "pending",
+                  );
+                  const completed = refunds.filter(
+                    (r) => r.status !== "pending",
+                  );
+                  const tabs: Array<{
+                    key: typeof refundSubTab;
+                    label: string;
+                    count: number;
+                    highlight: boolean;
+                  }> = [
+                    {
+                      key: "awaiting",
+                      label: "Awaiting response",
+                      count: awaiting.length,
+                      highlight: true,
+                    },
+                    {
+                      key: "completed",
+                      label: "Completed",
+                      count: completed.length,
+                      highlight: false,
+                    },
+                  ];
+                  const list =
+                    refundSubTab === "awaiting" ? awaiting : completed;
+                  return (
+                    <>
+                      <div className="flex gap-1 border-b border-gray-200 mb-6 -mt-2">
+                        {tabs.map((t) => (
+                          <button
+                            key={t.key}
+                            onClick={() => setRefundSubTab(t.key)}
+                            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                              refundSubTab === t.key
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700"
+                            }`}
+                          >
+                            {t.label}
+                            {t.count > 0 && (
+                              <span
+                                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                                  t.highlight
+                                    ? "bg-red-100 text-red-600"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {t.count}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <RefundRequestsList
+                        refunds={list}
+                        onProcessRefund={handleProcessRefund}
+                      />
+                    </>
+                  );
+                })()}
               </div>
             ) : activeTab === "tax-invoices" ? (
               <div className="bg-white rounded-lg p-6">
