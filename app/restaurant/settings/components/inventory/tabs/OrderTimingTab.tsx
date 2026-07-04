@@ -1,14 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, Users, Calendar, Loader, ChevronRight } from "lucide-react";
+import {
+  Clock,
+  Users,
+  Calendar,
+  Loader,
+  ChevronRight,
+  ImageOff,
+} from "lucide-react";
 import { SettingsCard } from "../components/SettingsCard";
 import { NumberFieldWithUnit } from "../components/NumberFieldWithUnit";
 import { PreviewCallout } from "../components/PreviewCallout";
 import { ToggleRow } from "../components/ToggleRow";
 import { SaveBar } from "../components/SaveBar";
 import { SegmentedToggle } from "../components/SegmentedToggle";
-import { MenuItemPreviewModal } from "../components/MenuItemPreviewModal";
+import {
+  MenuItemPreviewModal,
+  formatPrice,
+} from "../components/MenuItemPreviewModal";
 import {
   useOrderTimingState,
   type NoticeHoursGroupItem,
@@ -324,23 +334,49 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
                       className="px-3 sm:px-4 pb-4 pt-1 pl-9 sm:pl-10 bg-gradient-to-b from-blue-50/40 to-transparent"
                     >
                       {row.items && row.items.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {row.items.map((item) => (
-                            <button
-                              key={item.id}
-                              type="button"
-                              onClick={() =>
-                                setPreviewItem({
-                                  item,
-                                  groupTitle: row.groupTitle,
-                                })
-                              }
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white text-gray-800 border border-blue-100 shadow-sm hover:border-blue-300 hover:bg-blue-50 hover:shadow transition-all cursor-pointer"
-                            >
-                              <span className="w-1 h-1 rounded-full bg-blue-400" />
-                              {item.name}
-                            </button>
-                          ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {row.items.map((item) => {
+                            const image = item.images?.[0];
+                            const price = formatPrice(item.price);
+                            return (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() =>
+                                  setPreviewItem({
+                                    item,
+                                    groupTitle: row.groupTitle,
+                                  })
+                                }
+                                className="group flex items-center gap-3 p-2 pr-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all"
+                              >
+                                <div className="w-14 h-14 flex-shrink-0 rounded-md bg-gray-100 overflow-hidden relative">
+                                  {image ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={image}
+                                      alt=""
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                      <ImageOff size={20} />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-700 transition-colors">
+                                    {item.name}
+                                  </div>
+                                  {price && (
+                                    <div className="text-xs font-semibold text-gray-700 mt-0.5">
+                                      {price}
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       ) : row.itemCount === 0 ? (
                         <div className="text-xs text-gray-400 italic">

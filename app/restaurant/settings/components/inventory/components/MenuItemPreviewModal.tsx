@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { X, Clock, Users, ImageOff, ChevronRight } from "lucide-react";
+import { X, Users, ImageOff, ChevronRight } from "lucide-react";
 import type { NoticeHoursGroupItem } from "../hooks/useOrderTimingState";
 
 interface Props {
@@ -12,21 +12,12 @@ interface Props {
   onClose: () => void;
 }
 
-const formatPrice = (price: number | undefined): string => {
+export const formatPrice = (price: number | undefined): string => {
   if (typeof price !== "number" || !Number.isFinite(price)) return "";
   return `£${price.toFixed(2)}`;
 };
 
-const formatPrepTime = (mins: number | null | undefined): string | null => {
-  if (typeof mins !== "number" || !Number.isFinite(mins) || mins <= 0) return null;
-  if (mins < 60) return `${mins} min`;
-  const hours = Math.floor(mins / 60);
-  const remainder = mins % 60;
-  if (remainder === 0) return `${hours}h`;
-  return `${hours}h ${remainder}m`;
-};
-
-const formatFeeds = (n: number | null | undefined): string | null => {
+export const formatFeeds = (n: number | null | undefined): string | null => {
   if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return null;
   return `Feeds ${n}`;
 };
@@ -65,7 +56,6 @@ export const MenuItemPreviewModal = ({
   if (!item) return null;
 
   const image = item.images?.[0];
-  const prep = formatPrepTime(item.prepTime);
   const feeds = formatFeeds(item.feedsPerUnit);
 
   return (
@@ -126,21 +116,12 @@ export const MenuItemPreviewModal = ({
             )}
           </div>
 
-          {/* Prep / feeds pill — the "why does notice-hours matter" signal */}
-          {(prep || feeds) && (
-            <div className="flex flex-wrap gap-2">
-              {prep && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-50 text-blue-800 border border-blue-200">
-                  <Clock size={14} />
-                  {prep} prep
-                </span>
-              )}
-              {feeds && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  <Users size={14} />
-                  {feeds}
-                </span>
-              )}
+          {feeds && (
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <Users size={14} />
+                {feeds}
+              </span>
             </div>
           )}
 
