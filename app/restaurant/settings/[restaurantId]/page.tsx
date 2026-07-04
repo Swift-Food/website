@@ -10,12 +10,11 @@ import { PendingEventImage } from "../components/profile/EventPhotosManager";
 import { InventorySection } from "../components/inventory/InventorySection";
 import { PickupAddressesSection } from "../components/PickupAddressesSection";
 import { CategoriesSection } from "../components/CategoriesSection";
-import { NoticeHoursSection } from "../components/NoticeHoursSection";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
-type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | "categories" | "noticeHours" | null;
+type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | "categories" | null;
 
 interface FormData {
   restaurant_name: string;
@@ -378,7 +377,6 @@ const RestaurantSettingsPage = () => {
         onInventory={() => setActiveSection("inventory")}
         onPickupAddresses={() => setActiveSection("pickupAddresses")}
         onCategories={() => setActiveSection("categories")}
-        onNoticeHours={() => setActiveSection("noticeHours")}
         onBack={() => router.push("/restaurant/dashboard")}
         showInventory={formData.showOnSite || formData.isCorporate}
         error={error}
@@ -479,16 +477,6 @@ const RestaurantSettingsPage = () => {
   if (activeSection === "categories") {
     return (
       <CategoriesSection
-        restaurantId={restaurantId}
-        onBack={() => setActiveSection(null)}
-      />
-    );
-  }
-
-  // Notice Hours per Group
-  if (activeSection === "noticeHours") {
-    return (
-      <NoticeHoursSection
         restaurantId={restaurantId}
         onBack={() => setActiveSection(null)}
       />

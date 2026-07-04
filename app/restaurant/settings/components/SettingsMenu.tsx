@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Clock, ImageIcon, ShoppingBag, MapPin, Tag, AlertCircle, Timer } from "lucide-react";
+import { ArrowLeft, Clock, ImageIcon, ShoppingBag, MapPin, Tag, AlertCircle } from "lucide-react";
 import { SettingsMenuCard } from "./shared/SettingsMenuCard";
 
 interface SettingsMenuProps {
@@ -9,7 +9,6 @@ interface SettingsMenuProps {
   onInventory: () => void;
   onPickupAddresses: () => void;
   onCategories: () => void;
-  onNoticeHours: () => void;
   onBack: () => void;
   showInventory: boolean;
   error?: string;
@@ -22,7 +21,6 @@ export const SettingsMenu = ({
   onInventory,
   onPickupAddresses,
   onCategories,
-  onNoticeHours,
   onBack,
   showInventory,
   error,
@@ -111,15 +109,6 @@ export const SettingsMenu = ({
             icon={Tag}
             color="emerald"
             onClick={onCategories}
-          />
-
-          {/* Notice Hours Card */}
-          <SettingsMenuCard
-            title="Notice Hours per Group"
-            description="Set longer prep time for specific menu groups like bundles or large-batch items"
-            icon={Timer}
-            color="purple"
-            onClick={onNoticeHours}
           />
         </div>
 
