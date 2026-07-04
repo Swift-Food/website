@@ -1,12 +1,18 @@
 "use client";
 
-import { Clock, Users, Calendar, Loader } from "lucide-react";
+import { useState } from "react";
+import { Clock, Users, Calendar, Loader, ChevronRight } from "lucide-react";
 import { SettingsCard } from "../components/SettingsCard";
 import { NumberFieldWithUnit } from "../components/NumberFieldWithUnit";
 import { PreviewCallout } from "../components/PreviewCallout";
 import { ToggleRow } from "../components/ToggleRow";
 import { SaveBar } from "../components/SaveBar";
-import { useOrderTimingState } from "../hooks/useOrderTimingState";
+import { SegmentedToggle } from "../components/SegmentedToggle";
+import { MenuItemPreviewModal } from "../components/MenuItemPreviewModal";
+import {
+  useOrderTimingState,
+  type NoticeHoursGroupItem,
+} from "../hooks/useOrderTimingState";
 
 interface Props {
   restaurantId: string;
@@ -19,6 +25,20 @@ interface Props {
  */
 export const OrderTimingTab = ({ restaurantId }: Props) => {
   const state = useOrderTimingState(restaurantId);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [previewItem, setPreviewItem] = useState<{
+    item: NoticeHoursGroupItem;
+    groupTitle: string;
+  } | null>(null);
+
+  const toggleExpanded = (groupTitle: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupTitle)) next.delete(groupTitle);
+      else next.add(groupTitle);
+      return next;
+    });
+  };
 
   if (state.loading) {
     return (
@@ -214,43 +234,125 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
             Longer notice for specific menu groups
           </label>
           <p className="text-xs text-gray-500 mb-3">
-            Most groups use your default above. Set a longer notice for groups
-            that need more prep time (like large-batch bundles or cakes).
-            Leave blank to inherit the default.
+            Most groups use your default above. Click a group to see what&apos;s
+            inside and set a longer notice if some items need more prep time
+            (like large-batch bundles or cakes).
           </p>
           <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 bg-white overflow-hidden">
             {noticeGroups.map((row) => {
               const draftRaw = noticeGroupDrafts[row.groupTitle] ?? "";
               const isCustom = draftRaw.trim().length > 0;
+              const isExpanded = expandedGroups.has(row.groupTitle);
+              const defaultHoursLabel = `${minimumDeliveryNoticeHours}h`;
+
+              const setMode = (mode: "default" | "custom") => {
+                if (mode === "default") {
+                  setGroupDraft(row.groupTitle, "");
+                } else {
+                  // Custom seeded with restaurant default so the user edits
+                  // down from a real number, not from an empty box.
+                  const current = noticeGroupDrafts[row.groupTitle] ?? "";
+                  if (current.trim() === "") {
+                    setGroupDraft(
+                      row.groupTitle,
+                      String(minimumDeliveryNoticeHours),
+                    );
+                  }
+                }
+              };
+
               return (
-                <div
-                  key={row.groupTitle}
-                  className="flex items-center gap-3 px-4 py-2.5"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-gray-900 truncate">
-                      {row.groupTitle}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {row.itemCount}{" "}
-                      {row.itemCount === 1 ? "item" : "items"}
+                <div key={row.groupTitle}>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-3 sm:px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(row.groupTitle)}
+                      className="flex items-center gap-2 min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
+                      aria-expanded={isExpanded}
+                      aria-controls={`items-${row.groupTitle}`}
+                    >
+                      <ChevronRight
+                        size={16}
+                        className={`text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-gray-900 truncate">
+                          {row.groupTitle}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {row.itemCount}{" "}
+                          {row.itemCount === 1 ? "item" : "items"}
+                        </div>
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-2 sm:flex-shrink-0">
+                      <SegmentedToggle
+                        options={[
+                          { value: "default", label: `Default (${defaultHoursLabel})` },
+                          { value: "custom", label: "Custom" },
+                        ]}
+                        value={isCustom ? "custom" : "default"}
+                        onChange={setMode}
+                        accent="blue"
+                        ariaLabel={`Notice mode for ${row.groupTitle}`}
+                      />
+                      {isCustom && (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min={0}
+                            step={1}
+                            inputMode="numeric"
+                            value={draftRaw}
+                            onChange={(e) =>
+                              setGroupDraft(row.groupTitle, e.target.value)
+                            }
+                            aria-label={`Notice hours for ${row.groupTitle}`}
+                            className="w-16 px-2 py-1.5 text-center text-sm font-bold border-2 border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all"
+                            autoFocus
+                          />
+                          <span className="text-xs font-medium text-gray-600">
+                            hours
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    inputMode="numeric"
-                    value={draftRaw}
-                    onChange={(e) => setGroupDraft(row.groupTitle, e.target.value)}
-                    aria-label={`Notice hours for ${row.groupTitle}`}
-                    className="w-16 px-2 py-1.5 text-center text-sm font-semibold border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all"
-                  />
-                  <span
-                    className={`text-xs whitespace-nowrap w-20 ${isCustom ? "font-medium text-gray-700" : "text-gray-400 italic"}`}
-                  >
-                    {isCustom ? "hours" : "uses default"}
-                  </span>
+                  {isExpanded && (
+                    <div
+                      id={`items-${row.groupTitle}`}
+                      className="px-3 sm:px-4 pb-4 pt-1 pl-9 sm:pl-10 bg-gradient-to-b from-blue-50/40 to-transparent"
+                    >
+                      {row.items && row.items.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {row.items.map((item) => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() =>
+                                setPreviewItem({
+                                  item,
+                                  groupTitle: row.groupTitle,
+                                })
+                              }
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white text-gray-800 border border-blue-100 shadow-sm hover:border-blue-300 hover:bg-blue-50 hover:shadow transition-all cursor-pointer"
+                            >
+                              <span className="w-1 h-1 rounded-full bg-blue-400" />
+                              {item.name}
+                            </button>
+                          ))}
+                        </div>
+                      ) : row.itemCount === 0 ? (
+                        <div className="text-xs text-gray-400 italic">
+                          No active items in this group
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-400 italic">
+                          Item list not available yet
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -283,6 +385,13 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
           />
         </div>
       </ToggleRow>
+
+      <MenuItemPreviewModal
+        item={previewItem?.item ?? null}
+        groupTitle={previewItem?.groupTitle ?? ""}
+        restaurantId={restaurantId}
+        onClose={() => setPreviewItem(null)}
+      />
     </SettingsCard>
   );
 };

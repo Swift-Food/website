@@ -5,9 +5,24 @@ import { restaurantApi } from "@/services/api/restaurant.api";
 import { fetchWithAuth, API_BASE_URL } from "@/lib/api-client/auth-client";
 import { AdvanceNoticeSettings } from "@/types/inventory.types";
 
+export interface NoticeHoursGroupItem {
+  id: string;
+  name: string;
+  /** Optional preview fields — present after backend v2584+. */
+  description?: string | null;
+  price?: number;
+  images?: string[];
+  prepTime?: number | null;
+  feedsPerUnit?: number | null;
+  dietaryFilters?: string[];
+  allergens?: string[];
+}
+
 export interface NoticeHoursGroupRow {
   groupTitle: string;
   itemCount: number;
+  /** Present after backend v2583+. Older responses may omit this. */
+  items?: NoticeHoursGroupItem[];
   noticeHoursOverride: number | null;
 }
 
