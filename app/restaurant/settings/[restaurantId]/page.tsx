@@ -19,7 +19,7 @@ type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | "cat
 interface FormData {
   restaurant_name: string;
   description: string;
-  contactEmails: string[];
+  orderNotificationEmails: string[];
   contactNumber: string;
   images: string[];
   eventImages: string[];
@@ -51,7 +51,7 @@ const RestaurantSettingsPage = () => {
   const [formData, setFormData] = useState<FormData>({
     restaurant_name: "",
     description: "",
-    contactEmails: [],
+    orderNotificationEmails: [],
     contactNumber: "",
     images: [],
     eventImages: [],
@@ -90,7 +90,7 @@ const RestaurantSettingsPage = () => {
         setFormData({
           restaurant_name: restaurantDetails.restaurant_name || "",
           description: restaurantDetails.restaurant_description || "",
-          contactEmails: restaurantDetails.contactEmails || [],
+          orderNotificationEmails: restaurantDetails.orderNotificationEmails ?? [],
           contactNumber: restaurantDetails.contactNumber || "",
           images: images,
           eventImages: eventImages,
@@ -126,7 +126,7 @@ const RestaurantSettingsPage = () => {
       setFormData({
         restaurant_name: restaurantDetails.restaurant_name || "",
         description: restaurantDetails.restaurant_description || "",
-        contactEmails: restaurantDetails.contactEmails || [],
+        orderNotificationEmails: restaurantDetails.orderNotificationEmails ?? [],
         contactNumber: restaurantDetails.contactNumber || "",
         images: images,
         eventImages: eventImages,
@@ -323,7 +323,7 @@ const RestaurantSettingsPage = () => {
       const updateData: Record<string, any> = {
         restaurant_name: formData.restaurant_name,
         restaurant_description: formData.description,
-        contactEmails: formData.contactEmails,
+        orderNotificationEmails: formData.orderNotificationEmails,
         contactNumber: formData.contactNumber,
         images: formData.images,
         eventImages: [...remainingEventImages, ...newEventImageUrls],
@@ -392,14 +392,14 @@ const RestaurantSettingsPage = () => {
         <ProfileForm
           restaurantName={formData.restaurant_name}
           description={formData.description}
-          contactEmails={formData.contactEmails}
+          orderNotificationEmails={formData.orderNotificationEmails}
           contactNumber={formData.contactNumber}
           images={formData.images}
           eventImages={formData.eventImages}
           logoImageUrl={formData.logoImageUrl}
           onNameChange={(value) => setFormData((prev) => ({ ...prev, restaurant_name: value }))}
           onDescriptionChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
-          onContactEmailsChange={(value) => setFormData((prev) => ({ ...prev, contactEmails: value }))}
+          onOrderNotificationEmailsChange={(value) => setFormData((prev) => ({ ...prev, orderNotificationEmails: value }))}
           onContactNumberChange={(value) => setFormData((prev) => ({ ...prev, contactNumber: value }))}
           onImageUpload={handleImageUpload}
           onImageRemove={handleRemoveImage}

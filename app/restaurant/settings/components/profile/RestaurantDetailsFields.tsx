@@ -8,22 +8,18 @@ const labelClass = "block text-sm font-medium text-gray-700 mb-2";
 interface RestaurantDetailsFieldsProps {
   restaurantName: string;
   description: string;
-  contactEmail: string;
   contactNumber: string;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onContactEmailChange: (value: string) => void;
   onContactNumberChange: (value: string) => void;
 }
 
 export const RestaurantDetailsFields = ({
   restaurantName,
   description,
-  contactEmail,
   contactNumber,
   onNameChange,
   onDescriptionChange,
-  onContactEmailChange,
   onContactNumberChange,
 }: RestaurantDetailsFieldsProps) => {
   return (
@@ -62,36 +58,19 @@ export const RestaurantDetailsFields = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div>
-          <label htmlFor="contact_email" className={labelClass}>
-            Contact email
-          </label>
-          <input
-            type="email"
-            id="contact_email"
-            name="contact_email"
-            value={contactEmail}
-            onChange={(e) => onContactEmailChange(e.target.value)}
-            className={inputClass}
-            placeholder="info@restaurant.com"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="contact_number" className={labelClass}>
-            Contact number
-          </label>
-          <input
-            type="tel"
-            id="contact_number"
-            name="contact_number"
-            value={contactNumber}
-            onChange={(e) => onContactNumberChange(e.target.value)}
-            className={inputClass}
-            placeholder="+44 7123 456789"
-          />
-        </div>
+      <div>
+        <label htmlFor="contact_number" className={labelClass}>
+          Contact number
+        </label>
+        <input
+          type="tel"
+          id="contact_number"
+          name="contact_number"
+          value={contactNumber}
+          onChange={(e) => onContactNumberChange(e.target.value)}
+          className={inputClass}
+          placeholder="+44 7123 456789"
+        />
       </div>
     </div>
   );

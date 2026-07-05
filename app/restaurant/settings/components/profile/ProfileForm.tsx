@@ -6,6 +6,7 @@ import { EventPhotosManager, PendingEventImage } from "./EventPhotosManager";
 import { RestaurantCardPreview } from "./RestaurantCardPreview";
 import { LogoUploadSection } from "./LogoUploadSection";
 import { RestaurantDetailsFields } from "./RestaurantDetailsFields";
+import { EmailListInput } from "./EmailListInput";
 import {
   CateringCapabilitiesFields,
   CUISINE_OPTIONS,
@@ -15,14 +16,14 @@ import { SettingsCard } from "./SettingsCard";
 interface ProfileFormProps {
   restaurantName: string;
   description: string;
-  contactEmails: string[];
+  orderNotificationEmails: string[];
   contactNumber: string;
   images: string[];
   eventImages: string[];
   logoImageUrl?: string;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onContactEmailsChange: (value: string[]) => void;
+  onOrderNotificationEmailsChange: (value: string[]) => void;
   onContactNumberChange: (value: string) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageRemove: (index: number) => void;
@@ -61,14 +62,14 @@ interface ProfileFormProps {
 export const ProfileForm = ({
   restaurantName,
   description,
-  contactEmails,
+  orderNotificationEmails,
   contactNumber,
   images,
   eventImages,
   logoImageUrl,
   onNameChange,
   onDescriptionChange,
-  onContactEmailsChange,
+  onOrderNotificationEmailsChange,
   onContactNumberChange,
   onImageUpload,
   onImageRemove,
@@ -194,12 +195,21 @@ export const ProfileForm = ({
                 <RestaurantDetailsFields
                   restaurantName={restaurantName}
                   description={description}
-                  contactEmail={contactEmails[0] ?? ""}
                   contactNumber={contactNumber}
                   onNameChange={onNameChange}
                   onDescriptionChange={onDescriptionChange}
-                  onContactEmailChange={(val) => onContactEmailsChange([val])}
                   onContactNumberChange={onContactNumberChange}
+                />
+              </SettingsCard>
+
+              <SettingsCard
+                title="Order notification email"
+                description="Every address here receives new-order alerts, refund notices and payout receipts. Add every teammate who should know."
+              >
+                <EmailListInput
+                  values={orderNotificationEmails}
+                  onChange={onOrderNotificationEmailsChange}
+                  placeholder="orders@restaurant.com"
                 />
               </SettingsCard>
 
