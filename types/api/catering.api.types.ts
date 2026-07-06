@@ -350,17 +350,16 @@ export interface CateringBundleResponse {
 
 /**
  * Customer-facing delivery status for a meal session
- * Backend: CustomerDeliveryStatus enum
+ * Backend: CustomerDeliveryStatus (catering-delivery module)
  */
 export type CustomerDeliveryStatus =
-  | 'awaiting_pickup'
+  | 'booked'
   | 'out_for_delivery'
-  | 'at_collection_point'
   | 'delivered';
 
 /**
  * Delivery tracking response for a single meal session
- * Backend: GET /catering-driver/delivery-tracking/:mealSessionId
+ * Backend: GET /catering-delivery/track/:mealSessionId
  */
 export interface DeliveryTrackingDto {
   mealSessionId: string;
@@ -373,8 +372,5 @@ export interface DeliveryTrackingDto {
   } | null;
   isDelayed: boolean;
   delayMessage: string | null;
-  driverInfo: {
-    name: string;
-    rating: number;
-  } | null;
+  trackingUrl: string | null;
 }
