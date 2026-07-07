@@ -81,11 +81,11 @@ export const SettingsMenu = ({
             onClick={onProfile}
           />
 
-          {/* Inventory Management Card */}
+          {/* Menu & Ordering Rules Card */}
           {showInventory && (
             <SettingsMenuCard
-              title="Inventory Limits"
-              description="Manage maximum catering portions and ingredient limits per day"
+              title="Menu & Ordering Rules"
+              description="Order timing, cut-off schedules, kitchen capacity, and auto-accept"
               icon={ShoppingBag}
               color="emerald"
               onClick={onInventory}

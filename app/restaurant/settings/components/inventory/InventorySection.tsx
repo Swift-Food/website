@@ -17,7 +17,7 @@ interface Props {
 }
 
 /**
- * Shell for the Inventory & Order Settings screen. Owns nothing except the
+ * Shell for the Menu & Ordering Rules screen. Owns nothing except the
  * active-tab id — every field, save, and fetch is scoped to its tab. Adding
  * a new tab means dropping in a `<XTab restaurantId={…} />` and adding it
  * to the `tabs` list.
@@ -53,10 +53,10 @@ export const InventorySection = ({
           </button>
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900">
-              Inventory &amp; Order Settings
+              Menu &amp; Ordering Rules
             </h1>
             <p className="text-gray-600 mt-1">
-              Set how customers can order and what your kitchen can make.
+              Order timing, cut-off schedules, kitchen capacity, and auto-accept settings.
             </p>
           </div>
         </div>
@@ -67,7 +67,7 @@ export const InventorySection = ({
             tabs={tabs}
             active={active}
             onChange={setActive}
-            ariaLabel="Inventory settings sections"
+            ariaLabel="Menu and ordering rules sections"
           />
         </div>
 
