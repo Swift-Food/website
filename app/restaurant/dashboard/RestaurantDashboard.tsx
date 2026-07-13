@@ -10,7 +10,7 @@ import {
   BalanceInfo,
   WithdrawalRequest,
   StripeOnboardingStatus,
-  // PaymentAccounts,
+  PaymentAccounts,
 } from "@/types/restaurant.types";
 import { PaymentAccountSelector } from "./shared/PaymentAccountSelector";
 import { StripeOnboardingRequired } from "./shared/StripeOnboardingRequired";
@@ -75,6 +75,10 @@ export const RestaurantDashboard = ({
       return null;
     }
   );
+  // Seeded from the login-time cached profile, replaced by a fresh fetch in
+  // fetchData — the cached copy goes stale if accounts change server-side
+  const [paymentAccounts, setPaymentAccounts] =
+    useState<PaymentAccounts | null>(restaurantUser?.paymentAccounts ?? null);
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
   const [freshRestaurant, setFreshRestaurant] = useState<any>(null);
 
@@ -85,8 +89,7 @@ export const RestaurantDashboard = ({
       // For single-account restaurants, don't filter catering orders by account
       // so that unassigned/pending orders are still visible
       const hasSingleAccount =
-        restaurantUser?.paymentAccounts &&
-        Object.keys(restaurantUser.paymentAccounts).length === 1;
+        paymentAccounts && Object.keys(paymentAccounts).length === 1;
       const cateringAccountFilter = hasSingleAccount ? null : selectedAccountId;
 
       const results = await Promise.allSettled([
@@ -100,6 +103,7 @@ export const RestaurantDashboard = ({
         restaurantApi.getCateringOrders(restaurantId, cateringAccountFilter),
         refundService.getRestaurantRefundRequests(restaurantId),
         restaurantApi.getRestaurantDetails(restaurantId),
+        restaurantApi.getPaymentAccounts(restaurantUserId),
       ]);
 
       // Extract successful results
@@ -110,6 +114,7 @@ export const RestaurantDashboard = ({
         cateringResult,
         refundsResult,
         restaurantResult,
+        accountsResult,
       ] = results;
 
 
@@ -139,6 +144,10 @@ export const RestaurantDashboard = ({
         setFreshRestaurant(restaurantResult.value);
       }
 
+      if (accountsResult.status === "fulfilled" && accountsResult.value) {
+        setPaymentAccounts(accountsResult.value);
+      }
+
       // Optional: Log any failures
       results.forEach((result, index) => {
         if (result.status === "rejected") {
@@ -149,6 +158,7 @@ export const RestaurantDashboard = ({
             "getCateringOrders",
             "getRefundRequests",
             "getRestaurantDetails",
+            "getPaymentAccounts",
           ];
           console.error(`${apiNames[index]} failed:`, result.reason);
         }
@@ -163,6 +173,19 @@ export const RestaurantDashboard = ({
   useEffect(() => {
     fetchData();
   }, [userId, token, selectedAccountId]);
+
+  // If the fresh account list no longer contains the selected account (e.g.
+  // the Stripe account was recreated after this browser last logged in),
+  // move the selection onto a real account so Stripe calls stop 404ing
+  useEffect(() => {
+    if (!paymentAccounts) return;
+    const accountIds = Object.keys(paymentAccounts);
+    if (selectedAccountId && !accountIds.includes(selectedAccountId)) {
+      setSelectedAccountId(accountIds.length === 1 ? accountIds[0] : null);
+    } else if (!selectedAccountId && accountIds.length === 1) {
+      setSelectedAccountId(accountIds[0]);
+    }
+  }, [paymentAccounts]);
 
   // RestaurantDashboard.tsx - Add handleProcessRefund
 
@@ -322,7 +345,7 @@ export const RestaurantDashboard = ({
           </div>
 
           <PaymentAccountSelector
-            paymentAccounts={restaurantUser?.paymentAccounts}
+            paymentAccounts={paymentAccounts}
             selectedAccountId={selectedAccountId}
             onSelectAccount={setSelectedAccountId}
           />
@@ -331,7 +354,7 @@ export const RestaurantDashboard = ({
             userId={restaurantUserId}
             token={token}
             onRefresh={fetchData}
-            paymentAccounts={restaurantUser?.paymentAccounts}
+            paymentAccounts={paymentAccounts}
             selectedAccountId={selectedAccountId}
           />
 
@@ -356,8 +379,7 @@ export const RestaurantDashboard = ({
   }
 
   const hasMultipleBranches =
-    !!restaurantUser?.paymentAccounts &&
-    Object.keys(restaurantUser.paymentAccounts).length > 1;
+    !!paymentAccounts && Object.keys(paymentAccounts).length > 1;
   const showAllBranches = hasMultipleBranches && selectedAccountId === null;
 
   return (
@@ -527,7 +549,7 @@ export const RestaurantDashboard = ({
         </div>
         {/* Payment Account Selector */}
         <PaymentAccountSelector
-          paymentAccounts={restaurantUser?.paymentAccounts}
+          paymentAccounts={paymentAccounts}
           selectedAccountId={selectedAccountId}
           onSelectAccount={setSelectedAccountId}
         />
