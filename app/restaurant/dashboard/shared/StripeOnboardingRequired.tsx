@@ -39,7 +39,30 @@ export const StripeOnboardingRequired = ({
       );
       window.location.href = onboardingUrl;
     } catch (err: any) {
-      setError(err.message || "Failed to get onboarding link");
+      // The account id comes from the profile cached in localStorage at
+      // login, which goes stale if the Stripe account is replaced
+      // server-side. Re-fetch the profile, replace the cache, and retry
+      // once with the account id the server actually has.
+      try {
+        const profile = await restaurantApi.getProfile();
+        localStorage.setItem("user", JSON.stringify(profile));
+        const freshAccounts =
+          profile?.user?.restaurantUser?.paymentAccounts ?? null;
+        const freshIds = freshAccounts ? Object.keys(freshAccounts) : [];
+        const retryId = freshIds.length === 1 ? freshIds[0] : undefined;
+        if (retryId && retryId !== accountId) {
+          const { onboardingUrl } = await restaurantApi.refreshOnboardingLink(
+            userId,
+            token,
+            retryId
+          );
+          window.location.href = onboardingUrl;
+          return;
+        }
+        setError(err.message || "Failed to get onboarding link");
+      } catch {
+        setError(err.message || "Failed to get onboarding link");
+      }
     } finally {
       setLoading(false);
     }
