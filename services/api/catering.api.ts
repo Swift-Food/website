@@ -34,6 +34,13 @@ import { CategoryWithSubcategories } from "@/types/catering.types";
 import { API_BASE_URL, GOOGLE_MAPS_API_KEY } from "@/lib/constants";
 import { API_ENDPOINTS } from "@/lib/constants/api";
 
+export interface PartnerBranding {
+  name: string;
+  slug: string;
+  logoImageUrl: string | null;
+  theme: { primary?: string } | null;
+}
+
 class CateringService {
   private readErrorMessage = async (response: Response): Promise<string> => {
     const contentType = response.headers.get("content-type") || "";
@@ -731,6 +738,23 @@ class CateringService {
     }
 
     return response.json();
+  }
+
+  /**
+   * Public branding lookup for the branded /event-order page. Returns null for
+   * unknown/inactive slugs or any network error so the page can fall back to
+   * the default unbranded experience without breaking.
+   */
+  async getPartnerBrandingBySlug(slug: string): Promise<PartnerBranding | null> {
+    try {
+      const response = await fetchWithAuth(
+        `${API_BASE_URL}/partner-spaces/public/by-slug/${encodeURIComponent(slug)}`,
+      );
+      if (!response.ok) return null;
+      return (await response.json()) as PartnerBranding;
+    } catch {
+      return null;
+    }
   }
 
   async cancelOrder(orderId: string, accessToken?: string): Promise<void> {
