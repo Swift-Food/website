@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 interface PartnerBrandedHeaderProps {
   logoImageUrl: string | null;
   name: string;
@@ -29,7 +31,14 @@ export default function PartnerBrandedHeader({
         )}
       </div>
       <span className="text-sm text-gray-500 shrink-0">
-        Powered by <span className="font-semibold text-gray-700">Swift</span>
+        Powered by{" "}
+        <Link
+          href="/"
+          className="font-bold text-[#fa43ad] align-middle hover:opacity-80 transition-opacity"
+          style={{ fontFamily: "'Mont', Arial, sans-serif" }}
+        >
+          SWIFT FOOD
+        </Link>
       </span>
     </header>
   );

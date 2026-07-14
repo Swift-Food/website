@@ -10,7 +10,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { navbarDark } = useScroll();
+  const { navbarDark, hideNavbar } = useScroll();
 
   // The partner portal is an app-like surface with its own chrome — no marketing nav.
   const isPartnerPath = pathname?.startsWith("/partners");
@@ -32,6 +32,7 @@ export default function Navbar() {
   };
 
   if (isPartnerPath) return null;
+  if (hideNavbar) return null;
 
   return (
     <>

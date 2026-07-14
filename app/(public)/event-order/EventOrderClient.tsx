@@ -8,6 +8,7 @@ import {
   type PartnerBranding,
 } from "@/services/api/catering.api";
 import { parseInitialDataFromParams } from "@/lib/branding/parseInitialDataFromParams";
+import { useScroll } from "@/context/ScrollContext";
 import PartnerBrandedHeader from "./PartnerBrandedHeader";
 
 const DEFAULT_PRIMARY = "#fa43ad";
@@ -15,8 +16,14 @@ const DEFAULT_PRIMARY = "#fa43ad";
 export default function EventOrderClient() {
   const searchParams = useSearchParams();
   const partnerSlug = searchParams.get("partner");
+  const { setHideNavbar } = useScroll();
 
   const [branding, setBranding] = useState<PartnerBranding | null>(null);
+
+  useEffect(() => {
+    setHideNavbar(!!partnerSlug);
+    return () => setHideNavbar(false);
+  }, [partnerSlug, setHideNavbar]);
 
   // Parse prefill once from the current query string.
   const initialData = parseInitialDataFromParams(
