@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import EventOrderClient from "./EventOrderClient";
 
 export const metadata: Metadata = {
@@ -27,5 +28,9 @@ export const metadata: Metadata = {
 };
 
 export default function CateringPage() {
-  return <EventOrderClient />;
+  return (
+    <Suspense fallback={null}>
+      <EventOrderClient />
+    </Suspense>
+  );
 }
