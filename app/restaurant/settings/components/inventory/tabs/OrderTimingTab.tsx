@@ -8,6 +8,7 @@ import {
   Loader,
   ChevronRight,
   ImageOff,
+  ArrowRight,
 } from "lucide-react";
 import { SettingsCard } from "../components/SettingsCard";
 import { NumberFieldWithUnit } from "../components/NumberFieldWithUnit";
@@ -21,6 +22,7 @@ import {
 } from "../components/MenuItemPreviewModal";
 import {
   useOrderTimingState,
+  type BusinessDayCutoff,
   type NoticeHoursGroupItem,
 } from "../hooks/useOrderTimingState";
 
@@ -28,11 +30,122 @@ interface Props {
   restaurantId: string;
 }
 
-/**
- * Order Timing tab — everything about WHEN a customer can order:
- * restaurant-wide default notice, per-menu-group overrides, and the
- * maximum size of a single order.
- */
+// ---------------------------------------------------------------------------
+// Business-day cutoff helpers
+// ---------------------------------------------------------------------------
+
+const DAY_ABBR_BY_INDEX = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function formatCutoffTime(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const hour = h ?? 0;
+  const period = hour >= 12 ? "PM" : "AM";
+  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${display}:${String(m ?? 0).padStart(2, "0")} ${period}`;
+}
+
+/** Deadline weekday for a delivery day: step back N business days (skip Sat/Sun). */
+function deadlineDayIndex(deliveryIdx: number, businessDaysBefore: number): number {
+  let idx = deliveryIdx;
+  let remaining = businessDaysBefore;
+  while (remaining > 0) {
+    idx = (idx + 6) % 7;
+    if (idx !== 0 && idx !== 6) remaining--;
+  }
+  return idx;
+}
+
+// ---------------------------------------------------------------------------
+// BusinessDayCutoffEditor component
+// ---------------------------------------------------------------------------
+
+interface BusinessDayCutoffEditorProps {
+  draft: BusinessDayCutoff;
+  onChange: (patch: Partial<BusinessDayCutoff>) => void;
+}
+
+/** Delivery days in display order: Mon..Fri then Sat/Sun. */
+const PREVIEW_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+function BusinessDayCutoffEditor({ draft, onChange }: BusinessDayCutoffEditorProps) {
+  return (
+    <div className="mt-3 rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+        <Calendar size={13} className="text-gray-400" />
+        <span className="text-xs font-semibold text-gray-600 tracking-wide uppercase">
+          Business-day cut-off
+        </span>
+      </div>
+
+      {/* Rule inputs */}
+      <div className="px-4 py-3 flex items-center gap-2 flex-wrap">
+        <span className="text-sm text-gray-600">Orders close</span>
+        <input
+          type="number"
+          min={1}
+          max={10}
+          value={draft.businessDaysBefore}
+          onChange={(e) => {
+            const v = Math.max(1, Math.min(10, parseInt(e.target.value) || 1));
+            onChange({ businessDaysBefore: v });
+          }}
+          aria-label="Business days before delivery"
+          className="w-12 px-1.5 py-1.5 text-center text-sm font-bold rounded-md border-2 border-blue-200 text-blue-800 bg-white transition-all focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300"
+        />
+        <span className="text-sm text-gray-600">
+          business day{draft.businessDaysBefore !== 1 ? "s" : ""} before delivery, at
+        </span>
+        <input
+          type="time"
+          value={draft.cutoffTime}
+          onChange={(e) => onChange({ cutoffTime: e.target.value })}
+          aria-label="Cut-off time"
+          className="px-2 py-1.5 text-sm font-semibold rounded-md border-2 border-blue-200 text-blue-800 bg-white transition-all focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-300"
+        />
+      </div>
+
+      {/* Live mapping: delivery day → deadline */}
+      <div className="px-4 pb-3">
+        <div className="flex flex-wrap gap-1.5">
+          {PREVIEW_ORDER.map((deliveryIdx) => {
+            const isWeekend = deliveryIdx === 0 || deliveryIdx === 6;
+            const dIdx = deadlineDayIndex(deliveryIdx, draft.businessDaysBefore);
+            return (
+              <span
+                key={deliveryIdx}
+                className={[
+                  "inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap",
+                  isWeekend
+                    ? "bg-amber-50 text-amber-700 border border-amber-100"
+                    : "bg-gray-50 text-gray-600 border border-gray-100",
+                ].join(" ")}
+              >
+                <span className="font-bold">{DAY_ABBR_BY_INDEX[deliveryIdx]}</span>
+                <ArrowRight size={9} className="opacity-50" />
+                <span>
+                  {DAY_ABBR_BY_INDEX[dIdx]} {formatCutoffTime(draft.cutoffTime)}
+                </span>
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Footer hint */}
+      <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+        <p className="text-[10px] text-gray-400 leading-relaxed">
+          Business days are Mon–Fri, so weekend and Monday deliveries all cut off on Friday.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main tab component
+// ---------------------------------------------------------------------------
+
 export const OrderTimingTab = ({ restaurantId }: Props) => {
   const state = useOrderTimingState(restaurantId);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -66,11 +179,15 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
     enableMaxPortionsPerOrder,
     noticeGroups,
     noticeGroupDrafts,
+    groupBusinessCutoffDrafts,
+    groupModeDrafts,
     setMinimumDeliveryNoticeHours,
     setAdvanceNoticeSettings,
     setMaxPortionsPerOrder,
     setEnableMaxPortionsPerOrder,
     setGroupDraft,
+    setGroupMode,
+    setGroupBusinessCutoff,
   } = state;
 
   const noticeType = advanceNoticeSettings?.type ?? "hours";
@@ -143,7 +260,7 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
     <SettingsCard
       icon={Clock}
       title="Order Timing"
-      subtitle="When customers can order — and how big each order can be"
+      subtitle="Advance notice, business-day cut-offs, and order size limits"
       accent="blue"
       footer={
         <SaveBar
@@ -241,93 +358,106 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
       {noticeGroups.length > 0 && (
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Longer notice for specific menu groups
+            Group order cut-offs
           </label>
           <p className="text-xs text-gray-500 mb-3">
-            Most groups use your default above. Click a group to see what&apos;s
-            inside and set a longer notice if some items need more prep time
-            (like large-batch bundles or cakes).
+            Override the default for specific menu groups — set a fixed advance
+            notice in hours, or a business-day cut-off for groups whose orders
+            must be placed by a deadline on the previous working day.
           </p>
           <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 bg-white overflow-hidden">
             {noticeGroups.map((row) => {
               const draftRaw = noticeGroupDrafts[row.groupTitle] ?? "";
-              const isCustom = draftRaw.trim().length > 0;
+              const businessCutoffDraft = groupBusinessCutoffDrafts[row.groupTitle];
               const isExpanded = expandedGroups.has(row.groupTitle);
               const defaultHoursLabel = `${minimumDeliveryNoticeHours}h`;
+              const groupMode = groupModeDrafts[row.groupTitle] ?? "default";
 
-              const setMode = (mode: "default" | "custom") => {
+              const setMode = (mode: "default" | "hours" | "business_days") => {
+                setGroupMode(row.groupTitle, mode);
                 if (mode === "default") {
                   setGroupDraft(row.groupTitle, "");
-                } else {
-                  // Custom seeded with restaurant default so the user edits
-                  // down from a real number, not from an empty box.
-                  const current = noticeGroupDrafts[row.groupTitle] ?? "";
-                  if (current.trim() === "") {
-                    setGroupDraft(
-                      row.groupTitle,
-                      String(minimumDeliveryNoticeHours),
-                    );
+                } else if (mode === "hours") {
+                  if ((noticeGroupDrafts[row.groupTitle] ?? "").trim() === "") {
+                    setGroupDraft(row.groupTitle, String(minimumDeliveryNoticeHours));
                   }
+                } else {
+                  setGroupDraft(row.groupTitle, "");
                 }
               };
 
               return (
                 <div key={row.groupTitle}>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-3 sm:px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => toggleExpanded(row.groupTitle)}
-                      className="flex items-center gap-2 min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
-                      aria-expanded={isExpanded}
-                      aria-controls={`items-${row.groupTitle}`}
-                    >
-                      <ChevronRight
-                        size={16}
-                        className={`text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold text-gray-900 truncate">
-                          {row.groupTitle}
+                  <div className="flex flex-col gap-0 px-3 sm:px-4 py-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(row.groupTitle)}
+                        className="flex items-center gap-2 min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
+                        aria-expanded={isExpanded}
+                        aria-controls={`items-${row.groupTitle}`}
+                      >
+                        <ChevronRight
+                          size={16}
+                          className={`text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-semibold text-gray-900 truncate">
+                            {row.groupTitle}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {row.itemCount}{" "}
+                            {row.itemCount === 1 ? "item" : "items"}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {row.itemCount}{" "}
-                          {row.itemCount === 1 ? "item" : "items"}
-                        </div>
+                      </button>
+                      <div className="flex items-center gap-2 sm:flex-shrink-0">
+                        <SegmentedToggle
+                          options={[
+                            { value: "default", label: `Default (${defaultHoursLabel})` },
+                            { value: "hours", label: "Hours" },
+                            { value: "business_days", label: "Business days" },
+                          ]}
+                          value={groupMode}
+                          onChange={setMode}
+                          accent="blue"
+                          ariaLabel={`Notice mode for ${row.groupTitle}`}
+                        />
+                        {groupMode === "hours" && (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              min={0}
+                              step={1}
+                              inputMode="numeric"
+                              value={draftRaw}
+                              onChange={(e) =>
+                                setGroupDraft(row.groupTitle, e.target.value)
+                              }
+                              aria-label={`Notice hours for ${row.groupTitle}`}
+                              className="w-16 px-2 py-1.5 text-center text-sm font-bold border-2 border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all"
+                              autoFocus
+                            />
+                            <span className="text-xs font-medium text-gray-600">
+                              hours
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </button>
-                    <div className="flex items-center gap-2 sm:flex-shrink-0">
-                      <SegmentedToggle
-                        options={[
-                          { value: "default", label: `Default (${defaultHoursLabel})` },
-                          { value: "custom", label: "Custom" },
-                        ]}
-                        value={isCustom ? "custom" : "default"}
-                        onChange={setMode}
-                        accent="blue"
-                        ariaLabel={`Notice mode for ${row.groupTitle}`}
-                      />
-                      {isCustom && (
-                        <div className="flex items-center gap-1.5">
-                          <input
-                            type="number"
-                            min={0}
-                            step={1}
-                            inputMode="numeric"
-                            value={draftRaw}
-                            onChange={(e) =>
-                              setGroupDraft(row.groupTitle, e.target.value)
-                            }
-                            aria-label={`Notice hours for ${row.groupTitle}`}
-                            className="w-16 px-2 py-1.5 text-center text-sm font-bold border-2 border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all"
-                            autoFocus
-                          />
-                          <span className="text-xs font-medium text-gray-600">
-                            hours
-                          </span>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Business-day cut-off editor — renders inline when selected */}
+                    {groupMode === "business_days" && businessCutoffDraft && (
+                      <BusinessDayCutoffEditor
+                        draft={businessCutoffDraft}
+                        onChange={(patch) =>
+                          setGroupBusinessCutoff(row.groupTitle, patch)
+                        }
+                      />
+                    )}
                   </div>
+
+                  {/* Item list expansion */}
                   {isExpanded && (
                     <div
                       id={`items-${row.groupTitle}`}

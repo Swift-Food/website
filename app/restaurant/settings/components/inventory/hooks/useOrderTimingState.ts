@@ -5,10 +5,18 @@ import { restaurantApi } from "@/services/api/restaurant.api";
 import { fetchWithAuth, API_BASE_URL } from "@/lib/api-client/auth-client";
 import { AdvanceNoticeSettings } from "@/types/inventory.types";
 
+export interface BusinessDayCutoff {
+  /** How many business days (Mon–Fri) before delivery orders close. */
+  businessDaysBefore: number;
+  /** 'HH:MM' — time of day on the deadline date. */
+  cutoffTime: string;
+}
+
+export type GroupMode = "default" | "hours" | "business_days";
+
 export interface NoticeHoursGroupItem {
   id: string;
   name: string;
-  /** Optional preview fields — present after backend v2584+. */
   description?: string | null;
   price?: number;
   images?: string[];
@@ -21,9 +29,9 @@ export interface NoticeHoursGroupItem {
 export interface NoticeHoursGroupRow {
   groupTitle: string;
   itemCount: number;
-  /** Present after backend v2583+. Older responses may omit this. */
   items?: NoticeHoursGroupItem[];
   noticeHoursOverride: number | null;
+  businessDayCutoff?: BusinessDayCutoff | null;
 }
 
 interface Snapshot {
@@ -32,38 +40,33 @@ interface Snapshot {
   maxPortionsPerOrder: number | null;
   enableMaxPortionsPerOrder: boolean;
   groupOverrides: Record<string, number | null>;
+  groupBusinessCutoffs: Record<string, BusinessDayCutoff | null>;
 }
 
-const groupSnapshotFromRows = (rows: NoticeHoursGroupRow[]): Record<string, number | null> => {
+const DEFAULT_BUSINESS_CUTOFF: BusinessDayCutoff = {
+  businessDaysBefore: 1,
+  cutoffTime: "14:00",
+};
+
+function snapshotBusinessCutoffs(
+  rows: NoticeHoursGroupRow[],
+): Record<string, BusinessDayCutoff | null> {
+  const out: Record<string, BusinessDayCutoff | null> = {};
+  for (const r of rows) out[r.groupTitle] = r.businessDayCutoff ?? null;
+  return out;
+}
+
+function snapshotHours(rows: NoticeHoursGroupRow[]): Record<string, number | null> {
   const out: Record<string, number | null> = {};
   for (const r of rows) out[r.groupTitle] = r.noticeHoursOverride;
   return out;
-};
-
-const groupSnapshotFromDrafts = (
-  rows: NoticeHoursGroupRow[],
-  drafts: Record<string, string>,
-): Record<string, number | null> => {
-  const out: Record<string, number | null> = {};
-  for (const r of rows) {
-    const raw = (drafts[r.groupTitle] ?? "").trim();
-    if (raw === "") {
-      out[r.groupTitle] = null;
-    } else {
-      const n = Math.max(0, Math.floor(Number(raw)));
-      out[r.groupTitle] = Number.isFinite(n) ? n : null;
-    }
-  }
-  return out;
-};
+}
 
 /**
- * State + persistence for the Order Timing tab.
- *
- * Owns the restaurant-wide default notice, the two-mode advance-notice
- * shape, max portions per order, and per-group overrides. Save batches
- * the order-settings PATCH with N per-group PUT/DELETEs in parallel so
- * the UI presents "one save" to the user.
+ * State + persistence for the Order Timing tab. Owns restaurant-wide default
+ * notice, advance-notice shape, max portions per order, per-group hours
+ * overrides, and per-group business-day cutoffs. Save batches all writes in
+ * parallel so the UI presents "one save" to the user.
  */
 export const useOrderTimingState = (restaurantId: string) => {
   const [loading, setLoading] = useState(true);
@@ -77,6 +80,11 @@ export const useOrderTimingState = (restaurantId: string) => {
   const [enableMaxPortionsPerOrder, setEnableMaxPortionsPerOrder] = useState(false);
   const [noticeGroups, setNoticeGroups] = useState<NoticeHoursGroupRow[]>([]);
   const [noticeGroupDrafts, setNoticeGroupDrafts] = useState<Record<string, string>>({});
+  const [groupBusinessCutoffDrafts, setGroupBusinessCutoffDrafts] = useState<
+    Record<string, BusinessDayCutoff>
+  >({});
+  // Explicit mode per group — not derived, so switching modes always sticks
+  const [groupModeDrafts, setGroupModeDrafts] = useState<Record<string, GroupMode>>({});
 
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
 
@@ -91,8 +99,7 @@ export const useOrderTimingState = (restaurantId: string) => {
         (details.minimumDeliveryNoticeHours
           ? { type: "hours", hours: details.minimumDeliveryNoticeHours }
           : null);
-      const maxPerOrder: number | null =
-        details.maxPortionsPerOrder ?? null;
+      const maxPerOrder: number | null = details.maxPortionsPerOrder ?? null;
       const enableMax = maxPerOrder != null;
 
       setMinimumDeliveryNoticeHours(defaultHours);
@@ -115,20 +122,35 @@ export const useOrderTimingState = (restaurantId: string) => {
       } catch (err) {
         console.warn("Failed to load notice-hours groups:", err);
       }
+
       setNoticeGroups(groups);
-      const drafts: Record<string, string> = {};
+
+      const hourDrafts: Record<string, string> = {};
+      const cutoffDrafts: Record<string, BusinessDayCutoff> = {};
+      const modeDrafts: Record<string, GroupMode> = {};
       for (const g of groups) {
-        drafts[g.groupTitle] =
+        hourDrafts[g.groupTitle] =
           g.noticeHoursOverride == null ? "" : String(g.noticeHoursOverride);
+        cutoffDrafts[g.groupTitle] = g.businessDayCutoff ?? { ...DEFAULT_BUSINESS_CUTOFF };
+        if (g.businessDayCutoff) {
+          modeDrafts[g.groupTitle] = "business_days";
+        } else if (g.noticeHoursOverride != null) {
+          modeDrafts[g.groupTitle] = "hours";
+        } else {
+          modeDrafts[g.groupTitle] = "default";
+        }
       }
-      setNoticeGroupDrafts(drafts);
+      setNoticeGroupDrafts(hourDrafts);
+      setGroupBusinessCutoffDrafts(cutoffDrafts);
+      setGroupModeDrafts(modeDrafts);
 
       setSnapshot({
         minimumDeliveryNoticeHours: defaultHours,
         advanceNoticeSettings: advance,
         maxPortionsPerOrder: maxPerOrder,
         enableMaxPortionsPerOrder: enableMax,
-        groupOverrides: groupSnapshotFromRows(groups),
+        groupOverrides: snapshotHours(groups),
+        groupBusinessCutoffs: snapshotBusinessCutoffs(groups),
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load timing settings");
@@ -146,15 +168,54 @@ export const useOrderTimingState = (restaurantId: string) => {
     setNoticeGroupDrafts((prev) => ({ ...prev, [groupTitle]: value }));
   };
 
+  const setGroupMode = (groupTitle: string, mode: GroupMode) => {
+    setGroupModeDrafts((prev) => ({ ...prev, [groupTitle]: mode }));
+  };
+
+  const setGroupBusinessCutoff = (
+    groupTitle: string,
+    patch: Partial<BusinessDayCutoff>,
+  ) => {
+    setGroupBusinessCutoffDrafts((prev) => ({
+      ...prev,
+      [groupTitle]: {
+        ...(prev[groupTitle] ?? DEFAULT_BUSINESS_CUTOFF),
+        ...patch,
+      },
+    }));
+  };
+
+  /** What each group's draft resolves to under its current mode. */
+  const resolveGroupDraft = (
+    groupTitle: string,
+  ): { hours: number | null; cutoff: BusinessDayCutoff | null } => {
+    const mode = groupModeDrafts[groupTitle] ?? "default";
+    if (mode === "hours") {
+      const raw = (noticeGroupDrafts[groupTitle] ?? "").trim();
+      return {
+        hours: raw === "" ? null : Math.max(0, Math.floor(Number(raw))),
+        cutoff: null,
+      };
+    }
+    if (mode === "business_days") {
+      return {
+        hours: null,
+        cutoff: groupBusinessCutoffDrafts[groupTitle] ?? { ...DEFAULT_BUSINESS_CUTOFF },
+      };
+    }
+    return { hours: null, cutoff: null };
+  };
+
   const hasChanges = (() => {
     if (!snapshot) return false;
     if (snapshot.minimumDeliveryNoticeHours !== minimumDeliveryNoticeHours) return true;
     if (JSON.stringify(snapshot.advanceNoticeSettings) !== JSON.stringify(advanceNoticeSettings)) return true;
     if (snapshot.maxPortionsPerOrder !== (enableMaxPortionsPerOrder ? maxPortionsPerOrder : null)) return true;
     if (snapshot.enableMaxPortionsPerOrder !== enableMaxPortionsPerOrder) return true;
-    const nextGroups = groupSnapshotFromDrafts(noticeGroups, noticeGroupDrafts);
     for (const g of noticeGroups) {
-      if (snapshot.groupOverrides[g.groupTitle] !== nextGroups[g.groupTitle]) return true;
+      const { hours, cutoff } = resolveGroupDraft(g.groupTitle);
+      if (hours !== snapshot.groupOverrides[g.groupTitle]) return true;
+      if (JSON.stringify(cutoff) !== JSON.stringify(snapshot.groupBusinessCutoffs[g.groupTitle])) return true;
     }
     return false;
   })();
@@ -170,27 +231,33 @@ export const useOrderTimingState = (restaurantId: string) => {
         advanceNoticeSettings,
       });
 
-      // Diff group drafts against server snapshot; PUT changes, DELETE removals.
       const groupWrites = noticeGroups
         .map((row) => {
-          const draft = (noticeGroupDrafts[row.groupTitle] ?? "").trim();
+          const { hours: draftHours, cutoff: draftCutoff } = resolveGroupDraft(row.groupTitle);
           const encoded = encodeURIComponent(row.groupTitle);
-          if (draft === "") {
-            if (row.noticeHoursOverride == null) return null;
+
+          const hoursChanged = draftHours !== row.noticeHoursOverride;
+          const cutoffChanged =
+            JSON.stringify(draftCutoff) !== JSON.stringify(row.businessDayCutoff ?? null);
+
+          if (!hoursChanged && !cutoffChanged) return null;
+
+          // Full clear → DELETE
+          if (draftHours === null && draftCutoff === null) {
+            if (row.noticeHoursOverride == null && !row.businessDayCutoff) return null;
             return fetchWithAuth(
               `${API_BASE_URL}/restaurants/${restaurantId}/notice-hours/${encoded}`,
               { method: "DELETE" },
             );
           }
-          const hours = Math.max(0, Math.floor(Number(draft)));
-          if (!Number.isFinite(hours)) return null;
-          if (hours === row.noticeHoursOverride) return null;
+
+          const body: Record<string, unknown> = {};
+          if (hoursChanged) body.noticeHoursOverride = draftHours;
+          if (cutoffChanged) body.businessDayCutoff = draftCutoff;
+
           return fetchWithAuth(
             `${API_BASE_URL}/restaurants/${restaurantId}/notice-hours/${encoded}`,
-            {
-              method: "PUT",
-              body: JSON.stringify({ noticeHoursOverride: hours }),
-            },
+            { method: "PUT", body: JSON.stringify(body) },
           );
         })
         .filter((req): req is Promise<Response> => req != null);
@@ -228,12 +295,16 @@ export const useOrderTimingState = (restaurantId: string) => {
     enableMaxPortionsPerOrder,
     noticeGroups,
     noticeGroupDrafts,
+    groupBusinessCutoffDrafts,
+    groupModeDrafts,
 
     setMinimumDeliveryNoticeHours,
     setAdvanceNoticeSettings,
     setMaxPortionsPerOrder,
     setEnableMaxPortionsPerOrder,
     setGroupDraft,
+    setGroupMode,
+    setGroupBusinessCutoff,
 
     save,
   };

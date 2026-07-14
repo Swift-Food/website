@@ -9,11 +9,8 @@ import {
 import {
   Truck,
   Package,
-  MapPin,
   CheckCircle2,
   AlertCircle,
-  Star,
-  User,
   ChevronDown,
 } from "lucide-react";
 
@@ -32,8 +29,8 @@ const STATUS_CONFIG: Record<CustomerDeliveryStatus, {
   progressFill: string;
   step: number;
 }> = {
-  awaiting_pickup: {
-    label: "Driver picking up from restaurants",
+  booked: {
+    label: "Courier booked",
     icon: Package,
     color: "text-blue-700",
     bg: "bg-blue-50",
@@ -52,16 +49,6 @@ const STATUS_CONFIG: Record<CustomerDeliveryStatus, {
     progressFill: "bg-blue-500",
     step: 2,
   },
-  at_collection_point: {
-    label: "Driver has arrived",
-    icon: MapPin,
-    color: "text-purple-700",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-    progressBg: "bg-purple-100",
-    progressFill: "bg-purple-500",
-    step: 3,
-  },
   delivered: {
     label: "Delivered",
     icon: CheckCircle2,
@@ -70,7 +57,7 @@ const STATUS_CONFIG: Record<CustomerDeliveryStatus, {
     border: "border-green-200",
     progressBg: "bg-green-100",
     progressFill: "bg-green-500",
-    step: 4,
+    step: 3,
   },
 };
 
@@ -95,7 +82,7 @@ function SessionStatus({
   const config = STATUS_CONFIG[customerStatus];
   const Icon = config.icon;
   const isDelivered = customerStatus === "delivered";
-  const hasDetails = !!(tracking.driverInfo || (tracking.isDelayed && tracking.delayMessage));
+  const hasDetails = !!(tracking.trackingUrl || (tracking.isDelayed && tracking.delayMessage));
 
   return (
     <div className={`rounded-xl border ${config.border} ${config.bg} overflow-hidden transition-all`}>
@@ -145,7 +132,7 @@ function SessionStatus({
       {/* Progress bar — always visible, sits below the button */}
       <div className="px-3 sm:px-4 pb-2.5 sm:pb-3">
         <div className={`flex gap-1 h-1 rounded-full overflow-hidden`}>
-          {[1, 2, 3, 4].map((step) => (
+          {[1, 2, 3].map((step) => (
             <div
               key={step}
               className={`flex-1 rounded-full ${
@@ -169,18 +156,16 @@ function SessionStatus({
             </div>
           )}
 
-          {/* Driver info */}
-          {tracking.driverInfo && (
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white border border-gray-200">
-                <User className="w-3.5 h-3.5 text-gray-500" />
-              </div>
-              <span className="text-xs font-medium text-gray-700">{tracking.driverInfo.name}</span>
-              <div className="flex items-center gap-0.5">
-                <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                <span className="text-xs text-gray-500">{tracking.driverInfo.rating.toFixed(1)}</span>
-              </div>
-            </div>
+          {tracking.trackingUrl && !isDelivered && (
+            <a
+              href={tracking.trackingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors"
+            >
+              <Truck className="w-3.5 h-3.5" />
+              Track courier live
+            </a>
           )}
         </div>
       )}
