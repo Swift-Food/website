@@ -96,7 +96,7 @@ export const CoworkingMetrics = ({ spaceId }: Props) => {
         {/* Task 7 — Service Fee revenue metric */}
         <MetricCard
           icon={<Percent size={20} />}
-          label="Service Fee Revenue"
+          label="Commission Fee Revenue"
           value={fmt(metrics.serviceFeeRevenue)}
           sub="Catering commission earnings"
           accent="green"
@@ -130,7 +130,7 @@ export const CoworkingMetrics = ({ spaceId }: Props) => {
                 value: metrics.totalRevenue - metrics.serviceFeeRevenue - metrics.venueHireRevenue,
                 color: "bg-primary/70",
               },
-              { label: "Service Fee", value: metrics.serviceFeeRevenue, color: "bg-green-400" },
+              { label: "Commission Fee", value: metrics.serviceFeeRevenue, color: "bg-green-400" },
               { label: "Venue Hire", value: metrics.venueHireRevenue, color: "bg-blue-400" },
             ].map((item) => {
               const pct = metrics.totalRevenue > 0 ? (item.value / metrics.totalRevenue) * 100 : 0;

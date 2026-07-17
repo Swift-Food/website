@@ -187,7 +187,7 @@ export const OrderDetailModal = ({ spaceId, orderId, onClose }: Props) => {
                   {order.totals.serviceFee > 0 && (
                     <div className="flex justify-between text-primary">
                       <span>
-                        Service Fee
+                        Commission Fee
                         {order.totals.serviceFeeRate > 0 && (
                           <span className="ml-1 text-primary/70 text-xs">
                             ({order.totals.serviceFeeRate}%)

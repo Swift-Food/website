@@ -761,7 +761,7 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
               const serviceFeePct = Number(space.commission) || 0;
               return (
                 <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
-                  <p className="text-sm font-semibold text-gray-700">Service fee</p>
+                  <p className="text-sm font-semibold text-gray-700">Commission fee</p>
                   <span
                     className={
                       serviceFeePct > 0

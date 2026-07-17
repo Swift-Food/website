@@ -122,7 +122,7 @@ const EventCard = ({ order, onSelect }: EventCardProps) => (
       )}
       {order.serviceFee > 0 && (
         <div className="flex justify-between text-primary">
-          <span>Service fee</span>
+          <span>Commission fee</span>
           <span>{fmt(order.serviceFee)}</span>
         </div>
       )}
