@@ -109,7 +109,7 @@ function LoginForm() {
 
       <p className="text-center text-sm text-gray-500 mt-4">
         <a
-          href="/partners/set-password"
+          href={`/partners/set-password?reset=1${email.trim() ? `&email=${encodeURIComponent(email.trim())}` : ""}`}
           className="text-indigo-600 hover:text-indigo-800 font-medium"
         >
           Forgot password?

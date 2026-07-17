@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, CheckCircle, Building2, Loader } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
@@ -47,7 +47,7 @@ function SetPasswordForm() {
     }
   };
 
-  const handleResend = async () => {
+  const sendResetCode = useCallback(async () => {
     if (!email.trim()) {
       setError("Enter your email address first.");
       return;
@@ -63,7 +63,17 @@ function SetPasswordForm() {
     } finally {
       setResending(false);
     }
-  };
+  }, [email]);
+
+  const autoSentRef = useRef(false);
+  const shouldAutoSend =
+    searchParams.get("reset") === "1" && !!(searchParams.get("email") ?? "").trim() && !token;
+
+  useEffect(() => {
+    if (autoSentRef.current || !shouldAutoSend) return;
+    autoSentRef.current = true;
+    sendResetCode();
+  }, [shouldAutoSend, sendResetCode]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-md w-full">
@@ -116,7 +126,7 @@ function SetPasswordForm() {
               </label>
               <button
                 type="button"
-                onClick={handleResend}
+                onClick={sendResetCode}
                 disabled={resending}
                 className="text-xs text-indigo-600 hover:text-indigo-800 disabled:text-indigo-300 font-medium transition-colors flex items-center gap-1"
               >
