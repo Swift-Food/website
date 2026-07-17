@@ -160,7 +160,7 @@ export const coworkingApi = {
   },
 
   // GET /partner-dashboard/:spaceId/stripe-account/details
-  getStripeDetails: async (spaceId: string): Promise<{ accountId: string; onboardingComplete: boolean; email: string | null; payoutsEnabled: boolean; chargesEnabled: boolean }> => {
+  getStripeDetails: async (spaceId: string): Promise<{ accountId: string; onboardingComplete: boolean; email: string | null; payoutsEnabled: boolean; chargesEnabled: boolean; bankName: string | null; bankLast4: string | null }> => {
     const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/details`);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));

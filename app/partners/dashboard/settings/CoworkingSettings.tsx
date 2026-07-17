@@ -329,6 +329,19 @@ interface StripePayoutsSectionProps {
   onStripeComplete: () => void;
 }
 
+// Stripe returns bank names shouting ("BARCLAYS BANK UK PLC") — title-case
+// them but keep initialisms like UK/PLC/LTD/HSBC/TSB upper.
+const prettyBankName = (name: string) =>
+  name
+    .toLowerCase()
+    .split(" ")
+    .map((w) =>
+      ["uk", "plc", "ltd", "llp", "hsbc", "tsb", "rbs"].includes(w)
+        ? w.toUpperCase()
+        : w.charAt(0).toUpperCase() + w.slice(1),
+    )
+    .join(" ");
+
 const StripePayoutsSection = ({
   spaceId,
   stripeAccountId,
@@ -338,6 +351,7 @@ const StripePayoutsSection = ({
   const [localComplete, setLocalComplete] = useState(!!stripeOnboardingComplete);
   const [balance, setBalance] = useState<{ available: number; pending: number; currency: string } | null>(null);
   const [balanceError, setBalanceError] = useState(false);
+  const [accountLabel, setAccountLabel] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -354,12 +368,18 @@ const StripePayoutsSection = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // State 3: fetch balance whenever localComplete becomes true
+  // State 3: fetch balance + account identity whenever localComplete becomes true
   useEffect(() => {
     if (localComplete) {
       coworkingApi.getStripeBalance(spaceId)
         .then(setBalance)
         .catch(() => setBalanceError(true));
+      coworkingApi.getStripeDetails(spaceId)
+        .then((d) => {
+          const bank = d.bankName ? `${prettyBankName(d.bankName)} ••••${d.bankLast4}` : "";
+          setAccountLabel([d.email, bank].filter(Boolean).join(" · "));
+        })
+        .catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localComplete]);
@@ -551,9 +571,13 @@ const StripePayoutsSection = ({
               <p className="text-sm text-gray-400">Balance unavailable</p>
             )}
 
-            {stripeAccountId && (
+            {accountLabel ? (
+              <p className="text-xs text-gray-400" title={stripeAccountId || undefined}>
+                {accountLabel}
+              </p>
+            ) : stripeAccountId ? (
               <p className="font-mono text-xs text-gray-400">{stripeAccountId}</p>
-            )}
+            ) : null}
           </>
         )}
       </div>
