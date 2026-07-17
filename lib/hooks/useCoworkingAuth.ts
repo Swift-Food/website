@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import { coworkingApi } from '@/services/api/coworking.api';
-
-const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'cw_access_token',
-  REFRESH_TOKEN: 'cw_refresh_token',
-  USER: 'cw_user',
-} as const;
+import { PARTNER_STORAGE_KEYS } from '@/lib/api-client/storage-keys';
 
 export interface CoworkingSpaceUser {
   id: string;
@@ -19,14 +14,14 @@ export const useCoworkingAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-    const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+    const storedToken = localStorage.getItem(PARTNER_STORAGE_KEYS.accessToken);
+    const storedUser = localStorage.getItem(PARTNER_STORAGE_KEYS.user);
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch {
-        localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem(PARTNER_STORAGE_KEYS.user);
       }
     }
     setLoading(false);
@@ -34,28 +29,21 @@ export const useCoworkingAuth = () => {
 
   const login = async (email: string, password: string) => {
     const tokens = await coworkingApi.login(email, password);
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.access_token);
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refresh_token);
-
-    // Set main access_token so fetchWithAuth picks it up for getProfile
-    localStorage.setItem('access_token', tokens.access_token);
-    localStorage.setItem('refresh_token', tokens.refresh_token);
+    localStorage.setItem(PARTNER_STORAGE_KEYS.accessToken, tokens.access_token);
+    localStorage.setItem(PARTNER_STORAGE_KEYS.refreshToken, tokens.refresh_token);
 
     const profile = await coworkingApi.getProfile();
     const userObj = profile.user ?? profile;
-    console.log("Fetched user profile:", JSON.stringify(userObj));
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userObj));
+    localStorage.setItem(PARTNER_STORAGE_KEYS.user, JSON.stringify(userObj));
 
     setToken(tokens.access_token);
     setUser(userObj);
   };
 
   const logout = () => {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem(PARTNER_STORAGE_KEYS.accessToken);
+    localStorage.removeItem(PARTNER_STORAGE_KEYS.refreshToken);
+    localStorage.removeItem(PARTNER_STORAGE_KEYS.user);
     setToken(null);
     setUser(null);
   };

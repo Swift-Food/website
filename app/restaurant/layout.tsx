@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Loader } from "lucide-react";
+import { RESTAURANT_STORAGE_KEYS } from "@/lib/api-client/storage-keys";
 
 export default function RestaurantLayout({
   children,
@@ -20,7 +21,7 @@ export default function RestaurantLayout({
       return;
     }
 
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem(RESTAURANT_STORAGE_KEYS.accessToken);
 
     if (!token) {
       localStorage.setItem("redirect_after_login", pathname);

@@ -1,4 +1,4 @@
-import { fetchWithAuth, API_BASE_URL } from '@/lib/api-client/auth-client';
+import { fetchWithAuthPartner, API_BASE_URL } from '@/lib/api-client/auth-client';
 import {
   DashboardOrderSummary,
   DashboardOrderDetail,
@@ -24,14 +24,14 @@ export const coworkingApi = {
   },
 
   getProfile: async (): Promise<any> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/auth/profile`);
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/auth/profile`);
     if (!response.ok) throw new Error('Failed to fetch profile');
     return response.json();
   },
 
   // GET /partner-dashboard/:spaceId/info
   getSpace: async (spaceId: string): Promise<CoworkingSpace> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/info`);
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/info`);
     if (!response.ok) throw new Error('Failed to fetch space details');
     return response.json();
   },
@@ -45,7 +45,7 @@ export const coworkingApi = {
     if (params?.page) qs.set('page', String(params.page));
     if (params?.limit) qs.set('limit', String(params.limit));
     const url = `${API_BASE_URL}/partner-dashboard/${spaceId}/orders${qs.toString() ? `?${qs}` : ''}`;
-    const response = await fetchWithAuth(url);
+    const response = await fetchWithAuthPartner(url);
     if (!response.ok) throw new Error('Failed to fetch orders');
     const data = await response.json();
     // Response shape: { orders: [...], pagination: {...} }
@@ -56,14 +56,14 @@ export const coworkingApi = {
 
   // GET /partner-dashboard/:spaceId/orders/:orderId  (detail — if endpoint exists)
   getOrderDetail: async (spaceId: string, orderId: string): Promise<DashboardOrderDetail> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/orders/${orderId}`);
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/orders/${orderId}`);
     if (!response.ok) throw new Error('Failed to fetch order details');
     return response.json();
   },
 
   // GET /partner-dashboard/:spaceId/calendar
   getCalendar: async (spaceId: string): Promise<CalendarDay[]> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/calendar`);
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/calendar`);
     if (!response.ok) throw new Error('Failed to fetch calendar');
     const data = await response.json();
     // Response shape: { dates: [...] }
@@ -75,7 +75,7 @@ export const coworkingApi = {
 
   // PATCH /partner-dashboard/:spaceId/commission
   updateCommissionRate: async (spaceId: string, commission: number): Promise<{ commission: number }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/commission`, {
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/commission`, {
       method: 'PATCH',
       body: JSON.stringify({ commission }),
     });
@@ -114,7 +114,7 @@ export const coworkingApi = {
 
   // PATCH /partner-dashboard/:spaceId/restaurants
   updateSelectedRestaurants: async (spaceId: string, selectedRestaurantIds: string[]): Promise<{ selectedRestaurants: { id: string; restaurant_name: string }[] }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/restaurants`, {
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/restaurants`, {
       method: 'PATCH',
       body: JSON.stringify({ selectedRestaurantIds }),
     });
@@ -127,7 +127,7 @@ export const coworkingApi = {
 
   // POST /partner-dashboard/:spaceId/stripe-account
   createStripeAccount: async (spaceId: string): Promise<{ accountId: string; onboardingUrl: string }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account`, {
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -139,7 +139,7 @@ export const coworkingApi = {
 
   // GET /partner-dashboard/:spaceId/stripe-account/status
   getStripeStatus: async (spaceId: string): Promise<PartnerStripeStatus> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/status`);
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/status`);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body?.message || 'Failed to fetch Stripe status');
@@ -149,7 +149,7 @@ export const coworkingApi = {
 
   // POST /partner-dashboard/:spaceId/stripe-account/refresh
   refreshStripeOnboardingLink: async (spaceId: string): Promise<{ onboardingUrl: string }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/refresh`, {
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/refresh`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -161,7 +161,7 @@ export const coworkingApi = {
 
   // GET /partner-dashboard/:spaceId/stripe-account/details
   getStripeDetails: async (spaceId: string): Promise<{ accountId: string; onboardingComplete: boolean; email: string | null; payoutsEnabled: boolean; chargesEnabled: boolean }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/details`);
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/details`);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body?.message || 'Failed to fetch Stripe details');
@@ -171,7 +171,7 @@ export const coworkingApi = {
 
   // GET /partner-dashboard/:spaceId/stripe-account/balance
   getStripeBalance: async (spaceId: string): Promise<{ available: number; pending: number; currency: string }> => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/balance`);
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/stripe-account/balance`);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body?.message || 'Failed to fetch Stripe balance');
@@ -184,7 +184,7 @@ export const coworkingApi = {
     const qs = new URLSearchParams();
     if (from) qs.set('from', from);
     if (to) qs.set('to', to);
-    const response = await fetchWithAuth(
+    const response = await fetchWithAuthPartner(
       `${API_BASE_URL}/partner-dashboard/${spaceId}/metrics${qs.toString() ? `?${qs}` : ''}`
     );
     if (!response.ok) throw new Error('Failed to fetch metrics');
