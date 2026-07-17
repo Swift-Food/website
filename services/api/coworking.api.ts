@@ -99,6 +99,18 @@ export const coworkingApi = {
     }
   },
 
+  // POST /auth/change-password
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/auth/change-password`, {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body?.message || 'Failed to change password');
+    }
+  },
+
   // PATCH /partner-dashboard/:spaceId/restaurants
   updateSelectedRestaurants: async (spaceId: string, selectedRestaurantIds: string[]): Promise<{ selectedRestaurants: { id: string; restaurant_name: string }[] }> => {
     const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/restaurants`, {
