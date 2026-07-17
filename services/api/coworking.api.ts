@@ -73,19 +73,6 @@ export const coworkingApi = {
     return [];
   },
 
-  // PATCH /partner-dashboard/:spaceId/commission
-  updateCommissionRate: async (spaceId: string, commission: number): Promise<{ commission: number }> => {
-    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/commission`, {
-      method: 'PATCH',
-      body: JSON.stringify({ commission }),
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body?.message || 'Failed to update commission rate');
-    }
-    return response.json();
-  },
-
   // POST /auth/forgot-password
   forgotPassword: async (email: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {

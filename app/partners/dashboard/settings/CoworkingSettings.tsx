@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Loader, AlertCircle, CheckCircle, Info, Eye, EyeOff, Copy, Check, ExternalLink, Percent, KeyRound, Store, X, SlidersHorizontal, Search, CreditCard } from "lucide-react";
+import { Save, Loader, AlertCircle, CheckCircle, Eye, EyeOff, Copy, Check, ExternalLink, KeyRound, Store, X, SlidersHorizontal, Search, CreditCard } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
 
@@ -672,48 +672,15 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  // Task 6 — Commission rate state
-  const [commission, setCommission] = useState<string>("0");
-  const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState("");
-
   useEffect(() => {
     coworkingApi
       .getSpace(spaceId)
       .then((s) => {
         setSpace(s);
-        setCommission(String(s.commission ?? 0));
       })
       .catch((err) => setLoadError(err.message || "Failed to load settings"))
       .finally(() => setLoading(false));
   }, [spaceId]);
-
-  const handleSaveCommission = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setSaveError("");
-    setSaveSuccess(false);
-
-    const value = parseFloat(commission);
-    if (isNaN(value) || value < 0 || value > 100) {
-      setSaveError("Please enter a rate between 0 and 100.");
-      setSaving(false);
-      return;
-    }
-
-    try {
-      const result = await coworkingApi.updateCommissionRate(spaceId, value);
-      setCommission(String(result.commission));
-      setSpace((prev) => prev ? { ...prev, commission: result.commission } : prev);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 4000);
-    } catch (err: any) {
-      setSaveError(err.message || "Failed to update commission rate.");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleStripeComplete = () => {
     setSpace((prev) => (prev ? { ...prev, stripeOnboardingComplete: true } : prev));
@@ -735,9 +702,6 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
       </div>
     );
   }
-
-  const currentRate = space?.commission ?? 0;
-  const stripeGated = !space?.stripeOnboardingComplete;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -791,150 +755,35 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
                 <PublishableKeyField value={space.publishableKey} />
               </div>
             )}
+
+            {/* Service fee (read-only) */}
+            {(() => {
+              const serviceFeePct = Number(space.commission) || 0;
+              return (
+                <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+                  <p className="text-sm font-semibold text-gray-700">Service fee</p>
+                  <span
+                    className={
+                      serviceFeePct > 0
+                        ? "inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                        : "inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500"
+                    }
+                  >
+                    <span
+                      className={
+                        serviceFeePct > 0
+                          ? "h-1.5 w-1.5 rounded-full bg-primary"
+                          : "h-1.5 w-1.5 rounded-full bg-gray-400"
+                      }
+                    />
+                    {serviceFeePct > 0 ? `${serviceFeePct.toFixed(2)}%` : "No fee"}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
-
-      {/* ── Catering Service Fee card ──────────────────────────────── */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        {/* Card header */}
-        <div className="flex items-start gap-3 border-b border-gray-100 p-5 sm:p-6">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Percent size={18} />
-          </span>
-          <div>
-            <h2 className="font-semibold tracking-tight text-gray-900">
-              Catering service fee
-            </h2>
-            <p className="mt-0.5 text-sm text-gray-500">
-              A percentage charged on top of the catering food subtotal, after promotions.
-            </p>
-          </div>
-        </div>
-
-        <div className="p-5 sm:p-6">
-          {stripeGated && (
-            <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-              <Info size={14} className="mt-0.5 flex-shrink-0" />
-              <p>Complete Stripe payouts setup to configure your commission rate.</p>
-            </div>
-          )}
-          {/* Current rate hero */}
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                Current rate
-              </p>
-              {currentRate === 0 ? (
-                <p className="mt-0.5 text-3xl font-bold tracking-tight text-gray-300">
-                  No fee
-                </p>
-              ) : (
-                <p className="mt-0.5 text-3xl font-bold tracking-tight text-gray-900 tabular-nums">
-                  {currentRate}
-                  <span className="text-xl text-gray-400">%</span>
-                </p>
-              )}
-            </div>
-            <span
-              className={
-                currentRate > 0
-                  ? "inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
-                  : "inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500"
-              }
-            >
-              <span
-                className={
-                  currentRate > 0
-                    ? "h-1.5 w-1.5 rounded-full bg-primary"
-                    : "h-1.5 w-1.5 rounded-full bg-gray-400"
-                }
-              />
-              {currentRate > 0 ? "Active" : "Disabled"}
-            </span>
-          </div>
-
-          <form id="commission-form" onSubmit={handleSaveCommission} className="mt-6 space-y-4">
-            <div>
-              <label
-                htmlFor="commission-rate"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
-              >
-                Update rate
-              </label>
-              <div className="flex items-center gap-2.5">
-                <div className="relative">
-                  <input
-                    id="commission-rate"
-                    type="number"
-                    value={commission}
-                    onChange={(e) => setCommission(e.target.value)}
-                    min="0"
-                    max="100"
-                    step="0.5"
-                    disabled={stripeGated}
-                    className="w-36 rounded-lg border border-gray-300 py-2.5 pl-3 pr-8 text-sm text-gray-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-                    placeholder="0"
-                  />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">
-                    %
-                  </span>
-                </div>
-                <span className="text-sm text-gray-500">of food subtotal</span>
-              </div>
-              <p className="mt-1.5 text-xs text-gray-500">
-                Set to 0 to disable the service fee entirely.
-              </p>
-            </div>
-
-            {saveError && (
-              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                <AlertCircle size={14} className="flex-shrink-0" />
-                {saveError}
-              </div>
-            )}
-
-            {saveSuccess && (
-              <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                <CheckCircle size={14} className="flex-shrink-0" />
-                Service fee rate updated successfully.
-              </div>
-            )}
-
-            {/* Info note */}
-            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-              <Info size={14} className="mt-0.5 flex-shrink-0" />
-              <p>
-                This rate only applies to <strong>new orders</strong> placed after
-                saving. Existing orders are not affected — they retain the rate that was
-                active at the time of pricing.
-              </p>
-            </div>
-          </form>
-        </div>
-
-        {/* Sticky-feel footer action */}
-        <div className="flex justify-end border-t border-gray-100 bg-gray-50/60 px-5 py-4 sm:px-6">
-          <button
-            type="submit"
-            form="commission-form"
-            disabled={saving || stripeGated}
-            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/40"
-          >
-            {saving ? (
-              <>
-                <Loader size={14} className="animate-spin" />
-                Saving…
-              </>
-            ) : (
-              <>
-                <Save size={14} />
-                Save rate
-              </>
-            )}
-          </button>
-        </div>
-      </div>
 
       <RestaurantSelection
         spaceId={spaceId}
