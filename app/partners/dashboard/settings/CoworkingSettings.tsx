@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Save, Loader, AlertCircle, CheckCircle, Eye, EyeOff, Copy, Check, ExternalLink, KeyRound, Store, X, SlidersHorizontal, Search, CreditCard } from "lucide-react";
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
+import { ChangePasswordCard } from "./ChangePasswordCard";
 
 interface RestaurantSelectionProps {
   spaceId: string;
@@ -797,6 +798,8 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
         stripeOnboardingComplete={space?.stripeOnboardingComplete}
         onStripeComplete={handleStripeComplete}
       />
+
+      <ChangePasswordCard />
     </div>
   );
 };
