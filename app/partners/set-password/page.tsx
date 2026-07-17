@@ -10,6 +10,7 @@ function SetPasswordForm() {
   const searchParams = useSearchParams();
 
   const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const [token] = useState(searchParams.get("token") ?? "");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,13 +20,15 @@ function SetPasswordForm() {
   const [error, setError] = useState("");
   const [resendSuccess, setResendSuccess] = useState("");
 
+  const hasToken = !!token;
+
   const codeBad = code.length > 0 && !/^\d{6}$/.test(code);
   const passwordShort = password.length > 0 && password.length < 6;
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   const canSubmit =
     email.trim() &&
-    /^\d{6}$/.test(code) &&
+    (hasToken || /^\d{6}$/.test(code)) &&
     password.length >= 6 &&
     password === confirmPassword;
 
@@ -35,7 +38,7 @@ function SetPasswordForm() {
     setError("");
     setSubmitting(true);
     try {
-      await coworkingApi.resetPassword(email.trim(), code, password);
+      await coworkingApi.resetPassword(email.trim(), hasToken ? token : code, password);
       router.push("/partners/login?success=Password+set+successfully");
     } catch (err: any) {
       setError(err.message || "Failed to set password. Please try again.");
@@ -70,7 +73,9 @@ function SetPasswordForm() {
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Set your password</h1>
         <p className="text-gray-500 mt-1 text-sm">
-          Enter the 6-digit code from your email and choose a new password.
+          {hasToken
+            ? "Welcome - choose a password to activate your partner account."
+            : "Enter the 6-digit code from your email and choose a new password."}
         </p>
       </div>
 
@@ -103,37 +108,39 @@ function SetPasswordForm() {
           />
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">
-              6-digit code
-            </label>
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending}
-              className="text-xs text-indigo-600 hover:text-indigo-800 disabled:text-indigo-300 font-medium transition-colors flex items-center gap-1"
-            >
-              {resending && <Loader size={11} className="animate-spin" />}
-              {resending ? "Sending…" : "Resend code"}
-            </button>
+        {!hasToken && (
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                6-digit code
+              </label>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="text-xs text-indigo-600 hover:text-indigo-800 disabled:text-indigo-300 font-medium transition-colors flex items-center gap-1"
+              >
+                {resending && <Loader size={11} className="animate-spin" />}
+                {resending ? "Sending…" : "Resend code"}
+              </button>
+            </div>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              required
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 tracking-widest text-center text-lg font-mono ${
+                codeBad ? "border-red-400 bg-red-50" : "border-gray-300"
+              }`}
+              placeholder="000000"
+            />
+            {codeBad && (
+              <p className="mt-1 text-xs text-red-600">Must be exactly 6 digits.</p>
+            )}
           </div>
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            required
-            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 tracking-widest text-center text-lg font-mono ${
-              codeBad ? "border-red-400 bg-red-50" : "border-gray-300"
-            }`}
-            placeholder="000000"
-          />
-          {codeBad && (
-            <p className="mt-1 text-xs text-red-600">Must be exactly 6 digits.</p>
-          )}
-        </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
