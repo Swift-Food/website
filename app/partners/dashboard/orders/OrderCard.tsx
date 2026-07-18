@@ -98,7 +98,7 @@ export const OrderCard = ({ order, onViewDetail }: Props) => {
         {hasServiceFee && (
           <div className="flex justify-between text-primary">
             <span>
-              Commission fee
+              Service fee
               {order.serviceFeeRate > 0 && (
                 <span className="ml-1 text-xs text-primary/70">({order.serviceFeeRate}%)</span>
               )}
