@@ -81,6 +81,15 @@ export default function OrderSummary({ order }: OrderSummaryProps) {
           )}
         </div>
 
+        {order.partnerCommissionFee && Number(order.partnerCommissionFee) > 0 ? (
+          <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+            <span className="font-medium">Venue Service Fee:</span>
+            <span className="font-semibold">
+              £{Number(order.partnerCommissionFee).toFixed(2)}
+            </span>
+          </div>
+        ) : null}
+
         {order.promotionDiscount && Number(order.promotionDiscount) > 0 && (
           <div className="flex justify-between text-green-600 text-sm sm:text-base">
             <span className="font-semibold">Restaurant Promotion:</span>

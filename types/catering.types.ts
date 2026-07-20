@@ -699,6 +699,9 @@ export interface CateringOrderDetails {
   subtotal: number;
   serviceCharge: number;
   deliveryFee: number;
+  /** Partner space commission ("Venue Service Fee") — included in finalTotal */
+  partnerCommissionFee?: number;
+  partnerCommissionRate?: number;
   promoDiscount: number;
   promotionDiscount?: number;
   promoCodes: string[];

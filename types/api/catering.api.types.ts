@@ -180,6 +180,9 @@ export interface CateringOrderResponse {
   depositAmount?: number;
   estimatedTotal?: number;
   finalTotal?: number;
+  /** Partner space commission ("Venue Service Fee") — included in finalTotal */
+  partnerCommissionFee?: number;
+  partnerCommissionRate?: number;
   promoCodes?: string[];
   appliedPromotions?: AppliedPromotionsMap;
 
