@@ -245,20 +245,9 @@ const NewMenuItemPage = () => {
       const createdGroupName = newGroupName.trim();
       setNewGroupName("");
 
-      // Open the addon modal pre-filled for this new group so the user can add the first addon
-      setCurrentAddon({
-        name: "",
-        price: 0,
-        allergens: [],
-        dietaryRestrictions: [],
-        groupTitle: createdGroupName,
-        selectionType: "multiple_no_repeat",
-        isRequired: false,
-        isDefault: false,
-        displayOrder: 0,
-      } as any);
-      setEditingAddonIndex(null);
-      setShowAddonModal(true);
+      // Assign the new group to this item — this button lives on the item's
+      // own "Group/Category Title" field, not the addon-options wizard.
+      setGroupTitle(createdGroupName);
 
       setSuccess("Group created successfully");
       setTimeout(() => setSuccess(""), 3000);

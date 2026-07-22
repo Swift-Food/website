@@ -10,11 +10,12 @@ import { PendingEventImage } from "../components/profile/EventPhotosManager";
 import { InventorySection } from "../components/inventory/InventorySection";
 import { PickupAddressesSection } from "../components/PickupAddressesSection";
 import { CategoriesSection } from "../components/CategoriesSection";
+import { PaymentsSection } from "../components/PaymentsSection";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
-type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | "categories" | null;
+type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | "categories" | "payments" | null;
 
 interface FormData {
   restaurant_name: string;
@@ -377,6 +378,7 @@ const RestaurantSettingsPage = () => {
         onInventory={() => setActiveSection("inventory")}
         onPickupAddresses={() => setActiveSection("pickupAddresses")}
         onCategories={() => setActiveSection("categories")}
+        onPayments={() => setActiveSection("payments")}
         onBack={() => router.push("/restaurant/dashboard")}
         showInventory={formData.showOnSite || formData.isCorporate}
         error={error}
@@ -481,6 +483,11 @@ const RestaurantSettingsPage = () => {
         onBack={() => setActiveSection(null)}
       />
     );
+  }
+
+  // Payments (Stripe dashboard access)
+  if (activeSection === "payments") {
+    return <PaymentsSection onBack={() => setActiveSection(null)} />;
   }
 
   return null;

@@ -106,6 +106,23 @@ export const restaurantApi = {
     return response.json();
   },
 
+  // Link into the restaurant's own Stripe Express Dashboard (bank/business/tax
+  // details, payouts) for an ALREADY-onboarded account. Distinct from
+  // refreshOnboardingLink, which resumes the onboarding wizard for an
+  // incomplete signup. Single-use, expires within minutes — fetch and
+  // navigate immediately, never cache the URL.
+  getStripeDashboardLink: async (
+    userId: string,
+    accountId?: string | null
+  ): Promise<{ dashboardUrl: string }> => {
+    const url = accountId
+      ? `${API_BASE_URL}/restaurant-user/${userId}/stripe-dashboard-link?accountId=${accountId}`
+      : `${API_BASE_URL}/restaurant-user/${userId}/stripe-dashboard-link`;
+    const response = await fetchWithAuth(url);
+    if (!response.ok) throw new Error("Failed to get Stripe dashboard link");
+    return response.json();
+  },
+
   // Withdrawal endpoints
   getBalance: async (
     userId: string,

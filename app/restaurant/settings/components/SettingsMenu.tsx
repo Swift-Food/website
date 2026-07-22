@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Clock, ImageIcon, ShoppingBag, MapPin, Tag, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, ImageIcon, ShoppingBag, MapPin, Tag, AlertCircle, CreditCard } from "lucide-react";
 import { SettingsMenuCard } from "./shared/SettingsMenuCard";
 
 interface SettingsMenuProps {
@@ -9,6 +9,7 @@ interface SettingsMenuProps {
   onInventory: () => void;
   onPickupAddresses: () => void;
   onCategories: () => void;
+  onPayments: () => void;
   onBack: () => void;
   showInventory: boolean;
   error?: string;
@@ -21,6 +22,7 @@ export const SettingsMenu = ({
   onInventory,
   onPickupAddresses,
   onCategories,
+  onPayments,
   onBack,
   showInventory,
   error,
@@ -109,6 +111,15 @@ export const SettingsMenu = ({
             icon={Tag}
             color="emerald"
             onClick={onCategories}
+          />
+
+          {/* Payments Card */}
+          <SettingsMenuCard
+            title="Payments"
+            description="Manage your Stripe account — bank details, business info, tax documents"
+            icon={CreditCard}
+            color="purple"
+            onClick={onPayments}
           />
         </div>
 
