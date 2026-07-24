@@ -468,24 +468,26 @@ export const CateringOrderCard = ({
           </div>
         </div>
 
-        <button
-          onClick={() => downloadSessionChecklist(session.id, session.sessionName || formatDate(session.sessionDate))}
-          disabled={downloadingSessionId === session.id}
-          className="mb-2 px-2.5 py-1 bg-white text-blue-700 border border-blue-300 rounded text-xs hover:bg-blue-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
-          type="button"
-        >
-          {downloadingSessionId === session.id ? (
-            <>
-              <Loader size={12} className="animate-spin" />
-              Preparing...
-            </>
-          ) : (
-            <>
-              <ClipboardList size={12} />
-              Checklist for this session
-            </>
-          )}
-        </button>
+        {hasMultipleMealSessions && (
+          <button
+            onClick={() => downloadSessionChecklist(session.id, session.sessionName || formatDate(session.sessionDate))}
+            disabled={downloadingSessionId === session.id}
+            className="mb-2 px-2.5 py-1 bg-white text-blue-700 border border-blue-300 rounded text-xs hover:bg-blue-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
+            type="button"
+          >
+            {downloadingSessionId === session.id ? (
+              <>
+                <Loader size={12} className="animate-spin" />
+                Preparing...
+              </>
+            ) : (
+              <>
+                <ClipboardList size={12} />
+                Checklist for this session
+              </>
+            )}
+          </button>
+        )}
 
         {session.specialRequirements && (
           <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
@@ -522,6 +524,9 @@ export const CateringOrderCard = ({
 
   // Check if order has meal sessions
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
+  // Only split into a per-session checklist when there's more than one session —
+  // a single-session order keeps the plain top-level "Order Checklist" button.
+  const hasMultipleMealSessions = order.mealSessions && order.mealSessions.length > 1;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
@@ -652,7 +657,7 @@ export const CateringOrderCard = ({
             (each is a distinct pickup/delivery job — see renderMealSession),
             so this single order-wide button only applies when there's just
             one session (or none, the legacy flat-orderItems shape). */}
-        {!hasMealSessions && (
+        {!hasMultipleMealSessions && (
           <button
             onClick={downloadChecklist}
             disabled={downloadingChecklist}
