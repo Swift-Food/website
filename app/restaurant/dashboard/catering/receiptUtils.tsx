@@ -89,14 +89,38 @@ export async function fetchReceiptJson(
 export async function fetchOrderChecklistBlob(
   orderId: string,
   restaurantId: string,
+  sessionId?: string,
 ): Promise<Blob> {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDER_CHECKLIST(orderId, restaurantId)}`;
+  const url = `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDER_CHECKLIST(orderId, restaurantId, sessionId)}`;
   const res = await fetchWithAuth(url);
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Failed to fetch order checklist: ${res.status} ${text}`);
   }
   return res.blob();
+}
+
+export interface OrderChecklistSummary {
+  sessionId: string;
+  sessionRef: string;
+  sessionName?: string;
+  sessionDate: string;
+  collectionTime?: string;
+}
+
+// One entry per (restaurant, session) checklist available for this order —
+// a multi-session order has more than one; a single-session order has one.
+export async function fetchOrderChecklistsList(
+  orderId: string,
+  restaurantId: string,
+): Promise<OrderChecklistSummary[]> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.CATERING_ORDER_CHECKLISTS_LIST(orderId, restaurantId)}`;
+  const res = await fetchWithAuth(url);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to fetch order checklists: ${res.status} ${text}`);
+  }
+  return res.json();
 }
 
 /**

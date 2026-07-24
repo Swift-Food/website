@@ -23,8 +23,12 @@ export const API_ENDPOINTS = {
   CATERING_ORDERS: '/catering-orders',
   CATERING_ORDER_RECEIPT: (orderId: string, restaurantId: string) =>
     `/catering-orders/${orderId}/restaurant/${restaurantId}/receipt-calc?style=MENU_ITEM`,
-  CATERING_ORDER_CHECKLIST: (orderId: string, restaurantId: string) =>
-    `/catering-orders/${orderId}/restaurant/${restaurantId}/order-checklist-pdf`,
+  CATERING_ORDER_CHECKLIST: (orderId: string, restaurantId: string, sessionId?: string) =>
+    `/catering-orders/${orderId}/restaurant/${restaurantId}/order-checklist-pdf${sessionId ? `?sessionId=${sessionId}` : ""}`,
+  // Every (restaurant, session) checklist on this order for one restaurant —
+  // lets a multi-session order show one download button per delivery.
+  CATERING_ORDER_CHECKLISTS_LIST: (orderId: string, restaurantId: string) =>
+    `/catering-orders/${orderId}/restaurant/${restaurantId}/order-checklists`,
 
   // Catering Bundles
   CATERING_BUNDLE: (id: string) => `/catering-bundles/${id}`,

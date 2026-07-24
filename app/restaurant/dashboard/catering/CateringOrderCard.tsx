@@ -52,6 +52,7 @@ export const CateringOrderCard = ({
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
   const [viewingReceipt, setViewingReceipt] = useState(false);
   const [downloadingChecklist, setDownloadingChecklist] = useState(false);
+  const [downloadingSessionId, setDownloadingSessionId] = useState<string | null>(null);
 
   const isUnassigned = order.isUnassigned === true;
   const status = order.effectiveStatus || order.status;
@@ -174,6 +175,41 @@ export const CateringOrderCard = ({
       );
     } finally {
       setDownloadingChecklist(false);
+    }
+  };
+
+  // Download the checklist for ONE session — a multi-session order is
+  // several distinct pickup/delivery jobs, so each gets its own packing
+  // list, correct date/time, and a session-suffixed reference (8C84-01,
+  // 8C84-02...) instead of one merged, ambiguous document.
+  const downloadSessionChecklist = async (sessionId: string, sessionLabel: string) => {
+    if (!token) {
+      alert("Missing authentication token. Please log in again.");
+      return;
+    }
+    setDownloadingSessionId(sessionId);
+    try {
+      const blob = await fetchOrderChecklistBlob(order.id, restaurantId, sessionId);
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
+      if (!w) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `order-checklist-${order.id.slice(0, 8)}-${sessionLabel.replace(/\s+/g, "-")}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (err) {
+      console.error("Checklist download error:", err);
+      alert(
+        `Failed to download checklist: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setDownloadingSessionId(null);
     }
   };
 
@@ -432,6 +468,25 @@ export const CateringOrderCard = ({
           </div>
         </div>
 
+        <button
+          onClick={() => downloadSessionChecklist(session.id, session.sessionName || formatDate(session.sessionDate))}
+          disabled={downloadingSessionId === session.id}
+          className="mb-2 px-2.5 py-1 bg-white text-blue-700 border border-blue-300 rounded text-xs hover:bg-blue-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
+          type="button"
+        >
+          {downloadingSessionId === session.id ? (
+            <>
+              <Loader size={12} className="animate-spin" />
+              Preparing...
+            </>
+          ) : (
+            <>
+              <ClipboardList size={12} />
+              Checklist for this session
+            </>
+          )}
+        </button>
+
         {session.specialRequirements && (
           <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
             <p className="text-xs font-semibold text-yellow-900">Special Requirements:</p>
@@ -593,24 +648,30 @@ export const CateringOrderCard = ({
             </>
           )}
         </button>
-        <button
-          onClick={downloadChecklist}
-          disabled={downloadingChecklist}
-          className="px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-          type="button"
-        >
-          {downloadingChecklist ? (
-            <>
-              <Loader size={14} className="animate-spin" />
-              Preparing...
-            </>
-          ) : (
-            <>
-              <ClipboardList size={14} />
-              Order Checklist
-            </>
-          )}
-        </button>
+        {/* Multi-session orders get a checklist button per session instead
+            (each is a distinct pickup/delivery job — see renderMealSession),
+            so this single order-wide button only applies when there's just
+            one session (or none, the legacy flat-orderItems shape). */}
+        {!hasMealSessions && (
+          <button
+            onClick={downloadChecklist}
+            disabled={downloadingChecklist}
+            className="px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+            type="button"
+          >
+            {downloadingChecklist ? (
+              <>
+                <Loader size={14} className="animate-spin" />
+                Preparing...
+              </>
+            ) : (
+              <>
+                <ClipboardList size={14} />
+                Order Checklist
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Event Details */}
