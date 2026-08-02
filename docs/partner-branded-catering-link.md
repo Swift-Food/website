@@ -47,12 +47,12 @@ the customer lands with details already filled in.
 | `endDate` | `YYYY-MM-DD` | Event end date |
 | `endTime` | `HH:MM` (24-hour) | Event end time |
 | `guests` | integer | Guest count |
-| `line1` | free text | Delivery address line 1 |
-| `line2` | free text | Delivery address line 2 |
-| `city` | free text | Delivery city |
-| `postcode` | free text | Delivery postcode |
-| `lat` | decimal | Delivery latitude |
-| `lng` | decimal | Delivery longitude |
+| `line1` | free text | Delivery address line 1 — **required for address** |
+| `city` | free text | Delivery city — **required for address** |
+| `postcode` | free text | Delivery postcode — **required for address** |
+| `lat` | decimal | Delivery latitude — **required for address** |
+| `lng` | decimal | Delivery longitude — **required for address** |
+| `line2` | free text | Delivery address line 2 (optional) |
 | `name` | free text | Contact name |
 | `email` | free text | Contact email |
 | `phone` | free text | Contact phone |
@@ -61,8 +61,11 @@ the customer lands with details already filled in.
 Full example:
 
 ```
-https://swiftfood.uk/event-order?partner=test&eventName=Summer%20Social&startDate=2026-08-14&startTime=12:30&guests=40&line1=1%20Example%20St&city=London&postcode=SW1A%201AA&name=Jo%20Bloggs&email=jo@example.com
+https://swiftfood.uk/event-order?partner=test&eventName=Summer%20Social&startDate=2026-08-14&startTime=12:30&guests=40&line1=1%20Example%20St&city=London&postcode=SW1A%201AA&lat=51.501364&lng=-0.141890&name=Jo%20Bloggs&email=jo@example.com
 ```
+
+Note `lat` and `lng` — without them the address is discarded even though `line1`,
+`city` and `postcode` are all correct. See the address rule below.
 
 **URL-encode every value.** Spaces become `%20`, and an unencoded `&` inside a
 value will truncate it and corrupt the rest of the query string.
@@ -71,9 +74,22 @@ value will truncate it and corrupt the rest of the query string.
 
 These are places where a link can look right and silently do less than expected.
 
-- **The address is all-or-nothing.** `line1`, `city` and `postcode` must *all* be
-  present or the entire delivery address is dropped, including `line2`, `lat` and
-  `lng`. Two out of three prefills nothing.
+- **The address needs coordinates, not just text.** All five of `line1`, `city`,
+  `postcode`, `lat` and `lng` must be present or **no address is prefilled at all**.
+  This is the easiest mistake to make: a link carrying a complete, correct postal
+  address but no `lat`/`lng` prefills nothing, and the customer types the whole
+  address again.
+
+  There are two independent checks. The page drops the address unless `line1`,
+  `city` and `postcode` are all present; the widget then drops it again unless
+  `lat` and `lng` are both numbers. `line2` rides along and is genuinely optional.
+
+  Get the coordinates from whatever produced the address — a Google Places lookup,
+  a postcode API, or the partner's own CRM. They are not validated on the way in,
+  so a wrong coordinate prefills a wrong location silently.
+
+  Everything else is unaffected: contact and event fields still prefill normally
+  when the address is dropped.
 - **Past dates are ignored.** A `startDate` before today is discarded rather than
   applied, so an old link degrades to an empty date picker instead of one stuck in
   the past. A `startTime` earlier today is dropped the same way.
