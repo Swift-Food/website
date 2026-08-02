@@ -10,15 +10,30 @@ import {
 import { parseInitialDataFromParams } from "@/lib/branding/parseInitialDataFromParams";
 import { useScroll } from "@/context/ScrollContext";
 import PartnerBrandedHeader from "./PartnerBrandedHeader";
+import PartnerNotFound from "./PartnerNotFound";
 
 const DEFAULT_PRIMARY = "#fa43ad";
+
+/**
+ * Branding doubles as the gate for slug delegation. `partnerSlug` is only
+ * handed to the widget once `by-slug` confirmed it resolves to an active
+ * partner, so the backend never sees an unknown slug on the normal path - and
+ * a page that renders branded is a page whose orders attribute to that partner.
+ */
+type BrandingState =
+  | { status: "none" }
+  | { status: "loading" }
+  | { status: "found"; branding: PartnerBranding }
+  | { status: "notFound" };
 
 export default function EventOrderClient() {
   const searchParams = useSearchParams();
   const partnerSlug = searchParams.get("partner");
   const { setHideNavbar } = useScroll();
 
-  const [branding, setBranding] = useState<PartnerBranding | null>(null);
+  const [brandingState, setBrandingState] = useState<BrandingState>(
+    partnerSlug ? { status: "loading" } : { status: "none" },
+  );
 
   useEffect(() => {
     setHideNavbar(!!partnerSlug);
@@ -33,17 +48,31 @@ export default function EventOrderClient() {
   useEffect(() => {
     let active = true;
     if (!partnerSlug) {
-      setBranding(null);
+      setBrandingState({ status: "none" });
       return;
     }
+    setBrandingState({ status: "loading" });
     cateringService.getPartnerBrandingBySlug(partnerSlug).then((result) => {
-      if (active) setBranding(result);
+      if (!active) return;
+      setBrandingState(
+        result ? { status: "found", branding: result } : { status: "notFound" },
+      );
     });
     return () => {
       active = false;
     };
   }, [partnerSlug]);
 
+  if (brandingState.status === "loading") {
+    return <div className="min-h-[60vh]" aria-busy="true" />;
+  }
+
+  if (brandingState.status === "notFound") {
+    return <PartnerNotFound slug={partnerSlug ?? ""} />;
+  }
+
+  const branding =
+    brandingState.status === "found" ? brandingState.branding : null;
   const primary = branding?.theme?.primary ?? DEFAULT_PRIMARY;
 
   return (
@@ -58,6 +87,7 @@ export default function EventOrderClient() {
       <CateringWidget
         aiEnabled
         publishableKey={process.env.NEXT_PUBLIC_SWIFT_CATERING_PUBLISHABLE_KEY!}
+        partnerSlug={branding?.slug}
         googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
         stickyTopOffset={0}
         theme={{ primary }}
@@ -69,6 +99,12 @@ export default function EventOrderClient() {
           }
         }}
         onError={(e) => {
+          // A partner deactivated mid-session surfaces here rather than at
+          // page load; drop to the same recovery screen.
+          if (e.code === "unknown_partner_slug") {
+            setBrandingState({ status: "notFound" });
+            return;
+          }
           console.error("catering widget error", e);
         }}
       />
