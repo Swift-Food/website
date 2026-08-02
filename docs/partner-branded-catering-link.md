@@ -4,7 +4,7 @@ Your customers order catering through a page on Swift Food that carries your log
 and colour. You don't need to host or build anything - just share the link.
 
 ```
-https://swiftfood.uk/event-order?partner=<your-link-address>
+https://swiftfood.uk/event-order?partner=<your-slug>
 ```
 
 For example:
@@ -15,12 +15,12 @@ https://swiftfood.uk/event-order?partner=test
 
 Orders placed through it are attributed to you automatically.
 
-## Finding and changing your link
+## Finding and changing your slug
 
-Your link address is in your partner dashboard under **Settings → Branding**, where
-you can copy the full link with one click.
+The part after `partner=` is your **slug**. Find it in your partner dashboard under
+**Settings → Branding**, where you can copy the full link with one click.
 
-You can change the address there too, but changing it **breaks every link you have
+You can change your slug there too, but changing it **breaks every link you have
 already shared** - old links show an "unavailable" page and are not redirected. If
 you change it, update your website, emails, QR codes and any printed material. The
 dashboard asks you to confirm before applying the change.
@@ -34,6 +34,11 @@ Also under **Settings → Branding**:
 - **Accent colour** - a 6-digit hex colour used for buttons and highlights.
 
 Changes take effect immediately.
+
+> **These settings apply only to your ordering page hosted on Swift Food.** If you
+> have instead embedded Swift's catering component directly into your own website,
+> its appearance is controlled by your own site's code, and nothing you change here
+> affects it.
 
 ## Pre-filling order details
 

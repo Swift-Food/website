@@ -61,7 +61,7 @@ const SlugChangeModal = ({
           </span>
           <div>
             <h3 className="text-sm font-semibold text-gray-900">
-              Change your link address?
+              Change your slug?
             </h3>
             <p className="mt-0.5 text-xs text-gray-500">
               This affects links you have already shared.
@@ -122,7 +122,7 @@ const SlugChangeModal = ({
             disabled={typed !== nextSlug}
             className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Change link
+            Change slug
           </button>
         </div>
       </div>
@@ -235,12 +235,19 @@ export const BrandingSettings = ({
         <div>
           <h2 className="text-sm font-semibold text-gray-900">Branding</h2>
           <p className="text-xs text-gray-500">
-            How your ordering page looks to your customers.
+            How your ordering page on Swift Food looks to your customers.
           </p>
         </div>
       </div>
 
       <div className="space-y-6 px-5 py-5 sm:px-6">
+        <p className="rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-600">
+          These settings apply to your ordering page hosted on Swift Food. If you
+          have embedded the catering component on your own website, its
+          appearance is controlled by your site&apos;s own code and is not
+          affected by anything here.
+        </p>
+
         {/* ── Logo ──────────────────────────────────────────────────── */}
         <div>
           <span className="mb-2 block text-xs font-medium text-gray-700">
@@ -345,7 +352,7 @@ export const BrandingSettings = ({
             htmlFor="slug"
             className="mb-2 block text-xs font-medium text-gray-700"
           >
-            Link address
+            Slug
           </label>
           <div className="flex items-stretch overflow-hidden rounded-lg border border-gray-300 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
             <span className="flex items-center bg-gray-50 px-3 font-mono text-xs text-gray-500">
