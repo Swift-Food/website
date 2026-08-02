@@ -246,7 +246,7 @@ export const BrandingSettings = ({
           <Info size={14} className="mt-0.5 shrink-0 text-gray-400" />
           <p className="text-xs leading-relaxed text-gray-600">
             <span className="font-medium text-gray-900">
-              Applies to your Swift Food ordering page.
+              Applies only to your Swift Food ordering page.
             </span>{" "}
             If you&apos;ve embedded catering on your own website, that page is
             styled by your site and isn&apos;t affected by anything here.
