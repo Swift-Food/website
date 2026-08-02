@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Copy,
   ImageIcon,
+  Info,
   Loader,
   Save,
   Trash2,
@@ -241,12 +242,16 @@ export const BrandingSettings = ({
       </div>
 
       <div className="space-y-6 px-5 py-5 sm:px-6">
-        <p className="rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-600">
-          These settings apply to your ordering page hosted on Swift Food. If you
-          have embedded the catering component on your own website, its
-          appearance is controlled by your site&apos;s own code and is not
-          affected by anything here.
-        </p>
+        <div className="flex gap-2.5 rounded-lg border border-gray-200 bg-gray-50/60 px-3.5 py-3">
+          <Info size={14} className="mt-0.5 shrink-0 text-gray-400" />
+          <p className="text-xs leading-relaxed text-gray-600">
+            <span className="font-medium text-gray-900">
+              Applies to your Swift Food ordering page.
+            </span>{" "}
+            If you&apos;ve embedded catering on your own website, that page is
+            styled by your site and isn&apos;t affected by anything here.
+          </p>
+        </div>
 
         {/* ── Logo ──────────────────────────────────────────────────── */}
         <div>
