@@ -1,52 +1,53 @@
-# Partner-branded catering link
+# Your branded catering link
 
-The link to give a partner once their space exists in the admin dashboard.
+Your customers order catering through a page on Swift Food that carries your logo
+and colour. You don't need to host or build anything - just share the link.
 
 ```
-https://swiftfood.uk/event-order?partner=<slug>
+https://swiftfood.uk/event-order?partner=<your-link-address>
 ```
 
-Example:
+For example:
 
 ```
 https://swiftfood.uk/event-order?partner=test
 ```
 
-The page renders with the partner's logo and accent colour, and every order placed
-through it is attributed to that partner, with their commission applied. The partner
-does not need to host anything - the page is ours.
+Orders placed through it are attributed to you automatically.
 
-This is **not** the same as the embeddable widget. A partner who wants catering on
-*their own* site embeds `@swift-food-services/catering-widget` with a publishable
-key instead; see that package's README. Use this doc for partners who just want a
-link.
+## Finding and changing your link
 
-## The slug
+Your link address is in your partner dashboard under **Settings → Branding**, where
+you can copy the full link with one click.
 
-`<slug>` is the partner space's **slug** field in the admin dashboard - lowercase
-letters, numbers and hyphens only (`^[a-z0-9-]+$`). It is the same value shown in
-the partner spaces list.
+You can change the address there too, but changing it **breaks every link you have
+already shared** - old links show an "unavailable" page and are not redirected. If
+you change it, update your website, emails, QR codes and any printed material. The
+dashboard asks you to confirm before applying the change.
 
-The space must be **active**. A slug that is unknown, inactive, or soft-deleted
-shows a "This catering page isn't available" screen with a button back to the
-unbranded Swift page - the widget does not load at all.
+## Customising the page
 
-Omitting `?partner=` entirely is valid: the page renders as the normal unbranded
-Swift catering page.
+Also under **Settings → Branding**:
 
-## Prefill parameters
+- **Logo** - PNG or JPG, under 5MB. A wide logo on a transparent background works
+  best. Without one, your name is shown as text.
+- **Accent colour** - a 6-digit hex colour used for buttons and highlights.
 
-All optional, all combinable with `partner`. They pre-populate the order form so
-the customer lands with details already filled in.
+Changes take effect immediately.
 
-| Parameter | Format | Fills |
+## Pre-filling order details
+
+If you already know something about the booking, you can add it to the link and the
+form arrives part-filled. Every one of these is optional.
+
+| Add to the link | Format | Fills in |
 |---|---|---|
 | `eventName` | free text | Event name |
 | `startDate` | `YYYY-MM-DD` | Event start date |
 | `startTime` | `HH:MM` (24-hour) | Event start time |
 | `endDate` | `YYYY-MM-DD` | Event end date |
 | `endTime` | `HH:MM` (24-hour) | Event end time |
-| `guests` | integer | Guest count |
+| `guests` | whole number | Guest count |
 | `line1` | free text | Delivery address line 1 — **required for address** |
 | `city` | free text | Delivery city — **required for address** |
 | `postcode` | free text | Delivery postcode — **required for address** |
@@ -58,64 +59,34 @@ the customer lands with details already filled in.
 | `phone` | free text | Contact phone |
 | `org` | free text | Contact organisation |
 
-Full example:
+Join them with `&`:
 
 ```
-https://swiftfood.uk/event-order?partner=test&eventName=Summer%20Social&startDate=2026-08-14&startTime=12:30&guests=40&line1=1%20Example%20St&city=London&postcode=SW1A%201AA&lat=51.501364&lng=-0.141890&name=Jo%20Bloggs&email=jo@example.com
+https://swiftfood.uk/event-order?partner=test&eventName=Summer%20Social&startDate=2026-08-14&startTime=12:30&guests=40&name=Jo%20Bloggs&email=jo@example.com
 ```
 
-Note `lat` and `lng` — without them the address is discarded even though `line1`,
-`city` and `postcode` are all correct. See the address rule below.
+## Things that will catch you out
 
-**URL-encode every value.** Spaces become `%20`, and an unencoded `&` inside a
-value will truncate it and corrupt the rest of the query string.
-
-### Rules worth knowing
-
-These are places where a link can look right and silently do less than expected.
+Nothing here reports an error. A value the page can't read is skipped silently, the
+page still loads, and the customer fills that field in by hand. **Always open a link
+yourself before sending it.**
 
 - **The address needs coordinates, not just text.** All five of `line1`, `city`,
-  `postcode`, `lat` and `lng` must be present or **no address is prefilled at all**.
-  This is the easiest mistake to make: a link carrying a complete, correct postal
-  address but no `lat`/`lng` prefills nothing, and the customer types the whole
-  address again.
+  `postcode`, `lat` and `lng` must be present or **no address is filled in at all**.
+  A link with a complete, correct postal address but no `lat`/`lng` fills in
+  nothing. Take the coordinates from whatever produced the address - a Google
+  Places lookup, a postcode lookup, or your own booking system. `line2` is genuinely
+  optional. Everything else on the link still works if the address is skipped.
+- **Dates and times are strict.** `YYYY-MM-DD` and 24-hour `HH:MM` only.
+  `14/08/2026`, `2026-8-14` and `12:30pm` are all ignored.
+- **Dates in the past are ignored.** An old link falls back to an empty date rather
+  than one stuck in the past, so reusable links stay safe.
+- **`guests`, `lat` and `lng` must be numbers.** Anything else is ignored.
+- **Special characters must be encoded.** Spaces become `%20`. An unencoded `&`
+  inside a value will cut the link short and lose everything after it. If you are
+  building links by hand, the simplest safe option is to avoid `&`, `?` and `#`
+  inside values.
 
-  There are two independent checks. The page drops the address unless `line1`,
-  `city` and `postcode` are all present; the widget then drops it again unless
-  `lat` and `lng` are both numbers. `line2` rides along and is genuinely optional.
+## Need help?
 
-  Get the coordinates from whatever produced the address — a Google Places lookup,
-  a postcode API, or the partner's own CRM. They are not validated on the way in,
-  so a wrong coordinate prefills a wrong location silently.
-
-  Everything else is unaffected: contact and event fields still prefill normally
-  when the address is dropped.
-- **Past dates are ignored.** A `startDate` before today is discarded rather than
-  applied, so an old link degrades to an empty date picker instead of one stuck in
-  the past. A `startTime` earlier today is dropped the same way.
-- **Dates and times are strict.** `YYYY-MM-DD` and `HH:MM` only. `14/08/2026`,
-  `2026-8-14` and `12:30pm` are all silently ignored.
-- **`guests`, `lat` and `lng` must be numeric.** Non-numeric values are dropped.
-- **Unknown parameters are ignored.** Adding extra query params is harmless; they
-  simply do nothing.
-- **Nothing here is validated loudly.** Every malformed value is skipped silently,
-  so the page still loads and the customer fills that field in by hand. Always
-  click a link before sending it.
-
-## Before sending a link
-
-1. The partner space exists in the admin dashboard and is **Active**.
-2. Its logo and accent colour are set, or the page shows the partner's name as
-   plain text with the default Swift pink.
-3. Commission is set on the space if the partner is owed one.
-4. **"Can act as other partners" is enabled on Swift's own partner space.** This is
-   the setting that lets our site attribute an order to the branded partner. Until
-   it is on, branded pages still render but orders attribute to Swift and the
-   partner's commission is not applied. It is a one-time setup on *our* space, not
-   on each partner's.
-
-## Related
-
-- Widget embed (partner hosts it themselves): `catering-widget/packages/catering-widget/README.md`
-- Deep-link design and param mapping: `docs/superpowers/specs/2026-07-14-branded-partner-catering-deeplinks-design.md`
-- Slug delegation design: `backend/docs/superpowers/specs/2026-08-02-partner-slug-delegation-design.md`
+Contact Swift at [swiftfooduk@gmail.com](mailto:swiftfooduk@gmail.com).

@@ -5,6 +5,7 @@ import { Save, Loader, AlertCircle, CheckCircle, Eye, EyeOff, Copy, Check, Exter
 import { coworkingApi } from "@/services/api/coworking.api";
 import { CoworkingSpace } from "@/types/api/coworking.api.types";
 import { ChangePasswordCard } from "./ChangePasswordCard";
+import { BrandingSettings } from "./BrandingSettings";
 
 interface RestaurantSelectionProps {
   spaceId: string;
@@ -784,6 +785,13 @@ export const CoworkingSettings = ({ spaceId }: Props) => {
             })()}
           </div>
         </div>
+      )}
+
+      {space && (
+        <BrandingSettings
+          space={space}
+          onUpdated={(updated) => setSpace(updated)}
+        />
       )}
 
       <RestaurantSelection

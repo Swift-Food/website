@@ -18,6 +18,8 @@ export interface CoworkingSpace {
   allowedOrigins?: string[];
   aiChatEnabled?: boolean;
   aiPipelineVariant?: string;
+  logoImageUrl?: string | null;
+  theme?: { primary?: string } | null;
   commission: number; // % rate; 0 = no service fee
   stripeAccountId?: string | null;
   stripeOnboardingComplete?: boolean;
@@ -136,3 +138,11 @@ export type CoworkingOrderStatus =
   | 'confirmed'
   | 'cancelled'
   | 'completed';
+
+/** Partner self-service branding payload. Omitted keys are left unchanged;
+ *  an explicit null clears the logo or theme. */
+export interface UpdatePartnerBrandingDto {
+  slug?: string;
+  logoImageUrl?: string | null;
+  theme?: { primary?: string } | null;
+}

@@ -6,6 +6,7 @@ import {
   CoworkingMetrics,
   CoworkingSpace,
   PartnerStripeStatus,
+  UpdatePartnerBrandingDto,
 } from '@/types/api/coworking.api.types';
 
 export const coworkingApi = {
@@ -120,6 +121,34 @@ export const coworkingApi = {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body?.message || 'Failed to update restaurant selection');
+    }
+    return response.json();
+  },
+
+  // PATCH /partner-dashboard/:spaceId/branding
+  updateBranding: async (spaceId: string, dto: UpdatePartnerBrandingDto): Promise<CoworkingSpace> => {
+    const response = await fetchWithAuthPartner(`${API_BASE_URL}/partner-dashboard/${spaceId}/branding`, {
+      method: 'PATCH',
+      body: JSON.stringify(dto),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body?.message || 'Failed to update branding');
+    }
+    return response.json();
+  },
+
+  // POST /image-upload — returns the stored image URL as a bare JSON string.
+  // Shared platform endpoint, same one the restaurant portal uses.
+  uploadImage: async (file: File): Promise<string> => {
+    const form = new FormData();
+    form.append('upload', file);
+    const response = await fetch(`${API_BASE_URL}/image-upload`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to upload image (${response.status})`);
     }
     return response.json();
   },
