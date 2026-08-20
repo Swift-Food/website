@@ -23,6 +23,7 @@ import OrderSummary from "@/lib/components/catering/dashboard/OrderSummary";
 import { OrderStatusTimeline } from "@/lib/components/catering/dashboard/OrderStatusTimeline";
 import DeliveryTracking from "@/lib/components/catering/dashboard/DeliveryTracking";
 import { DeliveryTrackingDto } from "@/types/api";
+import ReviewPromptCard from "@/lib/components/reviews/ReviewPromptCard";
 
 export default function CateringDashboardPage() {
   const params = useParams();
@@ -300,6 +301,7 @@ export default function CateringDashboardPage() {
               canEdit={canEdit}
               editUrl={`/event-order?editOrder=${token}`}
             />
+            <ReviewPromptCard token={token} orderStatus={order.status} />
           </div>
 
           {/* Sidebar */}

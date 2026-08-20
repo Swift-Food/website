@@ -20,6 +20,49 @@ const emptyDraft: ReviewDraft = {
   itemScores: {},
 };
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isRecordOf<T>(
+  value: unknown,
+  isValue: (v: unknown) => v is T
+): value is Record<string, T> {
+  return isPlainObject(value) && Object.values(value).every(isValue);
+}
+
+/**
+ * Validates the shape of a draft restored from sessionStorage. A stale or
+ * hand-edited draft that fails this check is discarded rather than trusted,
+ * since an out-of-range `step` (or a malformed field) would otherwise leave
+ * the page rendering no step body under the progress bar.
+ */
+function isValidDraftShape(value: unknown): value is ReviewDraft {
+  if (!isPlainObject(value)) return false;
+  const {
+    step,
+    orderScore,
+    orderComment,
+    restaurantScores,
+    restaurantComments,
+    itemScores,
+  } = value;
+
+  if (typeof step !== "number" || !Number.isFinite(step)) return false;
+  if (orderScore !== null && typeof orderScore !== "number") return false;
+  if (typeof orderComment !== "string") return false;
+  if (!isRecordOf(restaurantScores, (v): v is number => typeof v === "number"))
+    return false;
+  if (
+    !isRecordOf(restaurantComments, (v): v is string => typeof v === "string")
+  )
+    return false;
+  if (!isRecordOf(itemScores, (v): v is number => typeof v === "number"))
+    return false;
+
+  return true;
+}
+
 export default function ReviewPage() {
   const params = useParams();
   const token = params.token as string;
@@ -42,13 +85,39 @@ export default function ReviewPage() {
         const data = await reviewService.getReviewableOrder(token);
         setOrder(data);
 
+        // Mirrors the stepLabels computation below: order + one per
+        // restaurant + dishes + submit.
+        const maxStepIndex = data.restaurants.length + 2;
+
         const stored = sessionStorage.getItem(draftKey);
+        let restoredDraft = false;
         if (stored) {
-          const parsed = JSON.parse(stored) as ReviewDraft;
-          setDraft(parsed);
-          setStep(parsed.step);
-          setFurthest(parsed.step);
-        } else if (data.existing) {
+          let parsed: unknown = null;
+          try {
+            parsed = JSON.parse(stored);
+          } catch {
+            parsed = null;
+          }
+
+          if (isValidDraftShape(parsed)) {
+            const clampedStep = Math.min(
+              Math.max(parsed.step, 0),
+              maxStepIndex
+            );
+            const safeDraft: ReviewDraft = { ...parsed, step: clampedStep };
+            setDraft(safeDraft);
+            setStep(clampedStep);
+            setFurthest(clampedStep);
+            restoredDraft = true;
+          } else {
+            // Corrupted or stale draft (e.g. an out-of-range step from a
+            // previous version of the order) - discard rather than render
+            // a blank page under the progress bar.
+            sessionStorage.removeItem(draftKey);
+          }
+        }
+
+        if (!restoredDraft && data.existing) {
           // Seed the form from the submitted review so editing starts populated.
           setDraft({
             step: 0,
@@ -110,6 +179,14 @@ export default function ReviewPage() {
   const itemsStepIndex = totalSteps - 2;
   const summaryStepIndex = totalSteps - 1;
 
+  // Menu item ids actually present on the loaded order, used to keep the
+  // submit payload's items in sync with its restaurants: both are filtered
+  // against live order data so a stale draft entry can never reach the API.
+  const validMenuItemIds = useMemo(
+    () => new Set(restaurants.flatMap((r) => r.items.map((i) => i.menuItemId))),
+    [restaurants]
+  );
+
   const handleSubmit = async () => {
     if (!order || draft.orderScore === null) return;
 
@@ -128,10 +205,12 @@ export default function ReviewPage() {
             score: draft.restaurantScores[r.restaurantId],
             comment: draft.restaurantComments[r.restaurantId] || undefined,
           })),
-        items: Object.entries(draft.itemScores).map(([menuItemId, score]) => ({
-          menuItemId,
-          score,
-        })),
+        items: Object.entries(draft.itemScores)
+          .filter(([menuItemId]) => validMenuItemIds.has(menuItemId))
+          .map(([menuItemId, score]) => ({
+            menuItemId,
+            score,
+          })),
       });
 
       sessionStorage.removeItem(draftKey);
