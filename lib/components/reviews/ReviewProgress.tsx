@@ -22,7 +22,7 @@ export default function ReviewProgress({
           const isReachable = index <= furthestReached;
 
           return (
-            <li key={label} className="flex-1">
+            <li key={index} className="flex-1">
               <button
                 type="button"
                 disabled={!isReachable}

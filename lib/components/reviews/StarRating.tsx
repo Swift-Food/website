@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 
 export const RATING_LABELS = ["Terrible", "Poor", "Okay", "Good", "Great"];
@@ -23,6 +23,14 @@ export default function StarRating({
   const [hover, setHover] = useState(0);
   const active = hover || value || 0;
 
+  // A tap on touch devices does not reliably fire mouseleave, so a stale
+  // hover value can outlive the interaction that set it. Reset it whenever
+  // the committed value changes from outside (e.g. stepping back in the
+  // wizard, a programmatic clear, or reuse for a different target).
+  useEffect(() => {
+    setHover(0);
+  }, [value]);
+
   // 44px minimum touch target on the large variant - this page is opened
   // predominantly on a phone from an emailed link.
   const starClass = size === "lg" ? "h-9 w-9" : "h-5 w-5";
@@ -38,7 +46,10 @@ export default function StarRating({
             aria-label={`${ariaLabelPrefix} ${n} star${n > 1 ? "s" : ""}`}
             aria-pressed={value === n}
             onMouseEnter={() => setHover(n)}
-            onClick={() => onChange(n)}
+            onClick={() => {
+              onChange(n);
+              setHover(0);
+            }}
             className={`${buttonClass} transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-dark-pink/40 rounded`}
           >
             <Star
