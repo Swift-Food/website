@@ -1,5 +1,5 @@
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
-import { API_BASE_URL } from "@/lib/constants/api";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import type {
   ReviewableOrder,
   SubmitReviewPayload,
@@ -19,7 +19,7 @@ class ReviewService {
 
   async getReviewableOrder(token: string): Promise<ReviewableOrder> {
     const response = await fetchWithAuth(
-      `${API_BASE_URL}/order-reviews/view/${token}`
+      `${API_BASE_URL}${API_ENDPOINTS.ORDER_REVIEW_VIEW(token)}`
     );
 
     if (!response.ok) {
@@ -35,7 +35,7 @@ class ReviewService {
     payload: SubmitReviewPayload
   ): Promise<ReviewableOrder> {
     const response = await fetchWithAuth(
-      `${API_BASE_URL}/order-reviews/view/${token}`,
+      `${API_BASE_URL}${API_ENDPOINTS.ORDER_REVIEW_VIEW(token)}`,
       {
         method: "POST",
         body: JSON.stringify(payload),
