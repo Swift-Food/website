@@ -37,7 +37,7 @@ export default function ReviewProgress({
                     isCurrent
                       ? "bg-dark-pink"
                       : isDone
-                        ? "bg-dark-pink/50"
+                        ? "bg-pink-300"
                         : "bg-gray-200"
                   }`}
                 />

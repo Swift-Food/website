@@ -327,7 +327,7 @@ export default function ReviewPage() {
               }
               placeholder="Anything you would like us to know? (optional)"
               rows={3}
-              className="mt-5 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-dark-pink focus:outline-none focus:ring-2 focus:ring-dark-pink/20 transition-all"
+              className="mt-5 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-dark-pink focus:outline-none focus:ring-2 focus:ring-pink-200 transition-all"
             />
           </ReviewStepShell>
         )}
@@ -379,7 +379,7 @@ export default function ReviewPage() {
               }
               placeholder="Tell them what you thought (optional)"
               rows={3}
-              className="mt-5 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-dark-pink focus:outline-none focus:ring-2 focus:ring-dark-pink/20 transition-all"
+              className="mt-5 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-dark-pink focus:outline-none focus:ring-2 focus:ring-pink-200 transition-all"
             />
           </ReviewStepShell>
         )}

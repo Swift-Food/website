@@ -50,7 +50,7 @@ export default function StarRating({
               onChange(n);
               setHover(0);
             }}
-            className={`${buttonClass} transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-dark-pink/40 rounded`}
+            className={`${buttonClass} transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 rounded`}
           >
             <Star
               className={`${starClass} transition-colors ${
