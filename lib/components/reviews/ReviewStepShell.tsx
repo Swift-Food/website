@@ -44,7 +44,7 @@ export default function ReviewStepShell({
           <span />
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-8">
           {onSkip && (
             <button
               type="button"
