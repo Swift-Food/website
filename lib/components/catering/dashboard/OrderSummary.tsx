@@ -73,7 +73,7 @@ export default function OrderSummary({ order }: OrderSummaryProps) {
               {deliveryBreakdown?.requiresCustomQuote && (
                 <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-900">
                   <p className="text-xs">
-                    ⚠️ Delivery exceeded 6 miles. Custom quote applied.
+                    ⚠️ Delivery exceeded 5 miles. Custom quote applied.
                   </p>
                 </div>
               )}

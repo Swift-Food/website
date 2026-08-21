@@ -542,7 +542,7 @@ export interface CateringPricingResult {
     subtotal: number;              // Sum of above
     distanceMultiplier: number;    // 1.0x, 1.2x, 1.5x, or 2.0x
     finalDeliveryFee: number;      // Subtotal × multiplier
-    requiresCustomQuote: boolean;  // true if >6 miles
+    requiresCustomQuote: boolean;  // true if >5 miles — unreachable for new orders, which are blocked
   };
 
   // Backend-calculated per-promotion breakdown (source of truth for display)
