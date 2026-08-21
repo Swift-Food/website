@@ -279,7 +279,8 @@ export default function CateringDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          <OrderStatusTimeline status={order.status} />
+            <ReviewPromptCard token={token} orderStatus={order.status} />
+            <OrderStatusTimeline status={order.status} />
             {order.mealSessions && order.mealSessions.length > 0 && (
               <DeliveryTracking
                 sessions={order.mealSessions}
@@ -301,7 +302,6 @@ export default function CateringDashboardPage() {
               canEdit={canEdit}
               editUrl={`/event-order?editOrder=${token}`}
             />
-            <ReviewPromptCard token={token} orderStatus={order.status} />
           </div>
 
           {/* Sidebar */}

@@ -397,7 +397,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdi
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div className="bg-white rounded-xl p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Package className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
