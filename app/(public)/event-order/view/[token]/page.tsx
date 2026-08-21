@@ -23,6 +23,7 @@ import OrderSummary from "@/lib/components/catering/dashboard/OrderSummary";
 import { OrderStatusTimeline } from "@/lib/components/catering/dashboard/OrderStatusTimeline";
 import DeliveryTracking from "@/lib/components/catering/dashboard/DeliveryTracking";
 import { DeliveryTrackingDto } from "@/types/api";
+import ReviewPromptCard from "@/lib/components/reviews/ReviewPromptCard";
 
 export default function CateringDashboardPage() {
   const params = useParams();
@@ -278,7 +279,8 @@ export default function CateringDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          <OrderStatusTimeline status={order.status} />
+            <ReviewPromptCard token={token} orderStatus={order.status} />
+            <OrderStatusTimeline status={order.status} />
             {order.mealSessions && order.mealSessions.length > 0 && (
               <DeliveryTracking
                 sessions={order.mealSessions}
