@@ -3,7 +3,8 @@
 
 import React, { useState, useMemo } from "react";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
-import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2, X, Info, CheckCircle2, Clock4, XCircle, Pencil } from "lucide-react";
+import { cateringService } from "@/services/api/catering.api";
+import { ChefHat, Package, ChevronDown, ChevronUp, Calendar, Clock, FileText, Loader2, X, Info, CheckCircle2, Clock4, XCircle, Pencil, Utensils, AlertCircle } from "lucide-react";
 
 interface OrderItemsProps {
   order: CateringOrderResponse;
@@ -11,6 +12,119 @@ interface OrderItemsProps {
   generatingPdf?: boolean;
   canEdit?: boolean;
   editUrl?: string;
+  isManager?: boolean;
+  accessToken?: string;
+  onUpdate?: () => void;
+}
+
+// Hours between now and a session/order's event start.
+// Mirrors DeliveryTimeManager.tsx's getHoursUntilEvent exactly.
+const getHoursUntilEvent = (eventDate: string | Date, eventTime: string) => {
+  const dt = new Date(eventDate);
+  const [h, m] = eventTime.split(':');
+  dt.setHours(parseInt(h), parseInt(m));
+  return (dt.getTime() - Date.now()) / (1000 * 60 * 60);
+};
+
+interface CutleryRowProps {
+  orderId: string;
+  sessionId?: string;
+  restaurantId: string;
+  cutleryRequired?: boolean;
+  isManager?: boolean;
+  hoursUntilEvent?: number;
+  accessToken?: string;
+  onUpdate?: () => void;
+}
+
+// Editable (manager, >=48h out) or read-only cutlery row for a single
+// restaurant within a meal session. Styled to match the Special
+// Instructions block in this file; the below-cutoff banner mirrors
+// DeliveryTimeManager.tsx's canChangeTime banner.
+function CutleryRow({
+  orderId,
+  sessionId,
+  restaurantId,
+  cutleryRequired,
+  isManager,
+  hoursUntilEvent,
+  accessToken,
+  onUpdate,
+}: CutleryRowProps) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const required = !!cutleryRequired;
+  const canEditCutlery =
+    !!isManager &&
+    !!sessionId &&
+    !!accessToken &&
+    typeof hoursUntilEvent === "number" &&
+    hoursUntilEvent >= 48;
+
+  const handleToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!sessionId || !accessToken) return;
+    const next = e.target.checked;
+    try {
+      setSaving(true);
+      setError(null);
+      await cateringService.updateCutlery({
+        orderId,
+        sessionId,
+        restaurantId,
+        cutleryRequired: next,
+        accessToken,
+      });
+      onUpdate?.();
+    } catch (err: any) {
+      setError(err.message || "Failed to update cutlery preference");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 sm:mt-4 bg-gray-50 rounded-lg p-2 sm:p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Utensils className="h-4 w-4 text-gray-500 flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium text-gray-700">
+            Cutlery
+          </span>
+        </div>
+        {canEditCutlery ? (
+          <label className="inline-flex items-center gap-2 cursor-pointer flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={required}
+              disabled={saving}
+              onChange={handleToggle}
+              className="h-4 w-4 rounded border-gray-300 text-pink-600 focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
+            />
+            <span className="text-xs sm:text-sm text-gray-700">
+              {saving ? "Saving..." : required ? "Requested" : "Not requested"}
+            </span>
+          </label>
+        ) : (
+          <span className="text-xs sm:text-sm font-semibold text-gray-900 flex-shrink-0">
+            {required ? "Requested" : "Not requested"}
+          </span>
+        )}
+      </div>
+
+      {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
+
+      {isManager && sessionId && typeof hoursUntilEvent === "number" && hoursUntilEvent < 48 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mt-2">
+          <div className="flex gap-2">
+            <AlertCircle className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+            <p className="text-xs text-yellow-800">
+              Cannot change within 48 hours of event.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Pretty-print an underscored value, e.g. "tree_nuts" -> "Tree Nuts"
@@ -64,7 +178,7 @@ const normalizeAllergens = (
     );
 };
 
-export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdit, editUrl }: OrderItemsProps) {
+export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdit, editUrl, isManager, accessToken, onUpdate }: OrderItemsProps) {
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
 
   // Sort meal sessions by date and time
@@ -156,7 +270,13 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdi
   };
 
   // Render a single restaurant's menu items
-  const renderRestaurantItems = (restaurant: any, keyPrefix: string, orderStatus?: string) => {
+  const renderRestaurantItems = (
+    restaurant: any,
+    keyPrefix: string,
+    orderStatus?: string,
+    sessionId?: string,
+    hoursUntilEvent?: number
+  ) => {
     const isExpanded = expandedRestaurants.has(keyPrefix);
     const showAcceptanceBadge = orderStatus && REVIEW_STATUSES.has(orderStatus);
 
@@ -270,6 +390,18 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdi
                   </p>
                 </div>
               )}
+
+            {/* Cutlery */}
+            <CutleryRow
+              orderId={order.id}
+              sessionId={sessionId}
+              restaurantId={restaurant.restaurantId}
+              cutleryRequired={restaurant.cutleryRequired}
+              isManager={isManager}
+              hoursUntilEvent={hoursUntilEvent}
+              accessToken={accessToken}
+              onUpdate={onUpdate}
+            />
           </div>
         )}
       </div>
@@ -345,7 +477,13 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdi
             {/* Restaurants and their menu items */}
             <div className="space-y-4">
               {session.orderItems.map((restaurant, idx) =>
-                renderRestaurantItems(restaurant, `${session.id}-${idx}`, order.status)
+                renderRestaurantItems(
+                  restaurant,
+                  `${session.id}-${idx}`,
+                  order.status,
+                  session.id,
+                  getHoursUntilEvent(session.sessionDate, session.eventTime)
+                )
               )}
             </div>
 

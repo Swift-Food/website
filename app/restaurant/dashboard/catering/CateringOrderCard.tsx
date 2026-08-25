@@ -145,7 +145,8 @@ export const CateringOrderCard = ({
   };
 
   // Download the per-restaurant Order Checklist (packing list) PDF for this
-  // order — items, add-ons, cutlery line, special instructions; no prices.
+  // order — items, add-ons, special instructions; no prices. The cutlery
+  // line is conditional on the customer's per-restaurant cutlery request.
   const downloadChecklist = async () => {
     if (!token) {
       alert("Missing authentication token. Please log in again.");
@@ -260,6 +261,11 @@ export const CateringOrderCard = ({
     const payoutDetail = order.restaurantPayoutDetails[restaurantId];
     return payoutDetail?.accountName || null;
   };
+
+  // Whether cutlery is required for this restaurant, given a scoped list of
+  // PricingOrderItem entries (already filtered to this restaurantId).
+  const getCutleryRequired = (items: any[]): boolean =>
+    items.some((item) => item.cutleryRequired === true);
 
   const toggleSession = (sessionId: string) => {
     setExpandedSessions((prev) => ({
@@ -466,6 +472,15 @@ export const CateringOrderCard = ({
             <p className="text-xs text-gray-600">Session Earnings</p>
             <p className="font-bold text-green-600">{formatCurrency(sessionNetEarnings)}</p>
           </div>
+        </div>
+
+        <div className="mb-2">
+          <p className="text-gray-600">
+            Cutlery:{" "}
+            <span className="text-gray-900 font-medium">
+              {getCutleryRequired(sessionRestaurantItems) ? "Required" : "Not required"}
+            </span>
+          </p>
         </div>
 
         {hasMultipleMealSessions && (
@@ -737,6 +752,14 @@ export const CateringOrderCard = ({
                 count + (r.menuItems?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0), 0
               )} items)
             </h4>
+            <div className="mb-2">
+              <p className="text-gray-600">
+                Cutlery:{" "}
+                <span className="text-gray-900 font-medium">
+                  {getCutleryRequired(restaurantOrderItems) ? "Required" : "Not required"}
+                </span>
+              </p>
+            </div>
             <div className="space-y-2">
               {restaurantOrderItems.map((restaurantItem: any, idx: number) => (
                 <div key={idx}>

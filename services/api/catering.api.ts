@@ -23,6 +23,7 @@ import {
   RemoveSharedAccessRequest,
   UpdatePickupContactRequest,
   UpdateDeliveryTimeRequest,
+  UpdateCutleryRequest,
   UpdateSharedAccessRoleRequest,
   CateringOrderResponse,
   OrderPricingBreakdown,
@@ -234,6 +235,11 @@ class CateringService {
             } as CateringMenuItemRequest)
         ),
         specialInstructions: "",
+        // This path doesn't collect a cutlery preference (the catering
+        // widget owns checkout and submits its own value) — default to
+        // `false` to match the backend's documented create-path semantics:
+        // an absent flag means "not required".
+        cutleryRequired: false,
       }));
     };
 
@@ -877,6 +883,26 @@ class CateringService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || "Failed to update delivery time");
+    }
+
+    return response.json();
+  }
+
+  async updateCutlery(
+    dto: UpdateCutleryRequest
+  ): Promise<CateringOrderResponse> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/catering-orders/cutlery`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update cutlery preference");
     }
 
     return response.json();
