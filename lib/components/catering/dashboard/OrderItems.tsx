@@ -88,7 +88,7 @@ function CutleryRow({
         <div className="flex items-center gap-2 min-w-0">
           <Utensils className="h-4 w-4 text-gray-500 flex-shrink-0" />
           <span className="text-xs sm:text-sm font-medium text-gray-700">
-            Cutlery, plates &amp; napkins
+            Cutlery
           </span>
         </div>
         {canEditCutlery ? (
@@ -391,7 +391,7 @@ export default function OrderItems({ order, onDownloadPdf, generatingPdf, canEdi
                 </div>
               )}
 
-            {/* Cutlery / plates / napkins */}
+            {/* Cutlery */}
             <CutleryRow
               orderId={order.id}
               sessionId={sessionId}
