@@ -23,6 +23,7 @@ import {
   RemoveSharedAccessRequest,
   UpdatePickupContactRequest,
   UpdateDeliveryTimeRequest,
+  UpdateCutleryRequest,
   UpdateSharedAccessRoleRequest,
   CateringOrderResponse,
   OrderPricingBreakdown,
@@ -877,6 +878,26 @@ class CateringService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || "Failed to update delivery time");
+    }
+
+    return response.json();
+  }
+
+  async updateCutlery(
+    dto: UpdateCutleryRequest
+  ): Promise<CateringOrderResponse> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/catering-orders/cutlery`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update cutlery preference");
     }
 
     return response.json();

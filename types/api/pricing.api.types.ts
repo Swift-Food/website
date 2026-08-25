@@ -85,6 +85,7 @@ export interface PricingOrderItem {
   totalPrice: number;
   promotionDiscount: number;
   specialInstructions?: string;
+  cutleryRequired?: boolean;
   reminderConfirmed?: boolean;
   reminderConfirmedAt?: string | Date;
   restaurantAcceptanceStatus?: 'pending' | 'confirmed' | 'declined';

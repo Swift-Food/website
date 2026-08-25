@@ -301,6 +301,9 @@ export default function CateringDashboardPage() {
               generatingPdf={generatingPdf}
               canEdit={canEdit}
               editUrl={`/event-order?editOrder=${token}`}
+              isManager={isManager}
+              accessToken={token}
+              onUpdate={loadOrder}
             />
           </div>
 

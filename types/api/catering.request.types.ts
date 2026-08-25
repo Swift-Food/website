@@ -176,6 +176,21 @@ export interface UpdateDeliveryTimeRequest {
 }
 
 /**
+ * Update cutlery request
+ *
+ * accessToken is required (not optional): the backend validates it with
+ * @IsString() @IsNotEmpty() and calls verifyManagerAccess unconditionally -
+ * a request without a manager-role shared-access token is always rejected.
+ */
+export interface UpdateCutleryRequest {
+  orderId: string;
+  sessionId: string;
+  restaurantId: string;
+  cutleryRequired: boolean;
+  accessToken: string;
+}
+
+/**
  * Add shared access request
  */
 export interface AddSharedAccessRequest {
