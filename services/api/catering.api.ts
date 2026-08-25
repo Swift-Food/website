@@ -235,6 +235,11 @@ class CateringService {
             } as CateringMenuItemRequest)
         ),
         specialInstructions: "",
+        // This path doesn't collect a cutlery preference (the catering
+        // widget owns checkout and submits its own value) — default to
+        // `false` to match the backend's documented create-path semantics:
+        // an absent flag means "not required".
+        cutleryRequired: false,
       }));
     };
 

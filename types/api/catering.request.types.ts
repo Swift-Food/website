@@ -37,6 +37,9 @@ export interface CateringRestaurantOrderRequest {
   restaurantId: string;
   menuItems: CateringMenuItemRequest[];
   specialInstructions?: string;
+  // Per-restaurant, per-meal-session cutlery preference. Mirrors the
+  // backend's MinimalRestaurantOrderDto.cutleryRequired (optional boolean).
+  cutleryRequired?: boolean;
 }
 
 // ============================================================================
