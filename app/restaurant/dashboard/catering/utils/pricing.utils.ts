@@ -75,3 +75,56 @@ export function calculateMenuItemPricing(item: any): MenuItemPricingDto {
     commissionRate: item.commissionRate,
   };
 }
+
+/**
+ * Order items belonging to a specific restaurant
+ */
+export function getRestaurantOrderItems(order: any, restaurantId: string): any[] {
+  const restaurants = order.restaurants || order.orderItems || [];
+  return restaurants.filter((item: any) => item.restaurantId === restaurantId);
+}
+
+/**
+ * Restaurant net earnings for an order
+ * Prefers earningsAmount from payoutDetails as it includes adjustments
+ */
+export function getRestaurantNetEarnings(order: any, restaurantId: string): number {
+  const payoutDetail = order.restaurantPayoutDetails?.[restaurantId];
+  if (payoutDetail?.earningsAmount !== undefined) {
+    return payoutDetail.earningsAmount;
+  }
+  return getRestaurantOrderItems(order, restaurantId).reduce(
+    (total: number, item: any) => {
+      if (item.restaurantNetAmount !== undefined) {
+        return total + item.restaurantNetAmount;
+      }
+      const menuItemTotal =
+        item.menuItems?.reduce(
+          (sum: number, menuItem: any) => sum + (menuItem.restaurantNetAmount || 0),
+          0
+        ) || 0;
+      return total + menuItemTotal;
+    },
+    0
+  );
+}
+
+/**
+ * Total the customer pays for this restaurant's part of an order
+ */
+export function getRestaurantCustomerTotal(order: any, restaurantId: string): number {
+  return getRestaurantOrderItems(order, restaurantId).reduce(
+    (total: number, item: any) => {
+      if (item.customerTotal !== undefined) {
+        return total + item.customerTotal;
+      }
+      const menuItemTotal =
+        item.menuItems?.reduce(
+          (sum: number, menuItem: any) => sum + (menuItem.customerTotalPrice || 0),
+          0
+        ) || 0;
+      return total + menuItemTotal;
+    },
+    0
+  );
+}

@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { fetchReceiptJson, buildReceiptHTML, fetchOrderChecklistBlob } from "./receiptUtils";
 import { formatDeliveryAddress } from "./utils/address.utils";
+import {
+  getRestaurantCustomerTotal,
+  getRestaurantNetEarnings,
+  getRestaurantOrderItems,
+} from "./utils/pricing.utils";
 import { CateringOrderResponse, MealSessionResponse } from "@/types/api";
 import RefundHistorySection from "./components/RefundHistorySection";
 import { PickupAddress } from "@/types/restaurant.types";
@@ -58,50 +63,9 @@ export const CateringOrderCard = ({
   const status = order.effectiveStatus || order.status;
   const isPaidOrder = status === "paid" || status === "confirmed";
 
-  // Get restaurant-specific data from order
-  const getRestaurantOrderItems = () => {
-    const restaurants = order.restaurants || order.orderItems || [];
-    return restaurants.filter((item: any) => item.restaurantId === restaurantId);
-  };
-
-  // Calculate restaurant net earnings - use earningsAmount (includes adjustments) if available
-  const calculateRestaurantNetEarnings = (): number => {
-    // Prefer earningsAmount from payoutDetails as it includes adjustments
-    const payoutDetail = order.restaurantPayoutDetails?.[restaurantId];
-    if (payoutDetail?.earningsAmount !== undefined) {
-      return payoutDetail.earningsAmount;
-    }
-    // Fallback: calculate from order items
-    const restaurantItems = getRestaurantOrderItems();
-    return restaurantItems.reduce((total: number, item: any) => {
-      if (item.restaurantNetAmount !== undefined) {
-        return total + item.restaurantNetAmount;
-      }
-      const menuItemTotal = item.menuItems?.reduce((sum: number, menuItem: any) => {
-        return sum + (menuItem.restaurantNetAmount || 0);
-      }, 0) || 0;
-      return total + menuItemTotal;
-    }, 0);
-  };
-
-  // Calculate customer total for this restaurant
-  const calculateCustomerTotal = (): number => {
-    const restaurantItems = getRestaurantOrderItems();
-    return restaurantItems.reduce((total: number, item: any) => {
-      if (item.customerTotal !== undefined) {
-        return total + item.customerTotal;
-      }
-      // Fallback: sum from menu items
-      const menuItemTotal = item.menuItems?.reduce((sum: number, menuItem: any) => {
-        return sum + (menuItem.customerTotalPrice || 0);
-      }, 0) || 0;
-      return total + menuItemTotal;
-    }, 0);
-  };
-
-  const restaurantNetEarnings = calculateRestaurantNetEarnings();
-  const customerTotal = calculateCustomerTotal();
-  const restaurantOrderItems = getRestaurantOrderItems();
+  const restaurantNetEarnings = getRestaurantNetEarnings(order, restaurantId);
+  const customerTotal = getRestaurantCustomerTotal(order, restaurantId);
+  const restaurantOrderItems = getRestaurantOrderItems(order, restaurantId);
 
   // View receipt
   const viewReceipt = async () => {

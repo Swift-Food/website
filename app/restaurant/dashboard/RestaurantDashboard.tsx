@@ -676,9 +676,8 @@ export const RestaurantDashboard = ({
               </div>
             ) : activeTab === "catering" ? (
               <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">
-                  Event Orders
-                </h2>
+                {/* Heading lives inside CateringOrdersList so it can share a
+                    row with the list/calendar view toggle. */}
                 <CateringOrdersList
                   orders={cateringOrders}
                   restaurantId={restaurantId}
