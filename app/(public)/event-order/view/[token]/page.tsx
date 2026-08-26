@@ -12,7 +12,7 @@ import DeliveryInfo from "@/lib/components/catering/dashboard/DeliveryInfo";
 import SharedAccessManager from "@/lib/components/catering/dashboard/SharedAccessManager";
 import PickupContactManager from "@/lib/components/catering/dashboard/PickupContactManager";
 import DeliveryTimeManager from "@/lib/components/catering/dashboard/DeliveryTimeManager";
-import { Loader2, Eye, XCircle } from "lucide-react";
+import { Loader2, Eye, XCircle, RotateCcw } from "lucide-react";
 import RefundRequestButton from "@/lib/components/catering/dashboard/RefundRequestButton";
 import { transformOrderToPdfData } from "@/lib/utils/menuPdfUtils";
 import PdfDownloadModal from "@/lib/components/catering/modals/PdfDownloadModal";
@@ -331,6 +331,22 @@ export default function CateringDashboardPage() {
             </div>
 
             <OrderSummary order={order} />
+
+            {/* Repeat order: the widget reads ?reorder=<token> and prefills
+                the checkout with the details this customer last used. */}
+            <div className="bg-white rounded-xl p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">Order Again</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Start a new order with your contact and delivery details already filled in.
+              </p>
+              <a
+                href={`/event-order?reorder=${token}`}
+                className="inline-flex items-center gap-2 w-full justify-center rounded-lg bg-pink-50 border border-pink-200 px-4 py-2.5 text-sm font-medium text-pink-600 transition-colors hover:bg-pink-100"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Order Again
+              </a>
+            </div>
 
             {canCancel && (
               <div className="bg-white rounded-xl p-6">
