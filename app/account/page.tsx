@@ -2,33 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Gift, Loader, Receipt, Users } from "lucide-react";
+import { Loader } from "lucide-react";
 import { ChangePasswordCard } from "@/lib/components/account/ChangePasswordCard";
+import { OrdersSection } from "@/lib/components/account/OrdersSection";
+import { RewardsSection } from "@/lib/components/account/RewardsSection";
 import { useCustomerAuth } from "@/lib/hooks/useCustomerAuth";
-
-interface PlaceholderSection {
-  title: string;
-  description: string;
-  icon: typeof Receipt;
-}
-
-const SECTIONS: PlaceholderSection[] = [
-  {
-    title: "Your orders",
-    description: "Every catering order you have placed, with its status and a one-tap reorder.",
-    icon: Receipt,
-  },
-  {
-    title: "Shared with you",
-    description: "Orders someone else placed where you were added as a manager or viewer.",
-    icon: Users,
-  },
-  {
-    title: "Your rewards",
-    description: "Thank-you discount codes from completed orders, ready to use at checkout.",
-    icon: Gift,
-  },
-];
 
 export default function AccountPage() {
   const router = useRouter();
@@ -66,29 +44,11 @@ export default function AccountPage() {
           </button>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-3 mb-6">
-          {SECTIONS.map(({ title, description, icon: Icon }) => (
-            <div
-              key={title}
-              className="bg-white border border-gray-100 rounded-[32px] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.03)]"
-            >
-              <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-primary mb-6">
-                <Icon size={20} />
-              </div>
-              <h2 className="text-xs font-black uppercase tracking-widest text-black mb-2">
-                {title}
-              </h2>
-              <p className="text-sm text-gray-400 font-light leading-relaxed mb-6">
-                {description}
-              </p>
-              <span className="font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-300">
-                Coming soon
-              </span>
-            </div>
-          ))}
+        <div className="space-y-6">
+          <OrdersSection />
+          <RewardsSection />
+          <ChangePasswordCard />
         </div>
-
-        <ChangePasswordCard />
       </div>
     </div>
   );
