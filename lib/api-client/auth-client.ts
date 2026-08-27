@@ -2,6 +2,7 @@ import {
   AuthStorageKeys,
   RESTAURANT_STORAGE_KEYS,
   PARTNER_STORAGE_KEYS,
+  CUSTOMER_STORAGE_KEYS,
 } from "./storage-keys";
 import { API_BASE_URL } from "@/lib/constants/api";
 
@@ -145,6 +146,9 @@ export const fetchWithAuth = createFetchWithAuth(RESTAURANT_STORAGE_KEYS);
 
 // Partner (coworking) portal uses its own isolated key set.
 export const fetchWithAuthPartner = createFetchWithAuth(PARTNER_STORAGE_KEYS);
+
+// Catering customer accounts.
+export const fetchWithAuthCustomer = createFetchWithAuth(CUSTOMER_STORAGE_KEYS);
 
 export { API_BASE_URL };
 export type { AuthStorageKeys };
