@@ -32,7 +32,7 @@ export const OrderRow = ({ order, compact, shared }: OrderRowProps) => {
               {shortOrderId(order)}
             </span>
             {shared && (
-              <span className="shrink-0 font-mono text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-bold text-primary uppercase tracking-widest">
                 Shared
               </span>
             )}
