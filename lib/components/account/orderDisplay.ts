@@ -1,4 +1,7 @@
-import { MyCateringOrder } from "@/types/api/customer-account.api.types";
+import {
+  AvailableDiscount,
+  MyCateringOrder,
+} from "@/types/api/customer-account.api.types";
 
 export const STATUS_LABELS: Record<string, string> = {
   pending_review: "In review",
@@ -88,3 +91,37 @@ export const isSharedWithMe = (
   order: MyCateringOrder,
   own: MyCateringOrder[]
 ): boolean => !own.some((o) => o.id === order.id);
+
+export const formatCurrency = (value: number): string => `£${value.toFixed(2)}`;
+
+/** "food subtotal" / "venue hire fee", for sentences like "10% off the food subtotal". */
+export const discountTargetLabel = (
+  target: AvailableDiscount["discountTarget"]
+): string => (target === "VENUE_HIRE_FEE" ? "venue hire fee" : "food subtotal");
+
+/** "10% off food" / "£20.00 off", with the cap folded in when there is one. */
+export const discountHeadline = (discount: AvailableDiscount): string => {
+  const isFood = discount.discountTarget !== "VENUE_HIRE_FEE";
+  const base =
+    discount.discountType === "PERCENT"
+      ? `${discount.discountAmount}% off ${isFood ? "food" : "venue hire"}`
+      : `${formatCurrency(discount.discountAmount)} off ${isFood ? "food" : "venue hire"}`;
+
+  if (discount.discountType === "PERCENT" && discount.maxDiscount != null) {
+    return `${base} (up to ${formatCurrency(discount.maxDiscount)})`;
+  }
+  return base;
+};
+
+/**
+ * Row-level restaurant scope line. An empty list means the code is valid
+ * everywhere, not nowhere - do not read it as "no restaurants".
+ */
+export const discountScopeLine = (
+  restaurants: AvailableDiscount["restaurants"]
+): string => {
+  if (restaurants.length === 0) return "All restaurants";
+  if (restaurants.length === 1) return restaurants[0].name;
+  const [first, ...rest] = restaurants;
+  return `${first.name} + ${rest.length} more`;
+};

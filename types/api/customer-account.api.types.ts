@@ -19,9 +19,16 @@ export interface MyOrdersResponse {
 
 export interface AvailableDiscount {
   code: string;
+  name: string | null;
   description: string;
   discountType: "PERCENT" | "FIXED";
   discountAmount: number;
   maxDiscount: number | null;
+  minOrderValue: number | null;
+  discountTarget: "FOOD_SUBTOTAL" | "VENUE_HIRE_FEE";
+  /** Empty means the code is valid at ALL restaurants, not none. */
+  restaurants: { id: string; name: string }[];
   expiresAt: string | null;
+  validFrom: string | null;
+  singleUse: boolean;
 }

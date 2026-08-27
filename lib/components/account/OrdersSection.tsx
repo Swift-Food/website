@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Gift, Receipt } from "lucide-react";
 import { AccountCard } from "./AccountCard";
 import { AuthAlert } from "./AuthAlert";
+import { DiscountModal } from "./DiscountModal";
 import { OrderRow } from "./OrderRow";
-import { mergeRecentOrders } from "./orderDisplay";
+import { discountScopeLine, formatDate, mergeRecentOrders } from "./orderDisplay";
 import { useAccountData } from "./useAccountData";
 import { customerAccountApi } from "@/services/api/customer-account.api";
 import {
@@ -34,6 +36,9 @@ export const AccountOverview = () => {
   const shared = orders.data?.shared ?? [];
   const recent = mergeRecentOrders(own, shared);
   const codes = rewards.data ?? [];
+  const [selectedDiscount, setSelectedDiscount] = useState<AvailableDiscount | null>(
+    null
+  );
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
@@ -80,21 +85,46 @@ export const AccountOverview = () => {
 
         {!rewards.error &&
           codes.map((discount) => (
-            <div
+            <button
               key={discount.code}
-              className="py-3 border-b border-gray-100 last:border-b-0"
+              type="button"
+              onClick={() => setSelectedDiscount(discount)}
+              className="block w-full text-left py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-colors"
             >
-              <p className="font-mono font-bold text-black tracking-widest text-sm">
-                {discount.code}
+              {/* Three weights, not four identical lines: what the code is,
+                  what it's worth, then the constraints demoted together. */}
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="font-mono font-bold text-black tracking-widest text-sm">
+                  {discount.code}
+                </p>
+                <p className="text-sm text-black font-light shrink-0">
+                  {discount.discountType === "PERCENT"
+                    ? `${discount.discountAmount}% off`
+                    : `£${discount.discountAmount.toFixed(2)} off`}
+                </p>
+              </div>
+              {/* Wraps as whole phrases: a long restaurant name pushes the
+                  whole "Expires ..." onto its own line rather than splitting
+                  the date off from its label. */}
+              <p className="text-xs text-gray-400 font-light mt-1 flex flex-wrap gap-x-2">
+                <span>{discountScopeLine(discount.restaurants)}</span>
+                {/* formatDate returns "" for a null or unparseable value, so a
+                    code with no expiry renders nothing here. */}
+                {formatDate(discount.expiresAt ?? undefined) && (
+                  <span className="whitespace-nowrap">
+                    Expires {formatDate(discount.expiresAt ?? undefined)}
+                  </span>
+                )}
               </p>
-              <p className="text-sm text-gray-400 font-light">
-                {discount.discountType === "PERCENT"
-                  ? `${discount.discountAmount}% off`
-                  : `£${discount.discountAmount.toFixed(2)} off`}
-              </p>
-            </div>
+            </button>
           ))}
       </AccountCard>
+
+      <DiscountModal
+        isOpen={selectedDiscount !== null}
+        onClose={() => setSelectedDiscount(null)}
+        discount={selectedDiscount}
+      />
     </div>
   );
 };
