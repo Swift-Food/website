@@ -98,14 +98,6 @@ export const ProfileSection = () => {
 
   return (
     <div className="bg-white border border-gray-100 rounded-[32px] p-8 md:p-10 shadow-[0_24px_60px_rgba(0,0,0,0.03)]">
-      <h2 className="text-xs font-black uppercase tracking-widest text-black mb-2">
-        Your details
-      </h2>
-      <p className="text-sm text-gray-400 font-light mb-8">
-        Used to fill in your checkout. Change them here and every future order
-        picks them up.
-      </p>
-
       {loading && (
         <div className="py-4 flex justify-center">
           <Loader size={20} className="animate-spin text-gray-300" />

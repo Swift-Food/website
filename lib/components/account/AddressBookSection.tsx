@@ -77,6 +77,7 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
   const [adding, setAdding] = useState(false);
   const [picked, setPicked] = useState<ParsedPlace | null>(null);
   const [name, setName] = useState("");
+  const [line2, setLine2] = useState("");
 
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -128,6 +129,7 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
     setAdding(false);
     setPicked(null);
     setName("");
+    setLine2("");
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -140,6 +142,7 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
       await customerAddressApi.create({
         name: name.trim() || picked.addressLine1,
         addressLine1: picked.addressLine1,
+        addressLine2: line2.trim() || undefined,
         city: picked.city,
         zipcode: picked.zipcode,
         placeId: picked.placeId,
@@ -170,9 +173,9 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
 
   return (
     <div className="bg-white border border-gray-100 rounded-[32px] p-8 md:p-10 shadow-[0_24px_60px_rgba(0,0,0,0.03)]">
-      <div className="flex items-start justify-between gap-6 mb-2">
+      <div className="flex items-start justify-between gap-6 mb-8">
         <h2 className="text-xs font-black uppercase tracking-widest text-black">
-          Delivery addresses
+          Saved addresses
         </h2>
         {!adding && (
           <button
@@ -183,10 +186,6 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
           </button>
         )}
       </div>
-      <p className="text-sm text-gray-400 font-light mb-8">
-        Pick one at checkout instead of typing it out each time.
-      </p>
-
       {error && (
         <div className="mb-6">
           <AuthAlert tone="error" message={error} />
@@ -254,6 +253,15 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
               </p>
             )}
           </div>
+
+          <AuthField
+            label="Address Line 2"
+            type="text"
+            autoComplete="address-line2"
+            value={line2}
+            onChange={(e) => setLine2(e.target.value)}
+            placeholder="Flat, suite, floor (optional)"
+          />
 
           <AuthField
             label="Name this address"

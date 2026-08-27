@@ -1,0 +1,63 @@
+"use client";
+
+import Link from "next/link";
+import { RotateCcw } from "lucide-react";
+import { MyCateringOrder } from "@/types/api/customer-account.api.types";
+import {
+  STATUS_LABELS,
+  deliveryAddressLine,
+  orderMetaLine,
+  orderTitle,
+  shortOrderId,
+} from "./orderDisplay";
+
+interface OrderRowProps {
+  order: MyCateringOrder;
+  /** The compact form used inside the dashboard cards. */
+  compact?: boolean;
+}
+
+export const OrderRow = ({ order, compact }: OrderRowProps) => {
+  const address = deliveryAddressLine(order);
+
+  return (
+    <div className="py-4 border-b border-gray-100 last:border-b-0">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-2">
+            <p className="font-medium text-black truncate">{orderTitle(order)}</p>
+            <span className="shrink-0 font-mono text-[10px] text-gray-300 uppercase tracking-widest">
+              {shortOrderId(order)}
+            </span>
+          </div>
+          <p className="text-sm text-gray-400 font-light">{orderMetaLine(order)}</p>
+          {address && !compact && (
+            <p className="text-sm text-gray-400 font-light truncate">{address}</p>
+          )}
+        </div>
+
+        <span className="shrink-0 font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-400">
+          {STATUS_LABELS[order.status] ?? order.status}
+        </span>
+      </div>
+
+      {order.accessToken && (
+        <div className="flex items-center gap-5 mt-2">
+          <Link
+            href={`/event-order/view/${order.accessToken}`}
+            className="font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-primary text-primary pb-0.5 hover:text-black hover:border-black transition-colors"
+          >
+            View
+          </Link>
+          <Link
+            href={`/event-order?reorder=${order.accessToken}`}
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-400 hover:text-primary transition-colors"
+          >
+            <RotateCcw size={12} />
+            Again
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+};

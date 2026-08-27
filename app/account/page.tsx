@@ -1,59 +1,47 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Loader } from "lucide-react";
-import { ChangePasswordCard } from "@/lib/components/account/ChangePasswordCard";
-import { AddressBookSection } from "@/lib/components/account/AddressBookSection";
-import { OrdersSection } from "@/lib/components/account/OrdersSection";
-import { ProfileSection } from "@/lib/components/account/ProfileSection";
-import { RewardsSection } from "@/lib/components/account/RewardsSection";
-import { useCustomerAuth } from "@/lib/hooks/useCustomerAuth";
+import Link from "next/link";
+import { MapPin, UserCog } from "lucide-react";
+import { AccountOverview } from "@/lib/components/account/OrdersSection";
+import { AccountPageShell } from "@/lib/components/account/AccountPageShell";
+
+const LINKS = [
+  {
+    href: "/account/details",
+    icon: UserCog,
+    title: "Your details",
+    description: "Name, phone, organisation, billing address and your password.",
+  },
+  {
+    href: "/account/addresses",
+    icon: MapPin,
+    title: "Delivery addresses",
+    description: "Save the places you order to and pick one at checkout.",
+  },
+];
 
 export default function AccountPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, loading, logout } = useCustomerAuth();
-
-  useEffect(() => {
-    if (!loading && !isAuthenticated) router.replace("/account/login");
-  }, [loading, isAuthenticated, router]);
-
-  if (loading || !isAuthenticated) {
-    return (
-      <div className="min-h-below-nav bg-white flex items-center justify-center">
-        <Loader size={24} className="animate-spin text-gray-300" />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-below-nav bg-white pt-20 md:pt-28 pb-24 px-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-end justify-between gap-6 mb-12">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-black leading-none mb-4">
-              Your account
-            </h1>
-            <p className="text-gray-400 font-light leading-relaxed">
-              {user?.email ?? "Manage your Swift Food catering orders."}
-            </p>
-          </div>
-          <button
-            onClick={logout}
-            className="shrink-0 font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-gray-300 text-gray-400 pb-0.5 hover:text-primary hover:border-primary transition-colors"
-          >
-            Sign out
-          </button>
-        </div>
+    <AccountPageShell title="Your account">
+      <AccountOverview />
 
-        <div className="space-y-6">
-          <OrdersSection />
-          <RewardsSection />
-          <ProfileSection />
-          {user?.id && <AddressBookSection userId={user.id} />}
-          <ChangePasswordCard />
-        </div>
+      <div className="grid gap-6 sm:grid-cols-2 mt-6">
+        {LINKS.map(({ href, icon: Icon, title, description }) => (
+          <Link
+            key={href}
+            href={href}
+            className="bg-white border border-gray-100 rounded-[32px] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.03)] hover:border-primary/30 transition-colors"
+          >
+            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-primary mb-6">
+              <Icon size={20} />
+            </div>
+            <h2 className="text-xs font-black uppercase tracking-widest text-black mb-2">
+              {title}
+            </h2>
+            <p className="text-sm text-gray-400 font-light">{description}</p>
+          </Link>
+        ))}
       </div>
-    </div>
+    </AccountPageShell>
   );
 }
