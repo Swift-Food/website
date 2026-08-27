@@ -1,7 +1,7 @@
 // app/components/catering/dashboard/OrderDetails.tsx
 import React, { useMemo } from 'react';
 import { CateringOrderResponse } from '@/types/api';
-import { MapPin, FileText, Calendar } from 'lucide-react';
+import { MapPin, Tag, Calendar } from 'lucide-react';
 import { formatDeliveryAddress } from '@/app/restaurant/dashboard/catering/utils/address.utils';
 
 interface OrderDetailsProps {
@@ -77,6 +77,21 @@ export default function OrderDetails({ order }: OrderDetailsProps) {
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Event Details</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        {/* Event Name — only orders the customer chose to name have one, and
+            leaving the cell out entirely keeps the date in the first column
+            exactly as it renders today. */}
+        {order.eventName && (
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-1 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-gray-600">Event Name</p>
+              <p className="font-semibold text-sm sm:text-base text-gray-900 break-words">
+                {order.eventName}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Event Date */}
         <div className="flex items-start gap-2 sm:gap-3">
           {eventDateInfo.isSingleDate ? (
