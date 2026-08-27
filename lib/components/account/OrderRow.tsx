@@ -58,10 +58,13 @@ export const OrderRow = ({ order, compact, shared }: OrderRowProps) => {
           </Link>
           <Link
             href={`/event-order?reorder=${order.accessToken}`}
+            // Not "reorder": the items are not copied, only the contact and
+            // delivery details, so the label must not promise the basket back.
+            title="Start a new order with your contact and delivery details filled in"
             className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-400 hover:text-primary transition-colors"
           >
             <RotateCcw size={12} />
-            Again
+            New order, prefilled
           </Link>
         </div>
       )}
