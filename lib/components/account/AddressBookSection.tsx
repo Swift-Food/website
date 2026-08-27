@@ -1,18 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader, MapPin, Star, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Loader, Pencil, Star, Trash2 } from "lucide-react";
+import { AddressForm } from "./AddressForm";
 import { AuthAlert } from "./AuthAlert";
-import { AuthField } from "./AuthField";
-import { AuthSubmitButton } from "./AuthSubmitButton";
 import { customerAddressApi } from "@/services/api/customer-address.api";
-import { loadGoogleMapsScript } from "@/lib/utils/google-maps-loader";
 import {
-  AUTOCOMPLETE_OPTIONS,
-  parsePlaceResult,
-  type ParsedPlace,
-} from "@/lib/utils/parse-place-result";
-import { CustomerAddress } from "@/types/api/customer-address.api.types";
+  CreateCustomerAddress,
+  CustomerAddress,
+} from "@/types/api/customer-address.api.types";
 
 const fullLine = (address: CustomerAddress): string =>
   [address.addressLine1, address.addressLine2, address.city, address.zipcode]
@@ -21,14 +17,16 @@ const fullLine = (address: CustomerAddress): string =>
 
 const AddressRow = ({
   address,
+  busy,
+  onEdit,
   onMakeDefault,
   onDelete,
-  busy,
 }: {
   address: CustomerAddress;
+  busy: boolean;
+  onEdit: (address: CustomerAddress) => void;
   onMakeDefault: (address: CustomerAddress) => void;
   onDelete: (address: CustomerAddress) => void;
-  busy: boolean;
 }) => (
   <div className="flex flex-wrap items-center justify-between gap-4 py-5 border-b border-gray-100 last:border-b-0">
     <div className="min-w-0">
@@ -46,6 +44,14 @@ const AddressRow = ({
     </div>
 
     <div className="flex items-center gap-5 shrink-0">
+      <button
+        onClick={() => onEdit(address)}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-400 hover:text-primary disabled:opacity-40 transition-colors"
+      >
+        <Pencil size={12} />
+        Edit
+      </button>
       {!address.isDefault && (
         <button
           onClick={() => onMakeDefault(address)}
@@ -74,13 +80,8 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const [adding, setAdding] = useState(false);
-  const [picked, setPicked] = useState<ParsedPlace | null>(null);
-  const [name, setName] = useState("");
-  const [line2, setLine2] = useState("");
-
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  // null = closed, "new" = adding, otherwise the address being edited.
+  const [editing, setEditing] = useState<CustomerAddress | "new" | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -96,78 +97,38 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
     void load();
   }, [load]);
 
-  // Bound once the form is open, since the input does not exist before that.
-  useEffect(() => {
-    if (!adding) return;
-    let cancelled = false;
-
-    void loadGoogleMapsScript().then(() => {
-      if (cancelled || !inputRef.current || !window.google?.maps?.places) return;
-      autocompleteRef.current = new google.maps.places.Autocomplete(
-        inputRef.current,
-        AUTOCOMPLETE_OPTIONS
-      );
-      autocompleteRef.current.addListener("place_changed", () => {
-        const parsed = parsePlaceResult(autocompleteRef.current?.getPlace());
-        setPicked(parsed);
-        if (!parsed) {
-          setError("Pick an address from the list so we get its exact location.");
-          return;
-        }
-        setError("");
-        setName((current) => current || parsed.addressLine1);
-      });
-    });
-
-    return () => {
-      cancelled = true;
-      autocompleteRef.current = null;
-    };
-  }, [adding]);
-
-  const resetForm = () => {
-    setAdding(false);
-    setPicked(null);
-    setName("");
-    setLine2("");
-    if (inputRef.current) inputRef.current.value = "";
-  };
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!picked) return;
-    setError("");
-    setBusy(true);
-    try {
-      await customerAddressApi.create({
-        name: name.trim() || picked.addressLine1,
-        addressLine1: picked.addressLine1,
-        addressLine2: line2.trim() || undefined,
-        city: picked.city,
-        zipcode: picked.zipcode,
-        placeId: picked.placeId,
-        location: picked.location,
-        isDefault: addresses.length === 0,
-      });
-      resetForm();
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save this address.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const runAction = async (action: () => Promise<unknown>, fallback: string) => {
     setError("");
     setBusy(true);
     try {
       await action();
+      setEditing(null);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : fallback);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleSubmit = (values: Partial<CreateCustomerAddress>) => {
+    if (editing === "new") {
+      void runAction(
+        () =>
+          customerAddressApi.create({
+            ...(values as CreateCustomerAddress),
+            isDefault: addresses.length === 0,
+          }),
+        "Could not save this address."
+      );
+      return;
+    }
+    if (editing) {
+      const id = editing.id;
+      void runAction(
+        () => customerAddressApi.update(id, values),
+        "Could not update this address."
+      );
     }
   };
 
@@ -177,15 +138,16 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
         <h2 className="text-xs font-black uppercase tracking-widest text-black">
           Saved addresses
         </h2>
-        {!adding && (
+        {!editing && (
           <button
-            onClick={() => setAdding(true)}
+            onClick={() => setEditing("new")}
             className="shrink-0 font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-primary text-primary pb-0.5 hover:text-black hover:border-black transition-colors"
           >
             Add
           </button>
         )}
       </div>
+
       {error && (
         <div className="mb-6">
           <AuthAlert tone="error" message={error} />
@@ -198,19 +160,23 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
         </div>
       )}
 
-      {!loading && !addresses.length && !adding && (
+      {!loading && !addresses.length && !editing && (
         <p className="text-sm text-gray-400 font-light">
           No saved addresses yet. We will offer to keep the next one you order to.
         </p>
       )}
 
-      {!loading && addresses.length > 0 && (
-        <div className="mb-4">
+      {!loading && addresses.length > 0 && !editing && (
+        <div>
           {addresses.map((address) => (
             <AddressRow
               key={address.id}
               address={address}
               busy={busy}
+              onEdit={(a) => {
+                setError("");
+                setEditing(a);
+              }}
               onMakeDefault={(a) =>
                 runAction(
                   () => customerAddressApi.update(a.id, { isDefault: true }),
@@ -228,64 +194,19 @@ export const AddressBookSection = ({ userId }: { userId: string }) => {
         </div>
       )}
 
-      {adding && (
-        <form onSubmit={handleAdd} className="space-y-8 pt-4">
-          <div className="space-y-2">
-            <label
-              htmlFor="address-search"
-              className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 flex items-center gap-2"
-            >
-              <MapPin size={12} />
-              Search for the address
-            </label>
-            <input
-              id="address-search"
-              ref={inputRef}
-              type="text"
-              placeholder="Start typing, then pick from the list"
-              className="w-full bg-white border-transparent border-b-2 border-b-gray-100 px-0 py-4 outline-none focus:outline-none focus:border-b-primary transition-colors text-black font-medium"
-            />
-            {picked && (
-              <p className="text-xs text-gray-400 ml-1">
-                {[picked.addressLine1, picked.city, picked.zipcode]
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
-            )}
-          </div>
-
-          <AuthField
-            label="Address Line 2"
-            type="text"
-            autoComplete="address-line2"
-            value={line2}
-            onChange={(e) => setLine2(e.target.value)}
-            placeholder="Flat, suite, floor (optional)"
-          />
-
-          <AuthField
-            label="Name this address"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Head office"
-          />
-
-          <AuthSubmitButton
-            label="Save Address"
-            pendingLabel="Saving…"
-            pending={busy}
-            disabled={!picked}
-          />
-
-          <button
-            type="button"
-            onClick={resetForm}
-            className="w-full text-center font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-400 hover:text-primary transition-colors"
-          >
-            Cancel
-          </button>
-        </form>
+      {editing && (
+        <AddressForm
+          // Remounts per target so the fields reset between add and edit.
+          key={editing === "new" ? "new" : editing.id}
+          address={editing === "new" ? undefined : editing}
+          saving={busy}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setError("");
+            setEditing(null);
+          }}
+          onError={setError}
+        />
       )}
     </div>
   );
