@@ -52,6 +52,8 @@ export const OrderRow = ({ order, compact, shared }: OrderRowProps) => {
         <div className="flex items-center gap-5 mt-2">
           <Link
             href={`/event-order/view/${order.accessToken}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-primary text-primary pb-0.5 hover:text-black hover:border-black transition-colors"
           >
             View
