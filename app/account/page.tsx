@@ -4,7 +4,9 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { ChangePasswordCard } from "@/lib/components/account/ChangePasswordCard";
+import { AddressBookSection } from "@/lib/components/account/AddressBookSection";
 import { OrdersSection } from "@/lib/components/account/OrdersSection";
+import { ProfileSection } from "@/lib/components/account/ProfileSection";
 import { RewardsSection } from "@/lib/components/account/RewardsSection";
 import { useCustomerAuth } from "@/lib/hooks/useCustomerAuth";
 
@@ -47,6 +49,8 @@ export default function AccountPage() {
         <div className="space-y-6">
           <OrdersSection />
           <RewardsSection />
+          <ProfileSection />
+          {user?.id && <AddressBookSection userId={user.id} />}
           <ChangePasswordCard />
         </div>
       </div>
