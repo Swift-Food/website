@@ -113,7 +113,9 @@ export const AccountOverview = () => {
                   whole "Expires ..." onto its own line rather than splitting
                   the date off from its label. */}
               <p className="text-xs text-gray-400 font-light mt-1 flex flex-wrap gap-x-2">
-                <span>{discountScopeLine(discount.restaurants)}</span>
+                {discountScopeLine(discount.restaurants) && (
+                  <span>{discountScopeLine(discount.restaurants)}</span>
+                )}
                 {/* formatDate returns "" for a null or unparseable value, so a
                     code with no expiry renders nothing here. */}
                 {formatDate(discount.expiresAt ?? undefined) && (

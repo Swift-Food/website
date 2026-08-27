@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { orderTitle } from "./orderDisplay";
+import { discountScopeLine, orderTitle } from "./orderDisplay";
 import type { MyCateringOrder } from "@/types/api/customer-account.api.types";
 
 const order = (fields: Partial<MyCateringOrder>): MyCateringOrder =>
@@ -52,5 +52,34 @@ describe("orderTitle", () => {
 
   it("falls back to a short id when it has nothing else", () => {
     expect(orderTitle(order({}))).toBe("Order #e264");
+  });
+});
+
+/**
+ * A deployed backend can be older than the client reading it. `restaurants`
+ * arrived with the discount-details work, so a client that assumes it exists
+ * crashes on `restaurants.length` against any server that predates it — which
+ * is exactly what happened in production. Absent is not the same as empty:
+ * empty is a fact ("valid everywhere"), absent is the absence of one.
+ */
+describe("discountScopeLine with a payload that predates the field", () => {
+  it("returns null rather than throwing when restaurants is missing", () => {
+    expect(discountScopeLine(undefined)).toBeNull();
+    expect(discountScopeLine(null)).toBeNull();
+  });
+
+  it("still says All restaurants for a genuinely empty list", () => {
+    expect(discountScopeLine([])).toBe("All restaurants");
+  });
+
+  it("names one restaurant, and counts the rest beyond the first", () => {
+    expect(discountScopeLine([{ id: "a", name: "Ravello" }])).toBe("Ravello");
+    expect(
+      discountScopeLine([
+        { id: "a", name: "Ravello" },
+        { id: "b", name: "ICCO" },
+        { id: "c", name: "Sultan" },
+      ])
+    ).toBe("Ravello + 2 more");
   });
 });

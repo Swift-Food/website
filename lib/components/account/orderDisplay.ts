@@ -116,10 +116,16 @@ export const discountHeadline = (discount: AvailableDiscount): string => {
 /**
  * Row-level restaurant scope line. An empty list means the code is valid
  * everywhere, not nowhere - do not read it as "no restaurants".
+ *
+ * Absent is a third case, and not the same as empty: a backend that predates
+ * this field sends nothing at all, and claiming "All restaurants" off the back
+ * of that would be asserting something we were never told. Returns null so the
+ * caller renders no scope line rather than a wrong one.
  */
 export const discountScopeLine = (
-  restaurants: AvailableDiscount["restaurants"]
-): string => {
+  restaurants: AvailableDiscount["restaurants"] | null | undefined
+): string | null => {
+  if (!Array.isArray(restaurants)) return null;
   if (restaurants.length === 0) return "All restaurants";
   if (restaurants.length === 1) return restaurants[0].name;
   const [first, ...rest] = restaurants;

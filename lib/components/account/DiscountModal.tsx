@@ -38,8 +38,11 @@ export const DiscountModal = ({ isOpen, onClose, discount }: DiscountModalProps)
     singleUse,
   } = discount;
 
-  // Empty means the code is valid at ALL restaurants, not none.
-  const validEverywhere = restaurants.length === 0;
+  // Empty means the code is valid at ALL restaurants, not none. Absent is a
+  // third case: a backend older than this field sends nothing, and we must not
+  // turn that into a claim either way, so the section is dropped entirely.
+  const scopeKnown = Array.isArray(restaurants);
+  const validEverywhere = scopeKnown && restaurants.length === 0;
 
   const validFromDate = validFrom ? new Date(validFrom) : null;
   const validFromIsFuture = validFromDate ? validFromDate.getTime() > Date.now() : false;
@@ -65,20 +68,22 @@ export const DiscountModal = ({ isOpen, onClose, discount }: DiscountModalProps)
         <div className="p-6 space-y-6">
           <p className="text-lg font-medium text-black">{discountHeadline(discount)}</p>
 
-          <div>
-            <h3 className="font-mono text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
-              Valid at
-            </h3>
-            {validEverywhere ? (
-              <p className="text-sm text-black">All restaurants</p>
-            ) : (
-              <ul className="text-sm text-black space-y-1">
-                {restaurants.map((restaurant) => (
-                  <li key={restaurant.id}>{restaurant.name}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {scopeKnown && (
+            <div>
+              <h3 className="font-mono text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                Valid at
+              </h3>
+              {validEverywhere ? (
+                <p className="text-sm text-black">All restaurants</p>
+              ) : (
+                <ul className="text-sm text-black space-y-1">
+                  {restaurants.map((restaurant) => (
+                    <li key={restaurant.id}>{restaurant.name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           <div>
             {minOrderValue != null && (
