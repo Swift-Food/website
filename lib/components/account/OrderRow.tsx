@@ -15,9 +15,11 @@ interface OrderRowProps {
   order: MyCateringOrder;
   /** The compact form used inside the dashboard cards. */
   compact?: boolean;
+  /** Placed by someone else. Marked so a merged list stays readable. */
+  shared?: boolean;
 }
 
-export const OrderRow = ({ order, compact }: OrderRowProps) => {
+export const OrderRow = ({ order, compact, shared }: OrderRowProps) => {
   const address = deliveryAddressLine(order);
 
   return (
@@ -29,6 +31,11 @@ export const OrderRow = ({ order, compact }: OrderRowProps) => {
             <span className="shrink-0 font-mono text-[10px] text-gray-300 uppercase tracking-widest">
               {shortOrderId(order)}
             </span>
+            {shared && (
+              <span className="shrink-0 font-mono text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                Shared
+              </span>
+            )}
           </div>
           <p className="text-sm text-gray-400 font-light">{orderMetaLine(order)}</p>
           {address && !compact && (

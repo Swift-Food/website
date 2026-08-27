@@ -8,6 +8,8 @@ interface AccountCardProps {
   loading?: boolean;
   /** Rendered bottom-right, e.g. a "View all" link. */
   action?: { label: string; href: string };
+  /** Grid span and any other layout the row needs. */
+  className?: string;
   children: ReactNode;
 }
 
@@ -20,9 +22,14 @@ export const AccountCard = ({
   icon: Icon,
   loading,
   action,
+  className,
   children,
 }: AccountCardProps) => (
-  <div className="bg-white border border-gray-100 rounded-[32px] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.03)] flex flex-col">
+  <div
+    className={`bg-white border border-gray-100 rounded-[32px] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.03)] flex flex-col ${
+      className ?? ""
+    }`}
+  >
     <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-primary mb-6">
       <Icon size={20} />
     </div>

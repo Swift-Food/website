@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Gift, Receipt, Users } from "lucide-react";
+import { Gift, Receipt } from "lucide-react";
 import { AccountCard } from "./AccountCard";
 import { AuthAlert } from "./AuthAlert";
 import { OrderRow } from "./OrderRow";
+import { mergeRecentOrders } from "./orderDisplay";
 import { useAccountData } from "./useAccountData";
 import { customerAccountApi } from "@/services/api/customer-account.api";
 import {
   AvailableDiscount,
-  MyCateringOrder,
   MyOrdersResponse,
 } from "@/types/api/customer-account.api.types";
 
@@ -18,14 +18,6 @@ const PREVIEW_COUNT = 3;
 
 const EmptyNote = ({ children }: { children: React.ReactNode }) => (
   <p className="text-sm text-gray-400 font-light">{children}</p>
-);
-
-const OrderPreview = ({ orders }: { orders: MyCateringOrder[] }) => (
-  <div>
-    {orders.slice(0, PREVIEW_COUNT).map((order) => (
-      <OrderRow key={order.id} order={order} compact />
-    ))}
-  </div>
 );
 
 export const AccountOverview = () => {
@@ -40,18 +32,21 @@ export const AccountOverview = () => {
 
   const own = orders.data?.own ?? [];
   const shared = orders.data?.shared ?? [];
+  const recent = mergeRecentOrders(own, shared);
   const codes = rewards.data ?? [];
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
       <AccountCard
-        title="Your orders"
+        title="Recent orders"
         icon={Receipt}
+        className="md:col-span-2"
         loading={orders.loading}
-        action={own.length ? { label: "View all", href: "/account/orders" } : undefined}
+        action={recent.length ? { label: "View all", href: "/account/orders" } : undefined}
       >
         {orders.error && <AuthAlert tone="error" message={orders.error} />}
-        {!orders.error && !own.length && (
+
+        {!orders.error && !recent.length && (
           <>
             <EmptyNote>You have not placed a catering order yet.</EmptyNote>
             <Link
@@ -62,33 +57,27 @@ export const AccountOverview = () => {
             </Link>
           </>
         )}
-        {!orders.error && own.length > 0 && <OrderPreview orders={own} />}
+
+        {!orders.error &&
+          recent.slice(0, PREVIEW_COUNT).map((order) => (
+            <OrderRow
+              key={order.id}
+              order={order}
+              compact
+              shared={!own.some((o) => o.id === order.id)}
+            />
+          ))}
       </AccountCard>
 
-      <AccountCard
-        title="Shared with you"
-        icon={Users}
-        loading={orders.loading}
-        action={
-          shared.length ? { label: "View all", href: "/account/orders" } : undefined
-        }
-      >
-        {!orders.error && !shared.length && (
-          <EmptyNote>
-            Orders someone else placed and added you to will appear here.
-          </EmptyNote>
-        )}
-        {!orders.error && shared.length > 0 && <OrderPreview orders={shared} />}
-      </AccountCard>
-
-      <AccountCard title="Your rewards" icon={Gift} loading={rewards.loading}>
+      <AccountCard title="Your discount codes" icon={Gift} loading={rewards.loading}>
         {rewards.error && <AuthAlert tone="error" message={rewards.error} />}
+
         {!rewards.error && !codes.length && (
           <EmptyNote>
-            Thank-you codes arrive once an order is completed. Enter one in the
-            discount box at checkout.
+            You have no discount codes right now.
           </EmptyNote>
         )}
+
         {!rewards.error &&
           codes.map((discount) => (
             <div

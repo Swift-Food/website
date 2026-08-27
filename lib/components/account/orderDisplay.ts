@@ -42,7 +42,7 @@ export const orderTitle = (order: MyCateringOrder): string => {
 
 /** First 4 characters of the id, matching how the order view page refers to it. */
 export const shortOrderId = (order: MyCateringOrder): string =>
-  order.id.slice(0, 4);
+  `#${order.id.slice(0, 4)}`;
 
 export const sessionCount = (order: MyCateringOrder): number =>
   order.mealSessions?.length ?? 0;
@@ -67,3 +67,21 @@ export const orderMetaLine = (order: MyCateringOrder): string => {
     .filter(Boolean)
     .join(" · ");
 };
+
+/**
+ * Both lists arrive sorted by recency but separately, so merging needs its own
+ * sort. `myRole` survives the merge, which is what marks a row as shared.
+ */
+export const mergeRecentOrders = (
+  own: MyCateringOrder[],
+  shared: MyCateringOrder[]
+): MyCateringOrder[] =>
+  [...own, ...shared].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+/** Whether this order was placed by someone else and shared with the caller. */
+export const isSharedWithMe = (
+  order: MyCateringOrder,
+  own: MyCateringOrder[]
+): boolean => !own.some((o) => o.id === order.id);
