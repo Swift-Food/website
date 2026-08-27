@@ -12,7 +12,7 @@ interface AuthCardProps {
  * heading and soft card the rest of the marketing site uses.
  */
 export const AuthCard = ({ title, subtitle, children, footer }: AuthCardProps) => (
-  <div className="min-h-[80vh] bg-white pt-20 md:pt-28 pb-24 px-6">
+  <div className="min-h-below-nav bg-white pt-20 md:pt-28 pb-24 px-6">
     <div className="max-w-md mx-auto">
       <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-black leading-none mb-4">
         {title}

@@ -40,14 +40,14 @@ export default function AccountPage() {
 
   if (loading || !isAuthenticated) {
     return (
-      <div className="min-h-[80vh] bg-white flex items-center justify-center">
+      <div className="min-h-below-nav bg-white flex items-center justify-center">
         <Loader size={24} className="animate-spin text-gray-300" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[80vh] bg-white pt-20 md:pt-28 pb-24 px-6">
+    <div className="min-h-below-nav bg-white pt-20 md:pt-28 pb-24 px-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-end justify-between gap-6 mb-12">
           <div>
