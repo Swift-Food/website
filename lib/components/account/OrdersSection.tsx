@@ -83,8 +83,14 @@ export const AccountOverview = () => {
           </EmptyNote>
         )}
 
-        {!rewards.error &&
-          codes.map((discount) => (
+        {/* Capped and scrolled rather than left to grow: the orders card
+            beside this one is limited to three rows plus "View all", so an
+            uncapped list here drags the whole row taller as codes pile up.
+            The negative margin lets the scrollbar sit outside the row
+            padding instead of over the text. */}
+        {!rewards.error && codes.length > 0 && (
+          <div className="max-h-[22rem] overflow-y-auto -mr-2 pr-2">
+            {codes.map((discount) => (
             <button
               key={discount.code}
               type="button"
@@ -117,7 +123,9 @@ export const AccountOverview = () => {
                 )}
               </p>
             </button>
-          ))}
+            ))}
+          </div>
+        )}
       </AccountCard>
 
       <DiscountModal
