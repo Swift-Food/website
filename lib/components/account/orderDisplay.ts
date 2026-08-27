@@ -29,11 +29,14 @@ export const formatTotal = (order: MyCateringOrder): string => {
 };
 
 /**
- * Orders have no name of their own, so the first session's name is the closest
- * thing to one ("Main Event", "Lunch"). Falls back to the organisation, then to
- * a short id - the same first-8 shape the order view page shows.
+ * The name the customer gave the event, when they gave one. Orders placed
+ * before that field existed - and any the customer chose not to name - fall
+ * back to the first session's name ("Main Event", "Lunch"), then to the
+ * organisation, then to a short id.
  */
 export const orderTitle = (order: MyCateringOrder): string => {
+  const eventName = order.eventName?.trim();
+  if (eventName) return eventName;
   const sessionName = order.mealSessions?.[0]?.sessionName?.trim();
   if (sessionName) return sessionName;
   if (order.organization?.trim()) return order.organization.trim();

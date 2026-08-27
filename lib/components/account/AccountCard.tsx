@@ -50,7 +50,7 @@ export const AccountCard = ({
     {action && !loading && (
       <Link
         href={action.href}
-        className="mt-6 self-start font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-primary text-primary pb-0.5 hover:text-black hover:border-black transition-colors"
+        className="mt-6 self-end font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-primary text-primary pb-0.5 hover:text-black hover:border-black transition-colors"
       >
         {action.label}
       </Link>
