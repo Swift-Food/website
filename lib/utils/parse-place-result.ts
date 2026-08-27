@@ -1,6 +1,8 @@
 import { GOOGLE_MAPS_CONFIG } from "@/lib/constants/google-maps";
 
 export interface ParsedPlace {
+  /** What Google calls this place - a building or business name. */
+  placeName?: string;
   addressLine1: string;
   city: string;
   zipcode: string;
@@ -45,6 +47,7 @@ export function parsePlaceResult(
   if (!addressLine1 || !zipcode) return null;
 
   return {
+    placeName: place.name,
     addressLine1,
     city,
     zipcode,

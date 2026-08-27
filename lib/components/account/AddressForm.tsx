@@ -44,7 +44,9 @@ export const AddressForm = ({
 }: AddressFormProps) => {
   const isEdit = !!address;
 
-  const [name, setName] = useState(address?.name ?? "");
+  // What the customer calls it. Prefilled from whatever Google names the
+  // place, but theirs to change - it is the only name they ever see.
+  const [label, setLabel] = useState(address?.label ?? address?.name ?? "");
   const [line2, setLine2] = useState(address?.addressLine2 ?? "");
   const [picked, setPicked] = useState<ParsedPlace | null>(null);
 
@@ -68,7 +70,7 @@ export const AddressForm = ({
           return;
         }
         onError("");
-        setName((current) => current || parsed.addressLine1);
+        setLabel((current) => current || parsed.placeName || parsed.addressLine1);
       });
     });
 
@@ -89,7 +91,9 @@ export const AddressForm = ({
     if (!canSubmit) return;
 
     onSubmit({
-      name: name.trim() || picked?.addressLine1 || address?.addressLine1 || "",
+      label: label.trim() || picked?.addressLine1 || address?.addressLine1 || "",
+      // Google's own name for the place, kept for reference and never shown.
+      ...(picked ? { name: picked.placeName || picked.addressLine1 } : {}),
       addressLine2: line2.trim() || undefined,
       ...(picked
         ? {
@@ -143,9 +147,9 @@ export const AddressForm = ({
       <AuthField
         label="Name this address"
         type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Head office"
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="Home, Head office, The studio"
       />
 
       <AuthSubmitButton

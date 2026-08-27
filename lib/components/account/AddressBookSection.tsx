@@ -32,7 +32,7 @@ const AddressRow = ({
     <div className="min-w-0">
       <div className="flex items-center gap-3">
         <p className="font-medium text-black truncate">
-          {address.name || address.addressLine1}
+          {address.label || address.name || address.addressLine1}
         </p>
         {address.isDefault && (
           <span className="shrink-0 font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-primary">
