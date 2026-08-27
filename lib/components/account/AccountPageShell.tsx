@@ -38,37 +38,53 @@ export const AccountPageShell = ({
   }
 
   return (
-    <div className="min-h-below-nav bg-white pt-20 md:pt-28 pb-24 px-6">
+    <div className="min-h-below-nav bg-white pt-8 md:pt-10 pb-24 px-6">
       <div className="max-w-4xl mx-auto">
         {backTo && (
           <Link
             href={backTo.href}
-            className="inline-flex items-center gap-2 font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-400 hover:text-primary transition-colors mb-8"
+            className="inline-flex items-center gap-2 font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-gray-400 hover:text-primary transition-colors mb-4"
           >
             <ArrowLeft size={12} />
             {backTo.label}
           </Link>
         )}
 
-        <div className="flex items-end justify-between gap-6 mb-12">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-black leading-none mb-4">
-              {title}
-            </h1>
-            <p className="text-gray-400 font-light leading-relaxed">
-              {subtitle ?? user?.email ?? ""}
-            </p>
+        <header className="border-b border-gray-100 pb-4 mb-8">
+          <div className="flex items-baseline justify-between gap-6">
+            <div className="flex items-baseline gap-4 min-w-0">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase text-black leading-none shrink-0">
+                {title}
+              </h1>
+              {!subtitle && user?.email && (
+                <p className="hidden sm:block font-mono text-xs text-gray-400 truncate">
+                  {user.email}
+                </p>
+              )}
+            </div>
+
+            {!backTo && (
+              <button
+                onClick={logout}
+                className="shrink-0 font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-gray-300 text-gray-400 pb-0.5 hover:text-primary hover:border-primary transition-colors"
+              >
+                Sign out
+              </button>
+            )}
           </div>
 
-          {!backTo && (
-            <button
-              onClick={logout}
-              className="shrink-0 font-mono text-[10px] font-bold tracking-[0.12em] uppercase border-b border-gray-300 text-gray-400 pb-0.5 hover:text-primary hover:border-primary transition-colors"
-            >
-              Sign out
-            </button>
+          {subtitle ? (
+            <p className="text-sm text-gray-400 font-light leading-relaxed max-w-xl mt-2">
+              {subtitle}
+            </p>
+          ) : (
+            user?.email && (
+              <p className="sm:hidden font-mono text-xs text-gray-400 truncate mt-2">
+                {user.email}
+              </p>
+            )
           )}
-        </div>
+        </header>
 
         {children}
       </div>
