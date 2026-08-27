@@ -39,7 +39,7 @@ export const WithdrawalForm = ({
 
     if (balance && amount > balance.available) {
       setError(
-        `Insufficient balance. Available: £${balance.available.toFixed(2)}`
+        `You can withdraw up to £${balance.available.toFixed(2)}`
       );
       return;
     }
@@ -63,13 +63,13 @@ export const WithdrawalForm = ({
       await restaurantApi.requestWithdrawal(withdrawalRequest);
 
       setSuccess(
-        "Withdrawal request submitted successfully! Pending admin approval."
+        `Done. £${amount.toFixed(2)} is on its way to your bank account. It usually arrives in 1 to 3 working days.`
       );
       setWithdrawalAmount("");
       setNotes("");
       onSuccess();
     } catch (err: any) {
-      setError(err.message || "Failed to submit withdrawal request");
+      setError(err.message || "The withdrawal could not be completed");
     } finally {
       setSubmitting(false);
     }
@@ -77,9 +77,13 @@ export const WithdrawalForm = ({
 
   return (
     <div className="bg-white rounded-lg p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
-        Request Withdrawal
+      <h2 className="text-xl font-bold text-gray-900 mb-1">
+        Withdraw your balance
       </h2>
+      <p className="text-sm text-gray-600 mb-4">
+        Send money from your available balance to your bank account. This is
+        free and takes 1 to 3 working days.
+      </p>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
@@ -95,28 +99,10 @@ export const WithdrawalForm = ({
         </div>
       )}
 
-      {/* {balance && !balance.canWithdrawWithoutFee && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start">
-          <AlertCircle
-            size={20}
-            className="text-yellow-600 mr-3 flex-shrink-0 mt-0.5"
-          />
-          <div>
-            <p className="font-medium text-yellow-900">
-              Early Withdrawal Fee
-            </p>
-            <p className="text-sm text-yellow-800">
-              You withdrew within the last 7 days. A £0.50 fee will be charged
-              for this withdrawal.
-            </p>
-          </div>
-        </div>
-      )} */}
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Withdrawal Amount (£)
+            Amount (£)
           </label>
           <input
             type="number"
@@ -150,19 +136,23 @@ export const WithdrawalForm = ({
         {withdrawalAmount && parseFloat(withdrawalAmount) > 0 && (
           <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
             <div className="flex justify-between text-gray-700">
-              <span>Requested Amount:</span>
+              <span>Amount:</span>
               <span className="font-medium">
                 £{parseFloat(withdrawalAmount).toFixed(2)}
               </span>
             </div>
+            <div className="flex justify-between text-gray-700">
+              <span>Fee:</span>
+              <span className="font-medium">Free</span>
+            </div>
             <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-gray-200">
-              <span>You'll Receive:</span>
+              <span>You receive:</span>
               <span>
-                £{withdrawalAmount}
+                £{parseFloat(withdrawalAmount).toFixed(2)}
               </span>
             </div>
             <p className="text-xs text-gray-600 pt-2">
-              Expected arrival: 1-3 business days after approval
+              Reaches your bank account in 1 to 3 working days.
             </p>
           </div>
         )}
@@ -175,10 +165,10 @@ export const WithdrawalForm = ({
           {submitting ? (
             <>
               <Loader size={18} className="mr-2 animate-spin" />
-              Submitting...
+              Sending...
             </>
           ) : (
-            "Request Withdrawal"
+            "Withdraw to my bank"
           )}
         </button>
       </form>

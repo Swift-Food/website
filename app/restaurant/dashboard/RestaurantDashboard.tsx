@@ -17,6 +17,7 @@ import { StripeOnboardingRequired } from "./shared/StripeOnboardingRequired";
 import { BalanceCards } from "./withdrawals/BalanceCards";
 import { WithdrawalForm } from "./withdrawals/WithdrawalForm";
 import { WithdrawalHistory } from "./withdrawals/WithdrawalHistory";
+import { EarlyWithdrawal } from "./withdrawals/EarlyWithdrawal";
 import { CateringOrdersList } from "./catering/CateringOrdersList";
 import { RefundRequest } from "@/types/refund.types";
 import { refundService } from "@/services/api/refund.api";
@@ -665,14 +666,21 @@ export const RestaurantDashboard = ({
 
             {/* Tab Content */}
             {activeTab === "withdrawals" && selectedAccountId ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <WithdrawalForm
+              <div className="space-y-8">
+                <EarlyWithdrawal
                   restaurantUserId={restaurantUserId}
-                  balance={balance}
-                  onSuccess={fetchData}
                   accountId={selectedAccountId}
+                  onSuccess={fetchData}
                 />
-                <WithdrawalHistory history={history} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <WithdrawalForm
+                    restaurantUserId={restaurantUserId}
+                    balance={balance}
+                    onSuccess={fetchData}
+                    accountId={selectedAccountId}
+                  />
+                  <WithdrawalHistory history={history} />
+                </div>
               </div>
             ) : activeTab === "catering" ? (
               <div className="bg-white rounded-lg p-6">

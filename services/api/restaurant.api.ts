@@ -5,6 +5,7 @@ import {
   StripeOnboardingStatus,
   BalanceInfo,
   WithdrawalRequest,
+  EarlyWithdrawalEligibility,
   AnalyticsDashboard,
   PaymentAccounts,
 } from "@/types/restaurant.types";
@@ -16,6 +17,17 @@ import {
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 import { API_BASE_URL } from "@/lib/constants";
 import { CateringOrderResponse } from "@/types/api";
+
+/** The backend's own message for a failed request, when it sent one. */
+const readApiError = async (response: Response, fallback: string) => {
+  try {
+    const body = await response.json();
+    const message = Array.isArray(body?.message) ? body.message[0] : body?.message;
+    return typeof message === "string" && message ? message : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 export const restaurantApi = {
   // Auth endpoints - Keep using regular fetch (no auth needed)
@@ -175,7 +187,41 @@ export const restaurantApi = {
         body: JSON.stringify(data),
       }
     );
-    if (!response.ok) throw new Error("Failed to request withdrawal");
+    if (!response.ok) {
+      throw new Error(await readApiError(response, "Failed to request withdrawal"));
+    }
+    return response.json();
+  },
+
+  getEarlyWithdrawalEligibility: async (
+    userId: string,
+    accountId?: string
+  ): Promise<EarlyWithdrawalEligibility> => {
+    const url = accountId
+      ? `${API_BASE_URL}/withdrawals/early/eligible/${userId}?accountId=${accountId}`
+      : `${API_BASE_URL}/withdrawals/early/eligible/${userId}`;
+    const response = await fetchWithAuth(url);
+    if (!response.ok) {
+      throw new Error(await readApiError(response, "Could not load your orders"));
+    }
+    return response.json();
+  },
+
+  requestEarlyWithdrawal: async (data: {
+    userId: string;
+    accountId?: string;
+    orderIds: string[];
+  }): Promise<WithdrawalRequest> => {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/withdrawals/early/request`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+    if (!response.ok) {
+      throw new Error(await readApiError(response, "The withdrawal could not be completed"));
+    }
     return response.json();
   },
 

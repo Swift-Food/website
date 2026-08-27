@@ -21,7 +21,6 @@ export interface BalanceInfo {
   available: number;
   pending: number;
   lastWithdrawal?: string;
-  canWithdrawWithoutFee: boolean;
 }
 
 export type WithdrawalStatusType =
@@ -30,6 +29,17 @@ export type WithdrawalStatusType =
   | "rejected"
   | "completed"
   | "failed";
+
+export interface EarlyWithdrawalOrderLine {
+  orderId: string;
+  orderReference: string;
+  eventDate: string | null;
+  earnings: number;
+  processingFee: number;
+  transferred: number;
+  status: "transferred" | "offset" | "failed";
+  failureReason?: string;
+}
 
 export interface WithdrawalRequest {
   id: string;
@@ -43,6 +53,31 @@ export interface WithdrawalRequest {
   requestedAt: string;
   reviewedAt?: string;
   isInstantPayout: boolean;
+  isEarlyWithdrawal?: boolean;
+  earlyWithdrawalOrders?: EarlyWithdrawalOrderLine[] | null;
+}
+
+/** A paid order whose earnings Swift has not transferred yet. */
+export interface EarlyWithdrawalOrder {
+  orderId: string;
+  orderReference: string;
+  eventDate: string | null;
+  customerName: string | null;
+  paidAt: string | null;
+  earnings: number;
+  processingFee: number;
+  youReceive: number;
+  scheduledTransferDate: string | null;
+  fundsAvailable: boolean;
+  fundsAvailableAt: string | null;
+}
+
+export interface EarlyWithdrawalEligibility {
+  restaurantId: string | null;
+  stripeAccountId: string | null;
+  minimumNet: number;
+  orders: EarlyWithdrawalOrder[];
+  totals: { earnings: number; processingFees: number; youReceive: number };
 }
 
 export interface AnalyticsDashboard {
