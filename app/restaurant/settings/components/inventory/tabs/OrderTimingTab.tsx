@@ -246,12 +246,7 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
     }
     if (advanceNoticeSettings?.type === "days_before_time") {
       const days = activeDays;
-      const [h, m] = activeCutoffTime.split(":").map(Number);
-      const period = (h ?? 0) >= 12 ? "PM" : "AM";
-      const rawHour = h ?? 0;
-      const displayHour = rawHour === 0 ? 12 : rawHour > 12 ? rawHour - 12 : rawHour;
-      const displayTime = `${displayHour}:${(m ?? 0).toString().padStart(2, "0")} ${period}`;
-      return `Order ${days} day${days !== 1 ? "s" : ""} before (by ${displayTime.toLowerCase()})`;
+      return `Order ${days} day${days !== 1 ? "s" : ""} before (by ${formatCutoffTime(activeCutoffTime).toLowerCase()})`;
     }
     return "";
   };
@@ -370,7 +365,10 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
               const draftRaw = noticeGroupDrafts[row.groupTitle] ?? "";
               const businessCutoffDraft = groupBusinessCutoffDrafts[row.groupTitle];
               const isExpanded = expandedGroups.has(row.groupTitle);
-              const defaultHoursLabel = `${minimumDeliveryNoticeHours}h`;
+              const defaultNoticeLabel =
+                noticeType === "days_before_time"
+                  ? `${activeDays}d by ${formatCutoffTime(activeCutoffTime)}`
+                  : `${activeHours}h`;
               const groupMode = groupModeDrafts[row.groupTitle] ?? "default";
 
               const setMode = (mode: "default" | "hours" | "business_days") => {
@@ -379,7 +377,7 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
                   setGroupDraft(row.groupTitle, "");
                 } else if (mode === "hours") {
                   if ((noticeGroupDrafts[row.groupTitle] ?? "").trim() === "") {
-                    setGroupDraft(row.groupTitle, String(minimumDeliveryNoticeHours));
+                    setGroupDraft(row.groupTitle, String(activeHours));
                   }
                 } else {
                   setGroupDraft(row.groupTitle, "");
@@ -414,7 +412,7 @@ export const OrderTimingTab = ({ restaurantId }: Props) => {
                       <div className="flex items-center gap-2 sm:flex-shrink-0">
                         <SegmentedToggle
                           options={[
-                            { value: "default", label: `Default (${defaultHoursLabel})` },
+                            { value: "default", label: `Default (${defaultNoticeLabel})` },
                             { value: "hours", label: "Hours" },
                             { value: "business_days", label: "Business days" },
                           ]}
