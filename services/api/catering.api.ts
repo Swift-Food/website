@@ -1,5 +1,6 @@
 // services/catering.service.ts
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
+import type { GroupAvailability } from "@/lib/utils/group-availability";
 import {
   SearchResponse,
   SearchFilters,
@@ -1049,6 +1050,35 @@ class CateringService {
       const error = await response.json();
       throw new Error(error.message || "Failed to rename group");
     }
+  }
+
+  /**
+   * Set (or clear, with null) a menu group's ordering window — the times
+   * of day and/or the season it can be delivered in. Stored on the
+   * restaurant's menuGroupSettings alongside display order and visibility.
+   */
+  async setGroupAvailability(
+    restaurantId: string,
+    groupTitle: string,
+    availability: GroupAvailability | null
+  ): Promise<{ groupTitle: string; availability: GroupAvailability | null }> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurants/${restaurantId}/menu-groups/${encodeURIComponent(
+        groupTitle
+      )}/availability`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ availability }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || "Failed to save availability");
+    }
+
+    return response.json();
   }
 
   async getRestaurant(restaurantId: string): Promise<any> {
