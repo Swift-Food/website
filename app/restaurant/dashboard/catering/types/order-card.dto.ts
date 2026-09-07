@@ -83,6 +83,17 @@ export interface FlattenedOrderItem {
   eventTime: string;
   collectionTime?: string;
 
+  /**
+   * 'self' when this restaurant delivers this one itself — there is no
+   * collection, so the customer's delivery time, address and contact apply
+   * instead. 'courier' when a rider collects. Null before payment stamps it.
+   */
+  fulfillmentMethod?: 'self' | 'courier' | null;
+
+  // Who to hand the food to. Only sent for orders this restaurant delivers.
+  customerName?: string;
+  customerPhone?: string;
+
   // Order data
   orderItems: any[];           // PricingOrderItem[] - restaurant order items
   guestCount?: number;
