@@ -16,11 +16,17 @@ import {
   GripVertical,
   Save,
   X,
+  Clock,
 } from "lucide-react";
 import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { MenuItemDetails, MenuItemStatus } from "@/types/catering.types";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
+import {
+  GroupAvailability,
+  formatGroupAvailability,
+} from "@/lib/utils/group-availability";
+import { GroupAvailabilityModal } from "./components/GroupAvailabilityModal";
 
 const MenuListPage = () => {
   const params = useParams();
@@ -58,6 +64,9 @@ const MenuListPage = () => {
   const [editingGroupName, setEditingGroupName] = useState<string | null>(null);
   const [groupNameInput, setGroupNameInput] = useState("");
   const [savingGroupName, setSavingGroupName] = useState(false);
+
+  // Group availability window ("Breakfast is only for 07:00-11:00 deliveries")
+  const [availabilityGroup, setAvailabilityGroup] = useState<string | null>(null);
 
   // Sticky group nav state
   const [activeGroup, setActiveGroup] = useState<string>("");
@@ -348,6 +357,30 @@ const MenuListPage = () => {
     } catch (err: any) {
       setError(err.message || "Failed to delete item");
     }
+  };
+
+  const groupAvailabilityOf = (groupName: string): GroupAvailability | null =>
+    restaurantData?.menuGroupSettings?.[groupName]?.availability ?? null;
+
+  /**
+   * Fold a saved window back into the restaurant record we already hold,
+   * so the header pill updates without refetching the whole menu.
+   */
+  const handleAvailabilitySaved = (
+    groupName: string,
+    availability: GroupAvailability | null
+  ) => {
+    setRestaurantData((prev: any) => {
+      const settings = { ...(prev?.menuGroupSettings ?? {}) };
+      const existing = settings[groupName] ?? { displayOrder: 999, isVisible: true };
+      if (availability) {
+        settings[groupName] = { ...existing, availability };
+      } else {
+        const { availability: _cleared, ...rest } = existing;
+        settings[groupName] = rest;
+      }
+      return { ...prev, menuGroupSettings: settings };
+    });
   };
 
   const getUniqueGroups = () => {
@@ -805,6 +838,29 @@ const MenuListPage = () => {
                             >
                               <Edit2 size={15} />
                             </button>
+                            <button
+                              onClick={() => setAvailabilityGroup(groupName)}
+                              className={`p-1 rounded transition-colors hover:bg-gray-100 ${
+                                groupAvailabilityOf(groupName)
+                                  ? "text-blue-600 hover:text-blue-700"
+                                  : "text-gray-400 hover:text-gray-600"
+                              }`}
+                              title="Set when this group is available"
+                            >
+                              <Clock size={15} />
+                            </button>
+                            {/* Surfaced on the header, not just inside the modal:
+                                a restaurant should never have to wonder why a
+                                group has gone quiet for some customers. */}
+                            {groupAvailabilityOf(groupName) && (
+                              <button
+                                onClick={() => setAvailabilityGroup(groupName)}
+                                className="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full hover:bg-blue-100 transition-colors"
+                                title="Edit this group's availability"
+                              >
+                                {formatGroupAvailability(groupAvailabilityOf(groupName))}
+                              </button>
+                            )}
                           </>
                         )}
                         <button
@@ -1039,6 +1095,16 @@ const MenuListPage = () => {
           </div>
         )}
       </div>
+
+      {availabilityGroup && (
+        <GroupAvailabilityModal
+          restaurantId={restaurantId}
+          groupName={availabilityGroup}
+          availability={groupAvailabilityOf(availabilityGroup)}
+          onClose={() => setAvailabilityGroup(null)}
+          onSaved={handleAvailabilitySaved}
+        />
+      )}
     </div>
   );
 
