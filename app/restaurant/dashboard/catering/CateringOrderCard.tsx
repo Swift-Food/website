@@ -429,8 +429,16 @@ export const CateringOrderCard = ({
           <div>
             <h5 className="font-semibold text-blue-800">{session.sessionName}</h5>
             <p className="text-xs text-gray-600">
-              {formatDate(session.sessionDate)} at {session.restaurantCollectionTimes?.[restaurantId] || session.collectionTime || formatEventTime(session.eventTime)}
+              {formatDate(session.sessionDate)}
+              {session.fulfillmentMethod === "self"
+                ? ` — deliver by ${formatEventTime(session.eventTime)}`
+                : ` at ${session.restaurantCollectionTimes?.[restaurantId] || session.collectionTime || formatEventTime(session.eventTime)}`}
             </p>
+            {session.fulfillmentMethod === "self" ? (
+              <span className="mt-1 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                You deliver this one
+              </span>
+            ) : null}
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-600">Session Earnings</p>
@@ -503,6 +511,15 @@ export const CateringOrderCard = ({
 
   // Check if order has meal sessions
   const hasMealSessions = order.mealSessions && order.mealSessions.length > 0;
+  // This restaurant delivers its own part of the order: no courier collects, so
+  // it needs the customer's address, contact and delivery time instead of a
+  // collection time. Stamped by the backend at payment.
+  const selfDelivers = Boolean(
+    order.selfDelivers ??
+      order.mealSessions?.some((s: { fulfillmentMethod?: string | null }) => s.fulfillmentMethod === "self")
+  );
+  // Withheld from restaurants a courier collects from, so it can be empty.
+  const deliveryAddressText = formatDeliveryAddress(order.deliveryAddress);
   // Only split into a per-session checklist when there's more than one session —
   // a single-session order keeps the plain top-level "Order Checklist" button.
   const hasMultipleMealSessions = order.mealSessions && order.mealSessions.length > 1;
@@ -671,9 +688,13 @@ export const CateringOrderCard = ({
             </span>
           </p>
           <p className="text-gray-600">
-            Collection Time:{" "}
+            {/* Nobody collects from a restaurant delivering its own order —
+                the time that matters is when the customer expects it. */}
+            {selfDelivers ? "Deliver By:" : "Collection Time:"}{" "}
             <span className="text-gray-900 font-medium">
-              {order.mealSessions?.[0]?.restaurantCollectionTimes?.[restaurantId] || order.collectionTime || formatEventTime(order.eventTime)}
+              {selfDelivers
+                ? formatEventTime(order.eventTime)
+                : order.mealSessions?.[0]?.restaurantCollectionTimes?.[restaurantId] || order.collectionTime || formatEventTime(order.eventTime)}
             </span>
           </p>
           <p className="text-gray-600">
@@ -684,12 +705,33 @@ export const CateringOrderCard = ({
           </p>
 
         </div>
-        <p className="text-sm text-gray-600 mt-2">
-          Delivery:{" "}
-          <span className="text-gray-900 font-medium">
-            {formatDeliveryAddress(order.deliveryAddress)}
-          </span>
-        </p>
+        {deliveryAddressText ? (
+          <p className="text-sm text-gray-600 mt-2">
+            Delivery:{" "}
+            <span className="text-gray-900 font-medium">{deliveryAddressText}</span>
+          </p>
+        ) : null}
+        {/* Only a restaurant delivering the order itself is given the customer
+            to contact — a courier-collected one never meets them. */}
+        {selfDelivers && (order.customerName || order.customerPhone) ? (
+          <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+            <p className="text-sm font-semibold text-emerald-900">
+              You are delivering this order
+            </p>
+            <p className="text-sm text-emerald-900 mt-1">
+              Hand it to:{" "}
+              <span className="font-medium">{order.customerName || "the customer"}</span>
+            </p>
+            {order.customerPhone ? (
+              <p className="text-sm text-emerald-900">
+                Contact:{" "}
+                <a href={`tel:${order.customerPhone}`} className="font-medium underline">
+                  {order.customerPhone}
+                </a>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {/* Meal Sessions or Order Items */}

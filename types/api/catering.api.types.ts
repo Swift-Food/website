@@ -69,6 +69,14 @@ export interface MealSessionResponse {
   eventTime: string; // "09:00" - when the event/meal starts
   collectionTime: string; // "08:00" - when restaurant should prepare/deliver
 
+  /**
+   * Restaurant-facing responses only. 'self' = this restaurant delivers this
+   * session itself, so there is no collection and the customer's delivery
+   * time, address and contact apply instead; 'courier' = a rider collects.
+   * Null until payment stamps it.
+   */
+  fulfillmentMethod?: 'self' | 'courier' | null;
+
   // Session details
   guestCount?: number; // Guest count for this specific meal
   specialRequirements?: string; // Meal-specific requirements
@@ -115,10 +123,19 @@ export interface CateringOrderResponse {
   orderReference?: string;
   userId?: string;
 
+  /**
+   * Restaurant-facing responses only: true when this restaurant delivers its
+   * own part of at least one session. It is also the only case in which the
+   * customer's contact details below are sent to a restaurant.
+   */
+  selfDelivers?: boolean;
+
   // Customer contact information
   customerName: string;
-  customerEmail: string;
-  customerPhone: string;
+  // Withheld from restaurants a courier collects from — they never meet the
+  // customer, so only the name (used to identify the order) is sent.
+  customerEmail?: string;
+  customerPhone?: string;
   organization?: string;
   publicNote?: string;
   internalNote?: string;

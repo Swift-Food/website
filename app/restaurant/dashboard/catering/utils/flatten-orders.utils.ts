@@ -180,6 +180,9 @@ function flattenOrder(
         eventDate: session.sessionDate,
         eventTime: session.eventTime,
         collectionTime: session.collectionTime,
+        fulfillmentMethod: session.fulfillmentMethod ?? null,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
 
         // Order data - filtered to only this restaurant's items
         orderItems: filteredOrderItems,
@@ -232,6 +235,9 @@ function flattenOrder(
       eventDate: order.eventDate,
       eventTime: order.eventTime,
       collectionTime: order.collectionTime,
+      fulfillmentMethod: order.selfDelivers ? 'self' : (order.mealSessions?.[0]?.fulfillmentMethod ?? null),
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
 
       // Order data - filtered to only this restaurant's items
       orderItems: filteredOrderItems,
