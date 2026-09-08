@@ -39,8 +39,11 @@ export interface DateOverrideRow {
   rangeId?: string;
 }
 
-/** The API accepts 100 date overrides, and a period is stored as its days. */
-export const MAX_OVERRIDE_DAYS = 100;
+/**
+ * The API accepts 400 date overrides, and a period is stored as its days —
+ * room for a year of closure, which is longer than anyone should need.
+ */
+export const MAX_OVERRIDE_DAYS = 400;
 
 /** Every day from `start` to `end` inclusive, as "YYYY-MM-DD". */
 export const eachDayInPeriod = (start: string, end: string): string[] => {
