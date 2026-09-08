@@ -68,6 +68,10 @@ const MenuListPage = () => {
   // Group availability window ("Breakfast is only for 07:00-11:00 deliveries")
   const [availabilityGroup, setAvailabilityGroup] = useState<string | null>(null);
 
+  // Delete-group confirm (two clicks, matching the per-item delete)
+  const [deleteGroupConfirm, setDeleteGroupConfirm] = useState<string | null>(null);
+  const [deletingGroup, setDeletingGroup] = useState<string | null>(null);
+
   // Sticky group nav state
   const [activeGroup, setActiveGroup] = useState<string>("");
   const groupRefs = useRef<Record<string, HTMLElement>>({});
@@ -401,10 +405,11 @@ const MenuListPage = () => {
     return statuses.filter(Boolean);
   };
 
-  const getGroupedItems = () => {
-    const isFiltered =
-      searchQuery || selectedGroup !== "all" || selectedStatus !== "all";
+  const isFiltered = Boolean(
+    searchQuery || selectedGroup !== "all" || selectedStatus !== "all"
+  );
 
+  const getGroupedItems = () => {
     // If filtered, return flat list
     if (isFiltered) {
       return null;
@@ -485,9 +490,40 @@ const MenuListPage = () => {
     }
   };
 
-  const deleteGroup = (index: number) => {
-    const newGroups = reorderGroups.filter((_, i) => i !== index);
-    setReorderGroups(newGroups);
+  /**
+   * Delete a menu group. Two clicks: the first arms the button, the second
+   * commits — the same confirm pattern the per-item delete uses.
+   *
+   * This used to drop the row from the local list only. Nothing changed the
+   * items' groupTitle, so the group came straight back on the next load and
+   * the button looked broken. It now calls the API, which ungroups the
+   * items — the food is never deleted, it just moves to "Other".
+   */
+  const deleteGroup = async (index: number) => {
+    const groupName = reorderGroups[index];
+
+    if (deleteGroupConfirm !== groupName) {
+      setDeleteGroupConfirm(groupName);
+      setTimeout(() => setDeleteGroupConfirm(null), 3000);
+      return;
+    }
+
+    setDeleteGroupConfirm(null);
+    setDeletingGroup(groupName);
+    try {
+      await cateringService.deleteGroup(restaurantId, groupName);
+      setReorderGroups((prev) => prev.filter((_, i) => i !== index));
+      setRestaurantData((prev: any) => {
+        const settings = { ...(prev?.menuGroupSettings ?? {}) };
+        delete settings[groupName];
+        return { ...prev, menuGroupSettings: settings };
+      });
+      await fetchMenuItems();
+    } catch (err: any) {
+      setError(err.message || "Failed to delete group");
+    } finally {
+      setDeletingGroup(null);
+    }
   };
 
   // Drag and drop handlers
@@ -665,9 +701,18 @@ const MenuListPage = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            {/* Groups are only rendered when the list is unfiltered, so
+                reorder has nothing to work with while a filter is on — it
+                used to look enabled and then do nothing at all. */}
             <button
               onClick={enterReorderMode}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+              disabled={isFiltered}
+              title={
+                isFiltered
+                  ? "Clear the search and filters to reorder groups"
+                  : "Reorder groups"
+              }
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
             >
               <GripVertical size={20} />
               Reorder Groups
@@ -960,10 +1005,26 @@ const MenuListPage = () => {
                         </button>
                         <button
                           onClick={() => deleteGroup(index)}
-                          className="p-2 rounded-lg border border-red-300 hover:bg-red-50 text-red-600 transition-colors"
-                          title="Delete group"
+                          disabled={deletingGroup === groupName}
+                          className={`p-2 rounded-lg border transition-colors flex items-center gap-1.5 disabled:opacity-50 ${
+                            deleteGroupConfirm === groupName
+                              ? "border-red-600 bg-red-600 text-white hover:bg-red-700"
+                              : "border-red-300 hover:bg-red-50 text-red-600"
+                          }`}
+                          title={
+                            deleteGroupConfirm === groupName
+                              ? "Click again to confirm — items move to Other"
+                              : "Delete group (items are kept, and move to Other)"
+                          }
                         >
-                          <Trash2 size={18} />
+                          {deletingGroup === groupName ? (
+                            <Loader size={18} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={18} />
+                          )}
+                          {deleteGroupConfirm === groupName && (
+                            <span className="text-xs font-medium">Confirm?</span>
+                          )}
                         </button>
                       </div>
                     </div>

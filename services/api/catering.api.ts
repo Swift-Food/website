@@ -1081,6 +1081,29 @@ class CateringService {
     return response.json();
   }
 
+  /**
+   * Delete a menu group. Its items are not deleted — they become ungrouped
+   * and show under the "Other" heading.
+   */
+  async deleteGroup(
+    restaurantId: string,
+    groupTitle: string
+  ): Promise<{ deleted: boolean; itemsUngrouped: number }> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/restaurants/${restaurantId}/menu-groups/${encodeURIComponent(
+        groupTitle
+      )}`,
+      { method: "DELETE" }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || "Failed to delete group");
+    }
+
+    return response.json();
+  }
+
   async getRestaurant(restaurantId: string): Promise<any> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/restaurant/${restaurantId}`
