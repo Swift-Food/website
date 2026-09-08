@@ -6,6 +6,14 @@ import { Loader, ArrowLeft, Save, AlertCircle, Clock, Plus, Trash2, CalendarOff 
 import { cateringService } from "@/services/api/catering.api";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
+import {
+  collapseStoredOverrides,
+  countOverrideDays,
+  eachDayInPeriod,
+  expandOverrideRows,
+  MAX_OVERRIDE_DAYS,
+  type DateOverrideRow as DateOverride,
+} from "@/lib/utils/date-override-period";
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -27,13 +35,6 @@ interface TimeSlot {
 interface DaySchedule {
   enabled: boolean;
   slots: TimeSlot[];
-}
-
-interface DateOverride {
-  date: string; // "YYYY-MM-DD"
-  isClosed: boolean;
-  reason: string;
-  timeSlots: TimeSlot[];
 }
 
 interface TimeOption {
@@ -134,14 +135,7 @@ const OpeningHoursPage = () => {
       // Load date overrides
       const overrides = restaurantDetails.dateOverrides;
       if (overrides && Array.isArray(overrides)) {
-        setDateOverrides(
-          overrides.map((o: any) => ({
-            date: o.date,
-            isClosed: o.isClosed,
-            reason: o.reason || "",
-            timeSlots: o.timeSlots || [],
-          }))
-        );
+        setDateOverrides(collapseStoredOverrides(overrides));
       }
     } catch (err: any) {
       setError(err.message || "Failed to load restaurant details");
@@ -232,7 +226,7 @@ const OpeningHoursPage = () => {
   const addDateOverride = () => {
     setDateOverrides((prev) => [
       ...prev,
-      { date: "", isClosed: true, reason: "", timeSlots: [] },
+      { date: "", endDate: "", isClosed: true, reason: "", timeSlots: [] },
     ]);
   };
 
@@ -315,9 +309,17 @@ const OpeningHoursPage = () => {
       }
 
       // Validate date overrides
+      const totalOverrideDays = countOverrideDays(dateOverrides);
       for (const override of dateOverrides) {
         if (!override.date) {
           setError("Please set a date for all date overrides or remove empty ones");
+          setSaving(false);
+          return;
+        }
+        if (override.endDate && override.endDate < override.date) {
+          setError(
+            `Date override ${override.date}: the end date must be on or after the start date`
+          );
           setSaving(false);
           return;
         }
@@ -332,6 +334,14 @@ const OpeningHoursPage = () => {
             }
           }
         }
+      }
+
+      if (totalOverrideDays > MAX_OVERRIDE_DAYS) {
+        setError(
+          `Date overrides cover ${totalOverrideDays} days, and at most ${MAX_OVERRIDE_DAYS} can be saved. Please shorten or remove a period.`
+        );
+        setSaving(false);
+        return;
       }
 
       // Build cateringOperatingHours array (multiple entries per day for multiple slots)
@@ -365,15 +375,7 @@ const OpeningHoursPage = () => {
       }
 
       // Build date overrides payload
-      const dateOverridesPayload = dateOverrides
-        .filter((o) => o.date)
-        .map((o) => ({
-          date: o.date,
-          isClosed: o.isClosed,
-          reason: o.reason || undefined,
-          timeSlots:
-            !o.isClosed && o.timeSlots.length > 0 ? o.timeSlots : undefined,
-        }));
+      const dateOverridesPayload = expandOverrideRows(dateOverrides);
 
       await updateRestaurant(restaurantId, {
         cateringOperatingHours,
@@ -568,7 +570,9 @@ const OpeningHoursPage = () => {
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
                   Set specific dates when the restaurant is closed or has
-                  different hours (e.g. holidays, Christmas break).
+                  different hours (e.g. holidays, Christmas break). To cover a
+                  whole period, set both dates — leave the second one empty for
+                  a single day.
                 </p>
               </div>
               <button
@@ -604,6 +608,24 @@ const OpeningHoursPage = () => {
                         }
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 bg-white text-sm"
                       />
+                      <span className="text-sm text-gray-500">to</span>
+                      <input
+                        type="date"
+                        value={override.endDate}
+                        min={override.date || undefined}
+                        onChange={(e) =>
+                          updateDateOverride(idx, { endDate: e.target.value })
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 bg-white text-sm"
+                      />
+                      {override.date &&
+                        override.endDate &&
+                        override.endDate >= override.date && (
+                          <span className="text-xs font-medium text-orange-700 bg-orange-100 px-2 py-1 rounded">
+                            {eachDayInPeriod(override.date, override.endDate).length}{" "}
+                            days
+                          </span>
+                        )}
                       <input
                         type="text"
                         value={override.reason}
