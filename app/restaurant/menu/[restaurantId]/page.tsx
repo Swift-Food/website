@@ -607,11 +607,16 @@ const MenuListPage = () => {
       // Save to backend
       await cateringService.reorderGroups(restaurantId, newGroupSettings);
 
-      // Update local state
-      setRestaurantData((prev: any) => ({
-        ...prev,
-        menuGroupSettings: newGroupSettings,
-      }));
+      // Merge, don't replace — the payload carries only displayOrder, so
+      // assigning it wholesale would drop each group's availability window,
+      // visibility and notice settings from the view until the next reload.
+      setRestaurantData((prev: any) => {
+        const merged = { ...(prev?.menuGroupSettings ?? {}) };
+        for (const [groupTitle, incoming] of Object.entries(newGroupSettings)) {
+          merged[groupTitle] = { ...(merged[groupTitle] ?? {}), ...incoming };
+        }
+        return { ...prev, menuGroupSettings: merged };
+      });
 
       // Exit reorder mode
       exitReorderMode();
