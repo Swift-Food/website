@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  createAuthClient,
   createFetchWithAuth,
   API_BASE_URL,
   type AuthStorageKeys,
@@ -117,5 +118,164 @@ describe("createFetchWithAuth", () => {
     expect(store.has(PARTNER.accessToken)).toBe(false);
     expect(store.has(PARTNER.user)).toBe(false);
     expect(store.get(REST.accessToken)).toBe("rest-keep");
+  });
+});
+
+
+const CUSTOMER: AuthStorageKeys = {
+  accessToken: "cust_access_token",
+  refreshToken: "cust_refresh_token",
+  user: "cust_user",
+};
+
+/** A JWT whose only meaningful claim is `exp`, seconds from now. */
+function tokenExpiringIn(seconds: number): string {
+  const payload = { exp: Math.floor(Date.now() / 1000) + seconds };
+  const encode = (o: unknown) =>
+    btoa(JSON.stringify(o)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `${encode({ alg: "HS256" })}.${encode(payload)}.sig`;
+}
+
+describe("ensureFreshToken", () => {
+  it("returns null when nobody is signed in", async () => {
+    installLocalStorage();
+    const fetchMock = vi.fn();
+    (globalThis as any).fetch = fetchMock;
+
+    const { ensureFreshToken } = createAuthClient(CUSTOMER);
+
+    expect(await ensureFreshToken()).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a still-valid token without any network call", async () => {
+    const store = installLocalStorage();
+    const token = tokenExpiringIn(600);
+    store.set(CUSTOMER.accessToken, token);
+    store.set(CUSTOMER.refreshToken, "refresh-1");
+    const fetchMock = vi.fn();
+    (globalThis as any).fetch = fetchMock;
+
+    const { ensureFreshToken } = createAuthClient(CUSTOMER);
+
+    expect(await ensureFreshToken()).toBe(token);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refreshes a token that is within the expiry skew", async () => {
+    const store = installLocalStorage();
+    store.set(CUSTOMER.accessToken, tokenExpiringIn(30));
+    store.set(CUSTOMER.refreshToken, "refresh-1");
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ access_token: "fresh-abc", refresh_token: "refresh-2" }),
+        { status: 200 }
+      )
+    );
+    (globalThis as any).fetch = fetchMock;
+
+    const { ensureFreshToken } = createAuthClient(CUSTOMER);
+
+    expect(await ensureFreshToken()).toBe("fresh-abc");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(store.get(CUSTOMER.accessToken)).toBe("fresh-abc");
+    expect(store.get(CUSTOMER.refreshToken)).toBe("refresh-2");
+  });
+
+  it("refreshes an already-expired token", async () => {
+    const store = installLocalStorage();
+    store.set(CUSTOMER.accessToken, tokenExpiringIn(-3600));
+    store.set(CUSTOMER.refreshToken, "refresh-1");
+    (globalThis as any).fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ access_token: "fresh-abc", refresh_token: "refresh-2" }),
+        { status: 200 }
+      )
+    );
+
+    const { ensureFreshToken } = createAuthClient(CUSTOMER);
+
+    expect(await ensureFreshToken()).toBe("fresh-abc");
+  });
+
+  it("refreshes a token it cannot read an expiry from", async () => {
+    const store = installLocalStorage();
+    store.set(CUSTOMER.accessToken, "not-a-jwt");
+    store.set(CUSTOMER.refreshToken, "refresh-1");
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ access_token: "fresh-abc", refresh_token: "refresh-2" }),
+        { status: 200 }
+      )
+    );
+    (globalThis as any).fetch = fetchMock;
+
+    const { ensureFreshToken } = createAuthClient(CUSTOMER);
+
+    expect(await ensureFreshToken()).toBe("fresh-abc");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares one refresh between concurrent callers", async () => {
+    const store = installLocalStorage();
+    store.set(CUSTOMER.accessToken, tokenExpiringIn(-10));
+    store.set(CUSTOMER.refreshToken, "refresh-1");
+    const fetchMock = vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve(
+                new Response(
+                  JSON.stringify({
+                    access_token: "fresh-abc",
+                    refresh_token: "refresh-2",
+                  }),
+                  { status: 200 }
+                )
+              ),
+            5
+          )
+        )
+    );
+    (globalThis as any).fetch = fetchMock;
+
+    const { ensureFreshToken } = createAuthClient(CUSTOMER);
+    const [a, b] = await Promise.all([ensureFreshToken(), ensureFreshToken()]);
+
+    expect(a).toBe("fresh-abc");
+    expect(b).toBe("fresh-abc");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears the session and returns null when the refresh is rejected", async () => {
+    const store = installLocalStorage();
+    store.set(CUSTOMER.accessToken, tokenExpiringIn(-10));
+    store.set(CUSTOMER.refreshToken, "refresh-1");
+    store.set(CUSTOMER.user, '{"id":"u1"}');
+    (globalThis as any).fetch = vi
+      .fn()
+      .mockResolvedValue(new Response("nope", { status: 401 }));
+
+    const { ensureFreshToken } = createAuthClient(CUSTOMER);
+
+    expect(await ensureFreshToken()).toBeNull();
+    expect(store.get(CUSTOMER.accessToken)).toBeUndefined();
+    expect(store.get(CUSTOMER.refreshToken)).toBeUndefined();
+    expect(store.get(CUSTOMER.user)).toBeUndefined();
+  });
+
+  it("keeps createFetchWithAuth working unchanged", async () => {
+    const store = installLocalStorage();
+    store.set(REST.accessToken, "rest-abc");
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response("ok", { status: 200 }));
+    (globalThis as any).fetch = fetchMock;
+
+    await createFetchWithAuth(REST)(`${API_BASE_URL}/restaurant/thing`);
+
+    const [, opts] = fetchMock.mock.calls[0];
+    expect((opts.headers as any).Authorization).toBe("Bearer rest-abc");
   });
 });

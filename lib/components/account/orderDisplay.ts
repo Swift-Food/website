@@ -1,0 +1,133 @@
+import {
+  AvailableDiscount,
+  MyCateringOrder,
+} from "@/types/api/customer-account.api.types";
+
+export const STATUS_LABELS: Record<string, string> = {
+  pending_review: "In review",
+  admin_reviewed: "In review",
+  restaurant_reviewed: "In review",
+  payment_link_sent: "Awaiting payment",
+  paid: "Paid",
+  confirmed: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+export const formatDate = (value: string | Date | undefined): string => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+export const formatTotal = (order: MyCateringOrder): string => {
+  const total = order.customerFinalTotal ?? order.finalTotal ?? order.estimatedTotal;
+  if (typeof total !== "number") return "";
+  return `£${total.toFixed(2)}`;
+};
+
+/**
+ * The name the customer gave the event, when they gave one. Orders placed
+ * before that field existed - and any the customer chose not to name - fall
+ * back to the first session's name ("Main Event", "Lunch"), then to the
+ * organisation, then to a short id.
+ */
+export const orderTitle = (order: MyCateringOrder): string => {
+  const eventName = order.eventName?.trim();
+  if (eventName) return eventName;
+  const sessionName = order.mealSessions?.[0]?.sessionName?.trim();
+  if (sessionName) return sessionName;
+  if (order.organization?.trim()) return order.organization.trim();
+  return `Order ${shortOrderId(order)}`;
+};
+
+/** First 4 characters of the id, matching how the order view page refers to it. */
+export const shortOrderId = (order: MyCateringOrder): string =>
+  `#${order.id.slice(0, 4)}`;
+
+export const sessionCount = (order: MyCateringOrder): number =>
+  order.mealSessions?.length ?? 0;
+
+export const deliveryAddressLine = (order: MyCateringOrder): string => {
+  const address = order.deliveryAddress;
+  if (typeof address === "string") return address.replace(/^,\s*/, "").trim();
+  if (address && typeof address === "object") {
+    return [address.street, address.city, address.postcode].filter(Boolean).join(", ");
+  }
+  return "";
+};
+
+/** "2 sessions · 3 Sept 2026 · £420.00", skipping anything we do not have. */
+export const orderMetaLine = (order: MyCateringOrder): string => {
+  const sessions = sessionCount(order);
+  return [
+    sessions > 1 ? `${sessions} sessions` : sessions === 1 ? "1 session" : "",
+    formatDate(order.eventDate),
+    formatTotal(order),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+};
+
+/**
+ * Both lists arrive sorted by recency but separately, so merging needs its own
+ * sort. `myRole` survives the merge, which is what marks a row as shared.
+ */
+export const mergeRecentOrders = (
+  own: MyCateringOrder[],
+  shared: MyCateringOrder[]
+): MyCateringOrder[] =>
+  [...own, ...shared].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+/** Whether this order was placed by someone else and shared with the caller. */
+export const isSharedWithMe = (
+  order: MyCateringOrder,
+  own: MyCateringOrder[]
+): boolean => !own.some((o) => o.id === order.id);
+
+export const formatCurrency = (value: number): string => `£${value.toFixed(2)}`;
+
+/** "food subtotal" / "venue hire fee", for sentences like "10% off the food subtotal". */
+export const discountTargetLabel = (
+  target: AvailableDiscount["discountTarget"]
+): string => (target === "VENUE_HIRE_FEE" ? "venue hire fee" : "food subtotal");
+
+/** "10% off food" / "£20.00 off", with the cap folded in when there is one. */
+export const discountHeadline = (discount: AvailableDiscount): string => {
+  const isFood = discount.discountTarget !== "VENUE_HIRE_FEE";
+  const base =
+    discount.discountType === "PERCENT"
+      ? `${discount.discountAmount}% off ${isFood ? "food" : "venue hire"}`
+      : `${formatCurrency(discount.discountAmount)} off ${isFood ? "food" : "venue hire"}`;
+
+  if (discount.discountType === "PERCENT" && discount.maxDiscount != null) {
+    return `${base} (up to ${formatCurrency(discount.maxDiscount)})`;
+  }
+  return base;
+};
+
+/**
+ * Row-level restaurant scope line. An empty list means the code is valid
+ * everywhere, not nowhere - do not read it as "no restaurants".
+ *
+ * Absent is a third case, and not the same as empty: a backend that predates
+ * this field sends nothing at all, and claiming "All restaurants" off the back
+ * of that would be asserting something we were never told. Returns null so the
+ * caller renders no scope line rather than a wrong one.
+ */
+export const discountScopeLine = (
+  restaurants: AvailableDiscount["restaurants"] | null | undefined
+): string | null => {
+  if (!Array.isArray(restaurants)) return null;
+  if (restaurants.length === 0) return "All restaurants";
+  if (restaurants.length === 1) return restaurants[0].name;
+  const [first, ...rest] = restaurants;
+  return `${first.name} + ${rest.length} more`;
+};

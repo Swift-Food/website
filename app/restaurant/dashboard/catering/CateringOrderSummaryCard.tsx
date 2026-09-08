@@ -49,6 +49,10 @@ export const CateringOrderSummaryCard = ({
   const sessionCount = order.mealSessions?.length ?? 0;
   const earnings = getRestaurantNetEarnings(order, restaurantId);
   const address = formatDeliveryAddress(order.deliveryAddress);
+  const selfDelivers = Boolean(
+    order.selfDelivers ??
+      order.mealSessions?.some((s: { fulfillmentMethod?: string | null }) => s.fulfillmentMethod === "self")
+  );
 
   return (
     <button
@@ -82,9 +86,12 @@ export const CateringOrderSummaryCard = ({
         </span>
         <span className="flex items-center gap-1.5">
           <Clock size={14} className="shrink-0 text-gray-400" />
-          {order.collectionTime
-            ? formatCollectionTimeRange(order.collectionTime)
-            : formatEventTimeRange(order.eventTime)}
+          {/* A restaurant delivering its own order is not collected from. */}
+          {selfDelivers
+            ? `Deliver by ${formatEventTimeRange(order.eventTime)}`
+            : order.collectionTime
+              ? formatCollectionTimeRange(order.collectionTime)
+              : formatEventTimeRange(order.eventTime)}
         </span>
         {order.guestCount ? (
           <span className="flex items-center gap-1.5">

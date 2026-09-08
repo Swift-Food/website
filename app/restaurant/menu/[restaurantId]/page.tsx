@@ -1201,7 +1201,7 @@ const MenuListPage = () => {
                   </p>
                 )}
               </div>
-              {item.feedsPerUnit && (
+              {item.feedsPerUnit && item.feedsPerUnit > 1 && (
                 <span className="text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full font-medium">
                   Portion: {item.feedsPerUnit}
                 </span>

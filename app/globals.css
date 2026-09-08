@@ -50,9 +50,25 @@
   --hot-pink: #FFB3E6;
   --beige: #EFEAE0;
   --swift-pink: #fa43ad;
+
+  /* Navbar: py-5 (40px) + the 1em logo ticker at text-2xl / md:text-4xl. */
+  --navbar-height: 4rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --navbar-height: 4.75rem;
+  }
 }
 
 /* Custom utility classes */
+
+/* Fills the viewport below the navbar so the footer starts just off-screen. */
+.min-h-below-nav {
+  min-height: calc(100vh - var(--navbar-height));
+  min-height: calc(100dvh - var(--navbar-height));
+}
+
 .bg-dark-pink {
   background-color: var(--dark-pink);
 }

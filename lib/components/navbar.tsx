@@ -5,12 +5,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./navbar.module.css";
 import { useScroll } from "@/context/ScrollContext";
+import { useCustomerAuth } from "@/lib/hooks/useCustomerAuth";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { navbarDark, hideNavbar } = useScroll();
+  const { isAuthenticated, loading: authLoading } = useCustomerAuth();
+
+  // Signed-out visitors get "Login"; signed-in customers get their account.
+  const accountHref = isAuthenticated ? "/account" : "/account/login";
+  const accountLabel = isAuthenticated ? "Account" : "Login";
 
   // The partner portal is an app-like surface with its own chrome — no marketing nav.
   const isPartnerPath = pathname?.startsWith("/partners");
@@ -78,6 +84,14 @@ export default function Navbar() {
             >
               For Business
             </Link>
+            {!authLoading && (
+              <Link
+                href={accountHref}
+                className="hover:text-[#fa43ad] transition-colors uppercase"
+              >
+                {accountLabel}
+              </Link>
+            )}
             <Link href="/event-order">
               <button className="bg-[#fa43ad] text-white rounded-xl px-6 py-2.5  hover:bg-[#e03a9a] transition-all duration-300 active:scale-95 shadow-lg shadow-black/5 uppercase text-xs font-bold tracking-widest">
                 Order Now
@@ -188,6 +202,15 @@ export default function Navbar() {
             >
               For Business
             </Link>
+            {!authLoading && (
+              <Link
+                href={accountHref}
+                className="text-lg font-medium tracking-wide hover:text-[#fa43ad] transition-colors"
+                onClick={closeMobileMenu}
+              >
+                {accountLabel}
+              </Link>
+            )}
           </div>
 
           {/* Order Button at Bottom */}

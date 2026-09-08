@@ -9,6 +9,7 @@ import {
 } from "@/services/api/catering.api";
 import { parseInitialDataFromParams } from "@/lib/branding/parseInitialDataFromParams";
 import { useScroll } from "@/context/ScrollContext";
+import { ensureFreshCustomerToken } from "@/lib/api-client/auth-client";
 import PartnerBrandedHeader from "./PartnerBrandedHeader";
 import PartnerNotFound from "./PartnerNotFound";
 
@@ -90,6 +91,9 @@ export default function EventOrderClient() {
         partnerSlug={branding?.slug}
         googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
         stickyTopOffset={0}
+        // The website owns the customer session, so it owns refreshing it. The
+        // widget just asks for a token and gets null when nobody is signed in.
+        getAuthToken={ensureFreshCustomerToken}
         theme={{ primary }}
         initialData={initialData}
         onOrderCompleteDelaySeconds={0}

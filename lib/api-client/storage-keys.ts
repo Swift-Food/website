@@ -15,3 +15,9 @@ export const PARTNER_STORAGE_KEYS: AuthStorageKeys = {
   refreshToken: "cw_refresh_token",
   user: "cw_user",
 };
+
+export const CUSTOMER_STORAGE_KEYS: AuthStorageKeys = {
+  accessToken: "cust_access_token",
+  refreshToken: "cust_refresh_token",
+  user: "cust_user",
+};
