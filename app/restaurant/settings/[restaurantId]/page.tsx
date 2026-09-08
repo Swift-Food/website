@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Loader } from "lucide-react";
 import { cateringService } from "@/services/api/catering.api";
 import { SettingsMenu } from "../components/SettingsMenu";
@@ -16,6 +16,24 @@ import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants/api";
 import { fetchWithAuth } from "@/lib/api-client/auth-client";
 
 type ActiveSection = "menu" | "profile" | "inventory" | "pickupAddresses" | "categories" | "payments" | null;
+
+/**
+ * Sections that can be opened straight from a link, so the dashboard's setup
+ * checklist can send a partner to the exact screen that fixes the thing it
+ * says is missing. "menu" is left out on purpose — it has no editor here.
+ */
+const LINKABLE_SECTIONS = [
+  "profile",
+  "inventory",
+  "pickupAddresses",
+  "categories",
+  "payments",
+] as const;
+
+const sectionFromQuery = (value: string | null): ActiveSection =>
+  LINKABLE_SECTIONS.includes(value as (typeof LINKABLE_SECTIONS)[number])
+    ? (value as ActiveSection)
+    : null;
 
 interface FormData {
   restaurant_name: string;
@@ -36,9 +54,10 @@ interface FormData {
   tags: string[];
 }
 
-const RestaurantSettingsPage = () => {
+const RestaurantSettings = () => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const restaurantId = params.restaurantId as string;
 
   const [loading, setLoading] = useState(true);
@@ -72,7 +91,12 @@ const RestaurantSettingsPage = () => {
   const [pendingEventImages, setPendingEventImages] = useState<PendingEventImage[]>([]);
   const [pendingEventDeletions, setPendingEventDeletions] = useState<string[]>([]);
 
-  const [activeSection, setActiveSection] = useState<ActiveSection>(null);
+  // Read once, on mount: after that the back arrow inside each editor owns
+  // the section, and re-reading would drag the partner back to the section
+  // they just closed.
+  const [activeSection, setActiveSection] = useState<ActiveSection>(() =>
+    sectionFromQuery(searchParams.get("section")),
+  );
 
   useEffect(() => {
     loadRestaurantDetails();
@@ -492,5 +516,21 @@ const RestaurantSettingsPage = () => {
 
   return null;
 };
+
+/**
+ * useSearchParams needs a Suspense boundary above it — same shape as the
+ * promotion create page.
+ */
+const RestaurantSettingsPage = () => (
+  <Suspense
+    fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader size={48} className="animate-spin text-blue-600" />
+      </div>
+    }
+  >
+    <RestaurantSettings />
+  </Suspense>
+);
 
 export default RestaurantSettingsPage;
