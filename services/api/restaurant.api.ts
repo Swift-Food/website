@@ -193,6 +193,27 @@ export const restaurantApi = {
     return response.json();
   },
 
+  /**
+   * The remittance advice for one withdrawal — the same PDF that was emailed
+   * when the money went out. The API sends it as a file, so this returns the
+   * blob for the caller to save.
+   */
+  getWithdrawalRemittance: async (withdrawalId: string): Promise<Blob> => {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/withdrawals/${withdrawalId}/remittance`
+    );
+    if (!response.ok) {
+      // The API explains itself here ("No payout was made for this
+      // withdrawal"), so pass its wording through rather than inventing one.
+      const message = await response
+        .json()
+        .then((body) => (body as { message?: string })?.message)
+        .catch(() => undefined);
+      throw new Error(message || "Could not download the statement");
+    }
+    return response.blob();
+  },
+
   // Catering endpoints
   getCateringOrders: async (
     restaurantId: string,

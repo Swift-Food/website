@@ -43,6 +43,13 @@ export interface WithdrawalRequest {
   requestedAt: string;
   reviewedAt?: string;
   isInstantPayout: boolean;
+  /** Set once Stripe has paid out; the statement PDF needs it. */
+  stripePayoutId?: string | null;
+  /**
+   * True for a payout Stripe made on the account's own schedule, which the
+   * history merges in. We hold no withdrawal record behind it.
+   */
+  isAutomatic?: boolean;
 }
 
 export interface AnalyticsDashboard {

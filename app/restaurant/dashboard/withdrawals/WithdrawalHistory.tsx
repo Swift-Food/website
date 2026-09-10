@@ -1,14 +1,25 @@
 // components/restaurant-dashboard/withdrawals/WithdrawalHistory.tsx
 "use client";
 
-import { Clock } from "lucide-react";
+import { useState } from "react";
+import { Clock, Download, Loader } from "lucide-react";
 import { WithdrawalRequest } from "@/types/restaurant.types";
+import { restaurantApi } from "@/services/api/restaurant.api";
+import {
+  hasRemittance,
+  remittanceFilename,
+  remittanceReference,
+} from "@/lib/utils/withdrawal-remittance";
 
 interface WithdrawalHistoryProps {
   history: WithdrawalRequest[];
 }
 
 export const WithdrawalHistory = ({ history }: WithdrawalHistoryProps) => {
+  // Which row is fetching its statement, and the last error against its row.
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -27,6 +38,36 @@ export const WithdrawalHistory = ({ history }: WithdrawalHistoryProps) => {
       failed: "bg-red-100 text-red-800 border-red-300",
     };
     return colors[status] || "bg-gray-100 text-gray-800 border-gray-300";
+  };
+
+  const downloadStatement = async (withdrawalId: string) => {
+    setDownloading(withdrawalId);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[withdrawalId];
+      return next;
+    });
+    try {
+      const blob = await restaurantApi.getWithdrawalRemittance(withdrawalId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = remittanceFilename(withdrawalId);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      // Revoked on a delay: some browsers abandon the download if the object
+      // URL disappears in the same tick as the click.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      setErrors((prev) => ({
+        ...prev,
+        [withdrawalId]:
+          err instanceof Error ? err.message : "Could not download the statement",
+      }));
+    } finally {
+      setDownloading(null);
+    }
   };
 
   if (history.length === 0) {
@@ -57,8 +98,12 @@ export const WithdrawalHistory = ({ history }: WithdrawalHistoryProps) => {
                 >
                   {withdrawal.status.toUpperCase()}
                 </span>
+                {/* The same reference that is printed on the statement, so a
+                    saved PDF can be matched back to the row it came from. */}
                 <p className="text-xs text-gray-500 mt-1">
-                  ID: {withdrawal.id.substring(0, 8)}...
+                  {withdrawal.isAutomatic
+                    ? `ID: ${withdrawal.id.substring(0, 8)}...`
+                    : `Ref: ${remittanceReference(withdrawal.id)}`}
                 </p>
               </div>
               <div className="text-right">
@@ -76,10 +121,39 @@ export const WithdrawalHistory = ({ history }: WithdrawalHistoryProps) => {
               </div>
             </div>
 
-            <div className="flex items-center text-xs text-gray-600 mb-2">
-              <Clock size={12} className="mr-1" />
-              {formatDate(withdrawal.requestedAt)}
+            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 mb-2">
+              <span className="flex items-center">
+                <Clock size={12} className="mr-1" />
+                {formatDate(withdrawal.requestedAt)}
+              </span>
+
+              {hasRemittance(withdrawal) && (
+                <button
+                  type="button"
+                  onClick={() => downloadStatement(withdrawal.id)}
+                  disabled={downloading === withdrawal.id}
+                  className="ml-auto inline-flex items-center gap-1.5 font-semibold text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {downloading === withdrawal.id ? (
+                    <>
+                      <Loader size={12} className="animate-spin" />
+                      Preparing...
+                    </>
+                  ) : (
+                    <>
+                      <Download size={12} />
+                      Statement (PDF)
+                    </>
+                  )}
+                </button>
+              )}
             </div>
+
+            {errors[withdrawal.id] && (
+              <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 mb-2">
+                {errors[withdrawal.id]}
+              </p>
+            )}
 
             {withdrawal.notes && (
               <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
