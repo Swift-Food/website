@@ -23,6 +23,9 @@ import { refundService } from "@/services/api/refund.api";
 import { RefundRequestsList } from "./refunds/refundRequestList";
 import { TaxInvoicesList } from "./tax-invoices/TaxInvoicesList";
 import { CateringOrderResponse } from "@/types/api";
+import { Promotion, promotionsServices } from "@/services/api/promotion.api";
+import { OnboardingChecklist } from "./onboarding/OnboardingChecklist";
+import { buildOnboardingSteps } from "@/lib/utils/restaurant-onboarding";
 
 // Restaurant IDs that are exempt from Stripe onboarding requirement
 const STRIPE_EXEMPT_RESTAURANT_IDS: string[] = [
@@ -77,6 +80,7 @@ export const RestaurantDashboard = ({
   );
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
   const [freshRestaurant, setFreshRestaurant] = useState<any>(null);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
 
   const fetchData = async () => {
     console.log(`[fetchData] Starting fetch with selectedAccountId: ${selectedAccountId}`);
@@ -100,6 +104,8 @@ export const RestaurantDashboard = ({
         restaurantApi.getCateringOrders(restaurantId, cateringAccountFilter),
         refundService.getRestaurantRefundRequests(restaurantId),
         restaurantApi.getRestaurantDetails(restaurantId),
+        // Only read for the setup checklist's optional discount step.
+        promotionsServices.getRestaurantPromotions(restaurantId),
       ]);
 
       // Extract successful results
@@ -110,6 +116,7 @@ export const RestaurantDashboard = ({
         cateringResult,
         refundsResult,
         restaurantResult,
+        promotionsResult,
       ] = results;
 
 
@@ -139,6 +146,10 @@ export const RestaurantDashboard = ({
         setFreshRestaurant(restaurantResult.value);
       }
 
+      if (promotionsResult.status === "fulfilled") {
+        setPromotions((promotionsResult.value || []) as Promotion[]);
+      }
+
       // Optional: Log any failures
       results.forEach((result, index) => {
         if (result.status === "rejected") {
@@ -149,6 +160,7 @@ export const RestaurantDashboard = ({
             "getCateringOrders",
             "getRefundRequests",
             "getRestaurantDetails",
+            "getRestaurantPromotions",
           ];
           console.error(`${apiNames[index]} failed:`, result.reason);
         }
@@ -239,6 +251,28 @@ export const RestaurantDashboard = ({
 
   const isStripeExempt = STRIPE_EXEMPT_RESTAURANT_IDS.includes(restaurantId);
 
+  const STRIPE_ANCHOR_ID = "stripe-onboarding";
+
+  // Built only from the record we actually fetched. If that request failed we
+  // show no checklist at all rather than telling a fully set-up restaurant
+  // that everything is missing.
+  const onboardingSteps = freshRestaurant
+    ? buildOnboardingSteps({
+        restaurantId,
+        restaurant: freshRestaurant,
+        stripeComplete: !!stripeStatus?.complete || isStripeExempt,
+        promotions,
+      })
+    : null;
+
+  const setupChecklist = onboardingSteps ? (
+    <OnboardingChecklist
+      steps={onboardingSteps}
+      stripeAnchorId={STRIPE_ANCHOR_ID}
+      onOpenSettings={handleNavigateToSettings}
+    />
+  ) : null;
+
   if (!stripeStatus?.complete && !isStripeExempt) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
@@ -255,6 +289,8 @@ export const RestaurantDashboard = ({
               Logout
             </button>
           </div>
+
+          {setupChecklist}
 
           {/* Menu Management + Settings — both stay available during
               onboarding so partners can set the restaurant up while Stripe
@@ -379,13 +415,17 @@ export const RestaurantDashboard = ({
             onSelectAccount={setSelectedAccountId}
           />
 
-          <StripeOnboardingRequired
-            userId={restaurantUserId}
-            token={token}
-            onRefresh={fetchData}
-            paymentAccounts={restaurantUser?.paymentAccounts}
-            selectedAccountId={selectedAccountId}
-          />
+          {/* The checklist's Stripe row links here rather than duplicating
+              this flow — the refresh-link retry lives inside this component. */}
+          <div id={STRIPE_ANCHOR_ID} className="scroll-mt-6">
+            <StripeOnboardingRequired
+              userId={restaurantUserId}
+              token={token}
+              onRefresh={fetchData}
+              paymentAccounts={restaurantUser?.paymentAccounts}
+              selectedAccountId={selectedAccountId}
+            />
+          </div>
 
           {/* Terms and Conditions Link */}
           <div className="mt-12 pt-6 border-t border-gray-200 text-center">
@@ -428,6 +468,9 @@ export const RestaurantDashboard = ({
             Logout
           </button>
         </div>
+
+        {setupChecklist}
+
         {/* Menu Management Button */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
           <div>
