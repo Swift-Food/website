@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CateringWidget } from "@swift-food-services/catering-widget";
 import {
@@ -10,6 +10,13 @@ import {
 import { parseInitialDataFromParams } from "@/lib/branding/parseInitialDataFromParams";
 import { useScroll } from "@/context/ScrollContext";
 import { ensureFreshCustomerToken } from "@/lib/api-client/auth-client";
+import { useCustomerAuth } from "@/lib/hooks/useCustomerAuth";
+import { AuthPromptModal } from "@/lib/components/account/AuthPromptModal";
+import {
+  hasSeenAuthPrompt,
+  markAuthPromptSeen,
+  shouldShowAuthPrompt,
+} from "@/lib/utils/auth-prompt";
 import PartnerBrandedHeader from "./PartnerBrandedHeader";
 import PartnerNotFound from "./PartnerNotFound";
 
@@ -35,6 +42,30 @@ export default function EventOrderClient() {
   const [brandingState, setBrandingState] = useState<BrandingState>(
     partnerSlug ? { status: "loading" } : { status: "none" },
   );
+
+  const { isAuthenticated, loading: authLoading } = useCustomerAuth();
+
+  // Undecided until the effect below runs: localStorage is not readable while
+  // rendering on the server, and guessing either way flashes the wrong thing.
+  const [promptSeen, setPromptSeen] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setPromptSeen(hasSeenAuthPrompt());
+  }, []);
+
+  const promptSettled = promptSeen !== null && !authLoading;
+  const showAuthPrompt =
+    promptSettled &&
+    shouldShowAuthPrompt({
+      loading: authLoading,
+      isAuthenticated,
+      seen: promptSeen,
+    });
+
+  const resolveAuthPrompt = useCallback(() => {
+    markAuthPromptSeen();
+    setPromptSeen(true);
+  }, []);
 
   useEffect(() => {
     setHideNavbar(!!partnerSlug);
@@ -85,32 +116,51 @@ export default function EventOrderClient() {
           accentColor={primary}
         />
       )}
-      <CateringWidget
-        aiEnabled
-        publishableKey={process.env.NEXT_PUBLIC_SWIFT_CATERING_PUBLISHABLE_KEY!}
-        partnerSlug={branding?.slug}
-        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
-        stickyTopOffset={0}
-        // The website owns the customer session, so it owns refreshing it. The
-        // widget just asks for a token and gets null when nobody is signed in.
-        getAuthToken={ensureFreshCustomerToken}
-        theme={{ primary }}
-        initialData={initialData}
-        onOrderCompleteDelaySeconds={0}
-        onOrderComplete={({ accessToken }) => {
-          if (accessToken && typeof window !== "undefined") {
-            window.location.href = `/event-order/view/${accessToken}`;
+
+      {/*
+        The widget opens its own event-details modal on a new order, so the
+        sign-in prompt takes the page instead of stacking on top of it: the
+        widget only mounts once the prompt is answered, and its modal then
+        opens into a clear screen.
+      */}
+      {!promptSettled || showAuthPrompt ? (
+        <div className="min-h-[60vh]" aria-busy={!promptSettled} />
+      ) : (
+        <CateringWidget
+          aiEnabled
+          publishableKey={
+            process.env.NEXT_PUBLIC_SWIFT_CATERING_PUBLISHABLE_KEY!
           }
-        }}
-        onError={(e) => {
-          // A partner deactivated mid-session surfaces here rather than at
-          // page load; drop to the same recovery screen.
-          if (e.code === "unknown_partner_slug") {
-            setBrandingState({ status: "notFound" });
-            return;
-          }
-          console.error("catering widget error", e);
-        }}
+          partnerSlug={branding?.slug}
+          googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
+          stickyTopOffset={0}
+          // The website owns the customer session, so it owns refreshing it. The
+          // widget just asks for a token and gets null when nobody is signed in.
+          getAuthToken={ensureFreshCustomerToken}
+          theme={{ primary }}
+          initialData={initialData}
+          onOrderCompleteDelaySeconds={0}
+          onOrderComplete={({ accessToken }) => {
+            if (accessToken && typeof window !== "undefined") {
+              window.location.href = `/event-order/view/${accessToken}`;
+            }
+          }}
+          onError={(e) => {
+            // A partner deactivated mid-session surfaces here rather than at
+            // page load; drop to the same recovery screen.
+            if (e.code === "unknown_partner_slug") {
+              setBrandingState({ status: "notFound" });
+              return;
+            }
+            console.error("catering widget error", e);
+          }}
+        />
+      )}
+
+      <AuthPromptModal
+        isOpen={showAuthPrompt}
+        onResolved={resolveAuthPrompt}
+        returnTo={`/event-order${partnerSlug ? `?partner=${encodeURIComponent(partnerSlug)}` : ""}`}
       />
     </>
   );
