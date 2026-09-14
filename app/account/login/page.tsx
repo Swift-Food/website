@@ -9,6 +9,7 @@ import { AuthLink } from "@/lib/components/account/AuthLink";
 import { AuthSubmitButton } from "@/lib/components/account/AuthSubmitButton";
 import { useCustomerAuth } from "@/lib/hooks/useCustomerAuth";
 import { isNeedsVerification } from "@/types/api/customer-auth.api.types";
+import { customerAuthApi } from "@/services/api/customer-auth.api";
 
 function LoginForm() {
   const router = useRouter();
@@ -33,11 +34,11 @@ function LoginForm() {
     try {
       const result = await login(email.trim(), password);
       if (isNeedsVerification(result)) {
-        // No consumer resend route we can call with just an email — a password
-        // reset is the supported way to verify and claim the account.
-        router.push(
-          `/account/set-password?reset=1&email=${encodeURIComponent(email.trim())}`
-        );
+        // The password was right; the email was never confirmed. Send a fresh
+        // code and hand off to the step that takes it, rather than sending
+        // them through a password reset they do not need.
+        await customerAuthApi.resendVerification(email.trim()).catch(() => undefined);
+        router.push(`/account/signup?verify=1&email=${encodeURIComponent(email.trim())}`);
         return;
       }
       router.push("/account");
@@ -53,8 +54,13 @@ function LoginForm() {
       subtitle="Your catering orders, the orders shared with you, and your reward codes."
       footer={
         <>
-          Ordered with us before but never set a password?{" "}
-          <AuthLink href="/account/claim">Claim your account</AuthLink>
+          <p>
+            New to Swift? <AuthLink href="/account/signup">Create an account</AuthLink>
+          </p>
+          <p className="mt-3">
+            Ordered with us before but never set a password?{" "}
+            <AuthLink href="/account/claim">Claim your account</AuthLink>
+          </p>
         </>
       }
     >

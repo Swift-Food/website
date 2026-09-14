@@ -88,14 +88,27 @@ self-contained consumer auth flow its own service.
 
 `registerConsumer(dto)`:
 
-1. Delegate creation to the existing `ConsumerUserService.create()`. It already
-   runs in a TypeORM transaction, bcrypts a supplied password, hardcodes
-   `verified: false`, and normalizes the email
-   (`backend/src/features/user-management/consumer-user/consumer-user.service.ts:35-86`).
-   A taken email surfaces as `ConflictException` from
-   `UsersService.createUser` (`users.service.ts:27-37`) and rolls the
-   transaction back — no orphaned row, no analytics event. That 409 propagates
-   to the client unchanged.
+1. Create the `User` and `ConsumerUser` rows in a single transaction, throwing
+   `ConflictException` if the normalized email is taken. That 409 propagates to
+   the client unchanged.
+
+   **Revised during implementation.** The original plan was to delegate to
+   `ConsumerUserService.create()`. Two things ruled it out:
+
+   - `AuthModule → ConsumerUserModule → RestaurantModule → AuthModule` is a
+     cycle (`restaurant.module.ts:14,39` imports `AuthModule`), so reuse would
+     need `forwardRef`.
+   - `ConsumerUserService.create()` does not actually get both rows into its
+     transaction. It opens one, then calls `UsersService.createUser`, which
+     saves through its own injected repository
+     (`users.service.ts:37`) rather than the transactional manager — so a
+     failure after the user is saved leaves an orphaned `User` with no consumer
+     record. Signup writing both rows through one manager avoids inheriting
+     that.
+
+   The duplicated cost is about ten lines of row construction. Email
+   normalization (`trim().toLowerCase()`) matches `UsersService` so login,
+   reset and claim all resolve the same row.
 2. Generate a 6-digit code with `randomInt` from `node:crypto`. The existing
    `registerUser` uses `Math.random()` (`auth.service.ts:301`); this does not
    copy that. The password-reset path already uses `randomInt`, so this matches
@@ -104,6 +117,15 @@ self-contained consumer auth flow its own service.
    with the same `5 * 60 * 1000` TTL.
 4. Send via `authEmailRouter.sendAuthEmail(email, code, AuthEmailType.VERIFICATION,
    EmailPlatform.SWIFT_FOOD)`.
+5. Publish the `CUSTOMER_CREATED` analytics event, matching what guest checkout
+   already reports so signups do not go missing from customer analytics.
+
+Once the transaction commits, the account exists and nothing after it is worth
+losing the account over. A failed verification email is logged and swallowed,
+and the request still returns success: the customer lands on the code screen
+and can resend. Throwing instead would hide the fact that the account was
+created, and their retry would meet a permanent 409 with no way forward.
+Analytics publishing is best-effort for the same reason.
 
 Reusing that exact cache key is the load-bearing decision: **`verify-email`
 then works against a registered account with no modification**, and because it

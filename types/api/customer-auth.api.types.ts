@@ -16,8 +16,9 @@ export interface CustomerUser {
 }
 
 /**
- * An app sign-up that never confirmed its email gets this instead of tokens.
- * The way out is a password reset, which marks the account verified.
+ * A sign-up that never confirmed its email gets this instead of tokens. The
+ * way out is to resend the code and enter it, which verifies the account and
+ * signs them in.
  */
 export interface CustomerNeedsVerification {
   success: boolean;

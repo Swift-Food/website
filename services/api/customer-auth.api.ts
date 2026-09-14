@@ -9,10 +9,24 @@ import {
 /** Consumer profiles are the `consumer` password context on every /auth route. */
 const CONTEXT = "consumer";
 
+/**
+ * Carries the status through, so a caller can tell "this email is already
+ * taken" (409) from any other failure without matching on message text.
+ */
+export class AuthRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "AuthRequestError";
+  }
+}
+
+export const isEmailTaken = (err: unknown): boolean =>
+  err instanceof AuthRequestError && err.status === 409;
+
 const parseError = async (response: Response, fallback: string): Promise<never> => {
   const body = await response.json().catch(() => ({}));
   const message = Array.isArray(body?.message) ? body.message[0] : body?.message;
-  throw new Error(message || fallback);
+  throw new AuthRequestError(message || fallback, response.status);
 };
 
 const postPublic = async <T>(path: string, body: unknown, fallback: string): Promise<T> => {
@@ -32,6 +46,35 @@ export const customerAuthApi = {
       "/auth/login-consumer",
       { email, password },
       "Sign in failed. Please check your email and password."
+    ),
+
+  // POST /auth/register-consumer — creates the account. Issues no tokens:
+  // the account is unverified until the emailed code is entered.
+  registerConsumer: (
+    email: string,
+    username: string,
+    password: string
+  ): Promise<AuthMessageResponse> =>
+    postPublic<AuthMessageResponse>(
+      "/auth/register-consumer",
+      { email, username, password },
+      "Could not create your account. Please try again."
+    ),
+
+  // POST /auth/register-consumer/resend — same answer for every email.
+  resendVerification: (email: string): Promise<AuthMessageResponse> =>
+    postPublic<AuthMessageResponse>(
+      "/auth/register-consumer/resend",
+      { email },
+      "Could not send a new code. Please try again."
+    ),
+
+  // POST /auth/verify-email — verifying is also signing in; this returns tokens.
+  verifyEmail: (email: string, code: string): Promise<CustomerTokenPair> =>
+    postPublic<CustomerTokenPair>(
+      "/auth/verify-email",
+      { email, code },
+      "That code is invalid or has expired."
     ),
 
   // POST /auth/claim-account — deliberately the same answer for every email.
