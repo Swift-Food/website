@@ -62,8 +62,14 @@ export default function EventOrderClient() {
       seen: promptSeen,
     });
 
-  const resolveAuthPrompt = useCallback(() => {
+  const dismissAuthPrompt = useCallback(() => {
     markAuthPromptSeen();
+    setPromptSeen(true);
+  }, []);
+
+  // Signing in clears the flag, so only the local view state moves here; the
+  // widget mounts because isAuthenticated has flipped.
+  const authenticatedAuthPrompt = useCallback(() => {
     setPromptSeen(true);
   }, []);
 
@@ -159,7 +165,8 @@ export default function EventOrderClient() {
 
       <AuthPromptModal
         isOpen={showAuthPrompt}
-        onResolved={resolveAuthPrompt}
+        onDismiss={dismissAuthPrompt}
+        onAuthenticated={authenticatedAuthPrompt}
         returnTo={`/event-order${partnerSlug ? `?partner=${encodeURIComponent(partnerSlug)}` : ""}`}
       />
     </>

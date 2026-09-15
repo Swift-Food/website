@@ -9,6 +9,7 @@ import {
   CustomerUser,
   isNeedsVerification,
 } from "@/types/api/customer-auth.api.types";
+import { clearAuthPromptSeen } from "@/lib/utils/auth-prompt";
 
 // Fired after a sign-in or sign-out so surfaces mounted in the same tab
 // (the navbar, mainly) pick up the new state without a reload.
@@ -64,6 +65,10 @@ export const useCustomerAuth = () => {
   const startSession = useCallback(async (tokens: CustomerTokenPair) => {
     localStorage.setItem(CUSTOMER_STORAGE_KEYS.accessToken, tokens.access_token);
     localStorage.setItem(CUSTOMER_STORAGE_KEYS.refreshToken, tokens.refresh_token);
+
+    // Signing in ends the prompt's life on this device: if they sign out
+    // later, the next order should ask again rather than stay silent forever.
+    clearAuthPromptSeen();
 
     // A profile we cannot read is not worth failing a good sign-in over.
     const profile = await customerAuthApi.getProfile().catch(() => null);

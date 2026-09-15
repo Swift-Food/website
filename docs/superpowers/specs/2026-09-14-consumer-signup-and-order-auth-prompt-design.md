@@ -250,7 +250,17 @@ Written on dismiss and on successful auth. Reads are wrapped — Safari private
 mode throws on `localStorage` access — and a throwing read is treated as "not
 seen", which shows the prompt rather than failing the page.
 
-Per the agreed behavior, dismissal is permanent on that device.
+Dismissal lasts until the customer next signs in. `startSession` clears the
+key — it is the one choke point every sign-in passes through (the modal, the
+login page, signup verification, and the claim link), so no path can set up a
+session without resetting the prompt. Signing out therefore leaves the device
+eligible to be asked again on its next order, rather than silent forever
+because of one dismissal months earlier.
+
+That ordering is why the modal has separate `onDismiss` and `onAuthenticated`
+callbacks instead of one `onResolved`: a single handler that marked the prompt
+seen would re-set the flag `startSession` had just cleared, and the reset would
+never survive a sign-in through the modal itself.
 
 ### Components
 

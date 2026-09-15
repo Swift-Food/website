@@ -4,7 +4,7 @@ export interface AuthPromptState {
   /** The customer session is still being restored. */
   loading: boolean;
   isAuthenticated: boolean;
-  /** This device has been shown the prompt before. */
+  /** This device has been shown the prompt before, and has not signed in since. */
   seen: boolean;
 }
 
@@ -39,5 +39,13 @@ export const markAuthPromptSeen = (): void => {
     localStorage.setItem(CUSTOMER_AUTH_PROMPT_KEY, "1");
   } catch {
     // Nothing to do — the customer sees the prompt again next visit.
+  }
+};
+
+export const clearAuthPromptSeen = (): void => {
+  try {
+    localStorage.removeItem(CUSTOMER_AUTH_PROMPT_KEY);
+  } catch {
+    // Nothing to do — the flag stays set until the next writable visit.
   }
 };

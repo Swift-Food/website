@@ -12,8 +12,10 @@ import { isNeedsVerification } from "@/types/api/customer-auth.api.types";
 
 interface AuthPromptModalProps {
   isOpen: boolean;
-  /** Dismissed, or signed in — either way the order goes ahead. */
-  onResolved: () => void;
+  /** Dismissed without signing in: the prompt is done on this device. */
+  onDismiss: () => void;
+  /** Signed in: close and order, but leave the flag cleared. */
+  onAuthenticated: () => void;
   /** Where to return after signing up on the dedicated page. */
   returnTo: string;
 }
@@ -27,7 +29,12 @@ interface AuthPromptModalProps {
  * page instead. Dismissing carries on as a guest, which creates an account at
  * checkout anyway.
  */
-export const AuthPromptModal = ({ isOpen, onResolved, returnTo }: AuthPromptModalProps) => {
+export const AuthPromptModal = ({
+  isOpen,
+  onDismiss,
+  onAuthenticated,
+  returnTo,
+}: AuthPromptModalProps) => {
   const router = useRouter();
   const { login } = useCustomerAuth();
 
@@ -53,7 +60,7 @@ export const AuthPromptModal = ({ isOpen, onResolved, returnTo }: AuthPromptModa
         );
         return;
       }
-      onResolved();
+      onAuthenticated();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed. Please try again.");
       setSubmitting(false);
@@ -61,7 +68,7 @@ export const AuthPromptModal = ({ isOpen, onResolved, returnTo }: AuthPromptModa
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onResolved} labelledBy="auth-prompt-title" className="max-w-md">
+    <Modal isOpen={isOpen} onClose={onDismiss} labelledBy="auth-prompt-title" className="max-w-md">
       <div className="p-6 md:p-8">
         <h2
           id="auth-prompt-title"
@@ -127,7 +134,7 @@ export const AuthPromptModal = ({ isOpen, onResolved, returnTo }: AuthPromptModa
           </button>
           <button
             type="button"
-            onClick={onResolved}
+            onClick={onDismiss}
             className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
           >
             Continue as guest

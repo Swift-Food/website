@@ -3,6 +3,7 @@ import {
   shouldShowAuthPrompt,
   hasSeenAuthPrompt,
   markAuthPromptSeen,
+  clearAuthPromptSeen,
 } from "./auth-prompt";
 import { CUSTOMER_AUTH_PROMPT_KEY } from "@/lib/api-client/storage-keys";
 
@@ -24,7 +25,9 @@ function installThrowingLocalStorage() {
     setItem: () => {
       throw new DOMException("denied");
     },
-    removeItem: () => {},
+    removeItem: () => {
+      throw new DOMException("denied");
+    },
   };
 }
 
@@ -81,5 +84,20 @@ describe("auth prompt persistence", () => {
   it("survives storage that refuses writes", () => {
     installThrowingLocalStorage();
     expect(() => markAuthPromptSeen()).not.toThrow();
+  });
+
+  it("forgets a seen prompt once the customer signs in", () => {
+    installLocalStorage();
+
+    markAuthPromptSeen();
+    expect(hasSeenAuthPrompt()).toBe(true);
+
+    clearAuthPromptSeen();
+    expect(hasSeenAuthPrompt()).toBe(false);
+  });
+
+  it("survives storage that refuses to clear the flag", () => {
+    installThrowingLocalStorage();
+    expect(() => clearAuthPromptSeen()).not.toThrow();
   });
 });
