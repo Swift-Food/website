@@ -57,6 +57,11 @@ export const RestaurantDashboard = ({
   const [stripeStatus, setStripeStatus] =
     useState<StripeOnboardingStatus | null>(null);
   const [balance, setBalance] = useState<BalanceInfo | null>(null);
+  // Earnings from paid orders whose transfer has not run yet.
+  const [upcoming, setUpcoming] = useState<{
+    total: number;
+    nextDate: string | null;
+  } | null>(null);
   const [history, setHistory] = useState<WithdrawalRequest[]>([]);
   const [cateringOrders, setCateringOrders] = useState<CateringOrderResponse[]>(
     []
@@ -106,6 +111,7 @@ export const RestaurantDashboard = ({
         restaurantApi.getRestaurantDetails(restaurantId),
         // Only read for the setup checklist's optional discount step.
         promotionsServices.getRestaurantPromotions(restaurantId),
+        restaurantApi.getUpcomingEarnings(restaurantUserId, selectedAccountId),
       ]);
 
       // Extract successful results
@@ -117,6 +123,7 @@ export const RestaurantDashboard = ({
         refundsResult,
         restaurantResult,
         promotionsResult,
+        upcomingResult,
       ] = results;
 
 
@@ -126,6 +133,10 @@ export const RestaurantDashboard = ({
 
       if (balanceResult.status === "fulfilled" && balanceResult.value) {
         setBalance(balanceResult.value);
+      }
+
+      if (upcomingResult.status === "fulfilled" && upcomingResult.value) {
+        setUpcoming(upcomingResult.value);
       }
 
       if (historyResult.status === "fulfilled") {
@@ -644,7 +655,7 @@ export const RestaurantDashboard = ({
         ) : (
           <>
             {/* Balance Cards */}
-            <BalanceCards balance={balance} />
+            <BalanceCards balance={balance} upcoming={upcoming} />
 
             {/* Tabs */}
             <div className="mb-8">

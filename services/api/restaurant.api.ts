@@ -145,6 +145,41 @@ export const restaurantApi = {
     }
   },
 
+  /**
+   * Earnings from orders already paid for whose transfer has not run yet —
+   * what the restaurant is owed and will be sent, roughly 5 working days
+   * after the order. Reuses the early-withdrawal listing, which already
+   * gathers exactly these orders.
+   */
+  getUpcomingEarnings: async (
+    userId: string,
+    accountId?: string | null
+  ): Promise<{ total: number; nextDate: string | null } | null> => {
+    try {
+      const url = accountId
+        ? `${API_BASE_URL}/withdrawals/early/eligible/${userId}?accountId=${accountId}`
+        : `${API_BASE_URL}/withdrawals/early/eligible/${userId}`;
+      const response = await fetchWithAuth(url);
+      if (!response.ok) return null;
+      const data = await response.json();
+      const orders: Array<{ scheduledTransferDate: string | null }> =
+        data?.orders ?? [];
+      // The soonest transfer date across those orders, so the card can say
+      // when the next money actually lands rather than "about 5 days".
+      const dates = orders
+        .map((o) => o.scheduledTransferDate)
+        .filter((d): d is string => !!d)
+        .sort();
+      return {
+        total: Number(data?.totals?.earnings ?? 0),
+        nextDate: dates[0] ?? null,
+      };
+    } catch (error) {
+      console.error("Upcoming earnings error:", error);
+      return null;
+    }
+  },
+
   getPaymentAccounts: async (
     restaurantUserId: string
   ): Promise<PaymentAccounts | null> => {

@@ -29,10 +29,18 @@ export const WithdrawalHistory = ({ history }: WithdrawalHistoryProps) => {
       minute: "2-digit",
     });
 
+  /**
+   * Nobody reviews a withdrawal — once Stripe has the payout the money is on
+   * its way and Swift cannot intervene. "Pending" and "approved" implied a
+   * gatekeeper that does not exist, so both read as completed; only a real
+   * failure is worth its own colour. New withdrawals are recorded completed
+   * outright, so these two only appear on historic rows.
+   */
+  const displayStatus = (status: string): string =>
+    status === "pending" || status === "approved" ? "completed" : status;
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-      approved: "bg-blue-100 text-blue-800 border-blue-300",
       completed: "bg-green-100 text-green-800 border-green-300",
       rejected: "bg-red-100 text-red-800 border-red-300",
       failed: "bg-red-100 text-red-800 border-red-300",
@@ -93,10 +101,10 @@ export const WithdrawalHistory = ({ history }: WithdrawalHistoryProps) => {
               <div>
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                    withdrawal.status
+                    displayStatus(withdrawal.status)
                   )}`}
                 >
-                  {withdrawal.status.toUpperCase()}
+                  {displayStatus(withdrawal.status).toUpperCase()}
                 </span>
                 {/* The same reference that is printed on the statement, so a
                     saved PDF can be matched back to the row it came from. */}
