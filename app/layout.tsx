@@ -4,6 +4,8 @@ import Footer from "@/lib/components/footer";
 import { IBM_Plex_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import { ScrollProvider } from "@/context/ScrollContext";
+import ClosureGate from "@/lib/components/ClosureGate";
+import { API_BASE_URL } from "@/lib/constants/api";
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -89,20 +91,42 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+/**
+ * Whether Swift has closed to new orders (Admin ▸ Catering Settings).
+ * Re-read at most once a minute; if the backend can't be reached the site
+ * stays as normal — the backend refuses new orders on its own regardless.
+ */
+async function isOrderingClosed(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/catering/status`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return false;
+    const body: { orderingClosed?: boolean } = await res.json();
+    return body.orderingClosed === true;
+  } catch {
+    return false;
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const closed = await isOrderingClosed();
+
   return (
     <html lang="en" data-theme="Swift">
       <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
         <ScrollProvider>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <ClosureGate closed={closed}>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </ClosureGate>
         </ScrollProvider>
       </body>
     </html>
